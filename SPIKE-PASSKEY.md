@@ -51,3 +51,22 @@
    instance mới (WASM hash giữ nguyên), không sửa code.
 3. Challenge PHẢI dẫn xuất từ tx đã simulate (K2) — verifier đã enforce khớp challenge,
    tầng FE (2.3) chịu trách nhiệm derive.
+
+## Cập nhật PHA 2.2 — smart account tích hợp OZ (2026-07-23)
+
+Sau khi gate 3 xác nhận mô hình, đã dựng bản TÍCH HỢP để đi tiếp:
+
+- `contracts/origin-verifier/` (SDK 26.1.1, khớp OZ stellar-accounts 0.7.2) — verifier
+  bản OZ `Verifier` trait, **bọc `webauthn::verify` đã-audit của OZ + chèn K1 (rpIdHash +
+  allow-list origin) mà OZ CỐ Ý bỏ**. Đây là bản dùng thật (cắm làm External signer);
+  verifier-webauthn (SDK 27) là bản spike độc lập đã proven testnet. cargo test 4/4:
+  3 origin true · origin lạ → OriginNotAllowed · rpId sai → RpIdHashMismatch · config đọc.
+- `contracts/smart-account/` — ví contract của mỗi hộ, wrap OZ `smart_account`
+  (signers External passkey + context rules + policies). cargo test 3/3: mở ví bằng
+  constructor args (không hard-code contract ID) · verifier chia sẻ nhiều ví · thêm signer
+  (nối vỏ) cần account tự ký. WASM: origin_verifier 13KB, smart_account 40KB.
+- ⚠️ **SDK 26 vs 27:** OZ 0.7.2 (kể cả 0.8.0-rc) còn ở soroban-sdk 26.1.x → hai crate tích
+  hợp OZ pin =26.1.1; verifier spike vẫn 27. Nâng cả cụm lên 27 NGAY khi OZ ra bản tương thích.
+- Luồng `__check_auth` crypto đầy đủ (FE ký thật, challenge = auth_digest) là việc PHA 2.3
+  (FE smart-account-kit + BE SEP-45). Property bảo mật cốt lõi (origin reject + challenge
+  bind) đã phủ ở cargo test vì account gọi ĐÚNG `verify()` đã test.

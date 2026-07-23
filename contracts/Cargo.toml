@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["verifier-webauthn"]
+members = ["verifier-webauthn", "origin-verifier", "smart-account"]
 
 [workspace.package]
 edition = "2021"

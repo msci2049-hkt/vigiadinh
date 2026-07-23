@@ -1,0 +1,22 @@
+[package]
+name = "origin-verifier"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+# Đi theo SDK 26.1.1 (bằng OZ stellar-accounts 0.7.2) — verifier này là External signer
+# của OZ smart account nên PHẢI cùng ABI. Verifier spike (verifier-webauthn) ở SDK 27 là
+# bản chứng minh gate-3 độc lập trên testnet; bản này là bản TÍCH HỢP OZ dùng thật.
+[dependencies]
+soroban-sdk = "=26.1.1"
+stellar-accounts = "=0.7.2"
+
+[dev-dependencies]
+soroban-sdk = { version = "=26.1.1", features = ["testutils"] }
+p256 = { version = "0.13", features = ["ecdsa"] }
+sha2 = "0.10"
