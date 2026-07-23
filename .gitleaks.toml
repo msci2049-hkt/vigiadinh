@@ -1,0 +1,45 @@
+# gitleaks — chống commit secret (WP7). Chạy ở: pre-commit (lefthook),
+# CI (job secrets-scan trong ci.yml, full history). Binary: docs/HUMAN-TODO.md.
+[extend]
+useDefault = true
+
+# ---------------------------------------------------------------------------
+# LUẬT BẤT BIẾN FamilyWallet: "Cấm seed `S...` trong repo/log/chat"
+# (.claude/rules/security.md). Rule mặc định của gitleaks KHÔNG bắt được seed
+# Stellar — security review 2026-07-20 đã TEST và xác nhận seed lọt qua.
+# Seed bí mật Stellar = base32: 'S' + 55 ký tự [A-Z2-7]. (Public 'G...' không quét.)
+# ---------------------------------------------------------------------------
+[[rules]]
+id = "stellar-secret-seed"
+description = "Stellar secret seed (S... 56 ký tự base32) — TUYỆT ĐỐI không commit"
+regex = '''\bS[A-Z2-7]{55}\b'''
+
+# Pattern secret theo dự án — thêm vào đây khi tích hợp provider mới.
+[[rules]]
+id = "sepay-key"
+description = "SePay production API key"
+regex = '''sepay_[a-z]+_prod_[A-Za-z0-9]{20,}'''
+keywords = ["sepay_"]
+
+# Fixture test: chuỗi bắt đầu `test-secret-` là giá trị giả trong *.test.ts
+# (vd cdhc-jwt.test.ts). Allowlist THEO GIÁ TRỊ, không allowlist cả file test
+# (secret thật dán nhầm vào test vẫn phải bị chặn).
+[[allowlists]]
+description = "test fixtures"
+regexes = ['''test-secret-[A-Za-z0-9_-]+''']
+
+# Liquify PUBLIC RPC endpoint (URL công khai trong docs Stellar — key nhúng trong
+# path là shared/public của Liquify, không phải secret của dự án).
+# Allowlist THEO GIÁ TRỊ (skills/stellar-mainnet-deploy/references/rpc-providers.md).
+[[allowlists]]
+description = "Liquify public Stellar RPC endpoint (shared key công khai)"
+regexes = ['''41EEWAH79Y5OCGI7/mainnet''']
+
+# Cú pháp SỐ ÍT cho gitleaks < 8.25 (bản cũ bỏ qua [[allowlists]] global một cách
+# im lặng — máy dev đang chạy 8.24.3). Giữ CẢ HAI: bản mới đọc cả hai, bản cũ đọc bảng này.
+[allowlist]
+description = "test fixtures + Liquify public endpoint (mirror của [[allowlists]] trên)"
+regexes = [
+  '''test-secret-[A-Za-z0-9_-]+''',
+  '''41EEWAH79Y5OCGI7/mainnet''',
+]

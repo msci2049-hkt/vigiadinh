@@ -1,0 +1,30 @@
+# CI contracts — lọc path contracts/ (PHA 1.5 checklist).
+# contracts/ CHƯA dựng (PHA 2+ theo CHECKLIST-BUILD-vigiadinh). Placeholder này giữ chỗ
+# path filter; khi có contract thật: thay bằng stellar contract build + cargo test
+# (soroban-sdk 27.0.2, target wasm32v1-none — KHÔNG cargo build trực tiếp).
+name: CI contracts
+
+on:
+  push:
+    branches: [main]
+    paths: ["contracts/**", ".github/workflows/ci-contracts.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["contracts/**", ".github/workflows/ci-contracts.yml"]
+
+concurrency:
+  group: ci-contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  placeholder:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: contracts chưa dựng
+        run: |
+          if [ -d contracts ]; then
+            echo "::error::contracts/ đã tồn tại nhưng CI vẫn là placeholder — dựng job build/test thật (xem header file này)."
+            exit 1
+          fi
+          echo "contracts/ chưa tồn tại — placeholder pass."

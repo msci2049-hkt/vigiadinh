@@ -1,0 +1,44 @@
+# CI BE — validate + audit, lọc path be/ + shared/ (PHA 1.5 checklist).
+# Port từ be/.github/workflows/ci.yml (GitHub chỉ đọc workflow ở root monorepo).
+# Test integration KHÔNG chạy ở đây (testcontainers cần tinh chỉnh riêng) — test local `bun test`.
+name: CI BE
+
+on:
+  push:
+    branches: [main]
+    paths: ["be/**", "shared/**", "scripts/**", ".github/workflows/ci-be.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["be/**", "shared/**", "scripts/**", ".github/workflows/ci-be.yml"]
+
+concurrency:
+  group: ci-be-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: be
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          # Khớp version dev (bun.lock ổn định giữa local ↔ CI).
+          bun-version: "1.3.11"
+
+      - run: bun install --frozen-lockfile
+
+      # Gác hợp đồng shared/ ↔ bản copy be/fe (chạy từ root).
+      - name: check:contract (root shared/)
+        working-directory: .
+        run: node scripts/check-contract.mjs
+
+      # typecheck + biome + boundaries + env-parity + contract:check — không cần DB/Redis.
+      - run: bun run validate
+
+      # Audit gate CHẶN THẬT: CVE high/critical trong deps → đỏ.
+      - name: Audit (high/critical)
+        run: bun audit --audit-level=high

@@ -1,0 +1,138 @@
+# CI FE — validate + test + honest build + e2e + audit, lọc path fe/ + shared/ (PHA 1.5 checklist).
+# Port từ fe/.github/workflows/ci.yml (GitHub chỉ đọc workflow ở root monorepo).
+name: CI FE
+
+on:
+  push:
+    branches: [main]
+    paths: ["fe/**", "shared/**", "scripts/**", ".github/workflows/ci-fe.yml"]
+  pull_request:
+    branches: [main]
+    paths: ["fe/**", "shared/**", "scripts/**", ".github/workflows/ci-fe.yml"]
+
+concurrency:
+  group: ci-fe-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: fe
+
+jobs:
+  validate-test-build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Node 20/22 can't strip .ts in host-loaded files → naturally honest.
+          - node: 20
+            node-options: ""
+          - node: 22
+            node-options: ""
+          # Node 24 strips types by default → would HIDE a cross-package .ts
+          # import in vite.config/preset. Disable stripping = the honest gate.
+          - node: 24
+            node-options: "--no-experimental-strip-types"
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm version từ `packageManager` của fe/package.json (root không có field này).
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: fe/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+          cache-dependency-path: fe/pnpm-lock.yaml
+
+      - run: node --version
+
+      - run: pnpm install --frozen-lockfile
+
+      # Gác hợp đồng shared/ ↔ bản copy be/fe (chạy từ root).
+      - name: check:contract (root shared/)
+        working-directory: .
+        run: node scripts/check-contract.mjs
+
+      # env.ts validates VITE_API_URL at runtime; the build bakes it in.
+      - name: Prepare env
+        run: |
+          cp apps/web/.env.example apps/web/.env
+
+      # Static guard FIRST: host-loaded configs must not import cross-package .ts
+      # (runtime-independent — a modern Node must never hide this bug).
+      - run: node scripts/check-host-loaded.mjs
+
+      - run: pnpm exec biome ci .
+
+      - name: Validate (typecheck + boundaries, all workspaces)
+        run: pnpm exec turbo run validate
+        env:
+          NODE_OPTIONS: ${{ matrix.node-options }}
+
+      - name: Unit tests (all workspaces)
+        run: pnpm exec turbo run test
+        env:
+          NODE_OPTIONS: ${{ matrix.node-options }}
+
+      - name: Build (all apps) — honest gate
+        run: pnpm exec turbo run build --force
+        env:
+          NODE_OPTIONS: ${{ matrix.node-options }}
+
+  e2e:
+    needs: validate-test-build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [web]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: fe/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: fe/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+      - name: Prepare env
+        run: |
+          cp apps/web/.env.example apps/web/.env
+
+      # Installs Chromium/Firefox/WebKit + the OS libraries they need.
+      - run: pnpm --filter @repo/${{ matrix.app }} exec playwright install --with-deps chromium firefox webkit
+
+      # webServer in playwright.config.ts builds + previews; no backend required.
+      - run: pnpm --filter @repo/${{ matrix.app }} exec playwright test
+
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.app }}
+          path: fe/apps/${{ matrix.app }}/playwright-report/
+          retention-days: 7
+
+  # CVE high/critical trong deps → đỏ, chặn merge.
+  supply-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: fe/package.json
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: "fe/.nvmrc"
+          cache: pnpm
+          cache-dependency-path: fe/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Audit (high/critical)
+        run: pnpm audit --audit-level=high
