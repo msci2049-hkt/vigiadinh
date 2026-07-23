@@ -107,3 +107,61 @@
   (fail-env máy này: thiếu libnspr4/libnss3/libasound2, không sudo). Verify thật ở CI.
 - CHẶN thực thi 2.3 trên máy hiện tại: browser e2e không chạy được local + smart-account-kit là
   npm package cần cài vào fe/ (đụng lockfile — làm khi vào 2.3 chính thức).
+
+## CI · SCAN + FIX CI ĐỎ (2026-07-23)
+
+SHA sau fix: `e2682fd` (3 commit, đẩy lên `main`: `9ccc08b..e2682fd`).
+Máy này KHÔNG có `gh` và KHÔNG có `GITHUB_TOKEN` → không đọc được log Actions.
+Cách làm: đọc `.github/workflows/*.yml` rồi TÁI HIỆN LOCAL đúng lệnh + đúng version CI pin.
+
+### 3 nguyên nhân đỏ đã sửa (mỗi nguyên nhân 1 commit)
+
+1. `91eeb57` — **secret-scan chết ở bước load config** (job này chạy MỌI push, không lọc path
+   → repo đang đỏ liên tục). `.gitleaks.toml` giữ cả `[allowlist]` (số ít, deprecated) lẫn
+   `[[allowlists]]`; từ 8.25 gitleaks coi việc có cả hai là LỖI CHẾT, mà CI pin đúng 8.30.1:
+   `FTL Failed to load config error="[allowlist] is deprecated…"` — exit 1 trước khi quét
+   commit nào. Gỡ bảng số ít. Không đụng rule, không nới phạm vi quét.
+2. `ecb2c22` — **ci-be `bun audit --audit-level=high` exit 1**: axios 1.16.1
+   (GHSA-gcfj-64vw-6mp9, qua @stellar/stellar-sdk) + brace-expansion 5.0.6
+   (GHSA-3jxr-9vmj-r5cp, qua @sentry/bun và firebase-admin). Ghim bản vá bằng `overrides`
+   trong be/package.json — đúng cơ chế repo đã dùng cho lodash/grpc-js/protobufjs/tmp/undici.
+3. `e2682fd` — **ci-fe job supply-chain `pnpm audit --audit-level=high` exit 1**: axios 1.16.1
+   (cùng nguồn stellar-sdk) + fast-uri 3.1.3 (GHSA-v2hh-gcrm-f6hx, qua vite-plugin-pwa →
+   workbox-build → ajv). Thêm `pnpm.overrides` vào fe/package.json.
+
+Cả 3 đều là gate THẬT — không hạ `--audit-level`, không ignore CVE, không `continue-on-error`,
+không sửa/xoá test, không nới `paths`. Hai CVE audit là loại "CI đỏ mà không ai commit gì":
+`bun/pnpm audit` hỏi advisory DB sống, advisory mới công bố là gate đỏ ngay.
+
+### Bằng chứng tái hiện local (chạy đúng lệnh + version CI pin)
+
+| Gate | Lệnh | Trước | Sau |
+|---|---|---|---|
+| secret-scan | `gitleaks git --redact --no-banner` (8.30.1) | FTL, exit 1 | 127 commit, **no leaks**, exit 0 |
+| ci-be audit | `bun audit --audit-level=high` | 2 high, exit 1 | **sạch**, exit 0 |
+| ci-be validate | `bun run validate` | xanh | xanh (tsc+biome 167+boundaries+env-parity 27+contract) |
+| ci-be test | `bun test` | 88 pass | **88 pass, 3 skip, 0 fail** (đúng baseline) |
+| ci-fe audit | `pnpm audit --audit-level=high` | 12 mod + **2 high**, exit 1 | 3 mod, **0 high**, exit 0 |
+| ci-fe validate | `turbo run validate` | xanh | **11/11 task** |
+| ci-fe test | `turbo run test` | 25 | **25 pass 0 fail** (core 14 + ui 3 + web 8) |
+| ci-fe build | `turbo run build --force` | xanh | **1/1**, PWA precache **73 entries** (1087.60 KiB) |
+| ci-contracts | `cargo fmt --check` + `cargo test --workspace` | xanh | fmt OK, **15/15 pass** |
+| ci-contracts | `stellar contract build` (stellar 27.0.0) | xanh | **3 wasm**, exit 0 |
+
+Lockfile `be/bun.lock` + `fe/pnpm-lock.yaml` đổi CÓ CHỦ ĐÍCH (lô nâng dependency, CLAUDE.md
+luật 3) — đã `--frozen-lockfile` + validate + test + build lại cả hai bên, đều exit 0.
+`be/bun.lock` giữ nguyên `lockfileVersion: 1` (bun local 1.3.14 không ghi đè format của
+bun 1.3.11 mà CI pin) — diff chỉ là mấy dòng override.
+
+### CHƯA verify được — KHÔNG coi là xanh (xem BLOCKERS.md §CI)
+
+- **Kết quả CI thật**: máy không có `gh`/token → phải người mở tab Actions xem.
+- **Job e2e (ci-fe.yml)**: fail-env trên máy này (thiếu libnspr4/libnss3/libasound2, không sudo).
+  Không có DẤU HIỆU hỏng: workflow đã dùng `playwright install --with-deps` và Playwright
+  1.61 biết Ubuntu 24.04 (`libasound2t64`) — nhưng chưa chạy được thì chưa được nói là xanh.
+- **Nhánh matrix Node 24** của ci-fe: máy chỉ có Node 20.20.2 + 22.23.1, chạy gate bằng 22.
+
+### Bẫy môi trường gặp lại trong phiên này
+- `prepare: lefthook install` sinh `lefthook.yml` stub ở root sau MỖI install (be lẫn fe) — xoá.
+- Vá vitest `START_TIMEOUT` trong node_modules mất sau mỗi `pnpm i` — phải vá lại mới chạy test.
+- `lệnh | tail -N` → `$?` là của `tail`, luôn 0. Dùng `${PIPESTATUS[0]}` và đọc NỘI DUNG output.
