@@ -1,7 +1,4 @@
-# CI contracts — lọc path contracts/ (PHA 1.5 checklist).
-# contracts/ CHƯA dựng (PHA 2+ theo CHECKLIST-BUILD-vigiadinh). Placeholder này giữ chỗ
-# path filter; khi có contract thật: thay bằng stellar contract build + cargo test
-# (soroban-sdk 27.0.2, target wasm32v1-none — KHÔNG cargo build trực tiếp).
+# CI contracts — cargo test + stellar contract build (wasm32v1-none), lọc path contracts/.
 name: CI contracts
 
 on:
@@ -17,14 +14,34 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  placeholder:
+  test-build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: contracts
     steps:
       - uses: actions/checkout@v4
-      - name: contracts chưa dựng
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32v1-none
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: contracts
+
+      - name: cargo test (unit + fmt check)
         run: |
-          if [ -d contracts ]; then
-            echo "::error::contracts/ đã tồn tại nhưng CI vẫn là placeholder — dựng job build/test thật (xem header file này)."
-            exit 1
-          fi
-          echo "contracts/ chưa tồn tại — placeholder pass."
+          cargo fmt --check
+          cargo test --workspace
+
+      - name: Install stellar-cli (pin 27.0.0)
+        run: |
+          curl -sL -o /tmp/stellar.tar.gz \
+            https://github.com/stellar/stellar-cli/releases/download/v27.0.0/stellar-cli-27.0.0-x86_64-unknown-linux-gnu.tar.gz
+          tar -C /tmp -xzf /tmp/stellar.tar.gz stellar
+          sudo mv /tmp/stellar /usr/local/bin/stellar
+          stellar --version
+
+      - name: stellar contract build (wasm32v1-none)
+        run: stellar contract build
