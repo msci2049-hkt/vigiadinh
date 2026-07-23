@@ -79,3 +79,31 @@
 - Máy dev: cài lib browser (cần sudo): `sudo pnpm --filter @repo/web exec playwright install-deps`
   hoặc apt libnspr4 libnss3 libasound2 → chạy lại e2e local.
 - Landing `/` còn stack-card template (đã i18n, vô hại) — làm lại ở PHA 6 cùng redesign.
+
+## PHA 2 · SPIKE PASSKEY — 2.1 + 2.2 xong (2026-07-23)
+
+### 2.1 · Ba spike gate — GATE 3 (quyết định) PASS THẬT trên testnet
+- `contracts/verifier-webauthn` (soroban-sdk 27.0.2, wasm 4.5KB): verifier secp256r1 kiểm
+  rpIdHash pin + allow-list origin (K1) + challenge=prefix (K2, chống ký mù/replay) + UP/UV.
+- Deploy testnet `CBJ4JOO2H5GFZYI3RVGRWICYPZMTWVRW424U5YQHU34JKDMNZWGLG7WP`; MỘT key ký 3 origin
+  (web/apk/ext) → nhận cả 3 (3 tx thật); evil origin → Error(Contract,#5) OriginNotAllowed.
+- **KẾT LUẬN: mô hình một-rpId-ba-origin đi tiếp, KHÔNG cần signer-riêng-từng-vỏ.**
+- Trung thực: gate 1/2 (browser web→ext, web→APK) MÔ PHỎNG bằng p256 vì máy không chạy được
+  browser (fail-env) + chưa có máy Android — TODO PHA 8/9. Chi tiết: SPIKE-PASSKEY.md.
+
+### 2.2 · Verifier tích hợp OZ + smart account
+- `contracts/origin-verifier` (SDK 26.1.1): bọc OZ `webauthn::verify` (audited) + chèn K1
+  (rpIdHash + origin allow-list) mà OZ cố ý bỏ. Interface OZ `Verifier` trait → External signer.
+- `contracts/smart-account`: ví contract mỗi hộ wrap OZ smart_account (signers/rules/policies),
+  mở bằng WASM hash + constructor args (không hard-code contract ID).
+- cargo test --workspace **15/15** (spike 8 + origin-verifier 4 + smart-account 3);
+  stellar contract build 3 wasm. SDK pin =26.1.1 cho cụm OZ (0.7.2 chưa lên sdk 27); nâng khi OZ ra.
+
+### Điểm resume PHA 2.3 (chưa làm)
+- FE: smart-account-kit adapter + navigator.credentials + challenge = tx đã simulate (K2).
+- BE: SEP-45 challenge/verify → JWT bind địa chỉ ví + device; P1-9 Bearer-first (cookie sameSite=lax
+  chết trong WebView).
+- Test: Playwright 1.61 virtual authenticator `context.credentials.install()` — CẦN browser
+  (fail-env máy này: thiếu libnspr4/libnss3/libasound2, không sudo). Verify thật ở CI.
+- CHẶN thực thi 2.3 trên máy hiện tại: browser e2e không chạy được local + smart-account-kit là
+  npm package cần cài vào fe/ (đụng lockfile — làm khi vào 2.3 chính thức).
