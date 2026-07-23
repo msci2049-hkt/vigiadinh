@@ -8,7 +8,8 @@
 > gốc `chore: nền dự án family-wallet — BE + FE`, 15 commit việc thật được rebase lên trên
 > (136 commit → 16). Cây làm việc KHÔNG đổi một byte nào (tree SHA `9585b42` trước và sau
 > giống hệt). Nội dung từng mục dưới vẫn đúng — chỉ con số SHA là tra không ra.
-> Lịch sử cũ nguyên vẹn ở nhánh `backup-full` (`182c698`, còn trên remote, private).
+> Lịch sử cũ (đủ 136 commit, đỉnh `182c698`) KHÔNG còn nhánh nào trong repo — repo chỉ còn `main`.
+> Bản sao nằm NGOÀI repo: `../family-wallet-backup-full.bundle` (xem §GIT cuối file).
 > Bảng tra nhanh: `182c698` (đỉnh cũ) → `acb5624` (đỉnh mới, cùng nội dung).
 
 ## PHA 1 · GỘP GIT + KHUNG SẠCH — 2026-07-23
@@ -195,10 +196,32 @@ không phải 3 tháng commit template của dự án khác (commit cũ đứng 
 | 4.3 build còn xanh | BE `validate` xanh + `bun test` **88 pass, 3 skip, 0 fail** · FE `validate` **11/11** + test **25 pass** |
 | 4.4 secret trên lịch sử mới | gitleaks 8.30.1 quét đúng **16 commit** của `main` → **no leaks**, exit 0 |
 
-### Lưới an toàn còn nguyên
+### Lưới an toàn — ĐÃ CHUYỂN RA NGOÀI REPO (2026-07-23, sau khi dọn nhánh)
 
-- Nhánh **`backup-full` = `182c698`** (đủ 136 commit) đã push lên remote TRƯỚC khi rewrite,
-  private, **giữ tới khi thi xong**. Hỏng bất cứ đâu: `git reset --hard backup-full`.
+Nhánh `backup-full` (`182c698`, đủ 136 commit) từng là lưới an toàn, nay **đã xoá cả local lẫn
+remote** để repo chỉ còn đúng `main` (nhánh nào cũng lộ với người xem được repo — để lại
+`backup-full` là phơi nguyên lịch sử template, đúng thứ việc rewrite này muốn dọn).
+
+Trước khi xoá đã bundle ra NGOÀI repo — file này KHÔNG nằm trong git, không ai thấy trên GitHub:
+
+```
+../family-wallet-backup-full.bundle          # 1.4 MB, cạnh thư mục family-wallet/
+git bundle verify ../family-wallet-backup-full.bundle    # "records a complete history"
+```
+
+Khôi phục khi cần:
+
+```bash
+git clone --branch backup-full ../family-wallet-backup-full.bundle /tmp/khoi-phuc
+# hoặc kéo thẳng vào repo hiện tại:
+git fetch ../family-wallet-backup-full.bundle backup-full:backup-full
+```
+
+**Đã CHỨNG MINH bundle phục hồi được TRƯỚC khi xoá nhánh** (không tin suông): clone thử từ
+bundle ra thư mục tạm → **136 commit**, đỉnh `182c698`, tree SHA `9585b42` **giống hệt** bản gốc.
+
+⚠️ Bundle giờ là bản sao DUY NHẤT của lịch sử cũ. Mất file đó = mất luôn đường lùi.
+**Giữ tới khi thi xong**, nên copy thêm một bản ra ổ khác/cloud.
 - Máy nào đã clone repo này phải chạy `git fetch && git reset --hard origin/main` —
   pull thường sẽ tạo merge bậy giữa hai lịch sử không cùng gốc.
 - Mọi SHA ghi trong tài liệu trước 2026-07-24 tra không ra (ghi chú ở đầu BUILD-LOG + BLOCKERS).

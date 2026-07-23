@@ -5,7 +5,8 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
 
 > ⚠️ **MỌI SHA ghi trước 2026-07-24 trong file này KHÔNG CÒN HIỆU LỰC** — lịch sử đã rewrite
 > 2026-07-23 (gộp scaffold, 136 → 16 commit; cây làm việc không đổi một byte).
-> Chi tiết + bảng tra: `BUILD-LOG.md` đầu file. Lịch sử cũ: nhánh `backup-full`.
+> Chi tiết + bảng tra: `BUILD-LOG.md` đầu file. Lịch sử cũ nằm ngoài repo:
+> `../family-wallet-backup-full.bundle` (repo chỉ còn nhánh `main`).
 
 ## CI (2026-07-23, sau SHA `e2682fd`)
 
