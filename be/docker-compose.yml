@@ -1,0 +1,115 @@
+name: ${COMPOSE_PROJECT_NAME:-app}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-app}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app}
+      POSTGRES_DB: ${POSTGRES_DB:-app}
+      TZ: Asia/Ho_Chi_Minh
+    # Host port env-driven (DB_PORT trong .env) — 2 dự án degit từ template chạy
+    # song song không đụng nhau. Đổi DB_PORT thì sửa DATABASE_URL tương ứng.
+    ports: ["127.0.0.1:${DB_PORT:-5432}:5432"]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks: [backend]
+
+  dragonfly:
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    restart: unless-stopped
+    # Multi-thread emulation cho BullMQ:
+    # - cluster_mode=emulated → cluster slot routing trên single instance
+    # - lock_on_hashtags → Lua script trên {curly-braces} queue chạy trên thread riêng
+    # → throughput 10x so với Redis single-thread
+    command: ["--cluster_mode=emulated", "--lock_on_hashtags"]
+    ulimits:
+      memlock: -1
+    # Host port default 3699 (không phải 6379) — né Redis service sẵn có trên host.
+    # Env-driven (REDIS_PORT trong .env); app connect qua REDIS_URL=redis://localhost:<REDIS_PORT>.
+    ports: ["127.0.0.1:${REDIS_PORT:-3699}:6379"]
+    volumes:
+      - dragonfly_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks: [backend]
+
+  # Mailhog: SMTP local cho Better Auth email verify + reset password.
+  # - 1025: SMTP (app gửi qua đây trong dev)
+  # - 8025: Web UI (mở trình duyệt xem email gửi)
+  # Production dùng Resend (xem src/lib/email.ts).
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MAILHOG_SMTP_PORT:-1025}:1025"
+      - "127.0.0.1:${MAILHOG_UI_PORT:-8025}:8025"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://localhost:8025"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks: [backend]
+
+  # === Production topology — chạy: docker compose --profile prod up -d --build ===
+  # Profile 'prod' → dev `docker compose up` (không profile) vẫn CHỈ bật
+  # postgres/dragonfly/mailhog. Local dev: `bun run dev` trên host (hot reload).
+  api:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped # cluster.ts exit(1) khi 1 child chết → dựng lại container
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      # Số web process (reusePort) — KHÔNG nproc. Cân theo core/pool: docs/SCALE-RUNBOOK.md.
+      WEB_INSTANCES: ${WEB_INSTANCES:-2}
+      DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@postgres:5432/${POSTGRES_DB:-app}
+      REDIS_URL: redis://dragonfly:6379
+    # Loopback-only như mọi service khác — profile prod ở đây CHỈ cho smoke local
+    # (§9.3 master guide). Deploy VPS thật dùng deploy/docker-compose.prod.yml.
+    ports: ["127.0.0.1:${API_PORT:-3000}:3000"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      dragonfly: { condition: service_healthy }
+    networks: [backend]
+
+  # Worker: SERVICE RIÊNG, instances=1 LUÔN — KHÔNG `--scale worker=N` (cron dedup
+  # bằng redlock nhưng 1 process là baseline đúng, xem docs/SCALE-RUNBOOK.md).
+  worker:
+    profiles: ["prod"]
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["bun", "run", "dist/workers/index.js"]
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      RUN_MIGRATIONS: "false" # api đã migrate; worker KHÔNG migrate lại
+      DATABASE_URL: postgres://${POSTGRES_USER:-app}:${POSTGRES_PASSWORD:-app}@postgres:5432/${POSTGRES_DB:-app}
+      REDIS_URL: redis://dragonfly:6379
+    depends_on:
+      # api migrate xong (healthy) rồi worker mới pick job — tránh chạy trên schema cũ.
+      api: { condition: service_healthy }
+      postgres: { condition: service_healthy }
+      dragonfly: { condition: service_healthy }
+    networks: [backend]
+
+networks:
+  backend: { driver: bridge }
+
+volumes:
+  postgres_data: {}
+  dragonfly_data: {}

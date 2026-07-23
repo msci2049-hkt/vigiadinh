@@ -1,0 +1,116 @@
+{
+  "nav": {
+    "users": "Users",
+    "sessions": "Sessions",
+    "settings": "Settings"
+  },
+  "errors": {
+    "generic": "Something went wrong. Try again."
+  },
+  "overview": {
+    "title": "Admin overview",
+    "description": "User metrics from the Better Auth admin API.",
+    "totalUsers": "Total users",
+    "bannedUsers": "Currently banned",
+    "quickLinksTitle": "Shortcuts",
+    "quickLinksDescription": "Pages inside this panel."
+  },
+  "users": {
+    "title": "Users",
+    "description": "Search, paginate, set roles, ban, impersonate — server-side via listUsers.",
+    "searchPlaceholder": "Search by email…",
+    "roleFilter": "Filter by role",
+    "roleAll": "All roles",
+    "loadError": "Failed to load users.",
+    "empty": "No users match.",
+    "total": "{{count}} users",
+    "prev": "Prev",
+    "next": "Next",
+    "columns": {
+      "name": "Name",
+      "email": "Email",
+      "createdAt": "Created",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "status": {
+      "active": "Active",
+      "banned": "Banned"
+    },
+    "actions": {
+      "menu": "Actions for {{email}}",
+      "setRole": "Set role",
+      "setPassword": "Set password",
+      "revokeSessions": "Revoke all sessions",
+      "impersonate": "Impersonate",
+      "ban": "Ban user",
+      "unban": "Unban",
+      "remove": "Remove user"
+    },
+    "dialogs": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "roleTitle": "Set role",
+      "banTitle": "Ban user",
+      "banReason": "Reason",
+      "banReasonPlaceholder": "Spam, ToS violation…",
+      "banDurations": {
+        "permanent": "Permanent",
+        "day": "1 day",
+        "week": "7 days",
+        "month": "30 days"
+      },
+      "passwordTitle": "Set a new password",
+      "newPassword": "New password (≥ 12 chars)",
+      "passwordTooShort": "Minimum 12 characters (BE rule).",
+      "removeTitle": "Remove user?",
+      "removeDescription": "Permanently deletes {{email}} with sessions/accounts. Cannot be undone."
+    },
+    "toasts": {
+      "roleUpdated": "Role updated",
+      "banned": "User banned",
+      "unbanned": "User unbanned",
+      "passwordSet": "Password set",
+      "removed": "User removed",
+      "sessionsRevoked": "All user sessions revoked",
+      "impersonating": "Impersonating — use the banner above to exit",
+      "created": "User created"
+    },
+    "create": {
+      "trigger": "Create user",
+      "title": "Create a new user",
+      "description": "Admin-created account — email counts as verified.",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password (≥ {{min}} chars)",
+      "role": "Role",
+      "submit": "Create",
+      "submitting": "Creating…",
+      "errors": {
+        "name": "Enter a name",
+        "email": "Invalid email",
+        "password": "Minimum {{min}} characters",
+        "passwordMax": "Maximum {{max}} characters"
+      }
+    }
+  },
+  "sessions": {
+    "title": "My sessions",
+    "description": "Devices holding a session for this admin account.",
+    "unknownDevice": "Unknown device",
+    "current": "Current session",
+    "expires": "Expires: {{value}}",
+    "revoke": "Revoke",
+    "revoked": "Session revoked"
+  },
+  "settings": {
+    "title": "Panel settings",
+    "description": "Appearance + the role-panel registry.",
+    "appearanceTitle": "Appearance",
+    "appearanceDescription": "Language and light/dark theme.",
+    "registryTitle": "PANELS registry",
+    "registryDescription": "Declared in packages/auth/src/panels.ts — new panel = 3 steps (docs/ADD-NEW-PANEL.md).",
+    "pages": "pages"
+  }
+}

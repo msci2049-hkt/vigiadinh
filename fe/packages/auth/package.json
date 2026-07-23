@@ -1,0 +1,28 @@
+{
+  "name": "@repo/auth",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "validate": "tsc --noEmit"
+  },
+  "dependencies": {
+    "better-auth": "^1.6.20"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "^5.101.0",
+    "@tanstack/react-router": "^1.170.16",
+    "react": "^19.2.7"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.101.0",
+    "@tanstack/react-router": "^1.170.16",
+    "@types/react": "^19.2.17",
+    "react": "^19.2.7",
+    "typescript": "^6.0.3"
+  }
+}

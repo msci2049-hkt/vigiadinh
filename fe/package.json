@@ -1,0 +1,33 @@
+{
+  "name": "familywallet-fe",
+  "private": true,
+  "version": "0.2.0",
+  "type": "module",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=@repo/web",
+    "build": "node scripts/honest-build.mjs",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "test:e2e": "turbo run test:e2e",
+    "lint": "biome check .",
+    "lint:fix": "biome check --write .",
+    "format": "biome format --write .",
+    "guard:host-loaded": "node scripts/check-host-loaded.mjs",
+    "guard:validation-parity": "node scripts/check-validation-parity.mjs",
+    "guard:user-copy": "node scripts/check-user-copy.mjs",
+    "validate": "node scripts/check-host-loaded.mjs && node scripts/check-validation-parity.mjs && node scripts/check-user-copy.mjs && node scripts/contract-check.mjs && biome ci . && turbo run validate",
+    "contract:check": "node scripts/contract-check.mjs",
+    "verify": "pnpm run validate && pnpm run build",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.0",
+    "lefthook": "^2.1.10",
+    "turbo": "^2.10.4"
+  }
+}

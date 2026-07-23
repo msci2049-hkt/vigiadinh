@@ -1,0 +1,179 @@
+{
+  "block": {
+    "alert": {
+      "cta": "Stop this now",
+      "description": "A recovery request was started on another device. If this wasn't you, stop it before the waiting period ends — after that it cannot be undone.",
+      "title": "Someone wants to take over your wallet"
+    },
+    "confirm": {
+      "description": "This cancels the request and alerts your protectors.",
+      "title": "Stop this recovery?"
+    },
+    "done": {
+      "description": "The request was stopped. Your wallet is safe.",
+      "title": "Blocked"
+    }
+  },
+  "getStarted": {
+    "description": "Create a new wallet, or open one you already have.",
+    "title": "How would you like to start?"
+  },
+  "guardian": {
+    "approve": {
+      "description": "Check with them in person or by call before you approve.",
+      "title": "Confirm it's them"
+    },
+    "approveWarning": {
+      "cta": "Call them first",
+      "ctaSecondary": "Approve anyway",
+      "description": "This request looks unusual for this person. If it isn't really them, approving hands over their wallet. Call them yourself first — approve only after you hear their voice.",
+      "title": "Do not approve yet"
+    },
+    "approved": {
+      "description": "Your confirmation has been recorded.",
+      "title": "Thank you"
+    },
+    "inbox": {
+      "description": "Someone you protect needs your confirmation.",
+      "title": "Requests for you"
+    }
+  },
+  "guardians": {
+    "detail": {
+      "description": "Connection history and options for this person.",
+      "title": "Protector details"
+    },
+    "manage": {
+      "description": "See who protects your wallet, and whether we can still reach them.",
+      "title": "Your protectors"
+    }
+  },
+  "inheritance": {
+    "claim": {
+      "description": "Follow the steps to receive your share.",
+      "title": "Receive what was left for you"
+    },
+    "heartbeat": {
+      "description": "Confirm now and then, so nothing is passed on while you're still here.",
+      "title": "I'm doing fine"
+    },
+    "setup": {
+      "description": "Choose who receives your assets, and how much each person gets.",
+      "title": "Decide who receives this later"
+    }
+  },
+  "nightWatch": {
+    "alert": {
+      "cta": "Fix this",
+      "description": "One of your protectors hasn't answered our daily check. If too many go quiet, you may not have enough people to get your wallet back. Replace them, or help them reconnect.",
+      "title": "A protector is out of reach"
+    },
+    "center": {
+      "description": "We quietly check on your protection every day and warn you early.",
+      "title": "Night watch"
+    },
+    "guardianView": {
+      "description": "Keep this app installed — that's all you need to do most days.",
+      "title": "You're a protector"
+    },
+    "log": {
+      "description": "Daily checks and what they found.",
+      "title": "Daily check history"
+    },
+    "resolve": {
+      "description": "Replace this protector, or help them reconnect.",
+      "title": "Restore your protection"
+    },
+    "waiting": {
+      "description": "We'll tell you the moment they're back.",
+      "title": "Waiting to reconnect"
+    }
+  },
+  "passkey": {
+    "description": "Use your face or fingerprint — nothing to remember, nothing to lose.",
+    "title": "Unlock with your device",
+    "unsupported": "This device is too old for face or fingerprint unlock. You can still continue on another phone, or on a newer browser."
+  },
+  "recovery": {
+    "countdown": {
+      "description": "Enough approvals. The waiting period protects you from impostors.",
+      "title": "Almost there"
+    },
+    "done": {
+      "description": "Your wallet is on this device now.",
+      "title": "Welcome back"
+    },
+    "findWallet": {
+      "description": "Tell us how to find the wallet you want to recover.",
+      "title": "Find your wallet"
+    },
+    "progress": {
+      "description": "See who has confirmed so far.",
+      "title": "Waiting for approvals"
+    },
+    "sent": {
+      "description": "Your protectors have been asked to confirm it's really you.",
+      "title": "Request sent"
+    },
+    "start": {
+      "description": "Lost your phone? Your family can help you recover everything.",
+      "title": "Get your wallet back"
+    }
+  },
+  "setup": {
+    "assistant": {
+      "description": "A few questions to set things up the right way for your family.",
+      "title": "We'll set this up together"
+    },
+    "chooseGuardians": {
+      "description": "Pick 3–5 people you trust. They can only help together — never act alone.",
+      "title": "Choose your protectors"
+    },
+    "done": {
+      "description": "If you ever lose your phone, your family can get this wallet back for you.",
+      "title": "Your wallet is protected"
+    },
+    "intro": {
+      "description": "Choose trusted people who can help you recover this wallet if you ever lose your phone.",
+      "title": "Protect your wallet"
+    },
+    "invite": {
+      "description": "Send each person a link. They accept on their own phone.",
+      "title": "Invite them"
+    },
+    "review": {
+      "description": "Check everything before turning it on.",
+      "title": "Review your protection"
+    },
+    "threshold": {
+      "description": "Choose how many of your protectors must approve a recovery.",
+      "title": "How many need to agree?"
+    },
+    "timelock": {
+      "description": "Recovery only completes after this delay — time for you to stop anything suspicious.",
+      "title": "Waiting period"
+    }
+  },
+  "wallet": {
+    "history": {
+      "description": "Everything that happened in your wallet.",
+      "title": "Activity"
+    },
+    "home": {
+      "description": "Balance, recent activity and protection status at a glance.",
+      "title": "Your wallet"
+    },
+    "receive": {
+      "description": "Show your code, or share your wallet address.",
+      "title": "Receive"
+    },
+    "send": {
+      "description": "Send money to anyone.",
+      "title": "Send"
+    }
+  },
+  "welcome": {
+    "description": "A wallet your family can help you recover — nothing to memorize, nothing to lose.",
+    "title": "Welcome to FamilyWallet"
+  }
+}

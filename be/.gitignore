@@ -1,0 +1,49 @@
+# Bun
+node_modules/
+bun.lock-build/
+
+# Env (NEVER commit real .env)
+# (.env.example + deploy/env.production.example IS committed — template placeholder)
+.env
+.env.local
+.env.*.local
+.env.production
+deploy/.env.production
+*.env.bak
+*.bak
+*.before-upgrade
+docker-compose.yml.bak
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Build
+dist/
+build/
+out/
+*.tgz
+
+# Drizzle migrations: commit `drizzle/` folder (production migrate cần).
+# Chỉ ignore .tsbuildinfo nếu drizzle-kit có sinh.
+# (KHÔNG ignore drizzle/ hoặc drizzle/meta/)
+
+# Logs
+logs/
+*.log
+*.lcov
+coverage/
+
+# Caches
+.eslintcache
+.cache
+*.tsbuildinfo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code local
+.claude/settings.local.json
+.claude/test-cookies/

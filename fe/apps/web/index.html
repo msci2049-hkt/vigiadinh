@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <script>
+      // FOUC guard — set the theme class before first paint (avoids a light→dark flash).
+      // The "ui-theme" literal MUST match THEME_KEY in @repo/ui (theme-store).
+      // CSP: this inline script is allow-listed by sha256 hash in deploy/nginx.conf
+      // (regenerate the hash if you edit this block — see the README).
+      (() => {
+        try {
+          const raw = localStorage.getItem("ui-theme");
+          const theme = raw ? JSON.parse(raw).state.theme : "system";
+          const dark =
+            theme === "dark" ||
+            (theme !== "light" && matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.classList.toggle("dark", dark);
+        } catch {
+          /* best-effort: theme stays default if storage is unreadable */
+        }
+      })();
+    </script>
+    <!-- Single source of truth: Vite substitutes %VITE_APP_NAME% from .env at build/dev. -->
+    <title>%VITE_APP_NAME%</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

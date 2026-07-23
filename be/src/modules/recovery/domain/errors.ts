@@ -1,0 +1,3 @@
+export const RECOVERY_ERRORS = {
+  NOT_FOUND: "RECOVERY_REQUEST_NOT_FOUND",
+} as const;

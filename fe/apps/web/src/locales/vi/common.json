@@ -1,0 +1,79 @@
+{
+  "nav": {
+    "home": "Trang chủ",
+    "dashboard": "Dashboard"
+  },
+  "theme": {
+    "toggle": "Chuyển giao diện sáng/tối"
+  },
+  "language": {
+    "label": "Ngôn ngữ"
+  },
+  "userMenu": {
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "panel": "Bảng điều khiển"
+  },
+  "health": {
+    "checking": "BE: đang kiểm tra…",
+    "disconnected": "BE: mất kết nối",
+    "ok": "BE: OK"
+  },
+  "backHome": "← Về trang chủ",
+  "panels": {
+    "admin": {
+      "label": "Quản trị",
+      "nav": {
+        "overview": "Tổng quan",
+        "users": "Người dùng",
+        "sessions": "Phiên đăng nhập",
+        "settings": "Cài đặt"
+      }
+    }
+  },
+  "panelShell": {
+    "switch": "Chuyển bảng điều khiển",
+    "commandLabel": "Tìm nhanh",
+    "commandPlaceholder": "Gõ để tìm trang…",
+    "commandEmpty": "Không có kết quả."
+  },
+  "impersonation": {
+    "banner": "Đang mạo danh {{name}} — thao tác dưới danh nghĩa người này.",
+    "stop": "Thoát mạo danh"
+  },
+  "home": {
+    "description": "FE mẫu React 19 + Vite — cắm thẳng BE Bun + Hono + Better Auth.",
+    "ctaDashboard": "Vào Dashboard (protected)",
+    "ctaLogin": "Đăng nhập",
+    "stack": {
+      "router": {
+        "title": "TanStack Router",
+        "desc": "File-based, type-safe, search param Zod."
+      },
+      "query": {
+        "title": "TanStack Query v5",
+        "desc": "Server state, query key factory, queryOptions."
+      },
+      "auth": {
+        "title": "Better Auth",
+        "desc": "Session cookie, credentials:'include'."
+      },
+      "sse": {
+        "title": "SSE",
+        "desc": "fetch-event-source + refetch bù (at-most-once)."
+      },
+      "styling": {
+        "title": "Tailwind v4 + shadcn",
+        "desc": "CSS-first OKLCH, sở hữu code component."
+      },
+      "forms": {
+        "title": "RHF + Zod",
+        "desc": "Form type-safe, validate bằng Zod."
+      }
+    }
+  },
+  "update": {
+    "available": "Có phiên bản mới",
+    "reload": "Tải lại"
+  }
+}

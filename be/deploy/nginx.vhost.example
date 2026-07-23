@@ -1,0 +1,49 @@
+# ============================================================================
+# deploy/nginx.vhost.example — reverse proxy cho 1 project trên VPS.
+#
+# Cách dùng:
+#   1. Thay 2 chỗ: <TEN_MIEN_API>  và  3001 (= APP_HOST_PORT trong
+#      deploy/.env.production — PHẢI khớp).
+#   2. sudo cp deploy/nginx.vhost.example /etc/nginx/sites-available/<project>.conf
+#      sudo ln -s /etc/nginx/sites-available/<project>.conf /etc/nginx/sites-enabled/
+#   3. sudo nginx -t && sudo systemctl reload nginx
+#   4. SSL: sudo certbot --nginx -d <TEN_MIEN_API>   (certbot tự thêm block 443)
+# ============================================================================
+
+server {
+    listen 80;
+    server_name <TEN_MIEN_API>;
+
+    # Upload qua API (R2 presign thì body nhỏ; proxy-upload ảnh cần trần đủ).
+    client_max_body_size 25m;
+
+    # --- SSE (/api/events): PHẢI đứng TRƯỚC location / ---
+    # Stream không được buffer; timeout dài hơn heartbeat 20s của server.
+    location /api/events {
+        proxy_pass http://127.0.0.1:3001;   # = APP_HOST_PORT
+        proxy_http_version 1.1;
+        proxy_set_header Connection '';
+        proxy_buffering off;
+        proxy_cache off;
+        proxy_read_timeout 3600s;
+
+        proxy_set_header Host $host;
+        # GHI ĐÈ IP client bằng $remote_addr — TUYỆT ĐỐI KHÔNG dùng
+        # $proxy_add_x_forwarded_for: client tự gửi X-Forwarded-For giả
+        # → spoof IP → lách rate-limit đăng nhập.
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3001;   # = APP_HOST_PORT
+        proxy_http_version 1.1;
+
+        proxy_set_header Host $host;
+        # GHI ĐÈ $remote_addr — chống spoof (xem chú thích ở block SSE).
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}

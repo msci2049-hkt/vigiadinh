@@ -1,0 +1,16 @@
+{
+  "notFound": {
+    "title": "404 — Không tìm thấy trang",
+    "description": "Trang bạn tìm không tồn tại hoặc đã được di chuyển."
+  },
+  "boundary": {
+    "title": "Đã xảy ra lỗi",
+    "fallback": "Có lỗi không mong muốn. Vui lòng thử lại."
+  },
+  "unauthorized": {
+    "title": "403 — Không đủ quyền",
+    "description": "Tài khoản của bạn không có quyền truy cập khu vực này.",
+    "attempted": "Đường dẫn bị chặn:",
+    "backHome": "Về trang chủ"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "notFound": {
+    "title": "404 — Page not found",
+    "description": "The page you're looking for doesn't exist or has moved."
+  },
+  "boundary": {
+    "title": "Something went wrong",
+    "fallback": "An unexpected error occurred. Please try again."
+  },
+  "unauthorized": {
+    "title": "403 — Insufficient permissions",
+    "description": "Your account doesn't have access to this area.",
+    "attempted": "Blocked path:",
+    "backHome": "Back home"
+  }
+}

@@ -1,0 +1,42 @@
+# Build context tối thiểu — Dockerfile COPY chọn lọc (package.json/bun.lock/src/
+# scripts/drizzle/tsconfig/entrypoint.sh), nhưng .dockerignore vẫn PHẢI chặt:
+# (1) context nhỏ = build nhanh, (2) .env/secret KHÔNG BAO GIỜ vào context/layer.
+.git
+.gitignore
+node_modules
+dist
+build
+coverage
+*.log
+logs
+
+# Env & secret — tuyệt đối không vào image (kể cả deploy/.env.production)
+.env
+.env.*
+!.env.example
+deploy/.env*
+*.pem
+*.key
+
+# Docs / tooling — image không cần
+docs
+deploy
+.claude
+.vscode
+.idea
+*.md
+!README.md
+biome.json
+docker-compose*.yml
+Dockerfile*
+.dockerignore
+
+# Test files — không bundle vào image
+**/*.test.ts
+**/__tests__
+src/test-support
+
+# OS
+.DS_Store
+Thumbs.db
+*.bak

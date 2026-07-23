@@ -1,0 +1,51 @@
+{
+  "$schema": "https://code.claude.com/schemas/mcp.json",
+
+  "_comment": "MCP servers. Mỗi server cần env tương ứng trong .env. Bỏ block nào không dùng.",
+
+  "mcpServers": {
+    "_comment_postgres": "Cho Claude query DB trực tiếp (debug schema, check data). Read-only mode khuyến nghị cho production.",
+    "postgres": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-postgres", "${DATABASE_URL}"]
+    },
+
+    "_comment_sentry": "Cho Claude đọc error events khi user báo bug. Cần SENTRY_AUTH_TOKEN với scope project:read.",
+    "sentry": {
+      "command": "npx",
+      "args": ["-y", "@sentry/mcp-server@latest"],
+      "env": {
+        "SENTRY_AUTH_TOKEN": "${SENTRY_AUTH_TOKEN}",
+        "SENTRY_ORG": "${SENTRY_ORG}",
+        "SENTRY_PROJECT": "${SENTRY_PROJECT}"
+      }
+    },
+
+    "_comment_github": "Cho Claude tạo PR, comment issue, đọc CI log. Cần GITHUB_TOKEN với scope repo.",
+    "github": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_PERSONAL_ACCESS_TOKEN}"
+      }
+    },
+
+    "_comment_context7": "Cho Claude đọc docs library chuẩn xác theo version (Bun, Hono, Drizzle, BullMQ, Better Auth). Chống hallucinate API signature.",
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"]
+    },
+
+    "_comment_playwright": "Cho Claude chạy E2E test browser. Optional, dùng khi cần verify auth flow / webhook callback.",
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+
+    "_comment_filesystem": "Read filesystem ngoài working dir nếu cần (vd: log file). KHÔNG bật cho project nhạy cảm.",
+    "filesystem_disabled_by_default": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"]
+    }
+  }
+}

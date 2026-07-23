@@ -1,0 +1,37 @@
+# gitleaks — chống commit secret. Chạy ở: pre-commit (lefthook),
+# CI (job secrets-scan trong ci.yml, full history). Binary: docs/HUMAN-TODO.md.
+[extend]
+useDefault = true
+
+# ---------------------------------------------------------------------------
+# LUẬT BẤT BIẾN FamilyWallet: "Cấm seed `S...` trong repo/log/chat"
+# (.claude/rules/security.md). Rule mặc định của gitleaks KHÔNG bắt được seed
+# Stellar (generic-api-key không có keyword phù hợp) — security review
+# 2026-07-20 đã TEST và xác nhận seed lọt qua. Rule dưới đây đóng lỗ đó.
+#
+# Seed bí mật Stellar = base32: ký tự 'S' + 55 ký tự [A-Z2-7], tổng 56.
+# (Public key 'G...' cùng định dạng nhưng KHÔNG bí mật → không quét.)
+# ---------------------------------------------------------------------------
+[[rules]]
+id = "stellar-secret-seed"
+description = "Stellar secret seed (S... 56 ký tự base32) — TUYỆT ĐỐI không commit"
+regex = '''\bS[A-Z2-7]{55}\b'''
+
+# Pattern secret theo dự án — thêm vào đây khi tích hợp provider mới.
+[[rules]]
+id = "sepay-key"
+description = "SePay production API key"
+regex = '''sepay_[a-z]+_prod_[A-Za-z0-9]{20,}'''
+keywords = ["sepay_"]
+
+# Fixture test: chuỗi bắt đầu `test-secret-` là giá trị giả trong test.
+# Allowlist THEO GIÁ TRỊ, không allowlist cả file test.
+# ⚠️ Giữ CẢ HAI cú pháp: gitleaks < 8.25 bỏ qua `[[allowlists]]` số nhiều một
+# cách IM LẶNG (máy dev đang chạy 8.24.3) — bản cũ đọc `[allowlist]` số ít.
+[[allowlists]]
+description = "test fixtures"
+regexes = ['''test-secret-[A-Za-z0-9_-]+''']
+
+[allowlist]
+description = "test fixtures (mirror cho gitleaks < 8.25)"
+regexes = ['''test-secret-[A-Za-z0-9_-]+''']

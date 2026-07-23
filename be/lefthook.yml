@@ -1,0 +1,22 @@
+# Git hooks — lefthook (cài qua root "prepare" script khi bun install).
+# Thay cho husky+lint-staged (từng khai devDeps nhưng CHƯA BAO GIỜ wire).
+pre-commit:
+  parallel: true
+  commands:
+    biome:
+      glob: "*.{ts,tsx,js,jsx,json,jsonc}"
+      run: bunx biome check --no-errors-on-unmatched {staged_files}
+    # Secret không bao giờ lên git. Cần binary gitleaks trên PATH —
+    # cài: scoop install gitleaks | brew install gitleaks | xem docs/HUMAN-TODO.md
+    gitleaks:
+      run: gitleaks git --pre-commit --staged --redact --no-banner
+      fail_text: "gitleaks chặn secret trong staged files (hoặc binary chưa cài — xem docs/HUMAN-TODO.md)"
+    # Kiến trúc: module boundary + eventBus-sync-only + queue {hashtag}.
+    boundaries:
+      run: bun run check:boundaries
+
+pre-push:
+  commands:
+    # Gate xanh mới push: typecheck + biome + boundaries + env-parity.
+    validate:
+      run: bun run validate

@@ -1,0 +1,14 @@
+# WHY: biome formatter yêu cầu LF. Không có file này, máy Windows (core.autocrlf=true)
+# checkout ra CRLF → `biome check` đỏ TOÀN BỘ repo ngay sau khi clone.
+* text=auto eol=lf
+
+# Binary — không đụng EOL
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.zip binary

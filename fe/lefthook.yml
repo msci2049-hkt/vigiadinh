@@ -1,0 +1,26 @@
+# Git hooks — lefthook (installed by the root `prepare` script on pnpm install).
+# Rationale per command in .claude/rules/build.md + docs/HARDENING.md.
+pre-commit:
+  parallel: true
+  commands:
+    # Host-loaded configs must never import cross-package .ts — dies on
+    # Node 20/22 (Cloudflare CI) even though Bun/Node>=23.6 build green.
+    guard-ts:
+      run: pnpm guard:host-loaded
+    biome:
+      glob: "*.{ts,tsx,js,jsx,mjs,cjs,json,jsonc,css}"
+      run: pnpm exec biome check --no-errors-on-unmatched {staged_files}
+    # Secrets never reach git. Needs the gitleaks binary on PATH —
+    # install: scoop install gitleaks | brew install gitleaks | see docs/HUMAN-TODO.md
+    gitleaks:
+      run: gitleaks git --pre-commit --staged --redact --no-banner
+      fail_text: "gitleaks chặn secret trong staged files (hoặc binary chưa cài — xem docs/HUMAN-TODO.md)"
+
+pre-push:
+  commands:
+    # Honest build (NODE_OPTIONS=--no-experimental-strip-types qua wrapper).
+    # ĐỎ = chặn push — lỗi build không bao giờ lên tới CI/Cloudflare.
+    # (Push thật luôn có push-file nên command luôn chạy; `lefthook run pre-push`
+    # thủ công không có stdin range của git → có thể skip — không đại diện.)
+    honest-build:
+      run: pnpm build

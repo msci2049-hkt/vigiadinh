@@ -1,0 +1,25 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "ui": "tui",
+  "globalPassThroughEnv": ["NODE_OPTIONS", "SENTRY_AUTH_TOKEN", "SENTRY_ORG", "SENTRY_PROJECT_WEB"],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["VITE_*"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "typecheck": {},
+    "test": {},
+    "boundaries": {},
+    "validate": {
+      "dependsOn": ["typecheck", "boundaries"]
+    },
+    "test:e2e": {
+      "cache": false
+    }
+  }
+}

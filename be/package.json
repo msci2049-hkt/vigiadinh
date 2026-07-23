@@ -1,0 +1,73 @@
+{
+  "name": "familywallet-api",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --watch src/index.ts",
+    "start": "bun src/index.ts",
+    "worker": "bun src/workers/index.ts",
+    "worker:dev": "bun --watch src/workers/index.ts",
+    "build": "bun build src/index.ts --outdir dist --target bun --minify",
+    "typecheck": "bunx tsc --noEmit",
+    "check": "bunx biome check .",
+    "check:fix": "bunx biome check --write .",
+    "format": "bunx biome format --write .",
+    "db:generate": "bunx drizzle-kit generate",
+    "db:migrate": "bun scripts/migrate.ts",
+    "seed:admin": "bun scripts/seed-admin.ts",
+    "db:studio": "bunx drizzle-kit studio",
+    "db:drop": "bunx drizzle-kit drop",
+    "auth:generate": "bunx @better-auth/cli@latest generate --config src/lib/auth.ts --output src/db/schema/auth.ts -y",
+    "auth:cleanup": "bun scripts/cleanup-sessions.ts",
+    "test": "bun test",
+    "test:watch": "bun test --watch",
+    "test:coverage": "bun test --coverage",
+    "check:boundaries": "bun scripts/check-boundaries.ts",
+    "check:env-parity": "bun scripts/check-env-parity.ts",
+    "env:check": "bun scripts/env-check.ts",
+    "validate": "bun run typecheck && bun run check && bun run check:boundaries && bun run check:env-parity && bun run contract:check",
+    "contract:check": "bun scripts/contract-check.ts",
+    "prepare": "lefthook install"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.15",
+    "@types/bun": "^1.3.13",
+    "@types/nodemailer": "^8.0.0",
+    "drizzle-kit": "^0.31.10",
+    "lefthook": "^2.1.10",
+    "pino-pretty": "^13.1.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@hono/zod-validator": "^0.8.0",
+    "@sentry/bun": "^10.52.0",
+    "@simplewebauthn/server": "^13.3.2",
+    "@stellar/stellar-sdk": "^16",
+    "better-auth": "^1.6.23",
+    "bullmq": "^5.76.7",
+    "cockatiel": "^3.2.1",
+    "drizzle-orm": "^0.45.2",
+    "firebase-admin": "^14.2.0",
+    "hono": "^4.12.28",
+    "ioredis": "^5.10.1",
+    "nodemailer": "^9.0.3",
+    "ofetch": "^1.5.1",
+    "pino": "^10.3.1",
+    "postgres": "^3.4.9",
+    "rate-limiter-flexible": "^11.1.0",
+    "redlock": "^5.0.0-beta.2",
+    "resend": "^6.12.3",
+    "ulid": "^3.0.2",
+    "zod": "^4"
+  },
+  "overrides": {
+    "lodash": "4.18.1",
+    "@grpc/grpc-js": "1.14.4",
+    "protobufjs": "7.6.5",
+    "tmp": "0.2.7",
+    "undici": "7.28.0"
+  }
+}

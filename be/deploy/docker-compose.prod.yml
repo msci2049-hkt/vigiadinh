@@ -1,0 +1,152 @@
+# ============================================================================
+# deploy/docker-compose.prod.yml — topology production trên VPS.
+#
+# KHÔNG có `name:` — project-name-agnostic, truyền qua -p (nhiều project/VPS).
+# Lệnh chuẩn (PHASE 8 runbook docs/HUONG-DAN-DEPLOY-DOCKER-VPS.md):
+#   docker compose -p <proj> --project-directory deploy \
+#     --env-file deploy/.env.production -f deploy/docker-compose.prod.yml \
+#     --profile prod up -d --build
+# (deploy/deploy.sh đã gói đúng lệnh này + GATE env:check + GATE migrate.)
+#
+# Hardening (chuẩn 2026):
+#   - Limit ở SERVICE LEVEL (mem_limit/cpus/pids_limit) — KHÔNG deploy.resources:
+#     `docker compose up` standalone BỎ QUA deploy.resources LẶNG LẼ (chỉ Swarm đọc).
+#   - security_opt no-new-privileges + log rotation json-file MỌI service (chống
+#     disk đầy qua đêm) + pin tag ảnh (không :latest).
+#   - Network `data` internal: true — Postgres/Dragonfly KHÔNG có đường ra
+#     internet lẫn host; chỉ app/worker join cả 2 network (backend để egress
+#     Resend/R2/Sentry).
+#   - Migration KHÔNG chạy lúc boot app (RUN_MIGRATIONS=false) — chạy ở GATE
+#     migrate trong deploy.sh TRƯỚC khi up (xem scripts/migrate.ts).
+# ============================================================================
+
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    # PIN minor tag. POSTGRES_IMAGE override cho project cần extension
+    # (vd postgis/postgis:16-3.5, pgvector/pgvector:pg16) — đổi qua env,
+    # KHÔNG sửa file này (runbook PHASE 6).
+    image: ${POSTGRES_IMAGE:-postgres:16.6-alpine}
+    restart: unless-stopped
+    # max_connections khớp PG_MAX_CONNECTIONS để pool-budget guard tính đúng.
+    command: ["postgres", "-c", "max_connections=${PG_MAX_CONNECTIONS:-100}"]
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?thiếu POSTGRES_USER trong deploy/.env.production}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?thiếu POSTGRES_PASSWORD trong deploy/.env.production}
+      POSTGRES_DB: ${POSTGRES_DB:?thiếu POSTGRES_DB trong deploy/.env.production}
+      TZ: Asia/Ho_Chi_Minh
+    # KHÔNG ports: — DB chỉ sống trong network `data` (internal), không lộ host/internet.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data # named volume, KHÔNG bind mount
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    stop_grace_period: 30s
+    security_opt: ["no-new-privileges:true"]
+    logging: *default-logging
+    # Chỉnh theo VPS (default an toàn cho VPS 4GB/4core):
+    mem_limit: 1g
+    cpus: 2
+    pids_limit: 256
+    networks: [data]
+
+  dragonfly:
+    # PIN version — không :latest (upgrade Dragonfly là việc CÓ CHỦ ĐÍCH,
+    # verify tag mới bằng `docker manifest inspect` trước khi bump).
+    image: ${DRAGONFLY_IMAGE:-docker.dragonflydb.io/dragonflydb/dragonfly:v1.25.2}
+    restart: unless-stopped
+    # BullMQ trên Dragonfly cần 2 flag này (xem .claude/rules/bullmq.md).
+    command: ["--cluster_mode=emulated", "--lock_on_hashtags"]
+    ulimits:
+      memlock: -1
+    # KHÔNG ports: — cache/queue chỉ sống trong network `data`.
+    volumes:
+      - dragonfly_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    stop_grace_period: 15s
+    security_opt: ["no-new-privileges:true"]
+    logging: *default-logging
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 128
+    networks: [data]
+
+  # Tên service `app` — GATE 3 runbook đếm `<proj>-app-1 healthy`.
+  app:
+    profiles: ["prod"]
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped # cluster.ts exit(1) khi 1 child chết → dựng lại container
+    env_file: .env.production # relative với file compose này → deploy/.env.production
+    environment:
+      NODE_ENV: production # chốt cứng — env_file có sai cũng không chạy prod bằng env dev
+      # Migration là GATE riêng trong deploy.sh (chạy TRƯỚC up) — app boot KHÔNG
+      # tự migrate. Luôn deploy qua deploy.sh, đừng `up -d` tay khi có migration mới.
+      RUN_MIGRATIONS: "false"
+    # CHỈ bind loopback — reverse proxy (Caddy/nginx) ra ngoài. Port host env-driven.
+    ports:
+      - "127.0.0.1:${APP_HOST_PORT:-3000}:3000"
+    # Healthcheck kế thừa Dockerfile HEALTHCHECK (bun fetch /health — liveness,
+    # không đụng DB/Redis). Readiness kiểm sau deploy: curl /ready (deploy.sh).
+    depends_on:
+      postgres: { condition: service_healthy }
+      dragonfly: { condition: service_healthy }
+    # cluster.ts SHUTDOWN_TIMEOUT_MS=8s → 15s đủ drain + margin (không để Docker SIGKILL sớm).
+    stop_grace_period: 15s
+    security_opt: ["no-new-privileges:true"]
+    logging: *default-logging
+    mem_limit: 1g
+    cpus: 2
+    pids_limit: 256
+    networks: [backend, data] # backend = egress (Resend/R2/Sentry); data = DB/cache
+
+  # Worker: SERVICE RIÊNG, instances=1 LUÔN — KHÔNG `--scale worker=N`
+  # (cron double-fire; xem docs/SCALE-RUNBOOK.md).
+  worker:
+    profiles: ["prod"]
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: ["bun", "run", "dist/workers/index.js"]
+    env_file: .env.production
+    environment:
+      NODE_ENV: production
+      RUN_MIGRATIONS: "false" # GATE migrate ở deploy.sh; worker KHÔNG migrate
+    depends_on:
+      # app healthy = stack sẵn sàng → worker không pick job trên schema cũ
+      # (migration đã apply ở GATE trước khi cả app lẫn worker up).
+      app: { condition: service_healthy }
+      postgres: { condition: service_healthy }
+      dragonfly: { condition: service_healthy }
+    # Worker close() đợi job đang chạy xong — cho trần dài hơn app.
+    stop_grace_period: 30s
+    security_opt: ["no-new-privileges:true"]
+    logging: *default-logging
+    mem_limit: 512m
+    cpus: 1
+    pids_limit: 256
+    networks: [backend, data]
+
+networks:
+  backend: { driver: bridge } # có egress internet (app/worker gọi Resend/R2)
+  data:
+    driver: bridge
+    internal: true # KHÔNG có đường ra ngoài — DB/cache cô lập tuyệt đối
+
+volumes:
+  postgres_data: {}
+  dragonfly_data: {}

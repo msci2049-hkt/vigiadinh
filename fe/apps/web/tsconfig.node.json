@@ -1,0 +1,4 @@
+{
+  "extends": "../../packages/config/tsconfig/node.json",
+  "include": ["vite.config.ts", "playwright.config.ts", "e2e/**/*.ts"]
+}

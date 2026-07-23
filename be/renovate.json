@@ -1,0 +1,23 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended", "group:monorepos", ":semanticCommits"],
+  "timezone": "Asia/Ho_Chi_Minh",
+  "schedule": ["* 0-5 * * 1"],
+  "packageRules": [
+    {
+      "description": "rule-auth: KHÔNG auto-bump Better Auth — đọc changelog tay rồi update (breaking đổi hành vi auth âm thầm)",
+      "matchPackageNames": ["better-auth", "@better-auth/*"],
+      "enabled": false
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "dev deps (non-major)"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "non-major"
+    }
+  ],
+  "vulnerabilityAlerts": { "labels": ["security"] }
+}

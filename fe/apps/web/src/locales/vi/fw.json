@@ -1,0 +1,179 @@
+{
+  "block": {
+    "alert": {
+      "cta": "Chặn ngay",
+      "description": "Một yêu cầu khôi phục vừa được mở trên thiết bị khác. Nếu không phải bạn, hãy chặn trước khi hết thời gian chờ — sau đó thì không lùi lại được nữa.",
+      "title": "Có người muốn chiếm ví của bạn"
+    },
+    "confirm": {
+      "description": "Thao tác này hủy yêu cầu và báo động cho người bảo hộ của bạn.",
+      "title": "Chặn lần khôi phục này?"
+    },
+    "done": {
+      "description": "Yêu cầu đã bị dừng. Ví của bạn vẫn an toàn.",
+      "title": "Đã chặn"
+    }
+  },
+  "getStarted": {
+    "description": "Tạo ví mới, hoặc mở ví bạn đã có.",
+    "title": "Bạn muốn bắt đầu thế nào?"
+  },
+  "guardian": {
+    "approve": {
+      "description": "Hãy gặp hoặc gọi cho họ trước khi bạn đồng ý.",
+      "title": "Xác nhận đúng là họ"
+    },
+    "approveWarning": {
+      "cta": "Gọi cho họ trước",
+      "ctaSecondary": "Vẫn đồng ý",
+      "description": "Yêu cầu này khác thường so với người đó. Nếu không đúng là họ, việc bạn đồng ý sẽ trao ví của họ cho kẻ khác. Hãy tự gọi cho họ trước — chỉ đồng ý sau khi nghe được giọng họ.",
+      "title": "Khoan đồng ý"
+    },
+    "approved": {
+      "description": "Xác nhận của bạn đã được ghi nhận.",
+      "title": "Cảm ơn bạn"
+    },
+    "inbox": {
+      "description": "Người bạn bảo hộ đang cần bạn xác nhận.",
+      "title": "Yêu cầu dành cho bạn"
+    }
+  },
+  "guardians": {
+    "detail": {
+      "description": "Lịch sử kết nối và tùy chọn cho người này.",
+      "title": "Chi tiết người bảo hộ"
+    },
+    "manage": {
+      "description": "Xem ai đang bảo vệ ví, và chúng tôi còn liên lạc được với ai.",
+      "title": "Người bảo hộ của bạn"
+    }
+  },
+  "inheritance": {
+    "claim": {
+      "description": "Làm theo các bước để nhận phần của mình.",
+      "title": "Nhận phần dành cho bạn"
+    },
+    "heartbeat": {
+      "description": "Thỉnh thoảng xác nhận một lần, để không có gì được trao đi khi bạn vẫn còn ở đây.",
+      "title": "Tôi vẫn khỏe"
+    },
+    "setup": {
+      "description": "Chọn ai sẽ nhận tài sản của bạn, và mỗi người nhận bao nhiêu.",
+      "title": "Trao lại cho người thân"
+    }
+  },
+  "nightWatch": {
+    "alert": {
+      "cta": "Xử lý ngay",
+      "description": "Một người bảo hộ không trả lời lần kiểm tra hằng ngày. Nếu nhiều người cùng mất liên lạc, bạn có thể không còn đủ người để lấy lại ví. Hãy thay người khác, hoặc giúp họ kết nối lại.",
+      "title": "Một người bảo hộ đang mất liên lạc"
+    },
+    "center": {
+      "description": "Chúng tôi lặng lẽ kiểm tra lớp bảo vệ mỗi ngày và cảnh báo bạn từ sớm.",
+      "title": "Người gác đêm"
+    },
+    "guardianView": {
+      "description": "Chỉ cần giữ ứng dụng trong máy — hầu hết thời gian bạn không phải làm gì cả.",
+      "title": "Bạn là người bảo hộ"
+    },
+    "log": {
+      "description": "Các lần kiểm tra hằng ngày và kết quả.",
+      "title": "Lịch sử kiểm tra"
+    },
+    "resolve": {
+      "description": "Thay người bảo hộ này, hoặc giúp họ kết nối lại.",
+      "title": "Khôi phục lớp bảo vệ"
+    },
+    "waiting": {
+      "description": "Chúng tôi sẽ báo ngay khi họ kết nối trở lại.",
+      "title": "Đang chờ nối lại"
+    }
+  },
+  "passkey": {
+    "description": "Dùng khuôn mặt hoặc vân tay — không phải nhớ gì, không sợ mất gì.",
+    "title": "Mở khóa bằng thiết bị của bạn",
+    "unsupported": "Thiết bị này chưa hỗ trợ mở khóa bằng khuôn mặt hay vân tay. Bạn vẫn có thể tiếp tục trên điện thoại khác, hoặc trình duyệt mới hơn."
+  },
+  "recovery": {
+    "countdown": {
+      "description": "Đã đủ người đồng ý. Thời gian chờ bảo vệ bạn khỏi kẻ mạo danh.",
+      "title": "Sắp xong"
+    },
+    "done": {
+      "description": "Ví của bạn giờ nằm trên thiết bị này.",
+      "title": "Chào mừng trở lại"
+    },
+    "findWallet": {
+      "description": "Cho chúng tôi biết cách tìm ví bạn muốn khôi phục.",
+      "title": "Tìm ví của bạn"
+    },
+    "progress": {
+      "description": "Xem những ai đã xác nhận.",
+      "title": "Đang chờ xác nhận"
+    },
+    "sent": {
+      "description": "Người bảo hộ của bạn đã được đề nghị xác nhận đúng là bạn.",
+      "title": "Đã gửi yêu cầu"
+    },
+    "start": {
+      "description": "Mất điện thoại? Gia đình có thể giúp bạn khôi phục mọi thứ.",
+      "title": "Lấy lại ví của bạn"
+    }
+  },
+  "setup": {
+    "assistant": {
+      "description": "Vài câu hỏi để thiết lập đúng cách cho gia đình bạn.",
+      "title": "Chúng ta cùng thiết lập"
+    },
+    "chooseGuardians": {
+      "description": "Chọn 3–5 người bạn tin. Họ chỉ giúp được khi cùng nhau — không ai tự làm một mình được.",
+      "title": "Chọn người bảo hộ"
+    },
+    "done": {
+      "description": "Nếu chẳng may mất điện thoại, gia đình có thể lấy lại ví này cho bạn.",
+      "title": "Ví của bạn đã được bảo vệ"
+    },
+    "intro": {
+      "description": "Chọn những người thân tin cậy có thể giúp bạn lấy lại ví nếu chẳng may mất điện thoại.",
+      "title": "Bảo vệ ví của bạn"
+    },
+    "invite": {
+      "description": "Gửi mỗi người một liên kết. Họ xác nhận trên điện thoại của chính họ.",
+      "title": "Mời họ"
+    },
+    "review": {
+      "description": "Kiểm tra mọi thứ trước khi bật bảo vệ.",
+      "title": "Xem lại thiết lập"
+    },
+    "threshold": {
+      "description": "Chọn số người bảo hộ phải đồng ý thì việc khôi phục mới được thực hiện.",
+      "title": "Cần mấy người đồng ý?"
+    },
+    "timelock": {
+      "description": "Khôi phục chỉ hoàn tất sau khoảng chờ này — đủ thời gian để bạn chặn điều bất thường.",
+      "title": "Thời gian chờ"
+    }
+  },
+  "wallet": {
+    "history": {
+      "description": "Mọi hoạt động trong ví của bạn.",
+      "title": "Lịch sử"
+    },
+    "home": {
+      "description": "Số dư, hoạt động gần đây và tình trạng bảo vệ trong một màn hình.",
+      "title": "Ví của bạn"
+    },
+    "receive": {
+      "description": "Đưa mã của bạn cho người gửi, hoặc chia sẻ địa chỉ ví.",
+      "title": "Nhận tiền"
+    },
+    "send": {
+      "description": "Gửi tiền cho bất kỳ ai.",
+      "title": "Gửi tiền"
+    }
+  },
+  "welcome": {
+    "description": "Ví mà gia đình có thể giúp bạn lấy lại — không phải nhớ gì, không sợ mất gì.",
+    "title": "Chào mừng đến FamilyWallet"
+  }
+}

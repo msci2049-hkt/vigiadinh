@@ -1,0 +1,38 @@
+// WHY: Worker process tách riêng HTTP — Bun process độc lập, scale ngang
+// được. Sentry init (side-effect) cho process này luôn — exception ở worker
+// MUST capture y như HTTP.
+//
+// Hiện chưa có worker nào — file sẵn structure để Phase sau add qua skill
+// new-job (push instance vào array `workers` rồi BullMQ tự pick job).
+import "@/lib/sentry";
+
+import type { Worker } from "bullmq";
+import { logger } from "@/lib/logger";
+import { bullConnection } from "@/lib/redis";
+
+const workers: Worker[] = [];
+
+let shuttingDown = false;
+async function shutdown(signal: string): Promise<void> {
+  if (shuttingDown) return;
+  shuttingDown = true;
+  logger.warn({ signal }, "workers.shutdown.start");
+  try {
+    await Promise.all(workers.map((w) => w.close()));
+    await bullConnection.quit();
+    logger.warn({ signal }, "workers.shutdown.done");
+    process.exit(0);
+  } catch (err) {
+    logger.error({ err }, "workers.shutdown.error");
+    process.exit(1);
+  }
+}
+
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));
+
+if (workers.length === 0) {
+  logger.info("workers.ready: no workers registered yet — add via skill new-job");
+} else {
+  logger.info({ count: workers.length }, "workers.ready");
+}

@@ -1,0 +1,8 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "@repo/ui/theme.css";
+
+/* Tailwind v4 only scans THIS app's files by default. @repo/ui components live
+ * outside the app root — without this @source their classes are never
+ * generated and the shared UI renders unstyled. Path is relative to this file. */
+@source "../../../packages/ui/src";

@@ -1,0 +1,23 @@
+# ============================================================================
+# deploy/Caddyfile.example — reverse proxy ƯU TIÊN (runbook PHASE 10):
+# Caddy tự xin + tự gia hạn TLS Let's Encrypt → ít thao tác tay hơn nginx+certbot.
+# (VPS ĐÃ có nginx phục vụ app khác → dùng deploy/nginx.vhost.example thay,
+#  đừng cài Caddy chồng lên — tranh port 80/443.)
+#
+# Cách dùng:
+#   1. Thay <TEN_MIEN_API> và 8000 (= APP_HOST_PORT trong deploy/.env.production).
+#   2. Nội dung này vào /etc/caddy/Caddyfile (thêm block, đừng xoá block app khác).
+#   3. caddy validate --config /etc/caddy/Caddyfile && systemctl restart caddy
+#   ⚠ Trước đó: firewall mở 80/443 + DNS trỏ IP VPS ở chế độ GREY (mây xám) —
+#     Cloudflare mây cam khi xin cert = Let's Encrypt fail (runbook PHASE 11).
+# ============================================================================
+
+<TEN_MIEN_API> {
+    reverse_proxy 127.0.0.1:8000 {
+        # GHI ĐÈ IP client — chống spoof rate-limit (tương đương nginx
+        # X-Real-IP $remote_addr; KHÔNG append kiểu $proxy_add_x_forwarded_for).
+        header_up X-Real-IP {remote_host}
+        # Tắt buffer cho SSE (/api/events) — tương đương proxy_buffering off.
+        flush_interval -1
+    }
+}

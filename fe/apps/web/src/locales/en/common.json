@@ -1,0 +1,79 @@
+{
+  "nav": {
+    "home": "Home",
+    "dashboard": "Dashboard"
+  },
+  "theme": {
+    "toggle": "Toggle light/dark theme"
+  },
+  "language": {
+    "label": "Language"
+  },
+  "userMenu": {
+    "login": "Sign in",
+    "logout": "Sign out",
+    "panel": "Control panel"
+  },
+  "health": {
+    "checking": "BE: checking…",
+    "disconnected": "BE: disconnected",
+    "ok": "BE: OK"
+  },
+  "backHome": "← Back home",
+  "panels": {
+    "admin": {
+      "label": "Admin",
+      "nav": {
+        "overview": "Overview",
+        "users": "Users",
+        "sessions": "Sessions",
+        "settings": "Settings"
+      }
+    }
+  },
+  "panelShell": {
+    "switch": "Switch panel",
+    "commandLabel": "Quick find",
+    "commandPlaceholder": "Type to search pages…",
+    "commandEmpty": "No results."
+  },
+  "impersonation": {
+    "banner": "Impersonating {{name}} — every action runs as this user.",
+    "stop": "Stop impersonating"
+  },
+  "home": {
+    "description": "React 19 + Vite FE template — plugs straight into the Bun + Hono + Better Auth BE.",
+    "ctaDashboard": "Open Dashboard (protected)",
+    "ctaLogin": "Sign in",
+    "stack": {
+      "router": {
+        "title": "TanStack Router",
+        "desc": "File-based, type-safe, Zod search params."
+      },
+      "query": {
+        "title": "TanStack Query v5",
+        "desc": "Server state, query key factory, queryOptions."
+      },
+      "auth": {
+        "title": "Better Auth",
+        "desc": "Session cookie, credentials:'include'."
+      },
+      "sse": {
+        "title": "SSE",
+        "desc": "fetch-event-source + catch-up refetch (at-most-once)."
+      },
+      "styling": {
+        "title": "Tailwind v4 + shadcn",
+        "desc": "CSS-first OKLCH, you own the component code."
+      },
+      "forms": {
+        "title": "RHF + Zod",
+        "desc": "Type-safe forms validated with Zod."
+      }
+    }
+  },
+  "update": {
+    "available": "A new version is available",
+    "reload": "Reload"
+  }
+}
