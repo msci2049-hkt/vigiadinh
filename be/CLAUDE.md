@@ -7,18 +7,22 @@ theo dõi kết nối người bảo hộ. Sản phẩm TOÀN CẦU (không hard
 → rule khớp việc trong `.claude/rules/` → skill khớp việc trong `.claude/skills/`.
 Nền template BE chi tiết (stack, mount order, convention, BUG-001…014, deploy): `docs/TEMPLATE-PRIMER-BE.md`.
 
-## Bản đồ dự án — 2 REPO ĐỘC LẬP, KHÔNG monorepo
+## Bản đồ dự án — monorepo `family-wallet` (git chung, build riêng)
 
 ```
-stellaer-be/           ← REPO NÀY — Backend: Bun + Hono + Drizzle/Postgres + Dragonfly + BullMQ + Better Auth
-../stellar-fe-vite/    Frontend: React 19 + Vite + TanStack + Tailwind 4 (pnpm 9 + Node 20 — KHÔNG bun)
-../vigiadinh-main/     Dự án cũ — nguồn contracts/recovery-registry + scripts (repo contract riêng: chốt sau)
+family-wallet/
+  be/          ← THƯ MỤC NÀY — Backend: Bun + Hono + Drizzle/Postgres + Dragonfly + BullMQ + Better Auth
+  fe/          Frontend: React 19 + Vite + TanStack + Tailwind 4 (pnpm 9 + Node ≥20 — KHÔNG bun)
+  contracts/   Soroban Rust — dựng ở PHA 2+ (nguồn cũ: vigiadinh-main/recovery-registry, ngoài repo)
+  shared/      NGUỒN hợp đồng BE↔FE (enum trạng thái, intent) — `bun run sync:contract` ở root
 ```
 
-- Hai repo nói chuyện **chỉ qua HTTP**. Types + zod schema FE cần: `src/shared-contract/` (BE là nguồn),
-  đồng bộ theo `docs/CONTRACT-SYNC.md`. KHÔNG package chung, KHÔNG workspace chung.
+- BE và FE nói chuyện **chỉ qua HTTP** — CẤM import chéo giữa `be/`/`fe/` (luật CLAUDE.md root).
+  Enum dùng chung: `shared/` (root) là nguồn → copy AUTO-SYNC vào `src/shared-contract/`
+  (contract.ts + intent.ts, gác bằng `check:contract` root). Phần còn lại của
+  `src/shared-contract/` (api-envelope, sse) BE vẫn là nguồn, sync theo `docs/CONTRACT-SYNC.md`.
 - `src/lib/access-control.ts` phải **giống hệt** FE `packages/auth/src/access-control.ts`.
-  Thêm/sửa role = sửa CẢ HAI repo (kiểm bằng `contract:check`).
+  Thêm/sửa role = sửa CẢ HAI bên trong cùng một commit (kiểm bằng `contract:check`).
 - Spec UI = `vigiadinh-mockup.html` (41 màn, 8 nhóm — **nhóm két di chúc ĐÃ HỦY**).
 
 ## Luật bất biến (chi tiết trong .claude/rules/)

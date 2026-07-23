@@ -8,19 +8,23 @@ cấm hardcode chữ trong JSX, không nhắc tên nước/tiền tệ/app nhắ
 → rule khớp việc trong `.claude/rules/` → skill khớp việc trong `.claude/skills/`.
 Nền template FE chi tiết (stack, honest build, guard 2 tầng, BUG/KI, deploy Cloudflare): `docs/TEMPLATE-PRIMER-FE.md`.
 
-## Bản đồ dự án — 2 REPO ĐỘC LẬP, KHÔNG chung workspace
+## Bản đồ dự án — monorepo `family-wallet` (git chung, build riêng)
 
 ```
-stellar-fe-vite/       ← REPO NÀY — Frontend: React 19 + Vite 8 + TanStack + Tailwind 4 + shadcn
-                          pnpm 9 + Node 20 (KHÔNG bun) · monorepo pnpm+Turbo NỘI BỘ (apps/web + packages/*)
-../stellaer-be/        Backend: Bun + Hono + Drizzle + Better Auth — http://localhost:3000
-../vigiadinh-main/     Dự án cũ — nguồn contracts + scripts (repo contract riêng: chốt sau)
+family-wallet/
+  fe/          ← THƯ MỤC NÀY — Frontend: React 19 + Vite 8 + TanStack + Tailwind 4 + shadcn
+                  pnpm 9 + Node ≥20 (KHÔNG bun) · monorepo pnpm+Turbo NỘI BỘ (apps/web + packages/*)
+  be/          Backend: Bun + Hono + Drizzle + Better Auth — http://localhost:3000
+  contracts/   Soroban Rust — dựng ở PHA 2+ (nguồn cũ: vigiadinh-main, ngoài repo)
+  shared/      NGUỒN hợp đồng BE↔FE (enum trạng thái, intent) — `bun run sync:contract` ở root
 ```
 
-- Hai repo nói chuyện **chỉ qua HTTP**. Types + zod schema dùng chung: BE `src/shared-contract/` là nguồn,
-  đồng bộ theo `docs/CONTRACT-SYNC.md`. KHÔNG import code từ repo BE.
+- FE và BE nói chuyện **chỉ qua HTTP** — CẤM import chéo giữa `fe/`/`be/` (luật CLAUDE.md root).
+  Enum dùng chung: `shared/` (root) là nguồn → copy AUTO-SYNC vào `packages/core/src/contract/`
+  (gác bằng `check:contract` root). Types/zod khác BE cần cho FE: BE `src/shared-contract/`
+  là nguồn, đồng bộ theo `docs/CONTRACT-SYNC.md`. KHÔNG import code từ `be/`.
 - `packages/auth/src/access-control.ts` phải **giống hệt** BE `src/lib/access-control.ts`.
-  Thêm/sửa role = sửa CẢ HAI repo (kiểm bằng `contract:check`).
+  Thêm/sửa role = sửa CẢ HAI bên trong cùng một commit (kiểm bằng `contract:check`).
 - Spec UI = `vigiadinh-mockup.html` (41 màn, 8 nhóm — **nhóm két di chúc ĐÃ HỦY**). Giữ nguyên 7 màn
   auth + admin panel sẵn có của template.
 

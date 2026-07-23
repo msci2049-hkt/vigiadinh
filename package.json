@@ -1,0 +1,9 @@
+{
+  "name": "family-wallet",
+  "private": true,
+  "description": "VíGiaĐình — git chung, build riêng: be/ (bun) + fe/ (pnpm) + contracts/ (rust). KHÔNG workspaces — xem CLAUDE.md.",
+  "scripts": {
+    "sync:contract": "node scripts/sync-contract.mjs",
+    "check:contract": "node scripts/check-contract.mjs"
+  }
+}

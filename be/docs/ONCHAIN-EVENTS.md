@@ -4,7 +4,9 @@
 > Sai tên topic một ký tự → indexer câm, không mirror được gì. File này là **hợp đồng sự thật**
 > giữa contract và BE — đọc từ code contract, KHÔNG đoán theo checklist.
 >
-> Nguồn: `../vigiadinh-main/vigiadinh-main/contracts/recovery-registry/src/lib.rs` (đọc 2026-07-20).
+> Nguồn: `vigiadinh-main/contracts/recovery-registry/src/lib.rs` — repo cũ NGOÀI monorepo này
+> (đọc 2026-07-20). Sau M0, contract sống ở `contracts/` của monorepo `family-wallet` và file này
+> phải regenerate từ `contracts/recovery-registry/src/lib.rs` mới.
 > Contract testnet đã deploy: `CCPGVSLRFSUOGRFH3LAOWXSHJ2Y3QBFEA2ZTV4PWIINVGJWVDFA5GT3V`
 > (theo `docs/PROJECT-BRIEF.md §4`).
 
