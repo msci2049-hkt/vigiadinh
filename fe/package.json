@@ -30,5 +30,11 @@
     "knip": "^6.29.0",
     "lefthook": "^2.1.10",
     "turbo": "^2.10.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "axios": "1.18.1",
+      "fast-uri": "3.1.4"
+    }
   }
 }
