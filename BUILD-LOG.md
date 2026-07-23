@@ -49,3 +49,33 @@
 
 ### Điểm resume
 - Kế tiếp: 1.5 CI 3 job lọc path + secret-scan → commit + push → GATE PHA 1 (grep seed) → PHA 1.5 (dọn code mẫu).
+
+## PHA 1.5 · DỌN CODE MẪU — 2026-07-23
+
+### Kết quả
+- **Chỉ MỘT lô có việc thật (lô 4 — demo dashboard+health, 11 file).** Các lô còn lại RỖNG có
+  bằng chứng: knip BE 0 unused file; FE 6 unused file đều là GIỮ chủ đích (§4/NGỜ); lô 3 rỗng
+  (FE chưa từng dựng letter/remit/legal); lô 6 rỗng (10 dep unused đều thuộc §4 — stellar-sdk,
+  simplewebauthn, firebase-admin, redlock, hono/rpc, test infra); lô 7 rỗng (knip không thấy
+  UI component chết); "script e2e chết" trong prompt không tồn tại (scan 04 tự xác nhận).
+- Hồ sơ: `docs/ROUTES.md` (54 file FE + 46 id handoff, mỗi dòng Y/N v1) ·
+  `docs/cleanup/{BASELINE,PHAN-LOAI}.md` + knip json.
+- Sau dọn: 288 file .ts/.tsx (−11) · bundle 1134 KB / 73 precache (baseline 1178/77, −46 KiB)
+  · FE unit 25 pass (baseline 26 − 1 khai báo) · BE nguyên 88 pass (không đụng be/).
+- knip sau dọn: mục mới lộ (`lib/sse.ts`, `@testing-library/react`) → NGỜ/GIỮ có ghi trong
+  PHAN-LOAI (nền SSE night-watch PHA 6 + khung test component).
+
+### Smoke §8 (mức tối đa máy này cho phép)
+- BE dev :3000 — /health + /ready OK; **đăng nhập THẬT** admin@example.com qua
+  /api/auth/sign-in/email → token + get-session sống (curl, cookie jar).
+- FE dev :5173 — trả SPA shell (title FamilyWallet, #root, main.tsx).
+- **E2e/browser: FAIL-ENV** — chromium thiếu libnspr4/libnss3/libasound2, không sudo →
+  UI click-through không chạy được local. LƯU Ý TRUNG THỰC: một lần chạy e2e trong phiên
+  in ra danh sách test + exit 0 và bị đọc nhầm là "19/19 pass" — sai, exit 0 là của `tail`
+  trong pipeline; đã đính chính trong commit lô 4 (amend). Verify thật ở CI (ci-fe.yml).
+
+### Việc treo (không chặn PHA 2)
+- Verify CI chạy trên GitHub Actions (máy không có `gh`) — cần xem tab Actions sau push.
+- Máy dev: cài lib browser (cần sudo): `sudo pnpm --filter @repo/web exec playwright install-deps`
+  hoặc apt libnspr4 libnss3 libasound2 → chạy lại e2e local.
+- Landing `/` còn stack-card template (đã i18n, vô hại) — làm lại ở PHA 6 cùng redesign.

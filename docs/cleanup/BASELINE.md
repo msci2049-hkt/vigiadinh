@@ -14,8 +14,10 @@
 | be/ | `bun run validate` XANH (typecheck + biome 165 file + boundaries + env-parity 27 key + contract-check) | `bun test`: **88 pass, 3 skip, 0 fail** — 230 expect, 91 test / 21 file |
 | fe/ | `pnpm validate` XANH (11/11 task turbo: host-loaded + validation-parity + user-copy + contract-check + biome ci + typecheck + boundaries) | `pnpm test`: **26 pass, 0 fail** (web 9 + core 14 + ui 3 — đính chính 2026-07-23: lần đo đầu ghi 23 vì task ui cache, log .turbo xác nhận ui 3 test) |
 
-- FE e2e (playwright): CHƯA chạy lại sau merge trên máy này (WSL fail-env KI-2/KI-5 — chỉ chromium
-  khả dụng local). Báo cáo cũ trước merge: 20/20 chromium. Verify thật: CI e2e job 3 browser.
+- FE e2e (playwright): KHÔNG chạy được trên máy này tại 2026-07-23 — chromium/headless-shell
+  thiếu libnspr4/libnss3/libasound2, không có sudo để install-deps (fail-env KI-2; marker
+  DEPENDENCIES_VALIDATED trong ~/.cache/ms-playwright đã cũ). Báo cáo cũ trước merge: 20/20
+  chromium (2026-07-20). Verify thật: CI e2e job 3 browser (ci-fe.yml).
 - Bẫy môi trường: vitest worker timeout 60s trên /mnt/d — đã vá cục bộ node_modules
   (START_TIMEOUT→600s), mất sau `pnpm i`, chi tiết BUILD-LOG.md PHA 1.3.
 

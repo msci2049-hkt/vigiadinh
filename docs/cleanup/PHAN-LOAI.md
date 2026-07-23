@@ -24,7 +24,7 @@
 | `fe/scripts/init-project.mjs`, `be/scripts/init-project.mjs` | NGỜ→GIỮ | knip FE báo unused nhưng README + .claude/rules/new-project.md + TEMPLATE-PRIMER tham chiếu |
 | `fe/apps/web/scripts/verify-real-login.mjs` | NGỜ→GIỮ | công cụ bằng chứng login thật (commit bd08a86 dùng); knip báo unused nhưng là tooling tay |
 | `fe/packages/config/vite.preset.d.mts` | GIỮ | type declaration cho vite.preset.mjs (knip false positive) |
-| Dependency knip báo unused — BE: @stellar/stellar-sdk, @simplewebauthn/server, firebase-admin, redlock, ofetch, rate-limiter-flexible · FE: @stellar/stellar-sdk, @simplewebauthn/browser, hono, @testing-library/user-event | GIỮ hết (lô 6 = rỗng) | §4: stellar-sdk (PHA 5 import — nâng version, không gỡ), simplewebauthn (PHA 2 passkey), firebase-admin (FCM PHA 4/8), redlock (cron 12:00 PHA 4), ofetch (skill call-external-api), rate-limiter-flexible (hạ tầng), hono (rpc.ts scaffold PHA 6), user-event (khung test) |
+| Dependency knip báo unused — BE: @stellar/stellar-sdk, @simplewebauthn/server, firebase-admin, redlock, ofetch, rate-limiter-flexible · FE: @stellar/stellar-sdk, @simplewebauthn/browser, hono, @testing-library/user-event, @testing-library/react (mới lộ sau lô 4 — test RTL duy nhất là health-badge.test đã xoá; khung test component PHA 6) | GIỮ hết (lô 6 = rỗng) | §4: stellar-sdk (PHA 5 import — nâng version, không gỡ), simplewebauthn (PHA 2 passkey), firebase-admin (FCM PHA 4/8), redlock (cron 12:00 PHA 4), ofetch (skill call-external-api), rate-limiter-flexible (hạ tầng), hono (rpc.ts scaffold PHA 6), user-event (khung test) |
 | Biến env `R2_*`, `RESEND_*` | GIỮ | §4/§6: RESEND cần cho notify email PHA 4.3; R2 = NGỜ (backup db-backup skill dùng R2) — không đụng |
 | Script `test:e2e` fe | GIỮ | KHÔNG chết: fe→turbo→apps/web `playwright test` đủ dây (khác ghi nhận cũ trong prompt) |
 | Tài liệu template (`be/docs/TEMPLATE-PRIMER-BE.md`, `fe/docs/TEMPLATE-PRIMER-FE.md`, TEMPLATE-DEVIATIONS, RESET-REPORT) | GIỮ | CLAUDE.md 2 bên tham chiếu làm nền tra cứu template; không phải "docs của mau-demo" mồ côi |
@@ -288,7 +288,7 @@
 | `fe/apps/web/src/lib/i18n.ts` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
 | `fe/apps/web/src/lib/query-client.ts` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
 | `fe/apps/web/src/lib/rpc.ts` | NGỜ | GIỮ — scaffold Hono RPC (knip báo unused) nhưng là nền PHA 6.2 API client typed; README+skill connect-api tham chiếu |
-| `fe/apps/web/src/lib/sse.ts` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
+| `fe/apps/web/src/lib/sse.ts` | NGỜ | GIỮ — sau lô 4 knip báo unused (consumer duy nhất là demo events-feed đã xoá); §4: nền SSE cho night-watch PHA 6, cặp với packages/core/src/sse.ts (useServerEvents + test) |
 | `fe/apps/web/src/lib/validation-limits.ts` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
 | `fe/apps/web/src/main.tsx` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
 | `fe/apps/web/src/test/setup.ts` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
