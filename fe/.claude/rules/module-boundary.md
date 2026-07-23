@@ -14,8 +14,8 @@ appliesTo: "src/features/**, src/app/**"
 ## DO
 - Cần dùng chung giữa feature → đẩy xuống `@/components`, `@/lib`, `@/hooks`, `@/stores`.
 - Cần ghép nhiều feature → ghép ở **tầng `app/`** (route component compose các feature).
-  Ví dụ: `routes/dashboard.tsx` dùng `useCurrentUser` (auth) + `DashboardSummaryCard` (dashboard)
-  + `EventsFeed` (dashboard) và truyền dữ liệu xuống.
+  Ví dụ: `routes/_authenticated/route.tsx` dùng session (auth) rồi các màn con compose
+  feature tương ứng và truyền dữ liệu xuống (demo dashboard cũ đã gỡ ở PHA 1.5).
 - **KHÔNG barrel file lớn** (`index.ts` re-export hàng loạt) — phá tree-shaking, chậm HMR.
   Import trực tiếp từng file.
 

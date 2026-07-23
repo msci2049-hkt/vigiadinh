@@ -116,9 +116,9 @@ pnpm dev                  # http://localhost:5173
 ## i18n (i18next + react-i18next)
 - Ngôn ngữ: **vi** (gốc, `fallbackLng`) + **en** (song song đầy đủ). Đổi qua nút ngôn ngữ ở header,
   lưu vào `localStorage` (detector). Khóa `t()` **type-safe** (augmentation từ `vi` resources).
-- File dịch: `src/locales/{vi,en}/{common,auth,dashboard,errors}.json`. Thêm key → sửa **cả vi lẫn en**.
+- File dịch: `src/locales/{vi,en}/{common,auth,errors,admin,fw}.json`. Thêm key → sửa **cả vi lẫn en**.
 - **Lazy-load theo namespace** (`i18next-resources-to-backend` + dynamic `import()`): chỉ `common`
-  (nav/layout/error) **eager** trong entry để không nháy UI chung; `auth`/`dashboard`/`errors` tách
+  (nav/layout/error) **eager** trong entry để không nháy UI chung; `auth`/`errors` (v.v.) tách
   thành **chunk riêng**, chỉ tải khi route cần. `t()` vẫn **type-safe** (augmentation compile-time,
   không ảnh hưởng runtime lazy).
 
@@ -144,7 +144,7 @@ src/stores/     global UI state (zustand)
 ```
 Chi tiết: `.claude/CODE_BASE_MAP.md`. Luật code: `.claude/CLAUDE.md` + `.claude/rules/`.
 
-## Gỡ demo
+## Gỡ demo — ✅ ĐÃ GỠ 2026-07-23 (PHA 1.5 monorepo family-wallet; mục dưới giữ làm tư liệu template)
 
 Template kèm một demo **nối-BE** (health + dashboard + SSE) để minh hoạ. Phần **khung** (auth
 thật, `lib/`, `app/` setup, i18n, `components/ui`) **không hard-import** demo — gỡ trong ~1 phút.

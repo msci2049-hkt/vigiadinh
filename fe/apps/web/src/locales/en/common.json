@@ -1,7 +1,6 @@
 {
   "nav": {
-    "home": "Home",
-    "dashboard": "Dashboard"
+    "home": "Home"
   },
   "theme": {
     "toggle": "Toggle light/dark theme"
@@ -43,7 +42,6 @@
   },
   "home": {
     "description": "React 19 + Vite FE template — plugs straight into the Bun + Hono + Better Auth BE.",
-    "ctaDashboard": "Open Dashboard (protected)",
     "ctaLogin": "Sign in",
     "stack": {
       "router": {

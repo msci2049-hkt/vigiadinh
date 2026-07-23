@@ -55,8 +55,6 @@ apps/web/src/app/routes/
     guardian/{,approve,approve-warning,approved}                                nhóm 6
     block/{,confirm,done}                                                       nhóm 7
     inheritance/{,heartbeat,claim}                                              nhóm 8
-    dashboard   🧪 DEMO template — gọi /api/dashboard/summary mà BE KHÔNG có (404).
-                README có mục "Gỡ demo"; events-feed.tsx đáng giữ làm mẫu SSE.
     _admin/admin/{,users,sessions,settings}   admin panel sẵn có — GIỮ NGUYÊN
   components/screen-stub.tsx   placeholder chung (title/description/cta/tone="alert")
   locales/{en,vi}/fw.json      namespace fw — 83 key, KHỚP 2 bên

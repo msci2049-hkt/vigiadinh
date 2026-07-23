@@ -6,7 +6,7 @@ import { loadEnv } from "vite";
 // the app never breaks this assertion.
 const APP_NAME = loadEnv("production", process.cwd(), "VITE_").VITE_APP_NAME || "Mau Demo FE";
 
-// All smoke tests run WITHOUT a backend: health/SSE/data calls fail gracefully,
+// All smoke tests run WITHOUT a backend: SSE/data calls fail gracefully,
 // and the protected-route guard treats a failed getSession as "unauthenticated".
 
 test("home renders with the app title", async ({ page }) => {
@@ -20,8 +20,8 @@ test("navigates home → login", async ({ page }) => {
   await expect(page).toHaveURL(/\/login/);
 });
 
-test("protected /dashboard redirects to /login when unauthenticated", async ({ page }) => {
-  await page.goto("/dashboard");
+test("protected /wallet redirects to /login when unauthenticated", async ({ page }) => {
+  await page.goto("/wallet");
   await expect(page).toHaveURL(/\/login\?redirect=/);
 });
 
@@ -35,11 +35,6 @@ test("theme toggle applies .dark and persists across reload (FOUC guard)", async
 
   await page.reload();
   await expect(html).toHaveClass(/dark/); // inline script set it before first paint
-});
-
-test("health badge shows disconnected without a backend", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByText("BE: mất kết nối")).toBeVisible();
 });
 
 test("language switch toggles vi ⇄ en", async ({ page }) => {

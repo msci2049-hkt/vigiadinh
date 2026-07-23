@@ -12,7 +12,7 @@
 | Bên | validate | test |
 |---|---|---|
 | be/ | `bun run validate` XANH (typecheck + biome 165 file + boundaries + env-parity 27 key + contract-check) | `bun test`: **88 pass, 3 skip, 0 fail** — 230 expect, 91 test / 21 file |
-| fe/ | `pnpm validate` XANH (11/11 task turbo: host-loaded + validation-parity + user-copy + contract-check + biome ci + typecheck + boundaries) | `pnpm test`: **23 pass, 0 fail** (core 14/14 + web 9/9, 3/3 task) |
+| fe/ | `pnpm validate` XANH (11/11 task turbo: host-loaded + validation-parity + user-copy + contract-check + biome ci + typecheck + boundaries) | `pnpm test`: **26 pass, 0 fail** (web 9 + core 14 + ui 3 — đính chính 2026-07-23: lần đo đầu ghi 23 vì task ui cache, log .turbo xác nhận ui 3 test) |
 
 - FE e2e (playwright): CHƯA chạy lại sau merge trên máy này (WSL fail-env KI-2/KI-5 — chỉ chromium
   khả dụng local). Báo cáo cũ trước merge: 20/20 chromium. Verify thật: CI e2e job 3 browser.
@@ -30,5 +30,5 @@
 
 ## Số liệu so sánh khi nghiệm thu (§8)
 
-- Số test KHÔNG được giảm so với: BE 88 pass · FE unit 23 pass (trừ lô 3/4 có khai báo trong commit body)
+- Số test KHÔNG được giảm so với: BE 88 pass · FE unit 26 pass (web 9 + core 14 + ui 3) (trừ lô 3/4 có khai báo trong commit body)
 - Bundle so với: 1178 KB / 77 precache entries

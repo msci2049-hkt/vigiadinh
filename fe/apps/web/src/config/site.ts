@@ -13,9 +13,5 @@ export const site = {
   description: "A wallet your family can help you recover",
   /** App default language — wired into i18n `fallbackLng` (see @/lib/i18n). */
   defaultLocale: "en",
-  nav: [
-    { labelKey: "nav.home", to: "/" },
-    // 🧪 DEMO — remove this entry when you delete the dashboard demo (see README "Gỡ demo").
-    { labelKey: "nav.dashboard", to: "/dashboard" },
-  ],
+  nav: [{ labelKey: "nav.home", to: "/" }],
 } as const;

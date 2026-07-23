@@ -26,11 +26,11 @@ async function submitLogin(page: Page) {
 
 test("successful login redirects to a valid internal path", async ({ page }) => {
   await mockAuth(page);
-  await page.goto("/login?redirect=/dashboard");
+  await page.goto("/login?redirect=/wallet");
   await submitLogin(page);
 
-  await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible();
+  await expect(page).toHaveURL(/\/wallet$/);
+  await expect(page.getByRole("heading", { name: "Ví của bạn" })).toBeVisible();
 });
 
 test("open redirect via protocol-relative URL is blocked", async ({ page }) => {

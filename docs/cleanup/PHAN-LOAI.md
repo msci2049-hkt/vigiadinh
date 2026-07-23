@@ -199,7 +199,7 @@
 | `fe/apps/web/src/app/routes/_authenticated/block/confirm.tsx` | GIỮ | ROUTES.md bảng A — v1=Y (khung ScreenStub, PHA 6 thay ruột) |
 | `fe/apps/web/src/app/routes/_authenticated/block/done.tsx` | GIỮ | ROUTES.md bảng A — v1=Y (khung ScreenStub, PHA 6 thay ruột) |
 | `fe/apps/web/src/app/routes/_authenticated/block/index.tsx` | GIỮ | ROUTES.md bảng A — v1=Y (khung ScreenStub, PHA 6 thay ruột) |
-| `fe/apps/web/src/app/routes/_authenticated/dashboard.tsx` | XOÁ | lô 4 — route demo 🧪 gọi /api/dashboard/summary KHÔNG tồn tại (404); ROUTES.md đánh N; README §Gỡ demo |
+| `fe/apps/web/src/app/routes/_authenticated/dashboard.tsx` | XOÁ ✅ 2026-07-23 | lô 4 — route demo 🧪 gọi /api/dashboard/summary KHÔNG tồn tại (404); ROUTES.md đánh N; README §Gỡ demo |
 | `fe/apps/web/src/app/routes/_authenticated/guardian/approve-warning.tsx` | GIỮ | ROUTES.md bảng A — v1=Y (khung ScreenStub, PHA 6 thay ruột) |
 | `fe/apps/web/src/app/routes/_authenticated/guardian/approve.tsx` | GIỮ | ROUTES.md bảng A — v1=Y (khung ScreenStub, PHA 6 thay ruột) |
 | `fe/apps/web/src/app/routes/_authenticated/guardian/approved.tsx` | GIỮ | ROUTES.md bảng A — v1=Y (khung ScreenStub, PHA 6 thay ruột) |
@@ -264,14 +264,14 @@
 | `fe/apps/web/src/features/auth/schemas/otp-schema.ts` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
 | `fe/apps/web/src/features/auth/schemas/signup-schema.test.ts` | GIỮ | §4 — hạ tầng test là khung đổ test nghiệp vụ |
 | `fe/apps/web/src/features/auth/schemas/signup-schema.ts` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
-| `fe/apps/web/src/features/dashboard/api/dashboard-api.ts` | XOÁ | lô 4 — API demo 🧪, endpoint không tồn tại; README §Gỡ demo |
-| `fe/apps/web/src/features/dashboard/components/dashboard-summary-card.tsx` | XOÁ | lô 4 — component demo 🧪; README §Gỡ demo |
-| `fe/apps/web/src/features/dashboard/components/events-feed.tsx` | XOÁ | lô 4 — demo 🧪; mẫu SSE giữ trong git history + skill consume-sse; README §Gỡ demo |
-| `fe/apps/web/src/features/dashboard/hooks/use-dashboard.ts` | XOÁ | lô 4 — hook demo 🧪; README §Gỡ demo |
-| `fe/apps/web/src/features/health/api/health-api.ts` | XOÁ | lô 4 — health demo 🧪 nối-BE của template; README §Gỡ demo |
-| `fe/apps/web/src/features/health/components/health-badge.test.tsx` | XOÁ | lô 4 — test của health demo (xoá cùng màn, khai báo trong commit) |
-| `fe/apps/web/src/features/health/components/health-badge.tsx` | XOÁ | lô 4 — health demo 🧪; README §Gỡ demo |
-| `fe/apps/web/src/features/health/hooks/use-health.ts` | XOÁ | lô 4 — health demo 🧪; README §Gỡ demo |
+| `fe/apps/web/src/features/dashboard/api/dashboard-api.ts` | XOÁ ✅ 2026-07-23 | lô 4 — API demo 🧪, endpoint không tồn tại; README §Gỡ demo |
+| `fe/apps/web/src/features/dashboard/components/dashboard-summary-card.tsx` | XOÁ ✅ 2026-07-23 | lô 4 — component demo 🧪; README §Gỡ demo |
+| `fe/apps/web/src/features/dashboard/components/events-feed.tsx` | XOÁ ✅ 2026-07-23 | lô 4 — demo 🧪; mẫu SSE giữ trong git history + skill consume-sse; README §Gỡ demo |
+| `fe/apps/web/src/features/dashboard/hooks/use-dashboard.ts` | XOÁ ✅ 2026-07-23 | lô 4 — hook demo 🧪; README §Gỡ demo |
+| `fe/apps/web/src/features/health/api/health-api.ts` | XOÁ ✅ 2026-07-23 | lô 4 — health demo 🧪 nối-BE của template; README §Gỡ demo |
+| `fe/apps/web/src/features/health/components/health-badge.test.tsx` | XOÁ ✅ 2026-07-23 | lô 4 — test của health demo (xoá cùng màn, khai báo trong commit) |
+| `fe/apps/web/src/features/health/components/health-badge.tsx` | XOÁ ✅ 2026-07-23 | lô 4 — health demo 🧪; README §Gỡ demo |
+| `fe/apps/web/src/features/health/hooks/use-health.ts` | XOÁ ✅ 2026-07-23 | lô 4 — health demo 🧪; README §Gỡ demo |
 | `fe/apps/web/src/features/users-management/api/admin-users-api.ts` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
 | `fe/apps/web/src/features/users-management/components/create-user-dialog.tsx` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |
 | `fe/apps/web/src/features/users-management/components/user-dialogs.tsx` | GIỮ | knip: referenced (0 unused file) — hạ tầng khung |

@@ -1,7 +1,6 @@
 {
   "nav": {
-    "home": "Trang chủ",
-    "dashboard": "Dashboard"
+    "home": "Trang chủ"
   },
   "theme": {
     "toggle": "Chuyển giao diện sáng/tối"
@@ -43,7 +42,6 @@
   },
   "home": {
     "description": "FE mẫu React 19 + Vite — cắm thẳng BE Bun + Hono + Better Auth.",
-    "ctaDashboard": "Vào Dashboard (protected)",
     "ctaLogin": "Đăng nhập",
     "stack": {
       "router": {

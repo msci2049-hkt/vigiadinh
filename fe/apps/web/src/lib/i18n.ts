@@ -5,7 +5,6 @@ import common_en from "../locales/en/common.json";
 import type admin_vi from "../locales/vi/admin.json";
 import type auth_vi from "../locales/vi/auth.json";
 import common_vi from "../locales/vi/common.json";
-import type dashboard_vi from "../locales/vi/dashboard.json";
 import type errors_vi from "../locales/vi/errors.json";
 import type fw_vi from "../locales/vi/fw.json";
 
@@ -15,14 +14,13 @@ export const defaultNS = "common";
 export interface I18nResources {
   common: typeof common_vi;
   auth: typeof auth_vi;
-  dashboard: typeof dashboard_vi;
   errors: typeof errors_vi;
   admin: typeof admin_vi;
   /** FamilyWallet screens (8 nhóm màn hình — xem CLAUDE.md). */
   fw: typeof fw_vi;
 }
 
-// Lazy namespaces (`auth`/`dashboard`/`errors`/`admin`/`fw`) stay OUT of the entry —
+// Lazy namespaces (`auth`/`errors`/`admin`/`fw`) stay OUT of the entry —
 // Vite code-splits each `src/locales/<lng>/<ns>.json` chunk; the template
 // literal MUST live in the app (not @repo/i18n) so Vite's glob analysis sees it.
 const i18n = initI18n({
