@@ -3,6 +3,10 @@
 Việc KHÔNG tự làm xong được trên máy hiện tại. Mỗi mục ghi: chặn cái gì, vì sao,
 cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã xanh".
 
+> ⚠️ **MỌI SHA ghi trước 2026-07-24 trong file này KHÔNG CÒN HIỆU LỰC** — lịch sử đã rewrite
+> 2026-07-23 (gộp scaffold, 136 → 16 commit; cây làm việc không đổi một byte).
+> Chi tiết + bảng tra: `BUILD-LOG.md` đầu file. Lịch sử cũ: nhánh `backup-full`.
+
 ## CI (2026-07-23, sau SHA `e2682fd`)
 
 ### B-CI-1 · Không đọc được kết quả GitHub Actions từ máy này

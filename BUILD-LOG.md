@@ -3,6 +3,14 @@
 > Nhật ký marathon build theo `../CHECKLIST-BUILD-vigiadinh.md`. Mỗi pha: bước xong,
 > bằng chứng test, commit, điểm resume kế tiếp.
 
+> ⚠️ **MỌI SHA ghi trước 2026-07-24 trong file này KHÔNG CÒN HIỆU LỰC.** Lịch sử đã được
+> rewrite ngày 2026-07-23: toàn bộ lịch sử scaffold nhập từ template bị gộp thành MỘT commit
+> gốc `chore: nền dự án family-wallet — BE + FE`, 15 commit việc thật được rebase lên trên
+> (136 commit → 16). Cây làm việc KHÔNG đổi một byte nào (tree SHA `9585b42` trước và sau
+> giống hệt). Nội dung từng mục dưới vẫn đúng — chỉ con số SHA là tra không ra.
+> Lịch sử cũ nguyên vẹn ở nhánh `backup-full` (`182c698`, còn trên remote, private).
+> Bảng tra nhanh: `182c698` (đỉnh cũ) → `acb5624` (đỉnh mới, cùng nội dung).
+
 ## PHA 1 · GỘP GIT + KHUNG SẠCH — 2026-07-23
 
 ### 1.1 Khởi tạo repo đơn ✅
@@ -165,3 +173,32 @@ bun 1.3.11 mà CI pin) — diff chỉ là mấy dòng override.
 - `prepare: lefthook install` sinh `lefthook.yml` stub ở root sau MỖI install (be lẫn fe) — xoá.
 - Vá vitest `START_TIMEOUT` trong node_modules mất sau mỗi `pnpm i` — phải vá lại mới chạy test.
 - `lệnh | tail -N` → `$?` là của `tail`, luôn 0. Dùng `${PIPESTATUS[0]}` và đọc NỘI DUNG output.
+
+## GIT · GỘP LỊCH SỬ TEMPLATE (2026-07-23)
+
+Mục tiêu: mở repo ra thấy lịch sử bắt đầu từ nền dự án, mọi commit sau đó là việc thật —
+không phải 3 tháng commit template của dự án khác (commit cũ đứng tên "CDHC Dev").
+Đây là DỌN DẸP, không phải giấu nguồn gốc: commit gốc GHI RÕ có dùng template nội bộ MSCI.
+
+- Mốc cắt `eb22518` (`Add 'fe/' …`) — commit subtree CUỐI. Kiểm bắt buộc trước khi chạy:
+  `git log --merges eb22518..main | wc -l` = **0** (không còn merge nào sau mốc → rebase an toàn).
+- Gốc mới `d36c5d3` `chore: nền dự án family-wallet — BE + FE` (orphan, 1 commit, 0 parent).
+- `git rebase --onto tmp-root eb22518 main` → **15/15 commit phát lại, KHÔNG xung đột**.
+- **136 commit → 16** (1 gốc + 15 việc thật). Đỉnh mới `acb5624`.
+
+### Bằng chứng an toàn (4 gate của runbook §4)
+
+| Gate | Kết quả |
+|---|---|
+| 4.1 cây làm việc y hệt | `git diff backup-full main` **rỗng**; tree SHA **`9585b42` giống hệt** hai bên — không lệch 1 byte |
+| 4.2 hình dạng lịch sử | gốc = commit nền · **16 commit** · **0 merge** · tất cả `2026-07-23` (sạch tháng 5/6 + 9-10/7) · tác giả duy nhất `lipxjh1`, hết "CDHC Dev" |
+| 4.3 build còn xanh | BE `validate` xanh + `bun test` **88 pass, 3 skip, 0 fail** · FE `validate` **11/11** + test **25 pass** |
+| 4.4 secret trên lịch sử mới | gitleaks 8.30.1 quét đúng **16 commit** của `main` → **no leaks**, exit 0 |
+
+### Lưới an toàn còn nguyên
+
+- Nhánh **`backup-full` = `182c698`** (đủ 136 commit) đã push lên remote TRƯỚC khi rewrite,
+  private, **giữ tới khi thi xong**. Hỏng bất cứ đâu: `git reset --hard backup-full`.
+- Máy nào đã clone repo này phải chạy `git fetch && git reset --hard origin/main` —
+  pull thường sẽ tạo merge bậy giữa hai lịch sử không cùng gốc.
+- Mọi SHA ghi trong tài liệu trước 2026-07-24 tra không ra (ghi chú ở đầu BUILD-LOG + BLOCKERS).
