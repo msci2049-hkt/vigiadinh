@@ -35,11 +35,9 @@ regexes = ['''test-secret-[A-Za-z0-9_-]+''']
 description = "Liquify public Stellar RPC endpoint (shared key công khai)"
 regexes = ['''41EEWAH79Y5OCGI7/mainnet''']
 
-# Cú pháp SỐ ÍT cho gitleaks < 8.25 (bản cũ bỏ qua [[allowlists]] global một cách
-# im lặng — máy dev đang chạy 8.24.3). Giữ CẢ HAI: bản mới đọc cả hai, bản cũ đọc bảng này.
-[allowlist]
-description = "test fixtures + Liquify public endpoint (mirror của [[allowlists]] trên)"
-regexes = [
-  '''test-secret-[A-Za-z0-9_-]+''',
-  '''41EEWAH79Y5OCGI7/mainnet''',
-]
+# YÊU CẦU gitleaks >= 8.25 (CI pin 8.30.1, xem be/docs/HUMAN-TODO.md §2).
+# KHÔNG thêm lại bảng SỐ ÍT [allowlist]: từ 8.25 gitleaks BÁO LỖI CHẾT khi có cả hai
+# ("[allowlist] is deprecated, it cannot be used alongside [[allowlists]]") → job
+# secret-scan đỏ ngay ở bước load config, chưa quét commit nào.
+# Máy dev còn 8.24.3 phải nâng lên 8.30.1 — bản cũ bỏ qua [[allowlists]] im lặng
+# nên sẽ báo 2 false-positive (fixture test-secret-* + endpoint Liquify public).
