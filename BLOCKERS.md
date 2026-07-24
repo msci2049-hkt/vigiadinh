@@ -147,3 +147,16 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
   bằng chứng passkey chuyển sang `passkey-onchain.spec.ts` (opt-in RUN_TESTNET_E2E,
   đã pass local). Việc treo: e2e đăng-nhập-lại với ví ĐÃ deploy (cần fixture
   credential ổn định) + đổi /passkey createCta trỏ về /setup (§2.5).
+
+### B-52-1 · CẬP NHẬT 2026-07-24 — e2e chạy local CHROMIUM + FIREFOX; webkit còn hở
+
+- **Tiến triển:** với workaround `LD_LIBRARY_PATH=~/chrome-libs/extracted/...` (apt-get
+  download libnspr4/libnss3/libasound2t64 + dpkg -x, KHÔNG cần sudo), e2e không-mạng
+  `family-screens.spec.ts` chạy local **chromium 6 pass + firefox 6 pass** (2026-07-24).
+  Firefox binary tải thêm qua `playwright install firefox` (deps-validate lỗi vì thiếu
+  sudo nhưng binary vẫn tải; libs của firefox đã đủ nhờ LD_LIBRARY_PATH trên).
+- **Webkit còn fail-env:** đòi cả stack GTK4 (~30 .so: libgtk-4, libgraphene, libicu-78,
+  gstreamer*, libwebp…) + cây phụ thuộc lớn — tải hết không cân xứng công sức. Spec
+  network-free + API chuẩn cross-browser (đã chứng minh trên 2 engine) → rất khả năng
+  xanh trên CI (runner có `--with-deps`). Chưa chạy local thì chưa gọi là xanh.
+- **Cần để gỡ:** đọc job e2e CI (B-CI-1), hoặc `sudo playwright install-deps webkit`.
