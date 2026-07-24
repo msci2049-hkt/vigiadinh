@@ -1,3 +1,4 @@
+import { formatDateTime } from "@repo/core";
 import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Skeleton } from "@repo/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
@@ -13,7 +14,7 @@ const sessionsKeys = { all: ["admin", "my-sessions"] as const };
 
 /** The signed-in admin's own devices/sessions, with per-session revoke. */
 function AdminSessionsPage() {
-  const { t } = useTranslation("admin");
+  const { t, i18n } = useTranslation("admin");
   const queryClient = useQueryClient();
   const { data: current } = useSession();
 
@@ -63,7 +64,7 @@ function AdminSessionsPage() {
                   <span>
                     IP: {s.ipAddress ?? "—"} ·{" "}
                     {t("sessions.expires", {
-                      value: new Date(s.expiresAt).toLocaleString(),
+                      value: formatDateTime(s.expiresAt, { locale: i18n.language }),
                     })}
                   </span>
                   <Button
