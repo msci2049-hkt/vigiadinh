@@ -18,3 +18,11 @@ export async function enqueue(data: NewNotification): Promise<Notification> {
   if (!row) throw new Error("NOTIFICATION_CREATE_FAILED");
   return row;
 }
+
+// Bản tx-aware cho batch atomic (indexer PHA 4.2): notify phải nằm CÙNG
+// transaction với mirror + checkpoint — kill giữa batch thì cả ba cùng rollback.
+type DbTx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export async function enqueueTx(tx: DbTx, data: NewNotification): Promise<void> {
+  await tx.insert(notifications).values(data);
+}

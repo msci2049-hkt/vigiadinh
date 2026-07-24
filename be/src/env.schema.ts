@@ -88,6 +88,17 @@ export const envShape = {
   // TTL challenge/nonce (A4: 2–5 phút) + TTL JWT phiên ví.
   SEP45_CHALLENGE_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   SEP45_JWT_TTL_SECONDS: z.coerce.number().int().positive().default(86400),
+  // CSV contract ID indexer theo dõi (PHA 4.2) — trống = indexer no-op (chưa
+  // deploy contract nghiệp vụ; điền ở PHA 5 khi recovery/inheritance lên testnet).
+  INDEXER_CONTRACT_IDS: z
+    .string()
+    .default("")
+    .transform((s) =>
+      s
+        .split(",")
+        .map((c) => c.trim())
+        .filter(Boolean),
+    ),
 
   // === Webhook secrets (optional) ===
   // Chỉ điền cho provider thực sự dùng. verify.ts throw rõ ràng nếu code

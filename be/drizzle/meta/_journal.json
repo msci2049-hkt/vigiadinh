@@ -29,6 +29,13 @@
       "when": 1784858025555,
       "tag": "0003_flawless_meteorite",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1784858567811,
+      "tag": "0004_cynical_shatterstar",
+      "breakpoints": true
     }
   ]
 }

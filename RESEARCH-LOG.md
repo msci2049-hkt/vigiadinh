@@ -55,3 +55,11 @@
   `CCNS6O5HBTF7XOOVCNF4XLTKORQ4JB4PKUKUA6CX2MW7OXOKGKKC2O4N`.
   ⚠️ Bản dev CHỈ cho localhost — production deploy instance mới pin domain thật (3 origin web/APK/ext).
 - SEP45 signing key dev: alias CLI `sep45-signing`, account `GB36727O4PD6ASHCJAREPS7XJZZL467LHETUTQYLFGJXFNZYRZQOBQBP` (friendbot funded; secret trong `be/.env`, KHÔNG commit).
+
+### 2026-07-24 · PHA 4.2 · getEvents semantics (SDK 16 bản cài)
+
+- Hỏi: cursor/pagination getEvents hoạt động thế nào?
+- Nguồn: `be/node_modules/@stellar/stellar-sdk/lib/esm/rpc/api.d.ts` (`GetEventsRequest`/`GetEventsResponse`).
+- Kết luận: 2 chế độ LOẠI TRỪ NHAU — `{startLedger, endLedger?}` HOẶC `{cursor}` (trộn là type error). Response: `events[]` (mỗi event có `id` DUY NHẤT toàn mạng — chính là khoá dedupe), `cursor` (trang kế), `latestLedger` + `oldestLedger` (RetentionState — phát hiện trôi cửa sổ ~7 ngày). Event: topic ScVal[] (parse `scValToNative`), value, txHash, ledger.
+- Áp vào: `be/src/modules/indexer/infra/{indexer.service,rpc-source,checkpoint.schema}.ts`.
+- Mâu thuẫn skill? Không — khớp fw-indexer-notify (checkpoint mỗi batch + dedupe id + cửa sổ 7 ngày).
