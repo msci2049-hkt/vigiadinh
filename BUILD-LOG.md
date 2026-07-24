@@ -266,6 +266,27 @@
   dung, làm SAU PHA 6); locale số tách khỏi ngôn ngữ UI (hiện dùng i18n.language — đủ cho
   v1, tách khi có settings).
 
+## PHA 6 · CHỐT ROUTE + THAY STUB — ĐANG LÀM (2026-07-24)
+
+- **6.1 ✅** ROUTES.md xác nhận là danh sách DUY NHẤT + ghi thứ tự dựng (commit `3d40f5d`).
+- **6.2 cụm ĐỌC — 5/… màn đã thay stub bằng dữ liệu thật:**
+  - Feature `family` (apps/web): api typed 4 module (wallets/guardians/recovery/audit,
+    envelope `{data}` khớp BE) · `useActiveWallet` (v1 ví đầu) · screen-state chung ·
+    GuardianStatusBadge (chữ người thường).
+  - `/guardians` + `/guardians/$guardianId` (`3d40f5d`): list + detail từ cache chung
+    (BE chỉ có endpoint list — detail tra id từ list, không gọi lại); removed ẩn;
+    ngày giờ qua formatDateTime PHA 7.1.
+  - `/wallet/history` (`3d40f5d`): audit feed, map kind→key i18n, kind lạ→nhãn chung.
+  - `/night-watch` + `/night-watch/log` (`07e98ca`): recovery mở → thẻ cảnh báo + cửa sổ
+    CHẶN hiện CẢ đếm ngược lẫn mốc tuyệt đối (timelockView) + MỘT nút chặn sang /block;
+    log = audit lọc sự kiện an toàn, chung cache với history. Không nút tự huỷ (luật 6).
+  - i18n +37 key fw.json en+vi (ICU plural phía en), giọng ux-writer.
+- **Gate mỗi batch:** validate 11/11 + honest build xanh (2 lần) + test 56 pass.
+- **Điểm resume cụm ĐỌC còn lại:** `/inheritance` (GET /api/inheritance/wallet/:id có sẵn) ·
+  `/wallet` hub (chưa có endpoint balance — hiện address + tiles) · `/recovery/progress`
+  (PUBLIC — cần endpoint public BE, làm cùng cụm GHI recovery) · `/guardian` inbox
+  (cần endpoint approvals theo guardian — cụm GHI). Sau đó: cụm GHI theo ROUTES.md.
+
 ## CI · SCAN + FIX CI ĐỎ (2026-07-23)
 
 SHA sau fix: `e2682fd` (3 commit, đẩy lên `main`: `9ccc08b..e2682fd`).
