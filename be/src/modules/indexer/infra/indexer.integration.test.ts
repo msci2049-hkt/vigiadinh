@@ -132,6 +132,78 @@ describe("indexer core (Postgres thật)", () => {
     },
   );
 
+  testIt(
+    "registry on-chain (PHA 5.2): initiate → approve → cancel mirror theo topics[1], trọn vòng đời",
+    async () => {
+      const stream = freshStream();
+      const registryId = `C${"R".repeat(55)}`;
+      const walletAddress = `G${crypto.randomUUID().replace(/-/g, "").toUpperCase().slice(0, 55).padEnd(55, "E")}`;
+      const [w] = await db
+        .insert(wallets)
+        .values({ userId: OWNER, stellarAddress: walletAddress, threshold: 2 })
+        .returning({ id: wallets.id });
+      if (!w) throw new Error("wallet insert failed");
+      cleanupWalletIds.push(w.id);
+
+      const newOwner = `G${"N".repeat(55)}`;
+      const guardian = `G${"G".repeat(55)}`;
+      // Shape data đúng rpc-source.simplify: {topics, value, txHash}; MỌI event chung
+      // contractId = registry — ví chỉ nhận ra được qua topics[1].
+      const initiate = {
+        ...makeEvent("initiate"),
+        ledger: 1,
+        contractId: registryId,
+        data: { topics: ["initiate", walletAddress], value: newOwner, txHash: "a".repeat(64) },
+      };
+      const approve = {
+        ...makeEvent("approve"),
+        ledger: 2,
+        contractId: registryId,
+        data: { topics: ["approve", walletAddress], value: [guardian, 1], txHash: "b".repeat(64) },
+      };
+      const cancel = {
+        ...makeEvent("cancel"),
+        ledger: 3,
+        contractId: registryId,
+        data: { topics: ["cancel", walletAddress], value: walletAddress, txHash: "c".repeat(64) },
+      };
+      cleanupEventIds.push(initiate.id, approve.id, cancel.id);
+
+      await pollOnce(
+        fakeSource([{ events: [initiate, approve], cursor: "cur-r1", latestLedger: 10 }]),
+        stream,
+      );
+      const [afterApprove] = await db
+        .select()
+        .from(recoveryRequests)
+        .where(eq(recoveryRequests.walletId, w.id));
+      expect(afterApprove?.status).toBe("pending");
+      expect(afterApprove?.newOwner).toBe(newOwner);
+      expect(afterApprove?.approvals).toBe(1);
+      expect(afterApprove?.threshold).toBe(2);
+      expect(afterApprove?.txHash).toBe("a".repeat(64));
+
+      await pollOnce(
+        fakeSource([{ events: [cancel], cursor: "cur-r2", latestLedger: 20 }], 0),
+        stream,
+      );
+      const [afterCancel] = await db
+        .select({ status: recoveryRequests.status })
+        .from(recoveryRequests)
+        .where(eq(recoveryRequests.walletId, w.id));
+      expect(afterCancel?.status).toBe("vetoed");
+
+      // Notify chủ ví: initiate + approve + cancel đều có template.
+      const notis = await db
+        .select({ templateKey: notifications.templateKey })
+        .from(notifications)
+        .where(eq(notifications.userId, OWNER));
+      for (const key of ["recovery.initiated", "recovery.approved", "recovery.vetoed"]) {
+        expect(notis.some((n) => n.templateKey === key)).toBe(true);
+      }
+    },
+  );
+
   testIt("gap (trôi quá cửa sổ RPC): ghi audit lỗ hổng, vẫn chạy tiếp", async () => {
     const stream = freshStream();
     // Checkpoint đã có (ledger 50) → nguồn báo gapFromLedger 500.

@@ -4,7 +4,7 @@
 // refetch đúng batch đó, không mất; đã commit rồi mà RPC trả trùng trang sau →
 // PK conflict bỏ qua, không trùng. (Audit kill-restart có test integration.)
 // Nguồn event tiêm qua port EventSource — RPC thật ở rpc-source.ts, test tiêm fake.
-import { eq, sql } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { enqueueNotificationTx } from "@/modules/notifications";
 import { recoveryRequests } from "../../recovery/infra/recovery-requests.schema";
@@ -96,22 +96,105 @@ export async function pollOnce(
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
+/** Ví của event: registry (walletFromTopic) → topics[1] = địa chỉ ví; còn lại →
+ * contractId (ví smart-account có contract riêng). */
+async function findWallet(tx: Tx, event: SimplifiedEvent, walletFromTopic: boolean) {
+  const query = tx
+    .select({
+      id: wallets.id,
+      ownerUserId: wallets.userId,
+      threshold: wallets.threshold,
+      timelockSecs: wallets.timelockSecs,
+    })
+    .from(wallets);
+  if (walletFromTopic) {
+    const topics = (event.data as { topics?: unknown[] }).topics;
+    const address = topics?.[1];
+    if (typeof address !== "string") return undefined;
+    const [row] = await query.where(eq(wallets.stellarAddress, address));
+    return row;
+  }
+  const [row] = await query.where(eq(wallets.contractId, event.contractId));
+  return row;
+}
+
+type MirrorWallet = NonNullable<Awaited<ReturnType<typeof findWallet>>>;
+
+/** Trạng thái mirror còn "sống" — mọi cập nhật registry chỉ chạm các dòng này. */
+const ACTIVE_MIRROR = inArray(recoveryRequests.status, ["pending", "ready"]);
+
+/** Mirror registry (PHA 5.2) — nguồn sự thật = chain, indexer là NGƯỜI GHI DUY NHẤT
+ * của recovery_requests (route ghi chỉ audit). Idempotent nhờ dedupe PK event id. */
+async function applyRegistryMirror(
+  tx: Tx,
+  kind: string,
+  wallet: MirrorWallet,
+  event: SimplifiedEvent,
+): Promise<void> {
+  const data = event.data as { value?: unknown; txHash?: unknown };
+  const walletScope = eq(recoveryRequests.walletId, wallet.id);
+  switch (kind) {
+    case "initiate": {
+      // value = new_owner_candidate (Address→string). vetoUntil ƯỚC LƯỢNG từ mirror
+      // timelock của ví (mốc chuẩn on-chain là started_at contract — FE đọc qua
+      // get_recovery_status khi cần chính xác tuyệt đối).
+      if (typeof data.value !== "string") return;
+      await tx.insert(recoveryRequests).values({
+        walletId: wallet.id,
+        newOwner: data.value,
+        status: "pending",
+        approvals: 0,
+        threshold: wallet.threshold,
+        txHash: typeof data.txHash === "string" ? data.txHash.slice(0, 64) : null,
+        vetoUntil: new Date(Date.now() + wallet.timelockSecs * 1000),
+      });
+      return;
+    }
+    case "approve": {
+      // value = (guardian, approvals_len) → native [string, number].
+      const value = data.value;
+      const approvalsLen = Array.isArray(value) ? Number(value[1]) : Number.NaN;
+      if (!Number.isFinite(approvalsLen)) return;
+      await tx
+        .update(recoveryRequests)
+        .set({ approvals: approvalsLen })
+        .where(and(walletScope, ACTIVE_MIRROR));
+      return;
+    }
+    case "cancel":
+      await tx
+        .update(recoveryRequests)
+        .set({ status: "vetoed" })
+        .where(and(walletScope, ACTIVE_MIRROR));
+      return;
+    case "finalize":
+      await tx
+        .update(recoveryRequests)
+        .set({ status: "executed" })
+        .where(and(walletScope, ACTIVE_MIRROR));
+      return;
+    default:
+      return;
+  }
+}
+
 /** Áp MỘT event: mirror + audit (+ notify chủ ví nếu template có). */
 async function applyEvent(tx: Tx, event: SimplifiedEvent): Promise<void> {
   const route = routeEvent(event.kind);
-  const [wallet] = await tx
-    .select({ id: wallets.id, ownerUserId: wallets.userId })
-    .from(wallets)
-    .where(eq(wallets.contractId, event.contractId));
+  const wallet = await findWallet(tx, event, route.walletFromTopic === true);
 
-  // Mirror riêng cho veto — ƯU TIÊN CAO NHẤT: request về 'vetoed' NGAY trong batch
-  // (đứng đầu nhờ orderByPriority). Invalidate session/device-proof nối ở PHA 5
-  // khi luồng recovery ghi thật (TODO có chủ đích, ghi BUILD-LOG).
-  if (route.kind === "recovery.vetoed" && wallet) {
-    await tx
-      .update(recoveryRequests)
-      .set({ status: "vetoed" })
-      .where(eq(recoveryRequests.walletId, wallet.id));
+  // Mirror: event registry on-chain (initiate/approve/cancel/finalize) + veto pipeline
+  // (recovery.vetoed) — veto đứng ĐẦU batch nhờ orderByPriority. Invalidate
+  // session/device-proof nối ở PHA 6 (TODO có chủ đích, ghi BUILD-LOG).
+  if (wallet) {
+    if (route.walletFromTopic) {
+      await applyRegistryMirror(tx, route.kind, wallet, event);
+    } else if (route.kind === "recovery.vetoed") {
+      await tx
+        .update(recoveryRequests)
+        .set({ status: "vetoed" })
+        .where(eq(recoveryRequests.walletId, wallet.id));
+    }
   }
 
   await tx.insert(auditLog).values({

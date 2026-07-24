@@ -45,8 +45,25 @@ describe("notification renderer (ICU theo locale người nhận)", () => {
     expect(r.title).toBe("Wallet update");
   });
 
+  it("template recovery mới (PHA 5.2) render đủ hai thứ tiếng", () => {
+    for (const key of ["recovery.initiated", "recovery.approved", "recovery.finalized"]) {
+      const vi = renderNotification(key, "vi", {});
+      const en = renderNotification(key, "en", {});
+      expect(vi.title.length).toBeGreaterThan(0);
+      expect(en.title.length).toBeGreaterThan(0);
+      expect(vi.title).not.toBe("Cập nhật ví"); // không rơi xuống generic
+      expect(en.title).not.toBe("Wallet update");
+    }
+  });
+
   it("chuỗi người thường — không lộ jargon kỹ thuật", () => {
-    for (const key of ["inheritance.suggest_claim", "presence.guardian_offline"]) {
+    for (const key of [
+      "inheritance.suggest_claim",
+      "presence.guardian_offline",
+      "recovery.initiated",
+      "recovery.approved",
+      "recovery.finalized",
+    ]) {
       for (const locale of ["vi", "en"]) {
         const r = renderNotification(key, locale, { days: 3, guardianName: "undefined" });
         const text = `${r.title} ${r.body}`.toLowerCase();

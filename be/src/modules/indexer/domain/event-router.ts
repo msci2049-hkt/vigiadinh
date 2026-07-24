@@ -9,6 +9,9 @@ export type RoutedEvent = {
   notifyTemplate: string | null;
   /** Có được biết đến không — unknown vẫn lưu (không mất dữ liệu), không notify. */
   known: boolean;
+  /** Event registry on-chain: MỌI ví chung MỘT contractId (registry) — ví nằm ở
+   * topics[1], applyEvent match bằng wallets.stellarAddress thay vì contractId. */
+  walletFromTopic?: boolean;
 };
 
 const VETO_PRIORITY = 0;
@@ -28,6 +31,36 @@ const ROUTES: Record<string, Omit<RoutedEvent, "kind">> = {
   "transaction.settled": { priority: NORMAL, notifyTemplate: "transaction.settled", known: true },
   "guardian.health_changed": { priority: NORMAL, notifyTemplate: null, known: true },
   "care.revoked": { priority: HIGH, notifyTemplate: "care.revoked", known: true },
+  // Event THẬT của recovery registry (PHA 5.2) — topic symbol_short ≤9 ký tự,
+  // đọc từ chain, bảng đối chiếu: docs/ONCHAIN-EVENTS.md. `cancel` = veto on-chain
+  // → cùng priority 0 với recovery.vetoed (pipeline).
+  register: { priority: NORMAL, notifyTemplate: null, known: true, walletFromTopic: true },
+  g_add: { priority: NORMAL, notifyTemplate: null, known: true, walletFromTopic: true },
+  g_remove: { priority: NORMAL, notifyTemplate: null, known: true, walletFromTopic: true },
+  initiate: {
+    priority: HIGH,
+    notifyTemplate: "recovery.initiated",
+    known: true,
+    walletFromTopic: true,
+  },
+  approve: {
+    priority: HIGH,
+    notifyTemplate: "recovery.approved",
+    known: true,
+    walletFromTopic: true,
+  },
+  cancel: {
+    priority: VETO_PRIORITY,
+    notifyTemplate: "recovery.vetoed",
+    known: true,
+    walletFromTopic: true,
+  },
+  finalize: {
+    priority: HIGH,
+    notifyTemplate: "recovery.finalized",
+    known: true,
+    walletFromTopic: true,
+  },
   // Event contract (heartbeat / thừa kế / di chúc — PHA 5+ phát thật).
   heartbeat: { priority: NORMAL, notifyTemplate: null, known: true },
   inheritance_opened: {

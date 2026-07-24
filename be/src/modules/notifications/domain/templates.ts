@@ -32,6 +32,36 @@ export const TEMPLATES: Catalog = {
     en: { title: "Back online", body: "A trusted contact's device is reachable again." },
     vi: { title: "Đã kết nối lại", body: "Máy của người thân đã kết nối trở lại." },
   },
+  "recovery.initiated": {
+    en: {
+      title: "Wallet recovery started",
+      body: "Someone asked to take over this wallet through the family recovery process. If this is NOT you or family helping you, block it now from any of your devices.",
+    },
+    vi: {
+      title: "Có yêu cầu khôi phục ví",
+      body: "Có người yêu cầu tiếp quản ví này qua quy trình khôi phục gia đình. Nếu KHÔNG phải bạn hoặc người thân đang giúp bạn, hãy chặn ngay từ bất kỳ thiết bị nào của bạn.",
+    },
+  },
+  "recovery.approved": {
+    en: {
+      title: "A trusted contact confirmed the recovery",
+      body: "One more trusted contact has confirmed the request to recover this wallet. If this is unexpected, block it now.",
+    },
+    vi: {
+      title: "Một người thân đã xác nhận khôi phục",
+      body: "Thêm một người thân đã xác nhận yêu cầu khôi phục ví này. Nếu bạn thấy bất thường, hãy chặn ngay.",
+    },
+  },
+  "recovery.finalized": {
+    en: {
+      title: "Wallet recovery completed",
+      body: "The recovery process finished and the wallet now answers to the new key. If this was not expected, contact your family and review wallet activity immediately.",
+    },
+    vi: {
+      title: "Khôi phục ví hoàn tất",
+      body: "Quy trình khôi phục đã xong, ví giờ thuộc về khoá mới. Nếu điều này ngoài dự kiến, hãy liên hệ người thân và kiểm tra hoạt động của ví ngay.",
+    },
+  },
   "recovery.vetoed": {
     en: {
       title: "Recovery attempt stopped",
