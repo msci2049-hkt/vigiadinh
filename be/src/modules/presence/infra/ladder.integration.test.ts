@@ -106,13 +106,16 @@ describe("presence ladder (Postgres thật)", () => {
   testIt(
     "cron tick: ví tz có giờ local 12:00 nhận ping; chủ ví được notify khi đổi bậc",
     async () => {
-      const now = new Date();
-      // Chọn tz sao cho GIỜ HIỆN TẠI là 12h địa phương — test không phụ thuộc lúc chạy.
-      const offset = (12 - now.getUTCHours() + 24) % 24;
-      const tz = offset === 0 ? "UTC" : `Etc/GMT-${offset}`; // Etc/GMT-X = UTC+X (dấu NGƯỢC, chuẩn IANA)
+      // Mốc CỐ ĐỊNH 12:00 UTC hôm nay + tz UTC → giờ local = 12h, không phụ thuộc
+      // lúc chạy. (Bản cũ suy tz từ wall-clock: khi UTC hour 13-23 sinh Etc/GMT-X
+      // với X>14 — zone KHÔNG tồn tại theo IANA → test flake theo giờ. Đã bỏ.)
+      const today = new Date();
+      const now = new Date(
+        Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate(), 12, 0, 0),
+      );
       const { walletId, guardianId } = await makeWalletWithGuardian({
         lastSeenAt: new Date(now.getTime() - 30 * 3_600_000), // 30h → sẽ rơi bậc slow
-        timezone: tz,
+        timezone: "UTC",
       });
 
       expect(await walletsAtLocalHour(12, now)).toContain(walletId);
