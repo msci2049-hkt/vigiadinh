@@ -106,7 +106,21 @@
     "waiting": {
       "description": "We'll tell you the moment they're back.",
       "title": "Waiting to reconnect"
-    }
+    },
+    "noWallet": "You don't have a wallet yet, so there's nothing to watch over.",
+    "allQuiet": "All quiet. No one is trying to take over this wallet, and nothing needs your attention.",
+    "openRecovery": {
+      "title": "Someone is recovering this wallet",
+      "body": "{approvals, plural, one {# family confirmation} other {# family confirmations}} so far, {threshold} needed. If this is not your family helping you, block it now.",
+      "window": "You can still block it for {countdown} (until {absolute}).",
+      "cta": "This wasn't me — block it"
+    },
+    "contacts": {
+      "title": "Your family's connection",
+      "summary": "{reachable, plural, one {# person reachable} other {# people reachable}}, {quiet} quiet lately, {unreachable} unreachable.",
+      "cta": "See who's looking after your wallet"
+    },
+    "logEmpty": "No safety events yet. If anything ever happens to your wallet, you'll see it here."
   },
   "passkey": {
     "connected": "Your wallet is open: {wallet}",

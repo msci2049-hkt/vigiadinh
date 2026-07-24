@@ -106,7 +106,21 @@
     "waiting": {
       "description": "Chúng tôi sẽ báo ngay khi họ kết nối trở lại.",
       "title": "Đang chờ nối lại"
-    }
+    },
+    "noWallet": "Bạn chưa có ví nên chưa có gì để trông chừng.",
+    "allQuiet": "Mọi thứ yên ổn. Không ai đang cố chiếm ví, và không có gì cần bạn để mắt.",
+    "openRecovery": {
+      "title": "Có người đang khôi phục ví này",
+      "body": "Đã có {approvals} người thân xác nhận, cần {threshold}. Nếu không phải người thân đang giúp bạn, hãy chặn ngay.",
+      "window": "Bạn vẫn còn chặn được trong {countdown} (đến {absolute}).",
+      "cta": "Không phải tôi — chặn lại"
+    },
+    "contacts": {
+      "title": "Kết nối của người thân",
+      "summary": "{reachable} người đang kết nối, {quiet} người im ắng, {unreachable} người mất liên lạc.",
+      "cta": "Xem ai đang trông ví giúp bạn"
+    },
+    "logEmpty": "Chưa có sự kiện an toàn nào. Nếu có chuyện gì với ví, bạn sẽ thấy ở đây."
   },
   "passkey": {
     "connected": "Ví của bạn đã mở: {wallet}",
