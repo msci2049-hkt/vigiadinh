@@ -1,0 +1,1 @@
+ALTER TABLE "wallets" ADD COLUMN "timezone" varchar(40) DEFAULT 'UTC' NOT NULL;

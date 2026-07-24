@@ -28,6 +28,9 @@ export const wallets = pgTable(
     familyId: varchar("family_id", { length: 26 }).references(() => families.id, {
       onDelete: "set null",
     }),
+    // PHA 4.1: múi giờ chủ ví (IANA) — cron ping 12:00 CHẠY THEO GIỜ ĐỊA PHƯƠNG
+    // của chủ ví. Default UTC (sản phẩm toàn cầu — không mặc định nước nào).
+    timezone: varchar("timezone", { length: 40 }).notNull().default("UTC"),
     stellarAddress: varchar("stellar_address", { length: 56 }).notNull(),
     contractId: varchar("contract_id", { length: 56 }),
     threshold: integer("threshold").notNull().default(2),
