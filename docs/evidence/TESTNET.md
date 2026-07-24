@@ -83,3 +83,23 @@ External(ed25519), digest = sha256(payload ++ scvVec(rule_ids).toXDR()) đúng c
 | hết cooldown: **KHOÁ MỚI KÝ ĐƯỢC tx thật** | passkey/khoá mới sở hữu ví thật sự | [b675f53b](https://stellar.expert/explorer/testnet/tx/b675f53b263dfb42a23ba61dea3afc782adee5933d9058a146cc69761c523bc1) |
 | khoá CŨ ký → CHẾT | `SIMULATION_FAILED` (UnauthorizedSigner) ✅ | (simulate) |
 | veto khẩn a2: register → initiate → **cancel (VÍ tự ký)** | approve sau veto chết đúng mã; khoá gốc a2 còn sống | [6cd62791](https://stellar.expert/explorer/testnet/tx/6cd62791c2f9c40d3d3535c76dcdb5b2a996e1038008aeb187df5e99e9bf0f57) · [6a55f24c](https://stellar.expert/explorer/testnet/tx/6a55f24c35e680c752ed359ea55e5736075acb30b66b7419920fa554d71349cb) · [a098b872](https://stellar.expert/explorer/testnet/tx/a098b8720f6de500b738f0b760b3e5ac5e1e9096fdcdb799d9ad57210d37cbf8) |
+
+## PHA 6 SEND — Gửi tiền từ ví HỢP ĐỒNG: đóng chuỗi hai-nửa (2026-07-24)
+
+Gửi từ ví C… KHÔNG dùng payment op → invoke `transfer` trên SAC native
+(`CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`). auth `from` đi qua
+`__check_auth` → verifier → **CHÍNH chuỗi passkey đã dựng**, giờ cho MỘT giao dịch tiền thật.
+
+**E2e — chạy THẬT trên testnet 2026-07-24** (`RUN_TESTNET_E2E=1 bun test onchain.e2e`
+→ **2 pass / 0 fail, 31s**; đi trọn pipeline intent: prepare[kiểm số dư]→confirm[policy allow]→
+sign[ký entry ví bằng External/ed25519 qua __check_auth]→submit; verify người nhận NHẬN ĐỦ bằng
+đọc `SAC.balance`):
+
+| Bước | Chứng minh | Tx |
+|---|---|---|
+| deploy ví C… | smart account mở bằng wasm hash + constructor (khoá External) | [5fd69613](https://stellar.expert/explorer/testnet/tx/5fd696133224176310e84eeee09b798c87c53ae92762e0ac3c48058539b4b07d) |
+| nạp XLM vào C… | G funder invoke SAC transfer(G→C) — chứng minh nhận-vào-C chạy | [f4dde2ad](https://stellar.expert/explorer/testnet/tx/f4dde2ad67b7f5979acc76b8eae477858d5550db2569d7238955540944aaf8ea) |
+| **GỬI 1 XLM từ C…** | **passkey→__check_auth→verifier→transfer trong MỘT tx**; balance người nhận +1 XLM ĐÚNG số ✅ | [70bf7efb](https://stellar.expert/explorer/testnet/tx/70bf7efbe8db4137efe8a3accab38fff0be489b3f9eac57023742bb7f9254b18) |
+
+Số dư thiếu → chặn TRƯỚC biometric (không tạo tx ký được) + vượt ngưỡng → awaiting_guardian →
+guardian duyệt: phủ bằng integration test (`send-flow.test.ts`, DB thật + gateway fake, 5 ca).
