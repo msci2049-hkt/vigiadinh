@@ -15,6 +15,7 @@ import {
   varchar,
 } from "drizzle-orm/pg-core";
 import { ulid } from "ulid";
+import { families } from "./families.schema";
 
 export const wallets = pgTable(
   "wallets",
@@ -23,6 +24,10 @@ export const wallets = pgTable(
       .primaryKey()
       .$defaultFn(() => ulid()),
     userId: varchar("user_id", { length: 64 }).notNull(),
+    // PHA 3.1: ví thuộc một family (nullable — ví tạo trước khi lập family).
+    familyId: varchar("family_id", { length: 26 }).references(() => families.id, {
+      onDelete: "set null",
+    }),
     stellarAddress: varchar("stellar_address", { length: 56 }).notNull(),
     contractId: varchar("contract_id", { length: 56 }),
     threshold: integer("threshold").notNull().default(2),
@@ -31,6 +36,7 @@ export const wallets = pgTable(
   },
   (t) => ({
     userIdx: index("wallets_user_id_idx").on(t.userId),
+    familyIdx: index("wallets_family_id_idx").on(t.familyId),
     addressUq: uniqueIndex("wallets_stellar_address_uq").on(t.stellarAddress),
     thresholdCheck: check("wallets_threshold_check", sql`${t.threshold} >= 1`),
     timelockCheck: check("wallets_timelock_check", sql`${t.timelockSecs} >= 0`),

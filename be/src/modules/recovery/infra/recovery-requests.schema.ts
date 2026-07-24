@@ -21,6 +21,15 @@ export const recoveryRequests = pgTable(
     riskScore: integer("risk_score"),
     signals: jsonb("signals"),
     txHash: varchar("tx_hash", { length: 64 }),
+    // PHA 3.1 (checklist entity #5) — additive nullable/default (forward-only):
+    // Bằng chứng thiết bị mới (attestation passkey mới + metadata) — người mất máy
+    // chứng minh "tôi là tôi" trên máy mới; guardian xem trước khi duyệt.
+    newDeviceProof: jsonb("new_device_proof"),
+    // Mirror đếm phiếu on-chain (nguồn sự thật = contract; indexer đồng bộ).
+    approvals: integer("approvals").notNull().default(0),
+    threshold: integer("threshold"),
+    // Cửa sổ veto: owner cũ chặn được tới thời điểm này (kênh ngoài app vẫn veto được).
+    vetoUntil: timestamp("veto_until", { withTimezone: true }),
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
   },
@@ -34,6 +43,11 @@ export const recoveryRequests = pgTable(
     riskCheck: check(
       "recovery_requests_risk_check",
       sql`${t.riskScore} IS NULL OR (${t.riskScore} >= 0 AND ${t.riskScore} <= 100)`,
+    ),
+    approvalsCheck: check("recovery_requests_approvals_check", sql`${t.approvals} >= 0`),
+    thresholdCheck: check(
+      "recovery_requests_threshold_check",
+      sql`${t.threshold} IS NULL OR ${t.threshold} >= 1`,
     ),
   }),
 );
