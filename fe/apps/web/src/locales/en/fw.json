@@ -79,7 +79,12 @@
     "setup": {
       "description": "Choose who receives your assets, and how much each person gets.",
       "title": "Decide who receives this later"
-    }
+    },
+    "noWallet": "You don't have a wallet yet, so there's nothing to pass on.",
+    "empty": "No one is set to receive this wallet yet. You'll be able to choose your family here.",
+    "heartbeatCta": "Tell your family you're okay",
+    "heartbeatButton": "I'm okay",
+    "heartbeatDone": "Thanks! Your family won't be worried."
   },
   "nightWatch": {
     "alert": {

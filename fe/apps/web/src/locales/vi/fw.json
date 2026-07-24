@@ -79,7 +79,12 @@
     "setup": {
       "description": "Chọn ai sẽ nhận tài sản của bạn, và mỗi người nhận bao nhiêu.",
       "title": "Trao lại cho người thân"
-    }
+    },
+    "noWallet": "Bạn chưa có ví nên chưa có gì để trao lại.",
+    "empty": "Chưa chọn ai nhận ví này. Bạn sẽ chọn người thân ở đây.",
+    "heartbeatCta": "Báo người thân rằng bạn vẫn ổn",
+    "heartbeatButton": "Tôi vẫn ổn",
+    "heartbeatDone": "Cảm ơn bạn! Người thân sẽ không phải lo lắng."
   },
   "nightWatch": {
     "alert": {
