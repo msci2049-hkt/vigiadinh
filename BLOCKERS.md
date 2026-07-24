@@ -112,10 +112,14 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
 
 ### B-23-2 · Tương thích smart-account-kit ↔ contract OZ 0.7.2 của ta CHƯA verify on-chain
 
-- **Chặn:** chưa chứng minh kit ký được tx mà `__check_auth` của `contracts/smart-account`
-  (OZ 0.7.2, SDK 26.1.1) chấp nhận — kit nhắm bản OZ mới hơn (bindings 0.3.0, P27 digest
-  + context-rule-ids binding).
-- **Dấu hiệu sẽ lộ:** e2e passkey CI (simulate deploy bằng wasm hash của ta
-  `87194f61…`) fail ở bước dựng constructor args, HOẶC PHA 5 khi ký tx thật.
-- **Cần để gỡ:** chạy e2e CI; nếu lệch → nâng OZ crates khi bản tương thích SDK 27 ra
-  (đã ghi §0.4 checklist) hoặc pin kit bản cũ hơn khớp 0.7.2.
+- **Chặn:** chưa chứng minh KIT (đường passkey WebAuthn) ký được tx mà `__check_auth` của
+  `contracts/smart-account` chấp nhận.
+- **ĐÃ THU HẸP NHIỀU (audit P0 2026-07-24):** e2e BE chứng minh TRÊN TESTNET rằng format
+  AuthPayload + digest OZ (`sha256(payload ++ scvVec(rule_ids).toXDR())`) mà kit dùng
+  (kit .d.ts `computeEntryAuthDigest` — ĐÚNG công thức này) được contract của ta chấp nhận —
+  ký tay External(ed25519) qua đường đó SUCCESS trên chain (docs/evidence §AUDIT P0).
+  Rủi ro còn lại chỉ là nhánh WebAuthn: encode WebAuthnSigData + origin-verifier
+  (đã có cargo test crypto thật ở origin-verifier, còn thiếu bản chạy browser thật).
+- **Dấu hiệu sẽ lộ:** e2e passkey CI (giờ simulate deploy bằng wasm hash MỚI `a67ea40e…` —
+  fe/.env.example đã trỏ) fail ở bước ký/submit.
+- **Cần để gỡ:** đọc job e2e ở CI (B-CI-1).

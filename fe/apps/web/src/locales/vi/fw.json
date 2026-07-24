@@ -3,15 +3,34 @@
     "alert": {
       "cta": "Chặn ngay",
       "description": "Một yêu cầu khôi phục vừa được mở trên thiết bị khác. Nếu không phải bạn, hãy chặn trước khi hết thời gian chờ — sau đó thì không lùi lại được nữa.",
-      "title": "Có người muốn chiếm ví của bạn"
+      "title": "Có người muốn chiếm ví của bạn",
+      "nothingOpen": "Hiện không có yêu cầu khôi phục nào để chặn.",
+      "backCta": "Về trung tâm an toàn",
+      "requestTitle": "Yêu cầu này là gì",
+      "requestBody": "{approvals, plural, other {# người thân}} đã đồng ý (cần {threshold}). Hết thời gian chờ, một chìa khoá mới sẽ nắm ví này.",
+      "fingerprintLabel": "Mã chìa khoá mới: {fingerprint}",
+      "window": "Còn {countdown} để chặn (đến {absolute})"
     },
     "confirm": {
       "description": "Thao tác này hủy yêu cầu và báo động cho người bảo hộ của bạn.",
-      "title": "Chặn lần khôi phục này?"
+      "title": "Chặn lần khôi phục này?",
+      "biometricNote": "Vân tay hoặc khuôn mặt xác nhận đúng là bạn — trước đó chưa có gì được gửi đi.",
+      "cta": "Chặn ngay",
+      "signing": "Đang chờ bạn xác nhận…",
+      "backCta": "Quay lại",
+      "errors": {
+        "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại.",
+        "alreadyStopped": "Tin tốt — yêu cầu này đã bị chặn từ trước. Ví của bạn an toàn.",
+        "tooLate": "Yêu cầu đã hoàn tất trước khi kịp chặn. Liên hệ người thân của bạn ngay.",
+        "notSent": "Chưa có gì được gửi đi. Lệnh chặn chưa đến mạng — bạn có thể thử lại an toàn."
+      }
     },
     "done": {
       "description": "Yêu cầu đã bị dừng. Ví của bạn vẫn an toàn.",
-      "title": "Đã chặn"
+      "title": "Đã chặn",
+      "guardiansNote": "Người thân của bạn đã được báo tự động.",
+      "txLabel": "Bằng chứng trên mạng: {hash}",
+      "cta": "Về trung tâm an toàn"
     }
   },
   "getStarted": {

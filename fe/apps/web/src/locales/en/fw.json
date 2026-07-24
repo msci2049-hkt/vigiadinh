@@ -3,15 +3,34 @@
     "alert": {
       "cta": "Stop this now",
       "description": "A recovery request was started on another device. If this wasn't you, stop it before the waiting period ends — after that it cannot be undone.",
-      "title": "Someone wants to take over your wallet"
+      "title": "Someone wants to take over your wallet",
+      "nothingOpen": "There is no recovery request to stop right now.",
+      "backCta": "Back to safety center",
+      "requestTitle": "What was requested",
+      "requestBody": "{approvals, plural, one {# family member has} other {# family members have}} agreed (needs {threshold}). When the waiting period ends, a new key takes over this wallet.",
+      "fingerprintLabel": "New key ID: {fingerprint}",
+      "window": "Time left to stop it: {countdown} (until {absolute})"
     },
     "confirm": {
       "description": "This cancels the request and alerts your protectors.",
-      "title": "Stop this recovery?"
+      "title": "Stop this recovery?",
+      "biometricNote": "Your fingerprint or face confirms it is really you — nothing is sent before that.",
+      "cta": "Stop it now",
+      "signing": "Waiting for your confirmation…",
+      "backCta": "Go back",
+      "errors": {
+        "walletLocked": "Your wallet is locked on this device. Open your wallet first, then try again.",
+        "alreadyStopped": "Good news — this request was already stopped. Your wallet is safe.",
+        "tooLate": "This request already completed before it could be stopped. Contact your family members now.",
+        "notSent": "Nothing was sent yet. The stop order did not reach the network — you can try again safely."
+      }
     },
     "done": {
       "description": "The request was stopped. Your wallet is safe.",
-      "title": "Blocked"
+      "title": "Blocked",
+      "guardiansNote": "Your family members have been notified automatically.",
+      "txLabel": "Proof on the network: {hash}",
+      "cta": "Back to safety center"
     }
   },
   "getStarted": {

@@ -338,6 +338,23 @@
   3 bước: bindings từ contract deployed → craft entry tay bằng stellar-sdk → BLOCKERS
   + đổi tuyến). Luồng /block (veto) nên đi ĐẦU: có màn night-watch trỏ sang rồi.
 
+### 6.3 cụm GHI — luồng VETO (/block) THẬT (2026-07-24, sau audit P0)
+
+- `features/family/api/recovery-actions.ts` — build/submit/finalize thuần HTTP (khớp
+  route v2: initiate chở `new_signer_verifier` + `new_signer_key`).
+- `features/wallet/lib/sign-recovery-entries.ts` — ký entry CỦA VÍ bằng passkey qua
+  `kit.signAuthEntry` (K2 từ kiến trúc: digest dẫn xuất từ entry — công thức đã chứng
+  minh on-chain ở audit P0); entry người khác giữ nguyên; chối sớm khi ví chưa connect
+  hoặc build không có entry của ví. Unit test 3 ca (kit mock — đường crypto thật đã
+  phủ ở e2e BE + chờ e2e CI).
+- 3 màn `/block` hết stub: alert (hiện fingerprint KHOÁ MỚI + cửa sổ chặn timelockView,
+  MỘT nút — luật veto) → confirm (cổng sinh trắc học = chính prompt passkey; taxonomy
+  lỗi "lệnh chặn ĐÃ đến mạng chưa": walletLocked / alreadyStopped / tooLate / notSent)
+  → done (tx hash thật qua search param + link explorer theo MẠNG env —
+  `lib/stellar-explorer.ts`). i18n en+vi +18 key giọng người thường.
+- Mirror sau veto do INDEXER ghi từ event `cancel` (route chỉ audit) — confirm chỉ
+  invalidateQueries chờ indexer bắt kịp, không tự ghi trạng thái.
+
 ## CI · SCAN + FIX CI ĐỎ (2026-07-23)
 
 SHA sau fix: `e2682fd` (3 commit, đẩy lên `main`: `9ccc08b..e2682fd`).
