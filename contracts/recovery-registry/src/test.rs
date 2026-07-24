@@ -458,3 +458,26 @@ fn rotate_requires_registry_not_configured_dies() {
         Ok(smart_account::FamilyWalletError::RecoveryNotConfigured.into())
     );
 }
+
+// ---------- Vector chéo Rust ↔ BE/FE: fingerprint phải TRÙNG từng byte ----------
+
+/// Cùng vector này được pin ở BE (`public-recovery` test) — đổi công thức
+/// fingerprint một bên mà quên bên kia là test hai bên cùng đỏ.
+#[test]
+fn signer_fingerprint_cross_language_vector() {
+    let e = Env::default();
+    let verifier = Address::from_str(
+        &e,
+        "CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT",
+    );
+    let signer = Signer::External(verifier, Bytes::from_array(&e, &[7u8; 32]));
+    let fp = crate::test_support_fingerprint(&e, &signer);
+    let mut hex = std::string::String::new();
+    for b in fp.to_array() {
+        hex.push_str(&std::format!("{:02x}", b));
+    }
+    assert_eq!(
+        hex,
+        "cdc9947d62f44d6d81d4a532ce36da82c95465da589777c51ffdb5f9b0cda94e"
+    );
+}

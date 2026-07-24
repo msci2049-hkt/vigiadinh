@@ -354,3 +354,9 @@ impl RecoveryRegistry {
 
 #[cfg(test)]
 mod test;
+
+/// Cửa test-only cho vector chéo ngôn ngữ (test.rs) — không có trong wasm build.
+#[cfg(test)]
+pub(crate) fn test_support_fingerprint(e: &Env, signer: &Signer) -> soroban_sdk::BytesN<32> {
+    signer_fingerprint(e, signer)
+}
