@@ -338,6 +338,29 @@
   3 bước: bindings từ contract deployed → craft entry tay bằng stellar-sdk → BLOCKERS
   + đổi tuyến). Luồng /block (veto) nên đi ĐẦU: có màn night-watch trỏ sang rồi.
 
+### 6.4 cụm GHI — guardian flow + luồng máy-mới public (2026-07-24)
+
+- **BE guardian inbox** (`/api/recovery/guardian`): yêu cầu MỞ trên ví mình bảo hộ
+  (mirror chỉ-đọc; phiếu thật đi build/approve+submit). Integration test scoping:
+  chuyện đã đóng / guardian removed / người lạ = 0 dòng.
+- **BE luồng public** (người mất máy chưa có session): `POST /public/device-request`
+  (thiết bị mới nộp vật liệu khoá → server CHỈ chuyển lời + notify guardian, ví lạ vẫn
+  200 anti-enumeration), `GET /public/progress` (trường vô hại, vốn public on-chain),
+  `GET /guardian/device-requests`. Bảng `recovery_device_requests` (migration 0006,
+  additive) + template `recovery.device_requested`. **Fingerprint = sha256(Signer ScVal)
+  pin vector CHÉO Rust↔TS** (đổi công thức một bên → hai test cùng đỏ).
+- **FE guardian** (`/guardian` inbox + `/approve` + `/initiate` + `/approved`): inbox gộp
+  cả yêu cầu bỏ-phiếu lẫn "tiếng gõ cửa" máy mới. `initiate` có 3 hàng rào: xác minh
+  ngoài băng (đọc fingerprint qua điện thoại) + **chống-ký-mù TỰ ĐỘNG** (`entry-fingerprint`
+  so khoá TRONG entry vs mirror trước khi ký — BE tráo khoá là dừng) + prompt passkey.
+- **FE luồng máy mới** (`/recovery` public 6 màn): start → find-wallet (tạo passkey mới
+  tại chỗ qua `kit.credentials.create` → gửi vật liệu public) → sent (hiện fingerprint để
+  đọc cho người thân) → progress (poll 30s) → countdown (timelock nhìn từ người khôi phục)
+  → done (`connectRecoveredWallet` bind credential vào ví cũ — địa chỉ không đổi + lưu ý
+  cooldown). `device-recovery.ts` khép kín; draft ở localStorage.
+- **FE wallet hub + receive**: địa chỉ ví thật + copy (số dư chờ SAC balance endpoint —
+  ghi treo). i18n +~70 key en+vi qua giọng ux-writer.
+
 ### 6.3 cụm GHI — luồng VETO (/block) THẬT (2026-07-24, sau audit P0)
 
 - `features/family/api/recovery-actions.ts` — build/submit/finalize thuần HTTP (khớp
@@ -463,3 +486,49 @@ bundle ra thư mục tạm → **136 commit**, đỉnh `182c698`, tree SHA `9585
 - Máy nào đã clone repo này phải chạy `git fetch && git reset --hard origin/main` —
   pull thường sẽ tạo merge bậy giữa hai lịch sử không cùng gốc.
 - Mọi SHA ghi trong tài liệu trước 2026-07-24 tra không ra (ghi chú ở đầu BUILD-LOG + BLOCKERS).
+
+## PHA 7.2 · zh-Hans + font CJK (2026-07-24)
+
+- Locale **zh** (Giản thể) đủ 5 namespace (common/auth/errors/admin/fw — **parity 100%
+  với en**, kiểm bằng script so key). `load:"languageOnly"` gộp zh-CN/zh-Hans/zh-TW → "zh"
+  nên MỘT catalog phục vụ mọi biến thể. Đăng ký `supportedLngs:["en","vi","zh"]` + eager
+  common_zh.
+- ICU giữ nguyên: plural tiếng Trung chỉ có `other` (đã dùng đúng ở mọi chuỗi đếm).
+- **Font CJK system stack** nối cuối `--font-sans` (PingFang/YaHei/Noto Sans CJK) — không
+  tải webfont (0 request/nhị phân thêm); đứng cuối nên không đụng en/vi.
+- Language switcher vòng en→vi→中; `<html lang>` đồng bộ theo ngôn ngữ (a11y + trình duyệt
+  chọn đúng font CJK).
+- Treo có chủ đích: `_locales`/strings.xml (APK) + hreflang tag tĩnh SSR — làm khi có domain.
+
+## PHA 8 · APK Capacitor (2026-07-24 — config sẵn, build gate máy thật)
+
+- `capacitor.config.json` (appId `app.familywallet`, webDir `dist`, androidScheme `https`).
+  Dùng JSON (không .ts) để KHÔNG đụng tsc/lockfile — bản web vẫn xanh.
+- Well-known template: `public/.well-known/assetlinks.json` (placeholder SHA-256 cert PHÁT
+  HÀNH) + `apple-app-site-association` (Team ID + webcredentials + applinks recovery/guardian/block).
+- `fe/mobile/README.md`: gate P0-M1 (passkey/push/secure-storage trên máy thật), lệnh setup
+  (cài `@capacitor/*` + `@capgo/capacitor-passkey`…), push 2 loại, secure storage, store checklist.
+- **KHÔNG cài dep Capacitor vào package.json** (máy build thiếu JDK/SDK/Xcode → cài mà không
+  install được sẽ phá `--frozen-lockfile` CI). Lệnh cài nằm ở README, chạy trên máy có toolchain.
+
+## PHA 9.1 · Extension MV3 (2026-07-24 — load-unpacked chạy được)
+
+- `extension/`: manifest MV3 (host_permissions chỉ domain mình — M2; `_locales` en/vi/zh_CN
+  — M5; permissions tối thiểu alarms/storage/notifications) + service worker (poll
+  `/api/recovery/guardian` + `/device-requests` mang cookie → **badge đỏ** đếm yêu cầu;
+  `chrome.alarms` 1' không setInterval; state ở `chrome.storage.session` không biến toàn cục)
+  + popup (đọc storage + nhờ SW poll-now; mở web `/guardian`).
+- Giá trị vỏ app (đường A): guardian ngồi máy tính thấy số đỏ → xử lý 30 giây.
+- Provider dApp (đường B, `KitActions`) + ký thật trong extension = việc SAU (README ghi).
+- `key` cố định (M1): bản unpacked ID ổn định theo path (đủ demo); lên store thêm `key` +
+  origin-verifier allow-list `chrome-extension://<id>` — README có lệnh sinh key.
+- KHÔNG wire vào pnpm/turbo (static unpacked) → web gate không đụng.
+
+## PHA 10 · Threat model + rà tổng (2026-07-24)
+
+- `docs/THREAT-MODEL.md` 1 trang, KHỚP CODE: 4 bất biến ánh xạ file thật · 5 kẻ địch mỗi
+  dòng một đòn đỡ có nơi cưỡng chế · lỗ hổng ĐÃ vá (P0 + phiếu ma/DoS/lockout) · bất biến
+  kỹ thuật đang test (K1/K2/K5/fingerprint vector/audit trigger/indexer) · phần "còn hở"
+  khai thẳng (origin-verifier DEV, WebAuthn-kit nhánh passkey, AI chưa nối, mainnet chưa lên).
+- Câu hỏi thử vàng "chiếm backend làm được gì" trả lời bằng thiết kế thật: registry chỉ là
+  invoker cho ĐÚNG cửa recovery_rotate + cooldown; BE không ký được của user.
