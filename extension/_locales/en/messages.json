@@ -1,0 +1,14 @@
+{
+  "extName": { "message": "FamilyWallet" },
+  "extDescription": {
+    "message": "Approve family recovery requests fast — a red badge shows when someone you protect needs your help."
+  },
+  "popupTitle": { "message": "Protector inbox" },
+  "popupSubtitle": { "message": "Requests waiting for you" },
+  "popupHasRequests": { "message": "Someone you protect needs your help." },
+  "popupNoRequests": { "message": "Nothing needs you right now." },
+  "popupSignedOut": { "message": "Sign in to see requests." },
+  "popupReview": { "message": "Review requests" },
+  "popupOpenApp": { "message": "Open FamilyWallet" },
+  "popupSignIn": { "message": "Sign in" }
+}

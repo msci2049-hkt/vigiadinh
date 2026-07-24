@@ -1,0 +1,14 @@
+{
+  "extName": { "message": "家庭钱包" },
+  "extDescription": {
+    "message": "快速批准家人的恢复请求——当你守护的人需要帮助时，工具栏会显示红色角标。"
+  },
+  "popupTitle": { "message": "守护人收件箱" },
+  "popupSubtitle": { "message": "等待你处理的请求" },
+  "popupHasRequests": { "message": "你守护的人需要帮助。" },
+  "popupNoRequests": { "message": "目前没有需要你处理的事项。" },
+  "popupSignedOut": { "message": "请登录以查看请求。" },
+  "popupReview": { "message": "查看请求" },
+  "popupOpenApp": { "message": "打开家庭钱包" },
+  "popupSignIn": { "message": "登录" }
+}

@@ -1,0 +1,14 @@
+{
+  "extName": { "message": "VíGiaĐình" },
+  "extDescription": {
+    "message": "Duyệt yêu cầu khôi phục của gia đình thật nhanh — số đỏ hiện lên khi người bạn bảo hộ cần giúp."
+  },
+  "popupTitle": { "message": "Hộp thư người bảo hộ" },
+  "popupSubtitle": { "message": "Yêu cầu đang chờ bạn" },
+  "popupHasRequests": { "message": "Có người bạn bảo hộ đang cần giúp." },
+  "popupNoRequests": { "message": "Hiện chưa có gì cần bạn." },
+  "popupSignedOut": { "message": "Đăng nhập để xem yêu cầu." },
+  "popupReview": { "message": "Xem yêu cầu" },
+  "popupOpenApp": { "message": "Mở VíGiaĐình" },
+  "popupSignIn": { "message": "Đăng nhập" }
+}
