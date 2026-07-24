@@ -184,6 +184,29 @@
 - **GATE PHA 3 ✅**: bun test **138 pass / 3 skip / 0 fail** (baseline 88 → +50, không
   test nào giảm); validate xanh. Chưa verify: CI GitHub sau push (B-CI-1 còn nguyên).
 
+## PHA 4 · PRESENCE + INDEXER + NOTIFY — 2026-07-24 ✅ (3 commit, thuần BE)
+
+- **4.1** presence ladder: thang 24/72h thuần + biên chính xác · xác nhận tay 90 ngày
+  ("máy sống ≠ người còn ký") · reserve stance + CHẶN gỡ guardian khi hết dự phòng ·
+  cron mỗi giờ → ví có GIỜ ĐỊA PHƯƠNG 12:00 (wallets.timezone, migration 0003) nhận
+  silent ping · sweep đổi bậc → notify CHỦ VÍ (debounce = chỉ khi đổi giá trị) + audit.
+  POST /presence/ack + /confirm. **Audit checklist đạt: offline 4 ngày → đúng bậc.**
+- **4.2** indexer: batch = MỘT transaction (dedupe PK event id → áp → checkpoint) —
+  **kill giữa batch bằng lỗi DB THẬT → checkpoint đứng yên, chạy lại đủ, không trùng**
+  (cổng nghiệm thu). Nguồn RPC = port (getEvents SDK 16: cursor XOR startLedger,
+  RESEARCH-LOG); gap quá cửa sổ ~7 ngày → audit `indexer.gap`, cấm đoán lấp.
+  `recovery.vetoed` priority 0 — mirror vetoed + notify NGAY. Poll 30s, INDEXER_CONTRACT_IDS
+  (env 36 key) trống = no-op tới PHA 5.
+- **4.3** notify ICU theo locale NGƯỜI NHẬN (intl-messageformat — CÀI TRONG be/, một
+  lần lỡ tay cài root đã revert sạch): catalog en+vi, plural/select, fallback en,
+  template lạ → generic an toàn; test grep chuỗi render CHẶN jargon. Recovery notify
+  thêm kênh EMAIL (ngoài app). Heartbeat thừa kế: thang 1/2/3 kỳ im lặng → nhắc owner /
+  hỏi người thân / **GỢI Ý** guardian mở claim (server không bao giờ tự làm — bất biến 2);
+  escalation_tier debounce (migration 0005); POST /inheritance/heartbeat reset.
+- **GATE PHA 4 ✅**: bun test **169 pass / 3 skip / 0 fail** (+31 so cuối PHA 3); validate
+  + audit xanh. Treo có chủ đích: giao push thật (PHA 8), veto-từ-email route (PHA 5),
+  locale người dùng lưu ở đâu (PHA 7 FE settings).
+
 ## CI · SCAN + FIX CI ĐỎ (2026-07-23)
 
 SHA sau fix: `e2682fd` (3 commit, đẩy lên `main`: `9ccc08b..e2682fd`).
