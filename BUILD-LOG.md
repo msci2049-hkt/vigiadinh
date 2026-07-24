@@ -242,6 +242,30 @@
   veto-từ-email link ký sẵn (PHA 4 treo, cần khi FE có màn) · invalidate session/device-proof
   khi veto (TODO trong indexer, PHA 6).
 
+## PHA 7.1 · HẠ TẦNG i18n + MODULE TIỀN — 2026-07-24 ✅ (đảo lên TRƯỚC PHA 6 có chủ đích)
+
+> Lý do đảo (prompt phiên §1): guard check-user-copy cưỡng chế key i18n từ đầu; 40 màn PHA 6
+> gần như màn nào cũng hiện tiền — dựng format tự chế rồi quay lại sửa là sờ lại đúng 40 màn.
+
+- **ICU** (`d37ce7c`): i18next-icu vào `@repo/i18n.initI18n` + `parseMissingKeyHandler` trả
+  RỖNG + `saveMissing:false` (key thiếu mọi fallback → không lộ key thô — luật N5).
+  Migrate 10 catalog `{{var}}`→`{var}` (38 chỗ); `users.total` thành ICU plural thật.
+  Test dây: interpolation + plural + fallback vi→en + missing-key-rỗng qua initI18n THẬT.
+- **Tiền** (`f27e6d9`): `@repo/core` `money/amount` — số on-chain đi suốt pipeline dạng
+  BigInt string 7 số lẻ; format CHỈ ở lá với locale TƯỜNG MINH; parser duy nhất nhận INPUT
+  NGƯỜI GÕ + locale ô nhập (dấu hỏi Intl, không đoán) — **DONE-gate: "1.000" gõ ở vi = một
+  nghìn, cùng phím ở en-US = 1,0 — có test**. Không hàm nào nhận lại output đã format; đường
+  số thuần BigInt (test số vượt 2^53 stroop đúng từng chữ số; chuỗi rác → throw).
+  `money/datetime` — Intl.DateTimeFormat locale+tz người xem; `timelockView` trả CẢ đếm
+  ngược localize LẪN mốc tuyệt đối. `AmountInput` (apps/web): RAW ở state, preview format
+  CẠNH BÊN — hai chuỗi tách tuyệt đối.
+- **Gate:** FE validate 11/11 · test **56 pass** (35→+21: core 14→31, web 18→22) ·
+  honest build xanh (4m10). Bẫy lặp lại: `pnpm add` xoá vá vitest START_TIMEOUT (vá lại cả
+  2 instance .pnpm) + sinh lefthook.yml stub ở root (xoá).
+- **Treo có chủ đích cho 7.2:** zh-Hans + font CJK + `_locales`/strings.xml/hreflang (nội
+  dung, làm SAU PHA 6); locale số tách khỏi ngôn ngữ UI (hiện dùng i18n.language — đủ cho
+  v1, tách khi có settings).
+
 ## CI · SCAN + FIX CI ĐỎ (2026-07-23)
 
 SHA sau fix: `e2682fd` (3 commit, đẩy lên `main`: `9ccc08b..e2682fd`).

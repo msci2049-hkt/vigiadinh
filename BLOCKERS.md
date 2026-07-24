@@ -79,6 +79,24 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
   gitleaks version   # → 8.30.1
   ```
 
+## PHA 5–7 (2026-07-24)
+
+### B-52-1 · E2e FE chỉ chạy chromium — firefox/webkit CHƯA AI chạy
+
+- **Chặn:** không khẳng định được luồng passkey/SEP-45 chạy trên firefox/webkit.
+- **Vì sao:** spec passkey (`fe/apps/web/e2e/passkey-login.spec.ts`) chủ ý chỉ project
+  chromium vì chạm testnet THẬT (giảm bề mặt flake ×3); hai browser kia của matrix
+  playwright chưa từng chạy spec này ở đâu (local fail-env KI-2, CI không đọc được B-CI-1).
+- **Cần để gỡ:** đọc job e2e ở CI; khi có máy đọc CI, cân nhắc chạy passkey spec thêm
+  firefox/webkit định kỳ (không mỗi push) để giữ flake thấp mà vẫn có phủ.
+
+### B-52-2 · Issue upstream js-xdr chưa mở được từ máy này
+
+- **Chặn:** bug `js-xdr 4.0.0 toXDR` (tự tìm ra, PHA 2.3) chưa báo upstream.
+- **Vì sao:** máy không có `gh`/`GITHUB_TOKEN` (B-CI-1).
+- **Đã làm thay thế:** draft đầy đủ (title + body EN + repro + workaround) ở
+  `docs/upstream/js-xdr-toXDR-issue.md` — người có GitHub dán là xong.
+
 ## PHA 2.3 (2026-07-24)
 
 ### B-23-1 · E2e passkey (`fe/apps/web/e2e/passkey-login.spec.ts`) chưa chạy được local
