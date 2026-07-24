@@ -67,6 +67,28 @@ export const envShape = {
   // Optional: production khuyến nghị bật, dev/test có thể bỏ.
   SENTRY_DSN: z.url().optional(),
 
+  // === Stellar / SEP-45 (PHA 2.3 — đăng nhập bằng ví contract) ===
+  STELLAR_RPC_URL: z.url().default("https://soroban-testnet.stellar.org"),
+  STELLAR_NETWORK_PASSPHRASE: z.string().min(1).default("Test SDF Network ; September 2015"),
+  // Contract SEP-45 (web_auth_verify) đã deploy — contracts/web-auth. Chưa set
+  // → route sep45 trả 503 SEP45_NOT_CONFIGURED (boot vẫn sống, các module khác chạy).
+  SEP45_WEB_AUTH_CONTRACT_ID: z
+    .string()
+    .regex(/^C[A-Z2-7]{55}$/, "phải là contract ID (C...)")
+    .optional(),
+  // SIGNING_KEY của server (S...) — ký entry phía server trong challenge.
+  // Tài khoản G tương ứng PHẢI tồn tại trên network (friendbot ở testnet).
+  SEP45_SIGNING_KEY: z
+    .string()
+    .regex(/^S[A-Z2-7]{55}$/, "phải là secret key (S...)")
+    .optional(),
+  // home_domain = domain FE (nơi host stellar.toml sau này); web_auth_domain = domain BE.
+  SEP45_HOME_DOMAIN: z.string().min(1).default("localhost:5173"),
+  SEP45_WEB_AUTH_DOMAIN: z.string().min(1).default("localhost:3000"),
+  // TTL challenge/nonce (A4: 2–5 phút) + TTL JWT phiên ví.
+  SEP45_CHALLENGE_TTL_SECONDS: z.coerce.number().int().positive().default(300),
+  SEP45_JWT_TTL_SECONDS: z.coerce.number().int().positive().default(86400),
+
   // === Webhook secrets (optional) ===
   // Chỉ điền cho provider thực sự dùng. verify.ts throw rõ ràng nếu code
   // gọi verifyX() mà env tương ứng chưa set — không silent return false.

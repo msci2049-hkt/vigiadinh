@@ -16,7 +16,7 @@
 // Plugin thêm dần qua skill (add-oauth, add-2fa, add-passkey).
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, emailOTP } from "better-auth/plugins";
+import { admin, bearer, emailOTP } from "better-auth/plugins";
 import { db } from "@/db";
 import { env } from "@/env";
 import { ac, roles } from "@/lib/access-control";
@@ -176,6 +176,11 @@ export const auth = betterAuth({
   // - forget-password privacy-preserving: email không tồn tại vẫn trả success
   //   (BA không lộ user-enumeration) — GIỮ NGUYÊN, đừng thêm nhánh báo lỗi.
   plugins: [
+    // P1-9 Bearer-first: cookie sameSite=lax CHẾT trong WebView (APK PHA 8) và
+    // extension MV3 (PHA 9). bearer() cho phép client giữ session token và gửi
+    // `Authorization: Bearer` — sign-in trả token qua header `set-auth-token`.
+    // Cookie web vẫn hoạt động song song (plugin không tắt cookie).
+    bearer(),
     admin({
       ac,
       roles,

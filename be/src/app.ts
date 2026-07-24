@@ -29,6 +29,7 @@ import { presenceRoutes } from "@/modules/presence/routes";
 import { realtimeRoutes } from "@/modules/realtime/routes";
 import { recoveryRoutes } from "@/modules/recovery/routes";
 import { riskRoutes } from "@/modules/risk/routes";
+import { sep45Routes } from "@/modules/sep45";
 import { walletsRoutes } from "@/modules/wallets/routes";
 
 export const app = new Hono();
@@ -164,6 +165,9 @@ app.route("/api/inheritance", inheritanceRoutes);
 app.route("/api/audit", indexerRoutes);
 app.route("/api/notifications", notificationsRoutes);
 app.route("/api/risk", riskRoutes);
+// SEP-45 — đăng nhập bằng ví contract (public có chủ đích: đây là cửa login;
+// rate-limit failOpen=false + nonce single-use bên trong module).
+app.route("/api/sep45", sep45Routes);
 
 // 9) Global error handler CUỐI — map domain string + HTTPException + ZodError.
 app.onError(errorHandler);
