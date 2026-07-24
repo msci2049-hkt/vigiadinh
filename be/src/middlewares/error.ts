@@ -17,6 +17,9 @@ import { logger } from "@/lib/logger";
 import { Sentry } from "@/lib/sentry";
 
 const ERROR_MAP: Record<string, ContentfulStatusCode> = {
+  // "PERMANENT:X" → prefix; "INVALID_TRANSITION:from:actor:action" → prefix 409
+  // (P2 — chuyển state ngoài bảng, xem modules/intents/domain/state-machine.ts).
+  INVALID_TRANSITION: 409,
   UNAUTHENTICATED: 401,
   FORBIDDEN_ROLE: 403,
   NO_ACTIVE_ORG: 403,
