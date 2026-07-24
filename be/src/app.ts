@@ -24,6 +24,7 @@ import { hashGuard } from "@/middlewares/hash-guard";
 import { guardiansRoutes } from "@/modules/guardians/routes";
 import { indexerRoutes } from "@/modules/indexer/routes";
 import { inheritanceRoutes } from "@/modules/inheritance/routes";
+import { intentsRoutes } from "@/modules/intents";
 import { notificationsRoutes } from "@/modules/notifications/routes";
 import { presenceRoutes } from "@/modules/presence/routes";
 import { realtimeRoutes } from "@/modules/realtime/routes";
@@ -168,6 +169,8 @@ app.route("/api/risk", riskRoutes);
 // SEP-45 — đăng nhập bằng ví contract (public có chủ đích: đây là cửa login;
 // rate-limit failOpen=false + nonce single-use bên trong module).
 app.route("/api/sep45", sep45Routes);
+// Pipeline intent (PHA 3) — trục mọi luồng tiền, requireAuth trong feature.
+app.route("/api/intents", intentsRoutes);
 
 // 9) Global error handler CUỐI — map domain string + HTTPException + ZodError.
 app.onError(errorHandler);

@@ -7,10 +7,13 @@
 import "@/lib/sentry";
 
 import type { Worker } from "bullmq";
+import { createIntentSweeperWorker, scheduleIntentSweeper } from "@/jobs/intent-sweeper";
 import { logger } from "@/lib/logger";
 import { bullConnection } from "@/lib/redis";
 
-const workers: Worker[] = [];
+const workers: Worker[] = [createIntentSweeperWorker()];
+// Lịch lặp đăng ký từ worker process (jobId cố định → gọi lại vô hại).
+void scheduleIntentSweeper();
 
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {
