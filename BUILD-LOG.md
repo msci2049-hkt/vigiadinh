@@ -207,6 +207,41 @@
   + audit xanh. Treo có chủ đích: giao push thật (PHA 8), veto-từ-email route (PHA 5),
   locale người dùng lưu ở đâu (PHA 7 FE settings).
 
+## PHA 5 · TẦNG STELLAR + ROUTE GHI RECOVERY — 2026-07-24 ✅ (5.1 + 5.2)
+
+- **5.1** (`b29913b`, phiên trước): services/stellar — buildInvokeTx (simulate, trả auth
+  entries) · fee-bump thuần · submit+poll · RPC fallback · ví phí tách custody.
+- **5.2 route ghi recovery nối contract** (phiên này, interface đọc TỪ CHAIN — RESEARCH-LOG):
+  - services/stellar +2: `simulateRead` (view fn qua simulation) + `invokeWithSignedEntries`
+    (re-simulate với entry ĐÃ KÝ — chữ ký thật to hơn placeholder — ví phí ký ENVELOPE).
+  - `modules/recovery` feature `onchain-actions`: POST `/api/recovery/register|initiate|approve|veto`
+    (build+simulate → FE ký) · `/submit` (validate whitelist entry đã ký → submit) · `/finalize`
+    (one-shot — contract không đòi auth actor, timelock on-chain gác). Gate vai trò BE:
+    initiate/approve = guardian (initiator = onchainKey từ DB, không tin client) · veto/register =
+    chủ ví (owner arg đọc `get_wallet_config` từ chain — đúng cả sau khi finalize đổi chủ) ·
+    submit/finalize = thành viên ví. Whitelist /submit (domain thuần, test 9 ca chặn): đúng
+    registry + method + ví, cấm sub-invocation, cấm source-credentials (ví phí tự authorize).
+    Lỗi contract dịch mã: `Error(Contract, #9)` → `CONTRACT_ERROR:ThresholdNotMet` (bảng 16 mã
+    từ chain). Rate-limit failOpen=false. Registry/ví phí chưa cấu hình → 503, app sống.
+  - Indexer nối topic THẬT của registry (`register/g_add/g_remove/initiate/approve/cancel/finalize`
+    — ONCHAIN-EVENTS.md): match ví theo `topics[1]`=stellarAddress (mọi event chung contractId
+    registry), `cancel` priority 0 như veto. Mirror recovery_requests: indexer là NGƯỜI GHI DUY NHẤT
+    (route chỉ audit actor người thật) — initiate→insert pending, approve→đếm phiếu từ event,
+    cancel→vetoed, finalize→executed. +3 template notify (recovery.initiated/approved/finalized,
+    en+vi, qua gate jargon).
+- **GATE PHA 5 ✅ — 3 luồng e2e THẬT trên testnet** (`RUN_TESTNET_E2E=1`, 4 pass/90s, 8 tx
+  trong docs/evidence/TESTNET.md §PHA 5.2): thiết lập (register, owner ký ed25519 entry) ·
+  khôi phục TIMELOCK THẬT (initiate g1 → approve tới đủ ngưỡng 2 — test đọc số phiếu thật,
+  không đoán initiator có được đếm — chờ `timelock_remaining=0` → finalize → `get_wallet_config.owner`
+  = chủ mới trên chain) · veto khẩn (cancel bởi owner; approve sau veto chết đúng mã contract).
+  Audit custody: grep `Keypair.fromSecret|.sign(` ngoài test = chỉ ví phí + SEP-45 server key — 0 ký hộ user.
+- **Test:** bun test **199 pass / 7 skip / 0 fail** (172→+27; 4 skip mới = e2e testnet opt-in
+  `RUN_TESTNET_E2E=1`). validate xanh.
+- **Treo có chủ đích:** route intent validate/submit + care grant/revoke (phần còn lại 5.2
+  checklist — cần đường ký smart-account, đụng rủi ro kit↔OZ B-23-2, làm cùng PHA 6 send-flow) ·
+  veto-từ-email link ký sẵn (PHA 4 treo, cần khi FE có màn) · invalidate session/device-proof
+  khi veto (TODO trong indexer, PHA 6).
+
 ## CI · SCAN + FIX CI ĐỎ (2026-07-23)
 
 SHA sau fix: `e2682fd` (3 commit, đẩy lên `main`: `9ccc08b..e2682fd`).

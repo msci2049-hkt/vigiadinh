@@ -64,10 +64,24 @@
 - Áp vào: `be/src/modules/indexer/infra/{indexer.service,rpc-source,checkpoint.schema}.ts`.
 - Mâu thuẫn skill? Không — khớp fw-indexer-notify (checkpoint mỗi batch + dedupe id + cửa sổ 7 ngày).
 
-### 2026-07-24 · PHA 5.2 · Interface recovery contract testnet (đọc TỪ CHAIN)
+### 2026-07-24 · PHA 5.2 · Interface recovery contract testnet (đọc TỪ CHAIN — bản ĐẦY ĐỦ)
 
 - Hỏi: contract recovery `CCPGVSLR…GT3V` (spike cũ, ngoài repo) có hàm gì?
-- Nguồn: `stellar contract info interface --id CCPGVSLR… --network testnet` (spec thật trên chain).
-- Kết luận: `register_wallet(owner, guardians Vec<Address>, threshold u32, timelock_secs u64)` · `add_guardian/remove_guardian(wallet, guardian)` · `initiate_recovery`? (xem tiếp phần dưới log) · `approve_recovery(wallet, guardian)` · `finalize_recovery(wallet) -> Address` · `cancel_recovery(wallet, owner)` (≈ veto của owner) · `is_registered(wallet)` · `get_wallet_config(wallet)`.
-- Áp vào: PHA 5.2 route recovery (`/recovery/initiate|approve|finalize|veto`) — build invoke qua `services/stellar` + auth entry cho guardian/owner ký.
+- Nguồn: `stellar contract info interface --id CCPGVSLRFSUOGRFH3LAOWXSHJ2Y3QBFEA2ZTV4PWIINVGJWVDFA5GT3V --network testnet` (spec thật trên chain, đọc lại trọn vẹn 2026-07-24 phiên 5.2).
+- Kết luận (12 hàm):
+  - Ghi: `register_wallet(owner, guardians Vec<Address>, threshold u32, timelock_secs u64)` ·
+    `add_guardian(wallet, new_guardian)` · `remove_guardian(wallet, guardian)` ·
+    `initiate_recovery(wallet, new_owner_candidate, initiator)` (initiator là arg riêng — guardian ký) ·
+    `approve_recovery(wallet, guardian)` · `finalize_recovery(wallet) -> Address` (KHÔNG có arg actor
+    → không đòi auth người dùng, ai crank cũng được sau timelock) · `cancel_recovery(wallet, owner)` (= veto).
+  - Đọc: `is_registered(wallet) -> bool` · `get_wallet_config(wallet) -> WalletConfig{guardians, owner, threshold, timelock_secs}` ·
+    `get_recovery_status(wallet) -> RecoveryRequest{approvals Vec<Address>, new_owner, started_at u64, status}` ·
+    `timelock_remaining(wallet) -> u64`.
+  - `RecoveryStatus`: Pending | Approved | TimelockDone | Finalized | Cancelled.
+  - Error enum 1..16: AlreadyRegistered, NotRegistered, InvalidThreshold, TooFewGuardians, TooManyGuardians,
+    NotAGuardian, RecoveryInProgress, NoActiveRecovery, ThresholdNotMet, TimelockNotElapsed, AlreadyApproved,
+    RecoveryCancelled, AlreadyFinalized, GuardianExists, GuardianNotFound, DuplicateGuardian.
+  - Mô hình khoá: "wallet" = địa chỉ đăng ký lúc `register_wallet` (chính là owner ban đầu) — khớp
+    `wallets.stellarAddress` trong DB. `owner` hiện tại đọc từ `get_wallet_config` (đổi sau finalize).
+- Áp vào: PHA 5.2 route recovery (`/recovery/register|initiate|approve|veto|finalize|submit`) — build invoke qua `services/stellar`, FE ký auth entry, BE validate entry + fee-wallet ký envelope + submit.
 - Mâu thuẫn skill? Không.
