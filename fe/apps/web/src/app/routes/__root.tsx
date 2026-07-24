@@ -24,7 +24,13 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootLayout() {
-  const { t } = useTranslation("common");
+  const { t, i18n } = useTranslation("common");
+  // Đồng bộ <html lang> theo ngôn ngữ hiện tại (a11y + hreflang cho SPA): screen
+  // reader đọc đúng giọng, và trình duyệt chọn đúng font CJK khi lang="zh".
+  useEffect(() => {
+    const lang = i18n.resolvedLanguage ?? "en";
+    document.documentElement.lang = lang;
+  }, [i18n.resolvedLanguage]);
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Fixed warning while an admin is impersonating (session.impersonatedBy). */}

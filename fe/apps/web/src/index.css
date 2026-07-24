@@ -6,3 +6,15 @@
  * outside the app root — without this @source their classes are never
  * generated and the shared UI renders unstyled. Path is relative to this file. */
 @source "../../../packages/ui/src";
+
+/* PHA 7.2 · CJK — ngăn "đậu phụ" (□) khi UI sang tiếng Trung: nối font CJK của
+ * hệ vào cuối stack sans. Dùng system stack (không tải webfont — không thêm
+ * request/nhị phân): PingFang/Microsoft YaHei/Noto Sans CJK theo nền tảng.
+ * Không ép font Trung cho en/vi vì đứng CUỐI stack — chỉ dùng khi glyph Latin
+ * thiếu (không xảy ra) hoặc glyph CJK cần (khi hiện tiếng Trung). */
+@theme inline {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans CJK SC", "Noto Sans SC", sans-serif;
+}

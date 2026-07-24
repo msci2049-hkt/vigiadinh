@@ -1,10 +1,16 @@
 import { Button } from "@repo/ui";
 import { useTranslation } from "react-i18next";
 
-/** Toggles UI language vi ⇄ en. The choice is persisted by the language detector. */
+// Vòng ngôn ngữ en → vi → zh → en. Lựa chọn được language detector lưu localStorage.
+// Nhãn nút = ngôn ngữ KẾ TIẾP (bấm để đổi sang nó).
+const CYCLE = ["en", "vi", "zh"] as const;
+const LABEL: Record<(typeof CYCLE)[number], string> = { en: "EN", vi: "VI", zh: "中" };
+
 export function LanguageSwitcher() {
   const { t, i18n } = useTranslation("common");
-  const next = i18n.resolvedLanguage === "vi" ? "en" : "vi";
+  const current = (i18n.resolvedLanguage ?? "en") as (typeof CYCLE)[number];
+  const idx = CYCLE.indexOf(current);
+  const next = CYCLE[(idx + 1) % CYCLE.length] ?? "en";
 
   return (
     <Button
@@ -13,7 +19,7 @@ export function LanguageSwitcher() {
       onClick={() => void i18n.changeLanguage(next)}
       aria-label={t("language.label")}
     >
-      {next.toUpperCase()}
+      {LABEL[next]}
     </Button>
   );
 }

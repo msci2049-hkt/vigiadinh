@@ -7,6 +7,7 @@ import type auth_vi from "../locales/vi/auth.json";
 import common_vi from "../locales/vi/common.json";
 import type errors_vi from "../locales/vi/errors.json";
 import type fw_vi from "../locales/vi/fw.json";
+import common_zh from "../locales/zh/common.json";
 
 export const defaultNS = "common";
 
@@ -23,12 +24,15 @@ export interface I18nResources {
 // Lazy namespaces (`auth`/`errors`/`admin`/`fw`) stay OUT of the entry —
 // Vite code-splits each `src/locales/<lng>/<ns>.json` chunk; the template
 // literal MUST live in the app (not @repo/i18n) so Vite's glob analysis sees it.
+// zh = Chinese (Simplified). `load: "languageOnly"` gộp zh-CN/zh-Hans/zh-TW → "zh"
+// nên MỘT catalog "zh" phục vụ mọi biến thể; nội dung là Giản thể (skill i18n-en-vi-zh).
 const i18n = initI18n({
   defaultLocale: "en",
-  supportedLngs: ["en", "vi"],
+  supportedLngs: ["en", "vi", "zh"],
   eagerResources: {
     vi: { common: common_vi },
     en: { common: common_en },
+    zh: { common: common_zh },
   },
   loadNamespace: (lng: string, ns: string) => import(`../locales/${lng}/${ns}.json`),
   defaultNS,
