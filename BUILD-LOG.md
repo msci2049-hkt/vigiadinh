@@ -159,6 +159,31 @@
 - GATE PHA 2 (checklist): "đăng nhập passkey chạy e2e trong CI" — chờ CI; mọi phần
   còn lại của 2.3 đã có bằng chứng thật ở trên.
 
+## PHA 3 · SCHEMA + PIPELINE INTENT — 2026-07-24 ✅ (4 commit, thuần BE)
+
+- **3.1** (`b2639bc`): +5 bảng (families, transaction_intents idempotency unique
+  (wallet,client_intent_id) + CHECK 13 state, approval_requests bind challenge_hash K5,
+  care_grants, inheritance_plans) + mở rộng recovery/audit_log/wallets (additive-first).
+  Migration 0001 (24 câu, 0 DROP) — **DB MỚI chạy sạch → 19 bảng**.
+- **3.2** (`fcaab51`): bảng transition (state,actor,action)→state' 27 dòng — AI nhốt ở
+  draft, guardian không ký/cancel, approved bắt buộc re-eval (P3), system không bao giờ
+  cancel, terminal khoá. Test quét **TOÀN BỘ 13×4×19 tổ hợp** — ngoài bảng = null;
+  INVALID_TRANSITION → 409 (error map).
+- **3.3** (`0c3c69d`): POST /api/intents idempotent (unique DB là chốt; **50 request
+  song song thật trên Postgres → đúng 1 bản ghi**) · challenge_hash K5/P4 (sửa
+  amount/version/policy_version/expires → approval chết, có test) · re-eval sau approve
+  qua PolicyPort (delay khi re-eval = đòi người thật, không mở ký) · sweeper BullMQ 5'
+  ({hashtag} + redlock + attempts 1) quét intent+approval quá hạn → expired + audit
+  từng dòng trong MỘT transaction. Bẫy postgres-js: raw sql + Date chết ở
+  ParameterDescription → dùng query builder.
+- **3.4** (`4a26a75`): policy engine THUẦN + version hoá (registry, version lạ = throw,
+  intent cũ đánh giá bằng đúng version đã ghi — test khoá) + reason codes shared
+  (+`non_payment_review`, sync:contract + check xanh, @repo/core tsc OK) · audit_log
+  append-only bằng TRIGGER Postgres (migration 0002 custom) — **UPDATE/DELETE chết
+  thật trên DB, test integration xác nhận dòng còn nguyên**.
+- **GATE PHA 3 ✅**: bun test **138 pass / 3 skip / 0 fail** (baseline 88 → +50, không
+  test nào giảm); validate xanh. Chưa verify: CI GitHub sau push (B-CI-1 còn nguyên).
+
 ## CI · SCAN + FIX CI ĐỎ (2026-07-23)
 
 SHA sau fix: `e2682fd` (3 commit, đẩy lên `main`: `9ccc08b..e2682fd`).
