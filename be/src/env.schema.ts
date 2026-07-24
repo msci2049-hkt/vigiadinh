@@ -100,6 +100,21 @@ export const envShape = {
         .filter(Boolean),
     ),
 
+  // === Tầng Stellar service (PHA 5.1) ===
+  // RPC dự phòng — primary chết thì service tự chuyển (optional, trống = không fallback).
+  STELLAR_RPC_FALLBACK_URL: z.url().optional(),
+  // Ví PHÍ riêng (S...) — CHỈ giữ XLM trả phí (fee-bump), TÁCH HOÀN TOÀN custody:
+  // mất ví này là mất tiền phí, KHÔNG mất tiền người dùng. Trống → route submit 503.
+  FEE_WALLET_SECRET: z
+    .string()
+    .regex(/^S[A-Z2-7]{55}$/, "phải là secret key (S...)")
+    .optional(),
+  // Contract nghiệp vụ đã deploy (testnet: recovery registry từ spike cũ).
+  CONTRACT_ID_RECOVERY: z
+    .string()
+    .regex(/^C[A-Z2-7]{55}$/)
+    .optional(),
+
   // === Webhook secrets (optional) ===
   // Chỉ điền cho provider thực sự dùng. verify.ts throw rõ ràng nếu code
   // gọi verifyX() mà env tương ứng chưa set — không silent return false.
