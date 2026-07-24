@@ -618,3 +618,60 @@ bundle ra thư mục tạm → **136 commit**, đỉnh `182c698`, tree SHA `9585
   giờ là passkey-onchain.spec; luồng /passkey createCta là dead-end legacy → §2.5 trỏ về /setup).
 - Gate: BE 223 pass/9 skip (sep45 19/19 sau vá) · FE validate + unit 25 pass + honest build
   xanh 2 lần · contracts 34/34 (không đổi).
+
+## §2 HỆ CON CÒN LẠI — THAY STUB BẰNG MÀN THẬT (2026-07-24, sau §1)
+
+Làm theo thứ tự giá trị: các màn NỐI BE-đã-chạy trước (rủi ro thấp, verify được),
+wizard mức B (đa bên, chạm custody) để honest-stub theo đúng cho phép của checklist.
+
+### §2.2 Night-watch UI — 4 màn (alert/resolve/waiting/guardian-view)
+- Nền: presence ladder BE (PHA 4.1) + guardians API expose sẵn `status`
+  (active/slow/offline) + `lastSeenAt`. Không thêm endpoint.
+- `alert`: liệt kê người thân slow|offline + lần gần nhất + khoá rút gọn (API KHÔNG
+  có tên → không bịa). `resolve`: 2 bước người thường (nhờ mở app / thay người).
+  `waiting`: ai còn chờ (tự hết khi ladder đổi bậc). `guardian-view`: góc nhìn người
+  bảo hộ về CHÍNH họ + link inbox. Trạng thái người khác CHỈ chủ ví thấy (luật 5).
+- Entry-point: night-watch center hiện nút cảnh báo khi có quiet+unreachable > 0.
+
+### §2.3 Inheritance/claim UI
+- BE +1 endpoint ADDITIVE `GET /api/inheritance/wallet/:id/plan` (owner-scoped) trả
+  tham số chu trình (inactivity/final timelock/escalation_tier). Không đụng list-heirs.
+- `claim`: 3 giai đoạn từ plan THẬT (30 ngày im lặng / 7 ngày cửa sổ cuối), trạng thái
+  từ escalation_tier, khai RÕ bất biến 2 (guardian tự mở on-chain, server không kích
+  hoạt, không dừng được). Heartbeat reset còn mở tới bậc claim.
+
+### §2.4 Guardian approve-warning — RULE THUẦN, nhãn "KHÔNG PHẢI AI"
+- Module `recovery-warnings.ts` THUẦN + test (6 ca): newKey (luôn — khôi phục cài khoá
+  mới, nhắc đối chiếu vân tay) · unusualHour · veryRecent · flagged (riskScore server).
+  Luật 6: cảnh báo CHỈ nhắc, KHÔNG chặn — nút sang màn duyệt thật vẫn còn.
+- Nhãn cưỡng chế: "Cảnh báo theo quy tắc — không phải AI" + note "không phải suy đoán
+  thông minh". Inbox review link đi QUA warning làm speed-bump chống social-engineering.
+
+### §2.5 welcome/get-started (public onboarding thật)
+- `welcome`: 3 lời hứa người thường + CTA. `get-started`: ngã ba tạo-ví (→ sign-up →
+  setup mức A) / mở-ví-đã-có (→ /passkey). Onboarding judge thấy đầu tiên giờ chạy trọn.
+- Sửa dead-end: `/passkey` createCta cũ gọi createWallet-không-submit rồi SEP-45 (ký
+  chết vì ví chưa deploy) → nay Link về /setup (deploy thật). Panel giữ sign-in.
+
+### §2.1 Wizard mức B — HONEST STUB (theo cho phép checklist)
+- Mức B đòi trao đổi khoá ĐA BÊN (guardian tạo passkey trên máy HỌ → khoá về ví chủ →
+  deploy smart account đa-signer + context rule threshold). KHÔNG verify trọn được
+  autonomous (cần thiết bị thứ hai) + chạm custody → giữ mức A làm đường chính.
+- 6 màn wizard (assistant/choose-guardians/invite/threshold/timelock/review) dùng
+  `WizardStep`: hiện tiêu đề+mô tả bước (cho thấy luồng dự kiến) + note "sắp có" + lối ra
+  RÕ về /setup. KHÔNG nút giả. Custody không đụng.
+
+### §3 deploy-readiness + §5 dọn
+- `docs/HUMAN-TODO.md` (root) — checklist mainnet khoá vào MỘT biến: DOMAIN (rpId).
+  Script origin-verifier đã tham số hoá sẵn; ví phí mainnet mới + TTL cron là human-only.
+- `docs/evidence/TESTNET.md §PASSKEY-ONCHAIN` (từ §1). Threat model: B-23-2 ĐÓNG +
+  collusion-2-guardian "diệt bằng kiến trúc" (contract account + timelock + veto + cooldown)
+  ghi rõ là điểm mạnh nhất. K2 invariant thêm dòng passkey secp256r1.
+
+### Gate §2 (2026-07-24)
+- BE **223 pass / 9 skip / 0 fail** + validate xanh (endpoint plan thêm, không giảm test).
+- FE validate **11/11** + unit **25 pass + recovery-warnings 6** + honest build xanh (3 lần).
+- E2e chromium LOCAL (nhờ workaround LD_LIBRARY_PATH): family-screens **6 pass** (night-watch
+  ×3, inheritance claim, guardian warning, wizard-stub-exit) + smoke **5 pass** + passkey-onchain
+  (§1, opt-in) **1 pass**. Tổng suite chromium **23 pass / 1 skip** (passkey-login skip chủ đích).
+- i18n en/vi/zh parity giữ (mọi key mới thêm đủ 3 ngôn ngữ).
