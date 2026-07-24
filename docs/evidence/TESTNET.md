@@ -1,5 +1,9 @@
 # Bằng chứng testnet — hạ tầng on-chain đã deploy
 
+> **Bảng contract ID hợp nhất (cái nào đang dùng): `docs/DEPLOY.md`.** File này giữ
+> chi tiết tx hash + link stellar.expert theo từng pha (§PHA 2.3 · §PHA 5.2 · §AUDIT P0 ·
+> §PHA 6 SEND). SAC native testnet: `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`.
+
 > Mọi ID/hash ở đây là THẬT trên Stellar testnet, kèm link stellar.expert
 > (luật stellar.md: cấm placeholder trong bản nộp). Cập nhật khi deploy thêm.
 
