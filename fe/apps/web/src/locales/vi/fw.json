@@ -90,9 +90,17 @@
     }
   },
   "passkey": {
+    "connected": "Ví của bạn đã mở: {{wallet}}",
+    "createCta": "Tạo ví mới bằng khuôn mặt / vân tay",
     "description": "Dùng khuôn mặt hoặc vân tay — không phải nhớ gì, không sợ mất gì.",
+    "errorCancelled": "Bạn đã đóng hộp thoại xác nhận. Khi sẵn sàng, bấm nút để thử lại.",
+    "errorGeneric": "Chưa mở được ví. Thiết bị chưa xác nhận khuôn mặt / vân tay — bạn thử lại nhé.",
+    "errorNotConfigured": "Ứng dụng chưa được nối với mạng ví. Đây là việc của đội kỹ thuật — bạn không cần làm gì.",
+    "signInCta": "Tôi đã có ví — mở khóa",
     "title": "Mở khóa bằng thiết bị của bạn",
-    "unsupported": "Thiết bị này chưa hỗ trợ mở khóa bằng khuôn mặt hay vân tay. Bạn vẫn có thể tiếp tục trên điện thoại khác, hoặc trình duyệt mới hơn."
+    "unsupported": "Thiết bị này chưa hỗ trợ mở khóa bằng khuôn mặt hay vân tay. Bạn vẫn có thể tiếp tục trên điện thoại khác, hoặc trình duyệt mới hơn.",
+    "walletUser": "Ví gia đình",
+    "working": "Đang mở khóa bằng thiết bị của bạn…"
   },
   "recovery": {
     "countdown": {

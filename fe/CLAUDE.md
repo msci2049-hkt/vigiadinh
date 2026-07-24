@@ -57,12 +57,14 @@ apps/web/src/app/routes/
     inheritance/{,heartbeat,claim}                                              nhóm 8
     _admin/admin/{,users,sessions,settings}   admin panel sẵn có — GIỮ NGUYÊN
   components/screen-stub.tsx   placeholder chung (title/description/cta/tone="alert")
-  locales/{en,vi}/fw.json      namespace fw — 83 key, KHỚP 2 bên
+  locales/{en,vi}/fw.json      namespace fw — 91 key, KHỚP 2 bên
 ```
 
-**Mọi màn là KHUNG** — chỉ render title/description/CTA từ i18n, chưa có logic. Chi tiết giao
-diện chờ `vigiadinh-mockup.html` (**chưa có trong repo**). 3 màn cảnh báo (`night-watch/alert`,
-`guardian/approve-warning`, `block/`) đã qua ux-writer: đủ 3 câu (chuyện gì · vì sao · bấm gì).
+**Mọi màn là KHUNG, TRỪ `/passkey`** (PHA 2.3 — luồng thật: tạo passkey → smart account
+→ đăng nhập SEP-45, xem `features/wallet/`). Các màn còn lại chỉ render title/description/CTA
+từ i18n, chưa có logic; chi tiết giao diện chờ `vigiadinh-mockup.html` (**chưa có trong repo**).
+3 màn cảnh báo (`night-watch/alert`, `guardian/approve-warning`, `block/`) đã qua ux-writer:
+đủ 3 câu (chuyện gì · vì sao · bấm gì).
 
 ## Lệnh chuẩn (repo này — mọi thứ bằng pnpm, Node 20)
 

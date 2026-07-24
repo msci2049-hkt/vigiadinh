@@ -90,9 +90,17 @@
     }
   },
   "passkey": {
+    "connected": "Your wallet is open: {{wallet}}",
+    "createCta": "Create a new wallet with face / fingerprint",
     "description": "Use your face or fingerprint — nothing to remember, nothing to lose.",
+    "errorCancelled": "You closed the confirmation dialog. Press the button to try again whenever you're ready.",
+    "errorGeneric": "Couldn't open your wallet. Your device didn't confirm face / fingerprint — please try again.",
+    "errorNotConfigured": "The app isn't connected to the wallet network yet. That's on our team — nothing for you to do.",
+    "signInCta": "I already have a wallet — unlock",
     "title": "Unlock with your device",
-    "unsupported": "This device is too old for face or fingerprint unlock. You can still continue on another phone, or on a newer browser."
+    "unsupported": "This device is too old for face or fingerprint unlock. You can still continue on another phone, or on a newer browser.",
+    "walletUser": "Family wallet",
+    "working": "Unlocking with your device…"
   },
   "recovery": {
     "countdown": {

@@ -4,8 +4,16 @@ appliesTo: "src/lib/auth-client.ts, src/features/auth/**, src/app/routes/** (gua
 
 # Rule: Auth (Better Auth client)
 
-**Mô hình:** session **cookie** qua Better Auth. FE KHÔNG tự quản token, KHÔNG JWT Bearer,
-KHÔNG silent-refresh. Mọi request kèm `credentials:'include'`.
+**Mô hình (cập nhật PHA 2.3, P1-9 Bearer-first):** HAI lớp danh tính độc lập.
+
+1. **Phiên app (Better Auth)** — session **cookie** trên web (mọi request
+   `credentials:'include'`); BE đã bật `bearer()` plugin nên vỏ WebView/extension
+   (PHA 8-9) gửi `Authorization: Bearer <session-token>` thay cookie
+   (sameSite=lax chết trong WebView). Trên web KHÔNG tự quản token session.
+2. **Phiên ví (SEP-45)** — JWT Bearer riêng, bind địa chỉ ví + device, do
+   `features/wallet` quản (`lib/wallet-token.ts` → `apiClient.setAuthHeader`).
+   Đây KHÔNG phải session Better Auth — đừng trộn hai lớp; xem
+   `features/wallet/api/sep45-login.ts`.
 
 ## DO
 - Dùng `@/lib/auth-client`: `useSession()` (reactive), `signIn.email()`, `signUp.email()`,
