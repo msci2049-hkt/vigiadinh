@@ -278,11 +278,24 @@
     },
     "done": {
       "description": "Nếu chẳng may mất điện thoại, gia đình có thể lấy lại ví này cho bạn.",
-      "title": "Ví của bạn đã được bảo vệ"
+      "title": "Ví của bạn đã được bảo vệ",
+      "guardiansNote": "Tiếp theo, thêm người thân có thể giúp bạn khôi phục ví nếu mất máy — chưa thêm thì nó chạy như ví thường.",
+      "walletCta": "Đến ví của tôi",
+      "addGuardiansCta": "Thêm người bảo hộ"
     },
     "intro": {
       "description": "Chọn những người thân tin cậy có thể giúp bạn lấy lại ví nếu chẳng may mất điện thoại.",
-      "title": "Bảo vệ ví của bạn"
+      "title": "Bảo vệ ví của bạn",
+      "point1": "Ví mở bằng khuôn mặt hoặc vân tay — không có seed phrase để mất.",
+      "point2": "Bạn có thể thêm người thân sau để họ giúp khôi phục.",
+      "point3": "Cùng một ví dùng được trên điện thoại, máy tính và trình duyệt.",
+      "creating": "Đang tạo ví của bạn…",
+      "cta": "Tạo ví của tôi",
+      "haveWalletCta": "Tôi đã có ví",
+      "errors": {
+        "notConfigured": "Ứng dụng chưa kết nối mạng ví. Đây là việc của đội chúng tôi.",
+        "failed": "Không tạo được ví. Thiết bị chưa xác nhận — hãy thử lại."
+      }
     },
     "invite": {
       "description": "Gửi mỗi người một liên kết. Họ xác nhận trên điện thoại của chính họ.",
@@ -327,7 +340,38 @@
     },
     "send": {
       "description": "Gửi tiền cho bất kỳ ai.",
-      "title": "Gửi tiền"
+      "title": "Gửi tiền",
+      "noWallet": "Bạn chưa có ví.",
+      "amountLabel": "Số tiền (XLM)",
+      "recipientLabel": "Gửi tới",
+      "checking": "Đang kiểm tra…",
+      "cta": "Tiếp tục",
+      "review": {
+        "title": "Kiểm tra trước khi gửi",
+        "amount": "Số tiền",
+        "to": "Tới",
+        "biometricNote": "Vân tay hoặc khuôn mặt xác nhận giao dịch — trước đó chưa có gì được gửi đi.",
+        "signing": "Đang chờ bạn xác nhận…",
+        "cta": "Xác nhận và gửi",
+        "backCta": "Quay lại"
+      },
+      "guardian": {
+        "title": "Đang chờ người thân",
+        "description": "Số tiền này cần một người thân đồng ý trước. Chúng tôi đã hỏi họ — bạn sẽ được báo khi được duyệt."
+      },
+      "done": {
+        "title": "Đã gửi",
+        "description": "Tiền của bạn đang trên đường đi.",
+        "txLabel": "Bằng chứng trên mạng: {hash}"
+      },
+      "errors": {
+        "insufficient": "Không đủ số dư. Bạn cần thêm {shortfall} (đã tính phí).",
+        "badRecipient": "Đây chưa phải địa chỉ hợp lệ (bắt đầu bằng G hoặc C, 56 ký tự).",
+        "delayed": "Giao dịch đang được xem xét vì an toàn của bạn. Thử lại sau chút.",
+        "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại.",
+        "network": "Chưa kết nối được mạng. Thử lại sau chút.",
+        "notSent": "Chưa có gì được gửi đi. Bạn có thể thử lại an toàn."
+      }
     }
   },
   "welcome": {

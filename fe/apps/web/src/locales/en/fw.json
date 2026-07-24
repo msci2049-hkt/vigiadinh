@@ -278,11 +278,24 @@
     },
     "done": {
       "description": "If you ever lose your phone, your family can get this wallet back for you.",
-      "title": "Your wallet is protected"
+      "title": "Your wallet is protected",
+      "guardiansNote": "Next, add family members who can help you recover this wallet if you lose your phone — until you do, it works like a normal wallet.",
+      "walletCta": "Go to my wallet",
+      "addGuardiansCta": "Add family protectors"
     },
     "intro": {
       "description": "Choose trusted people who can help you recover this wallet if you ever lose your phone.",
-      "title": "Protect your wallet"
+      "title": "Protect your wallet",
+      "point1": "Your wallet unlocks with your face or fingerprint — no seed phrase to lose.",
+      "point2": "You can add family members afterwards so they can help you recover it.",
+      "point3": "Same wallet works on your phone, computer and browser.",
+      "creating": "Creating your wallet…",
+      "cta": "Create my wallet",
+      "haveWalletCta": "I already have a wallet",
+      "errors": {
+        "notConfigured": "The app isn't connected to the wallet network yet. That's on our team.",
+        "failed": "Could not create your wallet. Your device didn't confirm — please try again."
+      }
     },
     "invite": {
       "description": "Send each person a link. They accept on their own phone.",
@@ -327,7 +340,38 @@
     },
     "send": {
       "description": "Send money to anyone.",
-      "title": "Send"
+      "title": "Send",
+      "noWallet": "You do not have a wallet yet.",
+      "amountLabel": "Amount (XLM)",
+      "recipientLabel": "Send to",
+      "checking": "Checking…",
+      "cta": "Continue",
+      "review": {
+        "title": "Check before you send",
+        "amount": "Amount",
+        "to": "To",
+        "biometricNote": "Your fingerprint or face confirms the payment — nothing is sent before that.",
+        "signing": "Waiting for your confirmation…",
+        "cta": "Confirm and send",
+        "backCta": "Back"
+      },
+      "guardian": {
+        "title": "Waiting for your family",
+        "description": "This amount needs a trusted contact to agree first. We've asked them — you'll be notified when it's approved."
+      },
+      "done": {
+        "title": "Sent",
+        "description": "Your money is on its way.",
+        "txLabel": "Proof on the network: {hash}"
+      },
+      "errors": {
+        "insufficient": "Not enough balance. You need {shortfall} more (including fees).",
+        "badRecipient": "That does not look like a valid address (starts with G or C, 56 characters).",
+        "delayed": "This payment is being reviewed for your safety. Try again shortly.",
+        "walletLocked": "Your wallet is locked on this device. Open it first, then try again.",
+        "network": "Could not reach the network. Try again shortly.",
+        "notSent": "Nothing was sent. You can try again safely."
+      }
     }
   },
   "welcome": {

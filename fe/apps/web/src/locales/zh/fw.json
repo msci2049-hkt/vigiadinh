@@ -278,11 +278,24 @@
     },
     "done": {
       "description": "万一你丢失手机，你的家人可以帮你把这个钱包找回来。",
-      "title": "你的钱包已受保护"
+      "title": "你的钱包已受保护",
+      "guardiansNote": "接下来，添加可以在你丢失手机时帮你恢复钱包的家人 — 在此之前它像普通钱包一样工作。",
+      "walletCta": "前往我的钱包",
+      "addGuardiansCta": "添加家庭守护人"
     },
     "intro": {
       "description": "选择可信赖的人，万一你丢失手机，他们能帮你恢复这个钱包。",
-      "title": "保护你的钱包"
+      "title": "保护你的钱包",
+      "point1": "钱包用面容或指纹解锁 — 没有助记词可丢失。",
+      "point2": "你可以随后添加家人，让他们帮你恢复钱包。",
+      "point3": "同一个钱包在手机、电脑和浏览器上都能用。",
+      "creating": "正在创建你的钱包…",
+      "cta": "创建我的钱包",
+      "haveWalletCta": "我已有钱包",
+      "errors": {
+        "notConfigured": "应用尚未连接到钱包网络。这是我们团队的事。",
+        "failed": "无法创建钱包。设备未确认 — 请重试。"
+      }
     },
     "invite": {
       "description": "给每个人发送一个链接。他们在自己的手机上接受。",
@@ -327,7 +340,38 @@
     },
     "send": {
       "description": "向任何人发送资金。",
-      "title": "发送"
+      "title": "发送",
+      "noWallet": "你还没有钱包。",
+      "amountLabel": "金额（XLM）",
+      "recipientLabel": "发送至",
+      "checking": "正在检查…",
+      "cta": "继续",
+      "review": {
+        "title": "发送前请核对",
+        "amount": "金额",
+        "to": "收款方",
+        "biometricNote": "用指纹或面容确认这笔支付 — 在此之前不会发送任何内容。",
+        "signing": "正在等待你的确认…",
+        "cta": "确认并发送",
+        "backCta": "返回"
+      },
+      "guardian": {
+        "title": "正在等待你的家人",
+        "description": "这笔金额需要一位受信任的联系人先同意。我们已经询问他们 — 获批后会通知你。"
+      },
+      "done": {
+        "title": "已发送",
+        "description": "你的资金正在途中。",
+        "txLabel": "网络上的凭证：{hash}"
+      },
+      "errors": {
+        "insufficient": "余额不足。你还需要 {shortfall}（含手续费）。",
+        "badRecipient": "这看起来不是有效地址（以 G 或 C 开头，56 个字符）。",
+        "delayed": "为了你的安全，这笔支付正在审核中。请稍后重试。",
+        "walletLocked": "钱包在此设备上已锁定。请先打开钱包再重试。",
+        "network": "无法连接网络。请稍后重试。",
+        "notSent": "没有发送任何内容。你可以安全地重试。"
+      }
     }
   },
   "welcome": {
