@@ -63,3 +63,11 @@
 - Kết luận: 2 chế độ LOẠI TRỪ NHAU — `{startLedger, endLedger?}` HOẶC `{cursor}` (trộn là type error). Response: `events[]` (mỗi event có `id` DUY NHẤT toàn mạng — chính là khoá dedupe), `cursor` (trang kế), `latestLedger` + `oldestLedger` (RetentionState — phát hiện trôi cửa sổ ~7 ngày). Event: topic ScVal[] (parse `scValToNative`), value, txHash, ledger.
 - Áp vào: `be/src/modules/indexer/infra/{indexer.service,rpc-source,checkpoint.schema}.ts`.
 - Mâu thuẫn skill? Không — khớp fw-indexer-notify (checkpoint mỗi batch + dedupe id + cửa sổ 7 ngày).
+
+### 2026-07-24 · PHA 5.2 · Interface recovery contract testnet (đọc TỪ CHAIN)
+
+- Hỏi: contract recovery `CCPGVSLR…GT3V` (spike cũ, ngoài repo) có hàm gì?
+- Nguồn: `stellar contract info interface --id CCPGVSLR… --network testnet` (spec thật trên chain).
+- Kết luận: `register_wallet(owner, guardians Vec<Address>, threshold u32, timelock_secs u64)` · `add_guardian/remove_guardian(wallet, guardian)` · `initiate_recovery`? (xem tiếp phần dưới log) · `approve_recovery(wallet, guardian)` · `finalize_recovery(wallet) -> Address` · `cancel_recovery(wallet, owner)` (≈ veto của owner) · `is_registered(wallet)` · `get_wallet_config(wallet)`.
+- Áp vào: PHA 5.2 route recovery (`/recovery/initiate|approve|finalize|veto`) — build invoke qua `services/stellar` + auth entry cho guardian/owner ký.
+- Mâu thuẫn skill? Không.
