@@ -1,244 +1,294 @@
 {
   "block": {
     "alert": {
+      "backCta": "Back to safety center",
       "cta": "Stop this now",
       "description": "A recovery request was started on another device. If this wasn't you, stop it before the waiting period ends — after that it cannot be undone.",
-      "title": "Someone wants to take over your wallet",
-      "nothingOpen": "There is no recovery request to stop right now.",
-      "backCta": "Back to safety center",
-      "requestTitle": "What was requested",
-      "requestBody": "{approvals, plural, one {# family member has} other {# family members have}} agreed (needs {threshold}). When the waiting period ends, a new key takes over this wallet.",
       "fingerprintLabel": "New key ID: {fingerprint}",
+      "nothingOpen": "There is no recovery request to stop right now.",
+      "requestBody": "{approvals, plural, one {# family member has} other {# family members have}} agreed (needs {threshold}). When the waiting period ends, a new key takes over this wallet.",
+      "requestTitle": "What was requested",
+      "title": "Someone wants to take over your wallet",
       "window": "Time left to stop it: {countdown} (until {absolute})"
     },
     "confirm": {
-      "description": "This cancels the request and alerts your protectors.",
-      "title": "Stop this recovery?",
+      "backCta": "Go back",
       "biometricNote": "Your fingerprint or face confirms it is really you — nothing is sent before that.",
       "cta": "Stop it now",
-      "signing": "Waiting for your confirmation…",
-      "backCta": "Go back",
+      "description": "This cancels the request and alerts your protectors.",
       "errors": {
-        "walletLocked": "Your wallet is locked on this device. Open your wallet first, then try again.",
         "alreadyStopped": "Good news — this request was already stopped. Your wallet is safe.",
+        "notSent": "Nothing was sent yet. The stop order did not reach the network — you can try again safely.",
         "tooLate": "This request already completed before it could be stopped. Contact your family members now.",
-        "notSent": "Nothing was sent yet. The stop order did not reach the network — you can try again safely."
-      }
+        "walletLocked": "Your wallet is locked on this device. Open your wallet first, then try again."
+      },
+      "signing": "Waiting for your confirmation…",
+      "title": "Stop this recovery?"
     },
     "done": {
+      "cta": "Back to safety center",
       "description": "The request was stopped. Your wallet is safe.",
-      "title": "Blocked",
       "guardiansNote": "Your family members have been notified automatically.",
-      "txLabel": "Proof on the network: {hash}",
-      "cta": "Back to safety center"
+      "title": "Blocked",
+      "txLabel": "Proof on the network: {hash}"
     }
   },
   "getStarted": {
-    "description": "Create a new wallet, or open one you already have.",
-    "title": "How would you like to start?",
-    "createTitle": "Create a new wallet",
     "createBody": "Set up a fresh wallet secured by your fingerprint or face.",
     "createCta": "Create a wallet",
-    "haveTitle": "I already have one",
+    "createTitle": "Create a new wallet",
+    "description": "Create a new wallet, or open one you already have.",
     "haveBody": "Open your existing wallet on this device.",
-    "haveCta": "Open my wallet"
+    "haveCta": "Open my wallet",
+    "haveTitle": "I already have one",
+    "title": "How would you like to start?"
   },
   "guardian": {
     "approve": {
-      "description": "Check with them in person or by call before you approve.",
-      "title": "Confirm it's them",
-      "gone": "This request is no longer open.",
       "backCta": "Back to requests",
-      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} so far. Yours could be the deciding one.",
-      "fingerprintLabel": "New key ID: {fingerprint}",
-      "verifyNote": "Call the person who asked for this and read the key ID to each other. If it does not match, do not agree.",
       "biometricNote": "Your fingerprint or face confirms the vote — nothing is sent before that.",
-      "signing": "Waiting for your confirmation…",
       "cta": "I agree — help recover",
+      "description": "Check with them in person or by call before you approve.",
       "errors": {
         "alreadyVoted": "You already voted on this request. No need to vote again.",
         "closed": "This request is closed — it was stopped or already finished.",
         "deviceKeyMissing": "This device does not hold your protector key for this wallet. Open the app on the device you set up as protector.",
         "notSent": "Your vote was not sent. Nothing reached the network — you can try again safely."
-      }
+      },
+      "fingerprintLabel": "New key ID: {fingerprint}",
+      "gone": "This request is no longer open.",
+      "signing": "Waiting for your confirmation…",
+      "title": "Confirm it's them",
+      "verifyNote": "Call the person who asked for this and read the key ID to each other. If it does not match, do not agree.",
+      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} so far. Yours could be the deciding one."
     },
     "approveWarning": {
+      "approveCta": "I've verified — review & approve",
+      "backCta": "Not now",
       "cta": "Call them first",
       "ctaSecondary": "Approve anyway",
       "description": "This request looks unusual for this person. If it isn't really them, approving hands over their wallet. Call them yourself first — approve only after you hear their voice.",
-      "title": "Do not approve yet",
-      "rulesLabel": "Rule-based checks — not AI",
-      "rulesNote": "These are simple checks on the request, not a smart guess. They only remind you to be careful — you always decide.",
       "rules": {
+        "flagged": "Our automatic checks flagged this request as unusual.",
         "newKey": "This hands the wallet to a brand-new key. Read the key's fingerprint back to the person by voice before you approve.",
         "unusualHour": "This request was opened in the middle of the night — an unusual time.",
-        "veryRecent": "It was opened just now and barely anyone has confirmed it yet.",
-        "flagged": "Our automatic checks flagged this request as unusual."
+        "veryRecent": "It was opened just now and barely anyone has confirmed it yet."
       },
-      "approveCta": "I've verified — review & approve",
-      "backCta": "Not now"
+      "rulesLabel": "Rule-based checks — not AI",
+      "rulesNote": "These are simple checks on the request, not a smart guess. They only remind you to be careful — you always decide.",
+      "title": "Do not approve yet"
     },
     "approved": {
+      "cta": "Back to requests",
       "description": "Your confirmation has been recorded.",
-      "title": "Thank you",
       "nextNote": "If enough family members agree, there is still a waiting period during which the wallet owner can stop it.",
-      "txLabel": "Proof on the network: {hash}",
-      "cta": "Back to requests"
+      "title": "Thank you",
+      "txLabel": "Proof on the network: {hash}"
     },
     "inbox": {
       "description": "Someone you protect needs your confirmation.",
-      "title": "Requests for you",
       "empty": "No one needs your help right now.",
-      "walletLabel": "Wallet {address}",
-      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
-      "since": "Started {when}",
-      "reviewCta": "Review this request",
-      "knockTitle": "A new device asks for help",
       "knockBody": "Someone says they lost access to wallet {address} and set up a new device. Verify it is really them before starting anything.",
-      "knockCta": "Review and start recovery"
+      "knockCta": "Review and start recovery",
+      "knockTitle": "A new device asks for help",
+      "reviewCta": "Review this request",
+      "since": "Started {when}",
+      "title": "Requests for you",
+      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
+      "walletLabel": "Wallet {address}"
     },
     "initiate": {
-      "title": "Start recovery for this wallet?",
-      "description": "This begins the family recovery process. Other trusted contacts still have to agree, and the wallet owner can stop it during the waiting period.",
-      "gone": "This request is no longer open.",
       "backCta": "Back to requests",
-      "fingerprintLabel": "New key ID: {fingerprint}",
-      "verifyNote": "Call the wallet owner. Ask them to read the key ID from their new device — it must match this one exactly. If it does not, stop here.",
       "biometricNote": "Your fingerprint or face confirms it — nothing is sent before that.",
-      "signing": "Waiting for your confirmation…",
       "cta": "I verified — start recovery",
+      "description": "This begins the family recovery process. Other trusted contacts still have to agree, and the wallet owner can stop it during the waiting period.",
       "errors": {
-        "mismatch": "STOP: the key inside the signing request does not match the key shown here. Do not sign. Contact the family and report this.",
         "alreadyOpen": "A recovery is already in progress for this wallet — vote on it instead.",
         "deviceKeyMissing": "This device does not hold your protector key for this wallet. Open the app on the device you set up as protector.",
+        "mismatch": "STOP: the key inside the signing request does not match the key shown here. Do not sign. Contact the family and report this.",
         "notSent": "Nothing was sent yet. You can try again safely."
-      }
+      },
+      "fingerprintLabel": "New key ID: {fingerprint}",
+      "gone": "This request is no longer open.",
+      "signing": "Waiting for your confirmation…",
+      "title": "Start recovery for this wallet?",
+      "verifyNote": "Call the wallet owner. Ask them to read the key ID from their new device — it must match this one exactly. If it does not, stop here."
     }
   },
   "guardians": {
+    "accept": {
+      "addressLabel": "Your identity",
+      "badBody": "It may have expired or already been used. Ask them to send you a new one.",
+      "badTitle": "This link does not work",
+      "creating": "Setting up…",
+      "cta": "Set up my secure identity",
+      "description": "{label} asked you to be one of the people who can help them get back into their wallet.",
+      "doneBody": "Your secure identity is ready on this device.",
+      "doneTitle": "You are all set",
+      "homeCta": "Go to my wallet",
+      "point1": "You will not hold their money, and you cannot spend it.",
+      "point2": "If they ever lose their phone, you and one other person can let them back in.",
+      "point3": "Your key stays on this device. Nobody, not even us, can copy it.",
+      "title": "Someone asked you to help",
+      "waitingOwner": "They now need to confirm you on their own phone. You do not have to do anything else.",
+      "whatTitle": "What this means"
+    },
     "detail": {
+      "backCta": "Back to the list",
       "description": "Connection history and options for this person.",
-      "title": "Protector details",
-      "statusLabel": "Connection",
-      "lastSeen": "Last heard from",
-      "lastConfirm": "Last confirmed in person",
       "keyLabel": "Their key",
+      "lastConfirm": "Last confirmed in person",
+      "lastSeen": "Last heard from",
       "never": "Not yet",
       "notFound": "This person isn't on your list anymore.",
-      "backCta": "Back to the list"
+      "statusLabel": "Connection",
+      "title": "Protector details"
+    },
+    "inviteList": {
+      "addCta": "Add to my wallet",
+      "addFailed": "We could not add them. Nothing changed — please try again.",
+      "adding": "Adding…",
+      "status": {
+        "accepted": "They opened the link",
+        "deployed": "Ready — add them to your wallet",
+        "expired": "Link expired",
+        "registered": "Can help you get back in",
+        "sent": "Waiting for them to open the link"
+      },
+      "title": "People you invited"
+    },
+    "list": {
+      "empty": "No trusted contacts yet. Invite family so your wallet can be recovered if you ever lose this device.",
+      "itemLabel": "Trusted contact",
+      "noWallet": "You don't have a wallet yet. Set one up first, then invite family to help look after it."
     },
     "manage": {
       "description": "See who protects your wallet, and whether we can still reach them.",
       "title": "Your protectors"
     },
-    "list": {
-      "noWallet": "You don't have a wallet yet. Set one up first, then invite family to help look after it.",
-      "empty": "No trusted contacts yet. Invite family so your wallet can be recovered if you ever lose this device.",
-      "itemLabel": "Trusted contact"
+    "recoverability": {
+      "notYetBody": "{available} of {threshold} people have finished. {missing, plural, one {# more person needs} other {# more people need}} to accept before your wallet can be recovered.",
+      "notYetTitle": "Nobody can get you back in yet",
+      "ok": "{count, plural, one {# person} other {# people}} can help you get back in."
     },
     "status": {
-      "invited": "Invited",
       "active": "Connected",
-      "slow": "Quiet lately",
+      "invited": "Invited",
       "offline": "Unreachable",
-      "removed": "Removed"
+      "removed": "Removed",
+      "slow": "Quiet lately"
     }
+  },
+  "history": {
+    "empty": "Nothing has happened yet. Activity on your wallet will appear here.",
+    "kind": {
+      "actionSubmitted": "An action was sent to the network",
+      "gap": "Some events may be missing from this period",
+      "other": "Wallet activity",
+      "recoveryApproved": "A trusted contact confirmed the recovery",
+      "recoveryBlocked": "A recovery attempt was blocked",
+      "recoveryDone": "Wallet recovery completed",
+      "recoveryStarted": "A wallet recovery was started",
+      "requestExpired": "A pending request expired",
+      "walletRegistered": "Family protection was set up"
+    },
+    "noWallet": "You don't have a wallet yet, so there's nothing to show here."
   },
   "inheritance": {
     "claim": {
       "description": "Follow the steps to receive your share.",
       "title": "Receive what was left for you"
     },
+    "claimNew": {
+      "backCta": "Back",
+      "description": "This is how your family receives this wallet if something happens to you.",
+      "finalWindowLabel": "Final window to cancel",
+      "finalWindowValue": "{days, plural, one {# day} other {# days}} after a request is opened",
+      "guardianNote": "Your family opens this themselves — we never start it for them, and we cannot stop it once you're gone.",
+      "heartbeatCta": "I'm okay — reset this",
+      "noPlan": "No inheritance is set up for this wallet yet.",
+      "stage1": "If you stop checking in for {days, plural, one {# day} other {# days}}, your family can ask to receive the wallet.",
+      "stage2": "After they ask, there is a final {days, plural, one {# day} other {# days}} window. You can still cancel during that time if it was a mistake.",
+      "stage3": "Once that window passes, each person receives their share.",
+      "stagesTitle": "How it works",
+      "statusAsking": "Your family is being asked whether to start receiving the wallet.",
+      "statusClaimable": "Your family can now ask to receive the wallet.",
+      "statusHealthy": "All good. You've checked in recently, so nothing is being passed on.",
+      "statusReminding": "We've reminded you to check in. Tap “I'm okay” to reset this.",
+      "statusTitle": "Right now"
+    },
+    "empty": "No one is set to receive this wallet yet. You'll be able to choose your family here.",
     "heartbeat": {
       "description": "Confirm now and then, so nothing is passed on while you're still here.",
       "title": "I'm doing fine"
     },
+    "heartbeatButton": "I'm okay",
+    "heartbeatCta": "Tell your family you're okay",
+    "heartbeatDone": "Thanks! Your family won't be worried.",
+    "noWallet": "You don't have a wallet yet, so there's nothing to pass on.",
     "setup": {
       "description": "Choose who receives your assets, and how much each person gets.",
       "title": "Decide who receives this later"
-    },
-    "noWallet": "You don't have a wallet yet, so there's nothing to pass on.",
-    "empty": "No one is set to receive this wallet yet. You'll be able to choose your family here.",
-    "heartbeatCta": "Tell your family you're okay",
-    "heartbeatButton": "I'm okay",
-    "heartbeatDone": "Thanks! Your family won't be worried.",
-    "claimNew": {
-      "description": "This is how your family receives this wallet if something happens to you.",
-      "stagesTitle": "How it works",
-      "stage1": "If you stop checking in for {days, plural, one {# day} other {# days}}, your family can ask to receive the wallet.",
-      "stage2": "After they ask, there is a final {days, plural, one {# day} other {# days}} window. You can still cancel during that time if it was a mistake.",
-      "stage3": "Once that window passes, each person receives their share.",
-      "guardianNote": "Your family opens this themselves — we never start it for them, and we cannot stop it once you're gone.",
-      "statusTitle": "Right now",
-      "statusHealthy": "All good. You've checked in recently, so nothing is being passed on.",
-      "statusReminding": "We've reminded you to check in. Tap “I'm okay” to reset this.",
-      "statusAsking": "Your family is being asked whether to start receiving the wallet.",
-      "statusClaimable": "Your family can now ask to receive the wallet.",
-      "finalWindowLabel": "Final window to cancel",
-      "finalWindowValue": "{days, plural, one {# day} other {# days}} after a request is opened",
-      "noPlan": "No inheritance is set up for this wallet yet.",
-      "heartbeatCta": "I'm okay — reset this",
-      "backCta": "Back"
     }
   },
   "nightWatch": {
     "alert": {
       "cta": "Fix this",
       "description": "One of your protectors hasn't answered our daily check. If too many go quiet, you may not have enough people to get your wallet back. Replace them, or help them reconnect.",
-      "title": "A protector is out of reach",
-      "subtitle": "These people went quiet on our daily check. Help them reconnect, or replace them so you always have enough.",
-      "none": "Everyone is reachable. Nothing needs your attention right now.",
       "lastSeen": "Last reached",
-      "resolveCta": "What can I do?"
+      "none": "Everyone is reachable. Nothing needs your attention right now.",
+      "resolveCta": "What can I do?",
+      "subtitle": "These people went quiet on our daily check. Help them reconnect, or replace them so you always have enough.",
+      "title": "A protector is out of reach"
     },
+    "allQuiet": "All quiet. No one is trying to take over this wallet, and nothing needs your attention.",
     "center": {
       "description": "We quietly check on your protection every day and warn you early.",
       "title": "Night watch"
     },
+    "contacts": {
+      "cta": "See who's looking after your wallet",
+      "summary": "{reachable, plural, one {# person reachable} other {# people reachable}}, {quiet} quiet lately, {unreachable} unreachable.",
+      "title": "Your family's connection"
+    },
     "guardianView": {
-      "description": "Keep this app installed — that's all you need to do most days.",
-      "title": "You're a protector",
-      "statusLabel": "Your connection",
       "active": "Active — you are reachable",
-      "lastCheck": "You just checked in",
+      "description": "Keep this app installed — that's all you need to do most days.",
       "inboxCta": "See requests that need me",
-      "privacyNote": "Only the wallet owner can see this status — never other people."
+      "lastCheck": "You just checked in",
+      "privacyNote": "Only the wallet owner can see this status — never other people.",
+      "statusLabel": "Your connection",
+      "title": "You're a protector"
     },
     "log": {
       "description": "Daily checks and what they found.",
       "title": "Daily check history"
     },
+    "logEmpty": "No safety events yet. If anything ever happens to your wallet, you'll see it here.",
+    "noWallet": "You don't have a wallet yet, so there's nothing to watch over.",
+    "openRecovery": {
+      "body": "{approvals, plural, one {# family confirmation} other {# family confirmations}} so far, {threshold} needed. If this is not your family helping you, block it now.",
+      "cta": "This wasn't me — block it",
+      "title": "Someone is recovering this wallet",
+      "window": "You can still block it for {countdown} (until {absolute})."
+    },
     "resolve": {
+      "backCta": "Back",
       "description": "Replace this protector, or help them reconnect.",
-      "title": "Restore your protection",
+      "replaceCta": "See my protectors",
       "step1": "Message them and ask them to open this app once — that reconnects them automatically.",
       "step2": "If you cannot reach them, replace them with someone else you trust.",
-      "waitingCta": "I have asked them — watch for reconnect",
-      "replaceCta": "See my protectors",
-      "backCta": "Back"
+      "title": "Restore your protection",
+      "waitingCta": "I have asked them — watch for reconnect"
     },
     "waiting": {
+      "backCta": "Back to night watch",
       "description": "We'll tell you the moment they're back.",
-      "title": "Waiting to reconnect",
-      "none": "Everyone is back. No one is waiting to reconnect.",
-      "item": "Waiting since last reached {when}",
       "hint": "Leave this with them — the moment they open the app, this clears on its own.",
-      "backCta": "Back to night watch"
-    },
-    "noWallet": "You don't have a wallet yet, so there's nothing to watch over.",
-    "allQuiet": "All quiet. No one is trying to take over this wallet, and nothing needs your attention.",
-    "openRecovery": {
-      "title": "Someone is recovering this wallet",
-      "body": "{approvals, plural, one {# family confirmation} other {# family confirmations}} so far, {threshold} needed. If this is not your family helping you, block it now.",
-      "window": "You can still block it for {countdown} (until {absolute}).",
-      "cta": "This wasn't me — block it"
-    },
-    "contacts": {
-      "title": "Your family's connection",
-      "summary": "{reachable, plural, one {# person reachable} other {# people reachable}}, {quiet} quiet lately, {unreachable} unreachable.",
-      "cta": "See who's looking after your wallet"
-    },
-    "logEmpty": "No safety events yet. If anything ever happens to your wallet, you'll see it here."
+      "item": "Waiting since last reached {when}",
+      "none": "Everyone is back. No one is waiting to reconnect.",
+      "title": "Waiting to reconnect"
+    }
   },
   "passkey": {
     "connected": "Your wallet is open: {wallet}",
@@ -255,68 +305,68 @@
   },
   "recovery": {
     "countdown": {
+      "backCta": "Back to progress",
       "description": "Enough approvals. The waiting period protects you from impostors.",
-      "title": "Almost there",
-      "window": "Time left: {countdown} (until {absolute})",
-      "note": "This waiting period exists so the wallet owner can stop a recovery they did not ask for. If that is you — do nothing, just wait.",
       "doneCta": "Finish on this device",
-      "backCta": "Back to progress"
+      "note": "This waiting period exists so the wallet owner can stop a recovery they did not ask for. If that is you — do nothing, just wait.",
+      "title": "Almost there",
+      "window": "Time left: {countdown} (until {absolute})"
     },
     "done": {
-      "description": "Your wallet is on this device now.",
-      "title": "Welcome back",
-      "cooldownNote": "For a short while right after recovery, the wallet refuses every action. That is a safety feature, not an error.",
       "connectCta": "Open my wallet on this device",
-      "openWalletCta": "Go to wallet sign-in",
+      "cooldownNote": "For a short while right after recovery, the wallet refuses every action. That is a safety feature, not an error.",
+      "description": "Your wallet is on this device now.",
       "errors": {
         "noDraft": "This device has no recovery key saved. Start the recovery from the beginning on this device."
-      }
+      },
+      "openWalletCta": "Go to wallet sign-in",
+      "title": "Welcome back"
     },
     "findWallet": {
-      "description": "Tell us how to find the wallet you want to recover.",
-      "title": "Find your wallet",
-      "label": "Your wallet address",
-      "placeholder": "C…",
-      "invalid": "That does not look like a wallet address. It starts with C and has 56 characters.",
-      "passkeyNote": "Next, this device will ask for your fingerprint or face to create the new key.",
       "creating": "Creating your new key…",
       "cta": "Create new key and ask family",
+      "description": "Tell us how to find the wallet you want to recover.",
       "errors": {
         "notConfigured": "This app is not connected to the network yet. Try again later or contact support.",
         "notSent": "Could not reach the network. Nothing was sent — you can try again."
-      }
+      },
+      "invalid": "That does not look like a wallet address. It starts with C and has 56 characters.",
+      "label": "Your wallet address",
+      "passkeyNote": "Next, this device will ask for your fingerprint or face to create the new key.",
+      "placeholder": "C…",
+      "title": "Find your wallet"
     },
     "progress": {
+      "checkNote": "This page updates itself — you can leave it open.",
+      "countdownCta": "See the waiting period",
       "description": "See who has confirmed so far.",
-      "title": "Waiting for approvals",
+      "doneCta": "Finish on this device",
       "missingAddressCta": "Enter your wallet address first",
       "state": {
+        "executed": "Done — your wallet now answers to your new key.",
         "none": "No recovery has been started yet. Your family members may still be verifying it is you.",
         "pending": "Your family is agreeing. Hang tight.",
         "ready": "Enough family members agreed. A short waiting period protects the wallet before the switch.",
-        "executed": "Done — your wallet now answers to your new key.",
         "vetoed": "This recovery was stopped. If you really asked for it, contact your family members."
       },
-      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
-      "checkNote": "This page updates itself — you can leave it open.",
-      "countdownCta": "See the waiting period",
-      "doneCta": "Finish on this device"
+      "title": "Waiting for approvals",
+      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed"
     },
     "sent": {
       "description": "Your protectors have been asked to confirm it's really you.",
-      "title": "Request sent",
       "fingerprintLabel": "Your new key ID",
+      "progressCta": "Show progress",
       "readNote": "Call your family members and read this code to them. They must see the exact same code before they agree.",
-      "progressCta": "Show progress"
+      "title": "Request sent"
     },
     "start": {
+      "cta": "Start — I lost my device",
       "description": "Lost your phone? Your family can help you recover everything.",
-      "title": "Get your wallet back",
+      "progressCta": "I already asked — show progress",
       "step1": "On this new device, you create a fresh key. It never leaves this device.",
       "step2": "Your family members verify it is really you — by phone, not through this app.",
       "step3": "When enough of them agree and the waiting period passes, your wallet answers to the new key. Same address, nothing moves.",
-      "cta": "Start — I lost my device",
-      "progressCta": "I already asked — show progress"
+      "title": "Get your wallet back"
     }
   },
   "setup": {
@@ -329,28 +379,37 @@
       "title": "Choose your protectors"
     },
     "done": {
+      "addGuardiansCta": "Add family protectors",
       "description": "If you ever lose your phone, your family can get this wallet back for you.",
-      "title": "Your wallet is protected",
       "guardiansNote": "Next, add family members who can help you recover this wallet if you lose your phone — until you do, it works like a normal wallet.",
-      "walletCta": "Go to my wallet",
-      "addGuardiansCta": "Add family protectors"
+      "title": "Your wallet is protected",
+      "walletCta": "Go to my wallet"
     },
     "intro": {
+      "creating": "Creating your wallet…",
+      "cta": "Create my wallet",
       "description": "Choose trusted people who can help you recover this wallet if you ever lose your phone.",
-      "title": "Protect your wallet",
+      "errors": {
+        "failed": "Could not create your wallet. Your device didn't confirm — please try again.",
+        "notConfigured": "The app isn't connected to the wallet network yet. That's on our team."
+      },
+      "haveWalletCta": "I already have a wallet",
       "point1": "Your wallet unlocks with your face or fingerprint — no seed phrase to lose.",
       "point2": "You can add family members afterwards so they can help you recover it.",
       "point3": "Same wallet works on your phone, computer and browser.",
-      "creating": "Creating your wallet…",
-      "cta": "Create my wallet",
-      "haveWalletCta": "I already have a wallet",
-      "errors": {
-        "notConfigured": "The app isn't connected to the wallet network yet. That's on our team.",
-        "failed": "Could not create your wallet. Your device didn't confirm — please try again."
-      }
+      "title": "Protect your wallet"
     },
     "invite": {
-      "description": "Send each person a link. They accept on their own phone.",
+      "addTitle": "Add someone",
+      "copyCta": "Copy link",
+      "createCta": "Create a link",
+      "createFailed": "We could not create the link. Please try again.",
+      "creating": "Creating…",
+      "description": "Send each person a link. They accept on their own phone — you can leave and come back any time.",
+      "doneCta": "Back to my wallet",
+      "labelField": "What you call them",
+      "labelPlaceholder": "Mum, my brother, my daughter…",
+      "linkHint": "Send this link to them. It works for 7 days.",
       "title": "Invite them"
     },
     "review": {
@@ -370,91 +429,76 @@
       "useSimpleCta": "Set up my wallet"
     }
   },
+  "state": {
+    "error": "Couldn't load this right now. Pull to refresh or try again shortly."
+  },
   "wallet": {
     "history": {
       "description": "Everything that happened in your wallet.",
       "title": "Activity"
     },
     "home": {
-      "description": "Balance, recent activity and protection status at a glance.",
-      "title": "Your wallet",
-      "noWallet": "You do not have a wallet yet.",
-      "setupCta": "Set up my wallet",
       "addressLabel": "Your wallet address",
-      "sendCta": "Send",
-      "receiveCta": "Receive",
+      "description": "Balance, recent activity and protection status at a glance.",
       "historyCta": "History",
-      "nightWatchCta": "Safety"
+      "nightWatchCta": "Safety",
+      "noWallet": "You do not have a wallet yet.",
+      "receiveCta": "Receive",
+      "sendCta": "Send",
+      "setupCta": "Set up my wallet",
+      "title": "Your wallet"
     },
     "receive": {
-      "description": "Show your code, or share your wallet address.",
-      "title": "Receive",
-      "noWallet": "You do not have a wallet yet.",
-      "copyCta": "Copy address",
       "copied": "Copied",
-      "stableNote": "This address never changes — even after a recovery. Share it once and reuse it."
+      "copyCta": "Copy address",
+      "description": "Show your code, or share your wallet address.",
+      "noWallet": "You do not have a wallet yet.",
+      "stableNote": "This address never changes — even after a recovery. Share it once and reuse it.",
+      "title": "Receive"
     },
     "send": {
-      "description": "Send money to anyone.",
-      "title": "Send",
-      "noWallet": "You do not have a wallet yet.",
       "amountLabel": "Amount (XLM)",
-      "recipientLabel": "Send to",
       "checking": "Checking…",
       "cta": "Continue",
-      "review": {
-        "title": "Check before you send",
-        "amount": "Amount",
-        "to": "To",
-        "biometricNote": "Your fingerprint or face confirms the payment — nothing is sent before that.",
-        "signing": "Waiting for your confirmation…",
-        "cta": "Confirm and send",
-        "backCta": "Back"
-      },
-      "guardian": {
-        "title": "Waiting for your family",
-        "description": "This amount needs a trusted contact to agree first. We've asked them — you'll be notified when it's approved."
-      },
+      "description": "Send money to anyone.",
       "done": {
-        "title": "Sent",
         "description": "Your money is on its way.",
+        "title": "Sent",
         "txLabel": "Proof on the network: {hash}"
       },
       "errors": {
-        "insufficient": "Not enough balance. You need {shortfall} more (including fees).",
         "badRecipient": "That does not look like a valid address (starts with G or C, 56 characters).",
         "delayed": "This payment is being reviewed for your safety. Try again shortly.",
-        "walletLocked": "Your wallet is locked on this device. Open it first, then try again.",
+        "insufficient": "Not enough balance. You need {shortfall} more (including fees).",
         "network": "Could not reach the network. Try again shortly.",
-        "notSent": "Nothing was sent. You can try again safely."
-      }
+        "notSent": "Nothing was sent. You can try again safely.",
+        "walletLocked": "Your wallet is locked on this device. Open it first, then try again."
+      },
+      "guardian": {
+        "description": "This amount needs a trusted contact to agree first. We've asked them — you'll be notified when it's approved.",
+        "title": "Waiting for your family"
+      },
+      "noWallet": "You do not have a wallet yet.",
+      "recipientLabel": "Send to",
+      "review": {
+        "amount": "Amount",
+        "backCta": "Back",
+        "biometricNote": "Your fingerprint or face confirms the payment — nothing is sent before that.",
+        "cta": "Confirm and send",
+        "signing": "Waiting for your confirmation…",
+        "title": "Check before you send",
+        "to": "To"
+      },
+      "title": "Send"
     }
   },
   "welcome": {
+    "cta": "Get started",
     "description": "A wallet your family can help you recover — nothing to memorize, nothing to lose.",
-    "title": "Welcome to FamilyWallet",
+    "haveCta": "I already have a wallet",
     "point1": "Open it with your face or fingerprint — no seed phrase to write down or lose.",
     "point2": "If you ever lose your phone, people you trust help you get it back.",
     "point3": "Decide who inherits it, so nothing is stranded if something happens to you.",
-    "cta": "Get started",
-    "haveCta": "I already have a wallet"
-  },
-  "state": {
-    "error": "Couldn't load this right now. Pull to refresh or try again shortly."
-  },
-  "history": {
-    "noWallet": "You don't have a wallet yet, so there's nothing to show here.",
-    "empty": "Nothing has happened yet. Activity on your wallet will appear here.",
-    "kind": {
-      "recoveryStarted": "A wallet recovery was started",
-      "recoveryApproved": "A trusted contact confirmed the recovery",
-      "recoveryBlocked": "A recovery attempt was blocked",
-      "recoveryDone": "Wallet recovery completed",
-      "walletRegistered": "Family protection was set up",
-      "actionSubmitted": "An action was sent to the network",
-      "requestExpired": "A pending request expired",
-      "gap": "Some events may be missing from this period",
-      "other": "Wallet activity"
-    }
+    "title": "Welcome to FamilyWallet"
   }
 }

@@ -2,9 +2,14 @@
 // này (kit.createWallet — khoá không rời secure enclave), rồi mirror địa chỉ ví
 // C… về BE. BE KHÔNG deploy, KHÔNG giữ khoá — custody trên chuỗi (bất biến 1).
 // Thêm guardian là bước RIÊNG sau (qua luồng đổi-quyền có timelock).
+//
+// Ví deploy ra ĐÃ nối registry khôi phục (mục đặt chỗ trong constructor — xem
+// lib/recovery-link.ts). Trước bản này registry không bao giờ được cắm bằng
+// đường sản phẩm nào, nên mọi ví tạo qua /setup đều không khôi phục được.
 import { apiClient } from "@/lib/api-client";
 import { env } from "@/lib/env";
 import { getWalletKit } from "../lib/kit";
+import { recoveryConstructorPolicies } from "../lib/recovery-link";
 
 export type CreatedWallet = { id: string; stellarAddress: string };
 
@@ -14,8 +19,14 @@ export type CreatedWallet = { id: string; stellarAddress: string };
  */
 export async function createWalletMinimal(): Promise<CreatedWallet> {
   const kit = getWalletKit();
+  // Ném TRƯỚC khi tạo passkey: người dùng không nên phải chạm sinh trắc học rồi
+  // mới biết cấu hình thiếu — và tuyệt đối không được đẻ ra ví không cứu được.
+  const policies = recoveryConstructorPolicies();
   const userName = `${env.VITE_APP_NAME} owner`;
-  const result = await kit.createWallet(env.VITE_APP_NAME, userName, { autoSubmit: true });
+  const result = await kit.createWallet(env.VITE_APP_NAME, userName, {
+    autoSubmit: true,
+    policies,
+  });
   const contractId = result.contractId;
   if (!contractId) throw new Error("WALLET_DEPLOY_NO_ADDRESS");
 

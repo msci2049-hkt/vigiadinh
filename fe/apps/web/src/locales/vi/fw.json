@@ -1,244 +1,294 @@
 {
   "block": {
     "alert": {
+      "backCta": "Về trung tâm an toàn",
       "cta": "Chặn ngay",
       "description": "Một yêu cầu khôi phục vừa được mở trên thiết bị khác. Nếu không phải bạn, hãy chặn trước khi hết thời gian chờ — sau đó thì không lùi lại được nữa.",
-      "title": "Có người muốn chiếm ví của bạn",
-      "nothingOpen": "Hiện không có yêu cầu khôi phục nào để chặn.",
-      "backCta": "Về trung tâm an toàn",
-      "requestTitle": "Yêu cầu này là gì",
-      "requestBody": "{approvals, plural, other {# người thân}} đã đồng ý (cần {threshold}). Hết thời gian chờ, một chìa khoá mới sẽ nắm ví này.",
       "fingerprintLabel": "Mã chìa khoá mới: {fingerprint}",
+      "nothingOpen": "Hiện không có yêu cầu khôi phục nào để chặn.",
+      "requestBody": "{approvals, plural, other {# người thân}} đã đồng ý (cần {threshold}). Hết thời gian chờ, một chìa khoá mới sẽ nắm ví này.",
+      "requestTitle": "Yêu cầu này là gì",
+      "title": "Có người muốn chiếm ví của bạn",
       "window": "Còn {countdown} để chặn (đến {absolute})"
     },
     "confirm": {
-      "description": "Thao tác này hủy yêu cầu và báo động cho người bảo hộ của bạn.",
-      "title": "Chặn lần khôi phục này?",
+      "backCta": "Quay lại",
       "biometricNote": "Vân tay hoặc khuôn mặt xác nhận đúng là bạn — trước đó chưa có gì được gửi đi.",
       "cta": "Chặn ngay",
-      "signing": "Đang chờ bạn xác nhận…",
-      "backCta": "Quay lại",
+      "description": "Thao tác này hủy yêu cầu và báo động cho người bảo hộ của bạn.",
       "errors": {
-        "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại.",
         "alreadyStopped": "Tin tốt — yêu cầu này đã bị chặn từ trước. Ví của bạn an toàn.",
+        "notSent": "Chưa có gì được gửi đi. Lệnh chặn chưa đến mạng — bạn có thể thử lại an toàn.",
         "tooLate": "Yêu cầu đã hoàn tất trước khi kịp chặn. Liên hệ người thân của bạn ngay.",
-        "notSent": "Chưa có gì được gửi đi. Lệnh chặn chưa đến mạng — bạn có thể thử lại an toàn."
-      }
+        "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại."
+      },
+      "signing": "Đang chờ bạn xác nhận…",
+      "title": "Chặn lần khôi phục này?"
     },
     "done": {
+      "cta": "Về trung tâm an toàn",
       "description": "Yêu cầu đã bị dừng. Ví của bạn vẫn an toàn.",
-      "title": "Đã chặn",
       "guardiansNote": "Người thân của bạn đã được báo tự động.",
-      "txLabel": "Bằng chứng trên mạng: {hash}",
-      "cta": "Về trung tâm an toàn"
+      "title": "Đã chặn",
+      "txLabel": "Bằng chứng trên mạng: {hash}"
     }
   },
   "getStarted": {
-    "description": "Tạo ví mới, hoặc mở ví bạn đã có.",
-    "title": "Bạn muốn bắt đầu thế nào?",
-    "createTitle": "Tạo ví mới",
     "createBody": "Lập một ví mới, mở bằng vân tay hoặc khuôn mặt của bạn.",
     "createCta": "Tạo ví",
-    "haveTitle": "Tôi đã có ví",
+    "createTitle": "Tạo ví mới",
+    "description": "Tạo ví mới, hoặc mở ví bạn đã có.",
     "haveBody": "Mở ví sẵn có của bạn trên thiết bị này.",
-    "haveCta": "Mở ví của tôi"
+    "haveCta": "Mở ví của tôi",
+    "haveTitle": "Tôi đã có ví",
+    "title": "Bạn muốn bắt đầu thế nào?"
   },
   "guardian": {
     "approve": {
-      "description": "Hãy gặp hoặc gọi cho họ trước khi bạn đồng ý.",
-      "title": "Xác nhận đúng là họ",
-      "gone": "Yêu cầu này không còn mở.",
       "backCta": "Về danh sách yêu cầu",
-      "votes": "Đã có {approvals, plural, other {# phiếu}} trên {threshold}. Phiếu của bạn có thể là phiếu quyết định.",
-      "fingerprintLabel": "Mã chìa khoá mới: {fingerprint}",
-      "verifyNote": "Gọi cho người nhờ bạn và đọc mã chìa khoá cho nhau nghe. Không khớp thì đừng đồng ý.",
       "biometricNote": "Vân tay hoặc khuôn mặt xác nhận phiếu — trước đó chưa có gì được gửi đi.",
-      "signing": "Đang chờ bạn xác nhận…",
       "cta": "Tôi đồng ý — giúp khôi phục",
+      "description": "Hãy gặp hoặc gọi cho họ trước khi bạn đồng ý.",
       "errors": {
         "alreadyVoted": "Bạn đã bỏ phiếu cho yêu cầu này rồi. Không cần bỏ lại.",
         "closed": "Yêu cầu này đã đóng — bị chặn hoặc đã hoàn tất.",
         "deviceKeyMissing": "Máy này không giữ chìa khoá bảo hộ của bạn cho ví đó. Mở ứng dụng trên máy bạn đã thiết lập làm người bảo hộ.",
         "notSent": "Phiếu chưa được gửi. Chưa có gì đến mạng — bạn có thể thử lại an toàn."
-      }
+      },
+      "fingerprintLabel": "Mã chìa khoá mới: {fingerprint}",
+      "gone": "Yêu cầu này không còn mở.",
+      "signing": "Đang chờ bạn xác nhận…",
+      "title": "Xác nhận đúng là họ",
+      "verifyNote": "Gọi cho người nhờ bạn và đọc mã chìa khoá cho nhau nghe. Không khớp thì đừng đồng ý.",
+      "votes": "Đã có {approvals, plural, other {# phiếu}} trên {threshold}. Phiếu của bạn có thể là phiếu quyết định."
     },
     "approveWarning": {
+      "approveCta": "Tôi đã xác minh — xem và duyệt",
+      "backCta": "Chưa vội",
       "cta": "Gọi cho họ trước",
       "ctaSecondary": "Vẫn đồng ý",
       "description": "Yêu cầu này khác thường so với người đó. Nếu không đúng là họ, việc bạn đồng ý sẽ trao ví của họ cho kẻ khác. Hãy tự gọi cho họ trước — chỉ đồng ý sau khi nghe được giọng họ.",
-      "title": "Khoan đồng ý",
-      "rulesLabel": "Cảnh báo theo quy tắc — không phải AI",
-      "rulesNote": "Đây là các kiểm tra đơn giản trên yêu cầu, không phải suy đoán thông minh. Chúng chỉ nhắc bạn cẩn trọng — bạn luôn là người quyết định.",
       "rules": {
+        "flagged": "Kiểm tra tự động đánh dấu yêu cầu này là bất thường.",
         "newKey": "Việc này trao ví cho một khoá mới toanh. Hãy đọc vân tay của khoá cho người kia nghe qua điện thoại trước khi duyệt.",
         "unusualHour": "Yêu cầu này được mở giữa đêm — một khung giờ bất thường.",
-        "veryRecent": "Nó vừa mới được mở và gần như chưa ai xác nhận.",
-        "flagged": "Kiểm tra tự động đánh dấu yêu cầu này là bất thường."
+        "veryRecent": "Nó vừa mới được mở và gần như chưa ai xác nhận."
       },
-      "approveCta": "Tôi đã xác minh — xem và duyệt",
-      "backCta": "Chưa vội"
+      "rulesLabel": "Cảnh báo theo quy tắc — không phải AI",
+      "rulesNote": "Đây là các kiểm tra đơn giản trên yêu cầu, không phải suy đoán thông minh. Chúng chỉ nhắc bạn cẩn trọng — bạn luôn là người quyết định.",
+      "title": "Khoan đồng ý"
     },
     "approved": {
+      "cta": "Về danh sách yêu cầu",
       "description": "Xác nhận của bạn đã được ghi nhận.",
-      "title": "Cảm ơn bạn",
       "nextNote": "Nếu đủ người thân đồng ý, vẫn còn một khoảng chờ để chủ ví kịp chặn lại.",
-      "txLabel": "Bằng chứng trên mạng: {hash}",
-      "cta": "Về danh sách yêu cầu"
+      "title": "Cảm ơn bạn",
+      "txLabel": "Bằng chứng trên mạng: {hash}"
     },
     "inbox": {
       "description": "Người bạn bảo hộ đang cần bạn xác nhận.",
-      "title": "Yêu cầu dành cho bạn",
       "empty": "Hiện chưa có ai cần bạn giúp.",
-      "walletLabel": "Ví {address}",
-      "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có",
-      "since": "Bắt đầu {when}",
-      "reviewCta": "Xem yêu cầu này",
-      "knockTitle": "Một thiết bị mới xin được giúp",
       "knockBody": "Có người nói họ mất quyền truy cập ví {address} và đã cài thiết bị mới. Hãy xác minh đúng là họ trước khi bắt đầu.",
-      "knockCta": "Xem và bắt đầu khôi phục"
+      "knockCta": "Xem và bắt đầu khôi phục",
+      "knockTitle": "Một thiết bị mới xin được giúp",
+      "reviewCta": "Xem yêu cầu này",
+      "since": "Bắt đầu {when}",
+      "title": "Yêu cầu dành cho bạn",
+      "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có",
+      "walletLabel": "Ví {address}"
     },
     "initiate": {
-      "title": "Bắt đầu khôi phục ví này?",
-      "description": "Việc này mở quy trình khôi phục gia đình. Những người thân khác vẫn phải đồng ý, và chủ ví có thể chặn trong khoảng chờ.",
-      "gone": "Yêu cầu này không còn mở.",
       "backCta": "Về danh sách yêu cầu",
-      "fingerprintLabel": "Mã chìa khoá mới: {fingerprint}",
-      "verifyNote": "Gọi cho chủ ví. Nhờ họ đọc mã chìa khoá trên thiết bị mới của họ — phải TRÙNG KHỚP từng ký tự với mã này. Không khớp thì dừng lại.",
       "biometricNote": "Vân tay hoặc khuôn mặt xác nhận — trước đó chưa có gì được gửi đi.",
-      "signing": "Đang chờ bạn xác nhận…",
       "cta": "Tôi đã xác minh — bắt đầu khôi phục",
+      "description": "Việc này mở quy trình khôi phục gia đình. Những người thân khác vẫn phải đồng ý, và chủ ví có thể chặn trong khoảng chờ.",
       "errors": {
-        "mismatch": "DỪNG LẠI: chìa khoá trong lệnh ký KHÔNG khớp mã đang hiện. Đừng ký. Báo ngay cho gia đình.",
         "alreadyOpen": "Ví này đang có khôi phục mở — hãy bỏ phiếu cho yêu cầu đó.",
         "deviceKeyMissing": "Máy này không giữ chìa khoá bảo hộ của bạn cho ví đó. Mở ứng dụng trên máy bạn đã thiết lập làm người bảo hộ.",
+        "mismatch": "DỪNG LẠI: chìa khoá trong lệnh ký KHÔNG khớp mã đang hiện. Đừng ký. Báo ngay cho gia đình.",
         "notSent": "Chưa có gì được gửi đi. Bạn có thể thử lại an toàn."
-      }
+      },
+      "fingerprintLabel": "Mã chìa khoá mới: {fingerprint}",
+      "gone": "Yêu cầu này không còn mở.",
+      "signing": "Đang chờ bạn xác nhận…",
+      "title": "Bắt đầu khôi phục ví này?",
+      "verifyNote": "Gọi cho chủ ví. Nhờ họ đọc mã chìa khoá trên thiết bị mới của họ — phải TRÙNG KHỚP từng ký tự với mã này. Không khớp thì dừng lại."
     }
   },
   "guardians": {
+    "accept": {
+      "addressLabel": "Danh tính của bạn",
+      "badBody": "Có thể nó đã hết hạn hoặc đã dùng rồi. Bạn nhờ họ gửi lại đường dẫn mới nhé.",
+      "badTitle": "Đường dẫn này không dùng được",
+      "creating": "Đang tạo…",
+      "cta": "Tạo danh tính bảo mật của tôi",
+      "description": "{label} nhờ bạn làm một trong những người có thể giúp họ vào lại ví.",
+      "doneBody": "Danh tính bảo mật của bạn đã sẵn sàng trên máy này.",
+      "doneTitle": "Xong rồi",
+      "homeCta": "Về ví của tôi",
+      "point1": "Bạn không giữ tiền của họ, và không tiêu được tiền đó.",
+      "point2": "Nếu họ mất máy, bạn cùng một người nữa có thể cho họ vào lại.",
+      "point3": "Khoá của bạn nằm lại trên máy này. Không ai chép được, kể cả chúng tôi.",
+      "title": "Có người nhờ bạn giúp",
+      "waitingOwner": "Giờ họ cần xác nhận bạn trên máy của họ. Bạn không phải làm gì thêm.",
+      "whatTitle": "Việc này nghĩa là gì"
+    },
     "detail": {
+      "backCta": "Về danh sách",
       "description": "Lịch sử kết nối và tùy chọn cho người này.",
-      "title": "Chi tiết người bảo hộ",
-      "statusLabel": "Kết nối",
-      "lastSeen": "Lần gần nhất có tin",
-      "lastConfirm": "Lần xác nhận trực tiếp gần nhất",
       "keyLabel": "Khoá của người này",
+      "lastConfirm": "Lần xác nhận trực tiếp gần nhất",
+      "lastSeen": "Lần gần nhất có tin",
       "never": "Chưa có",
       "notFound": "Người này không còn trong danh sách của bạn.",
-      "backCta": "Về danh sách"
+      "statusLabel": "Kết nối",
+      "title": "Chi tiết người bảo hộ"
+    },
+    "inviteList": {
+      "addCta": "Thêm vào ví",
+      "addFailed": "Chưa thêm được. Chưa có gì thay đổi — bạn thử lại giúp nhé.",
+      "adding": "Đang thêm…",
+      "status": {
+        "accepted": "Họ đã mở đường dẫn",
+        "deployed": "Xong phần họ — thêm vào ví của bạn",
+        "expired": "Đường dẫn hết hạn",
+        "registered": "Giúp bạn vào lại được ví",
+        "sent": "Đang chờ họ mở đường dẫn"
+      },
+      "title": "Người bạn đã mời"
+    },
+    "list": {
+      "empty": "Chưa có người thân nào. Mời người thân để ví có thể khôi phục nếu bạn mất máy.",
+      "itemLabel": "Người thân trông ví",
+      "noWallet": "Bạn chưa có ví. Hãy tạo ví trước, rồi mời người thân cùng trông giúp."
     },
     "manage": {
       "description": "Xem ai đang bảo vệ ví, và chúng tôi còn liên lạc được với ai.",
       "title": "Người bảo hộ của bạn"
     },
-    "list": {
-      "noWallet": "Bạn chưa có ví. Hãy tạo ví trước, rồi mời người thân cùng trông giúp.",
-      "empty": "Chưa có người thân nào. Mời người thân để ví có thể khôi phục nếu bạn mất máy.",
-      "itemLabel": "Người thân trông ví"
+    "recoverability": {
+      "notYetBody": "{available} trên {threshold} người đã xong. Cần thêm {missing} người nhận lời thì ví mới khôi phục được.",
+      "notYetTitle": "Chưa ai giúp bạn vào lại được",
+      "ok": "Có {count} người giúp bạn vào lại được ví."
     },
     "status": {
-      "invited": "Đã mời",
       "active": "Đang kết nối",
-      "slow": "Im ắng gần đây",
+      "invited": "Đã mời",
       "offline": "Mất liên lạc",
-      "removed": "Đã gỡ"
+      "removed": "Đã gỡ",
+      "slow": "Im ắng gần đây"
     }
+  },
+  "history": {
+    "empty": "Chưa có hoạt động nào. Mọi việc xảy ra với ví sẽ hiện ở đây.",
+    "kind": {
+      "actionSubmitted": "Một thao tác đã được gửi lên mạng lưới",
+      "gap": "Có thể thiếu một số sự kiện trong khoảng thời gian này",
+      "other": "Hoạt động của ví",
+      "recoveryApproved": "Một người thân đã xác nhận khôi phục",
+      "recoveryBlocked": "Một yêu cầu khôi phục đã bị chặn",
+      "recoveryDone": "Khôi phục ví hoàn tất",
+      "recoveryStarted": "Có yêu cầu khôi phục ví",
+      "requestExpired": "Một yêu cầu chờ đã hết hạn",
+      "walletRegistered": "Đã bật bảo vệ gia đình cho ví"
+    },
+    "noWallet": "Bạn chưa có ví nên chưa có gì để xem ở đây."
   },
   "inheritance": {
     "claim": {
       "description": "Làm theo các bước để nhận phần của mình.",
       "title": "Nhận phần dành cho bạn"
     },
+    "claimNew": {
+      "backCta": "Quay lại",
+      "description": "Đây là cách người thân nhận được ví này nếu chẳng may bạn gặp chuyện.",
+      "finalWindowLabel": "Cửa sổ cuối để huỷ",
+      "finalWindowValue": "{days, plural, other {# ngày}} sau khi mở yêu cầu",
+      "guardianNote": "Người thân tự mở việc này — chúng tôi không bao giờ bắt đầu hộ, và không thể dừng lại khi bạn đã đi xa.",
+      "heartbeatCta": "Tôi vẫn ổn — đặt lại",
+      "noPlan": "Ví này chưa thiết lập thừa kế.",
+      "stage1": "Nếu bạn ngừng điểm danh trong {days, plural, other {# ngày}}, người thân có thể xin nhận ví.",
+      "stage2": "Sau khi họ xin, có một cửa sổ cuối {days, plural, other {# ngày}}. Trong thời gian đó bạn vẫn huỷ được nếu là nhầm lẫn.",
+      "stage3": "Hết cửa sổ đó, mỗi người nhận phần của mình.",
+      "stagesTitle": "Cách hoạt động",
+      "statusAsking": "Người thân đang được hỏi có bắt đầu nhận ví hay không.",
+      "statusClaimable": "Người thân giờ có thể xin nhận ví.",
+      "statusHealthy": "Mọi thứ ổn. Bạn vừa điểm danh nên chưa có gì được chuyển giao.",
+      "statusReminding": "Chúng tôi đã nhắc bạn điểm danh. Chạm “Tôi vẫn ổn” để đặt lại.",
+      "statusTitle": "Hiện tại"
+    },
+    "empty": "Chưa chọn ai nhận ví này. Bạn sẽ chọn người thân ở đây.",
     "heartbeat": {
       "description": "Thỉnh thoảng xác nhận một lần, để không có gì được trao đi khi bạn vẫn còn ở đây.",
       "title": "Tôi vẫn khỏe"
     },
+    "heartbeatButton": "Tôi vẫn ổn",
+    "heartbeatCta": "Báo người thân rằng bạn vẫn ổn",
+    "heartbeatDone": "Cảm ơn bạn! Người thân sẽ không phải lo lắng.",
+    "noWallet": "Bạn chưa có ví nên chưa có gì để trao lại.",
     "setup": {
       "description": "Chọn ai sẽ nhận tài sản của bạn, và mỗi người nhận bao nhiêu.",
       "title": "Trao lại cho người thân"
-    },
-    "noWallet": "Bạn chưa có ví nên chưa có gì để trao lại.",
-    "empty": "Chưa chọn ai nhận ví này. Bạn sẽ chọn người thân ở đây.",
-    "heartbeatCta": "Báo người thân rằng bạn vẫn ổn",
-    "heartbeatButton": "Tôi vẫn ổn",
-    "heartbeatDone": "Cảm ơn bạn! Người thân sẽ không phải lo lắng.",
-    "claimNew": {
-      "description": "Đây là cách người thân nhận được ví này nếu chẳng may bạn gặp chuyện.",
-      "stagesTitle": "Cách hoạt động",
-      "stage1": "Nếu bạn ngừng điểm danh trong {days, plural, other {# ngày}}, người thân có thể xin nhận ví.",
-      "stage2": "Sau khi họ xin, có một cửa sổ cuối {days, plural, other {# ngày}}. Trong thời gian đó bạn vẫn huỷ được nếu là nhầm lẫn.",
-      "stage3": "Hết cửa sổ đó, mỗi người nhận phần của mình.",
-      "guardianNote": "Người thân tự mở việc này — chúng tôi không bao giờ bắt đầu hộ, và không thể dừng lại khi bạn đã đi xa.",
-      "statusTitle": "Hiện tại",
-      "statusHealthy": "Mọi thứ ổn. Bạn vừa điểm danh nên chưa có gì được chuyển giao.",
-      "statusReminding": "Chúng tôi đã nhắc bạn điểm danh. Chạm “Tôi vẫn ổn” để đặt lại.",
-      "statusAsking": "Người thân đang được hỏi có bắt đầu nhận ví hay không.",
-      "statusClaimable": "Người thân giờ có thể xin nhận ví.",
-      "finalWindowLabel": "Cửa sổ cuối để huỷ",
-      "finalWindowValue": "{days, plural, other {# ngày}} sau khi mở yêu cầu",
-      "noPlan": "Ví này chưa thiết lập thừa kế.",
-      "heartbeatCta": "Tôi vẫn ổn — đặt lại",
-      "backCta": "Quay lại"
     }
   },
   "nightWatch": {
     "alert": {
       "cta": "Xử lý ngay",
       "description": "Một người bảo hộ không trả lời lần kiểm tra hằng ngày. Nếu nhiều người cùng mất liên lạc, bạn có thể không còn đủ người để lấy lại ví. Hãy thay người khác, hoặc giúp họ kết nối lại.",
-      "title": "Một người bảo hộ đang mất liên lạc",
-      "subtitle": "Những người này im ắng ở lần kiểm tra hằng ngày. Hãy giúp họ kết nối lại, hoặc thay người khác để bạn luôn đủ người.",
-      "none": "Mọi người đều liên lạc được. Hiện chưa có gì cần bạn để tâm.",
       "lastSeen": "Lần gần nhất",
-      "resolveCta": "Tôi làm gì được?"
+      "none": "Mọi người đều liên lạc được. Hiện chưa có gì cần bạn để tâm.",
+      "resolveCta": "Tôi làm gì được?",
+      "subtitle": "Những người này im ắng ở lần kiểm tra hằng ngày. Hãy giúp họ kết nối lại, hoặc thay người khác để bạn luôn đủ người.",
+      "title": "Một người bảo hộ đang mất liên lạc"
     },
+    "allQuiet": "Mọi thứ yên ổn. Không ai đang cố chiếm ví, và không có gì cần bạn để mắt.",
     "center": {
       "description": "Chúng tôi lặng lẽ kiểm tra lớp bảo vệ mỗi ngày và cảnh báo bạn từ sớm.",
       "title": "Người gác đêm"
     },
+    "contacts": {
+      "cta": "Xem ai đang trông ví giúp bạn",
+      "summary": "{reachable} người đang kết nối, {quiet} người im ắng, {unreachable} người mất liên lạc.",
+      "title": "Kết nối của người thân"
+    },
     "guardianView": {
-      "description": "Chỉ cần giữ ứng dụng trong máy — hầu hết thời gian bạn không phải làm gì cả.",
-      "title": "Bạn là người bảo hộ",
-      "statusLabel": "Kết nối của bạn",
       "active": "Đang hoạt động — bạn liên lạc được",
-      "lastCheck": "Bạn vừa điểm danh",
+      "description": "Chỉ cần giữ ứng dụng trong máy — hầu hết thời gian bạn không phải làm gì cả.",
       "inboxCta": "Xem việc cần tôi",
-      "privacyNote": "Chỉ chủ ví thấy trạng thái này — người khác không bao giờ thấy."
+      "lastCheck": "Bạn vừa điểm danh",
+      "privacyNote": "Chỉ chủ ví thấy trạng thái này — người khác không bao giờ thấy.",
+      "statusLabel": "Kết nối của bạn",
+      "title": "Bạn là người bảo hộ"
     },
     "log": {
       "description": "Các lần kiểm tra hằng ngày và kết quả.",
       "title": "Lịch sử kiểm tra"
     },
+    "logEmpty": "Chưa có sự kiện an toàn nào. Nếu có chuyện gì với ví, bạn sẽ thấy ở đây.",
+    "noWallet": "Bạn chưa có ví nên chưa có gì để trông chừng.",
+    "openRecovery": {
+      "body": "Đã có {approvals} người thân xác nhận, cần {threshold}. Nếu không phải người thân đang giúp bạn, hãy chặn ngay.",
+      "cta": "Không phải tôi — chặn lại",
+      "title": "Có người đang khôi phục ví này",
+      "window": "Bạn vẫn còn chặn được trong {countdown} (đến {absolute})."
+    },
     "resolve": {
+      "backCta": "Quay lại",
       "description": "Thay người bảo hộ này, hoặc giúp họ kết nối lại.",
-      "title": "Khôi phục lớp bảo vệ",
+      "replaceCta": "Xem người thân của tôi",
       "step1": "Nhắn họ mở ứng dụng này một lần — như vậy là kết nối lại tự động.",
       "step2": "Nếu không liên lạc được, hãy thay bằng một người khác mà bạn tin.",
-      "waitingCta": "Đã nhắn họ — chờ kết nối lại",
-      "replaceCta": "Xem người thân của tôi",
-      "backCta": "Quay lại"
+      "title": "Khôi phục lớp bảo vệ",
+      "waitingCta": "Đã nhắn họ — chờ kết nối lại"
     },
     "waiting": {
+      "backCta": "Về trang gác đêm",
       "description": "Chúng tôi sẽ báo ngay khi họ kết nối trở lại.",
-      "title": "Đang chờ nối lại",
-      "none": "Mọi người đã trở lại. Không còn ai đang chờ kết nối lại.",
-      "item": "Chờ từ lần gần nhất {when}",
       "hint": "Cứ để họ tự nhiên — khoảnh khắc họ mở ứng dụng, mục này tự hết.",
-      "backCta": "Về trang gác đêm"
-    },
-    "noWallet": "Bạn chưa có ví nên chưa có gì để trông chừng.",
-    "allQuiet": "Mọi thứ yên ổn. Không ai đang cố chiếm ví, và không có gì cần bạn để mắt.",
-    "openRecovery": {
-      "title": "Có người đang khôi phục ví này",
-      "body": "Đã có {approvals} người thân xác nhận, cần {threshold}. Nếu không phải người thân đang giúp bạn, hãy chặn ngay.",
-      "window": "Bạn vẫn còn chặn được trong {countdown} (đến {absolute}).",
-      "cta": "Không phải tôi — chặn lại"
-    },
-    "contacts": {
-      "title": "Kết nối của người thân",
-      "summary": "{reachable} người đang kết nối, {quiet} người im ắng, {unreachable} người mất liên lạc.",
-      "cta": "Xem ai đang trông ví giúp bạn"
-    },
-    "logEmpty": "Chưa có sự kiện an toàn nào. Nếu có chuyện gì với ví, bạn sẽ thấy ở đây."
+      "item": "Chờ từ lần gần nhất {when}",
+      "none": "Mọi người đã trở lại. Không còn ai đang chờ kết nối lại.",
+      "title": "Đang chờ nối lại"
+    }
   },
   "passkey": {
     "connected": "Ví của bạn đã mở: {wallet}",
@@ -255,68 +305,68 @@
   },
   "recovery": {
     "countdown": {
+      "backCta": "Về trang tiến độ",
       "description": "Đã đủ người đồng ý. Thời gian chờ bảo vệ bạn khỏi kẻ mạo danh.",
-      "title": "Sắp xong",
-      "window": "Còn {countdown} (đến {absolute})",
-      "note": "Khoảng chờ này tồn tại để chủ ví kịp chặn khôi phục mà họ không yêu cầu. Nếu đó chính là bạn — không cần làm gì, chỉ cần chờ.",
       "doneCta": "Hoàn tất trên máy này",
-      "backCta": "Về trang tiến độ"
+      "note": "Khoảng chờ này tồn tại để chủ ví kịp chặn khôi phục mà họ không yêu cầu. Nếu đó chính là bạn — không cần làm gì, chỉ cần chờ.",
+      "title": "Sắp xong",
+      "window": "Còn {countdown} (đến {absolute})"
     },
     "done": {
-      "description": "Ví của bạn giờ nằm trên thiết bị này.",
-      "title": "Chào mừng trở lại",
-      "cooldownNote": "Ngay sau khôi phục, ví sẽ từ chối mọi thao tác trong một lúc ngắn. Đó là tính năng an toàn, không phải lỗi.",
       "connectCta": "Mở ví của tôi trên máy này",
-      "openWalletCta": "Đến trang đăng nhập ví",
+      "cooldownNote": "Ngay sau khôi phục, ví sẽ từ chối mọi thao tác trong một lúc ngắn. Đó là tính năng an toàn, không phải lỗi.",
+      "description": "Ví của bạn giờ nằm trên thiết bị này.",
       "errors": {
         "noDraft": "Máy này chưa lưu chìa khoá khôi phục nào. Hãy bắt đầu lại từ đầu trên máy này."
-      }
+      },
+      "openWalletCta": "Đến trang đăng nhập ví",
+      "title": "Chào mừng trở lại"
     },
     "findWallet": {
-      "description": "Cho chúng tôi biết cách tìm ví bạn muốn khôi phục.",
-      "title": "Tìm ví của bạn",
-      "label": "Địa chỉ ví của bạn",
-      "placeholder": "C…",
-      "invalid": "Đây chưa phải địa chỉ ví. Địa chỉ bắt đầu bằng C và dài 56 ký tự.",
-      "passkeyNote": "Tiếp theo, máy sẽ hỏi vân tay hoặc khuôn mặt để tạo chìa khoá mới.",
       "creating": "Đang tạo chìa khoá mới…",
       "cta": "Tạo chìa khoá mới và nhờ người thân",
+      "description": "Cho chúng tôi biết cách tìm ví bạn muốn khôi phục.",
       "errors": {
         "notConfigured": "Ứng dụng chưa kết nối mạng. Thử lại sau hoặc liên hệ hỗ trợ.",
         "notSent": "Chưa kết nối được mạng. Chưa có gì được gửi — bạn có thể thử lại."
-      }
+      },
+      "invalid": "Đây chưa phải địa chỉ ví. Địa chỉ bắt đầu bằng C và dài 56 ký tự.",
+      "label": "Địa chỉ ví của bạn",
+      "passkeyNote": "Tiếp theo, máy sẽ hỏi vân tay hoặc khuôn mặt để tạo chìa khoá mới.",
+      "placeholder": "C…",
+      "title": "Tìm ví của bạn"
     },
     "progress": {
+      "checkNote": "Trang này tự cập nhật — bạn cứ để mở.",
+      "countdownCta": "Xem khoảng chờ",
       "description": "Xem những ai đã xác nhận.",
-      "title": "Đang chờ xác nhận",
+      "doneCta": "Hoàn tất trên máy này",
       "missingAddressCta": "Nhập địa chỉ ví trước đã",
       "state": {
+        "executed": "Xong — ví của bạn giờ nghe theo chìa khoá mới.",
         "none": "Chưa có khôi phục nào được mở. Người thân của bạn có thể vẫn đang xác minh.",
         "pending": "Người thân đang đồng ý dần. Bạn chờ chút nhé.",
         "ready": "Đã đủ người đồng ý. Còn một khoảng chờ ngắn để bảo vệ ví trước khi đổi khoá.",
-        "executed": "Xong — ví của bạn giờ nghe theo chìa khoá mới.",
         "vetoed": "Khôi phục này đã bị chặn. Nếu đúng là bạn yêu cầu, hãy liên hệ người thân."
       },
-      "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có",
-      "checkNote": "Trang này tự cập nhật — bạn cứ để mở.",
-      "countdownCta": "Xem khoảng chờ",
-      "doneCta": "Hoàn tất trên máy này"
+      "title": "Đang chờ xác nhận",
+      "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có"
     },
     "sent": {
       "description": "Người bảo hộ của bạn đã được đề nghị xác nhận đúng là bạn.",
-      "title": "Đã gửi yêu cầu",
       "fingerprintLabel": "Mã chìa khoá mới của bạn",
+      "progressCta": "Xem tiến độ",
       "readNote": "Gọi cho người thân và đọc mã này cho họ. Họ phải thấy ĐÚNG mã này rồi mới đồng ý.",
-      "progressCta": "Xem tiến độ"
+      "title": "Đã gửi yêu cầu"
     },
     "start": {
+      "cta": "Bắt đầu — tôi mất thiết bị",
       "description": "Mất điện thoại? Gia đình có thể giúp bạn khôi phục mọi thứ.",
-      "title": "Lấy lại ví của bạn",
+      "progressCta": "Tôi đã gửi rồi — xem tiến độ",
       "step1": "Trên thiết bị mới này, bạn tạo một chìa khoá mới. Chìa khoá không bao giờ rời máy.",
       "step2": "Người thân xác minh đúng là bạn — qua điện thoại, không qua ứng dụng này.",
       "step3": "Khi đủ người đồng ý và hết khoảng chờ, ví của bạn nghe theo chìa khoá mới. Địa chỉ giữ nguyên, tiền không di chuyển.",
-      "cta": "Bắt đầu — tôi mất thiết bị",
-      "progressCta": "Tôi đã gửi rồi — xem tiến độ"
+      "title": "Lấy lại ví của bạn"
     }
   },
   "setup": {
@@ -329,29 +379,38 @@
       "title": "Chọn người bảo hộ"
     },
     "done": {
+      "addGuardiansCta": "Thêm người bảo hộ",
       "description": "Nếu chẳng may mất điện thoại, gia đình có thể lấy lại ví này cho bạn.",
-      "title": "Ví của bạn đã được bảo vệ",
       "guardiansNote": "Tiếp theo, thêm người thân có thể giúp bạn khôi phục ví nếu mất máy — chưa thêm thì nó chạy như ví thường.",
-      "walletCta": "Đến ví của tôi",
-      "addGuardiansCta": "Thêm người bảo hộ"
+      "title": "Ví của bạn đã được bảo vệ",
+      "walletCta": "Đến ví của tôi"
     },
     "intro": {
+      "creating": "Đang tạo ví của bạn…",
+      "cta": "Tạo ví của tôi",
       "description": "Chọn những người thân tin cậy có thể giúp bạn lấy lại ví nếu chẳng may mất điện thoại.",
-      "title": "Bảo vệ ví của bạn",
+      "errors": {
+        "failed": "Không tạo được ví. Thiết bị chưa xác nhận — hãy thử lại.",
+        "notConfigured": "Ứng dụng chưa kết nối mạng ví. Đây là việc của đội chúng tôi."
+      },
+      "haveWalletCta": "Tôi đã có ví",
       "point1": "Ví mở bằng khuôn mặt hoặc vân tay — không có seed phrase để mất.",
       "point2": "Bạn có thể thêm người thân sau để họ giúp khôi phục.",
       "point3": "Cùng một ví dùng được trên điện thoại, máy tính và trình duyệt.",
-      "creating": "Đang tạo ví của bạn…",
-      "cta": "Tạo ví của tôi",
-      "haveWalletCta": "Tôi đã có ví",
-      "errors": {
-        "notConfigured": "Ứng dụng chưa kết nối mạng ví. Đây là việc của đội chúng tôi.",
-        "failed": "Không tạo được ví. Thiết bị chưa xác nhận — hãy thử lại."
-      }
+      "title": "Bảo vệ ví của bạn"
     },
     "invite": {
-      "description": "Gửi mỗi người một liên kết. Họ xác nhận trên điện thoại của chính họ.",
-      "title": "Mời họ"
+      "addTitle": "Thêm một người",
+      "copyCta": "Chép đường dẫn",
+      "createCta": "Tạo đường dẫn",
+      "createFailed": "Chưa tạo được đường dẫn. Bạn thử lại giúp nhé.",
+      "creating": "Đang tạo…",
+      "description": "Gửi cho mỗi người một đường dẫn. Họ nhận lời trên máy của họ — bạn rời đi rồi quay lại lúc nào cũng được.",
+      "doneCta": "Về ví của tôi",
+      "labelField": "Bạn gọi họ là gì",
+      "labelPlaceholder": "Mẹ, anh Hai, con gái…",
+      "linkHint": "Gửi đường dẫn này cho họ. Dùng được trong 7 ngày.",
+      "title": "Mời người thân"
     },
     "review": {
       "description": "Kiểm tra mọi thứ trước khi bật bảo vệ.",
@@ -370,91 +429,76 @@
       "useSimpleCta": "Thiết lập ví của tôi"
     }
   },
+  "state": {
+    "error": "Chưa tải được mục này. Kéo để làm mới hoặc thử lại sau ít phút."
+  },
   "wallet": {
     "history": {
       "description": "Mọi hoạt động trong ví của bạn.",
       "title": "Lịch sử"
     },
     "home": {
-      "description": "Số dư, hoạt động gần đây và tình trạng bảo vệ trong một màn hình.",
-      "title": "Ví của bạn",
-      "noWallet": "Bạn chưa có ví.",
-      "setupCta": "Thiết lập ví của tôi",
       "addressLabel": "Địa chỉ ví của bạn",
-      "sendCta": "Gửi",
-      "receiveCta": "Nhận",
+      "description": "Số dư, hoạt động gần đây và tình trạng bảo vệ trong một màn hình.",
       "historyCta": "Lịch sử",
-      "nightWatchCta": "An toàn"
+      "nightWatchCta": "An toàn",
+      "noWallet": "Bạn chưa có ví.",
+      "receiveCta": "Nhận",
+      "sendCta": "Gửi",
+      "setupCta": "Thiết lập ví của tôi",
+      "title": "Ví của bạn"
     },
     "receive": {
-      "description": "Đưa mã của bạn cho người gửi, hoặc chia sẻ địa chỉ ví.",
-      "title": "Nhận tiền",
-      "noWallet": "Bạn chưa có ví.",
-      "copyCta": "Sao chép địa chỉ",
       "copied": "Đã sao chép",
-      "stableNote": "Địa chỉ này không bao giờ đổi — kể cả sau khi khôi phục. Chia sẻ một lần rồi dùng mãi."
+      "copyCta": "Sao chép địa chỉ",
+      "description": "Đưa mã của bạn cho người gửi, hoặc chia sẻ địa chỉ ví.",
+      "noWallet": "Bạn chưa có ví.",
+      "stableNote": "Địa chỉ này không bao giờ đổi — kể cả sau khi khôi phục. Chia sẻ một lần rồi dùng mãi.",
+      "title": "Nhận tiền"
     },
     "send": {
-      "description": "Gửi tiền cho bất kỳ ai.",
-      "title": "Gửi tiền",
-      "noWallet": "Bạn chưa có ví.",
       "amountLabel": "Số tiền (XLM)",
-      "recipientLabel": "Gửi tới",
       "checking": "Đang kiểm tra…",
       "cta": "Tiếp tục",
-      "review": {
-        "title": "Kiểm tra trước khi gửi",
-        "amount": "Số tiền",
-        "to": "Tới",
-        "biometricNote": "Vân tay hoặc khuôn mặt xác nhận giao dịch — trước đó chưa có gì được gửi đi.",
-        "signing": "Đang chờ bạn xác nhận…",
-        "cta": "Xác nhận và gửi",
-        "backCta": "Quay lại"
-      },
-      "guardian": {
-        "title": "Đang chờ người thân",
-        "description": "Số tiền này cần một người thân đồng ý trước. Chúng tôi đã hỏi họ — bạn sẽ được báo khi được duyệt."
-      },
+      "description": "Gửi tiền cho bất kỳ ai.",
       "done": {
-        "title": "Đã gửi",
         "description": "Tiền của bạn đang trên đường đi.",
+        "title": "Đã gửi",
         "txLabel": "Bằng chứng trên mạng: {hash}"
       },
       "errors": {
-        "insufficient": "Không đủ số dư. Bạn cần thêm {shortfall} (đã tính phí).",
         "badRecipient": "Đây chưa phải địa chỉ hợp lệ (bắt đầu bằng G hoặc C, 56 ký tự).",
         "delayed": "Giao dịch đang được xem xét vì an toàn của bạn. Thử lại sau chút.",
-        "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại.",
+        "insufficient": "Không đủ số dư. Bạn cần thêm {shortfall} (đã tính phí).",
         "network": "Chưa kết nối được mạng. Thử lại sau chút.",
-        "notSent": "Chưa có gì được gửi đi. Bạn có thể thử lại an toàn."
-      }
+        "notSent": "Chưa có gì được gửi đi. Bạn có thể thử lại an toàn.",
+        "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại."
+      },
+      "guardian": {
+        "description": "Số tiền này cần một người thân đồng ý trước. Chúng tôi đã hỏi họ — bạn sẽ được báo khi được duyệt.",
+        "title": "Đang chờ người thân"
+      },
+      "noWallet": "Bạn chưa có ví.",
+      "recipientLabel": "Gửi tới",
+      "review": {
+        "amount": "Số tiền",
+        "backCta": "Quay lại",
+        "biometricNote": "Vân tay hoặc khuôn mặt xác nhận giao dịch — trước đó chưa có gì được gửi đi.",
+        "cta": "Xác nhận và gửi",
+        "signing": "Đang chờ bạn xác nhận…",
+        "title": "Kiểm tra trước khi gửi",
+        "to": "Tới"
+      },
+      "title": "Gửi tiền"
     }
   },
   "welcome": {
+    "cta": "Bắt đầu",
     "description": "Ví mà gia đình có thể giúp bạn lấy lại — không phải nhớ gì, không sợ mất gì.",
-    "title": "Chào mừng đến FamilyWallet",
+    "haveCta": "Tôi đã có ví",
     "point1": "Mở bằng khuôn mặt hoặc vân tay — không có seed phrase để ghi hay để mất.",
     "point2": "Chẳng may mất điện thoại, những người bạn tin sẽ giúp bạn lấy lại.",
     "point3": "Chọn ai thừa kế, để không có gì kẹt lại nếu bạn gặp chuyện.",
-    "cta": "Bắt đầu",
-    "haveCta": "Tôi đã có ví"
-  },
-  "state": {
-    "error": "Chưa tải được mục này. Kéo để làm mới hoặc thử lại sau ít phút."
-  },
-  "history": {
-    "noWallet": "Bạn chưa có ví nên chưa có gì để xem ở đây.",
-    "empty": "Chưa có hoạt động nào. Mọi việc xảy ra với ví sẽ hiện ở đây.",
-    "kind": {
-      "recoveryStarted": "Có yêu cầu khôi phục ví",
-      "recoveryApproved": "Một người thân đã xác nhận khôi phục",
-      "recoveryBlocked": "Một yêu cầu khôi phục đã bị chặn",
-      "recoveryDone": "Khôi phục ví hoàn tất",
-      "walletRegistered": "Đã bật bảo vệ gia đình cho ví",
-      "actionSubmitted": "Một thao tác đã được gửi lên mạng lưới",
-      "requestExpired": "Một yêu cầu chờ đã hết hạn",
-      "gap": "Có thể thiếu một số sự kiện trong khoảng thời gian này",
-      "other": "Hoạt động của ví"
-    }
+    "title": "Chào mừng đến FamilyWallet"
   }
 }

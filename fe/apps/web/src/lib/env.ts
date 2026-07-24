@@ -38,6 +38,17 @@ const EnvSchema = z.object({
     .or(z.literal("").transform(() => undefined)),
   // rpId passkey — vĩnh viễn theo domain (chốt TRƯỚC passkey đầu tiên). Dev: localhost.
   VITE_PASSKEY_RP_ID: z.string().min(1).default("localhost"),
+  // Registry khôi phục (v2) — cắm vào ví NGAY trong tx deploy (constructor).
+  // Trống = ví deploy ra KHÔNG khôi phục được, nên màn tạo ví chặn trước khi
+  // tạo passkey thay vì đẻ ra ví cụt (features/wallet/api/create-wallet.ts).
+  VITE_RECOVERY_REGISTRY_ADDRESS: z
+    .string()
+    .regex(/^C[A-Z2-7]{55}$/, "phải là contract ID (C...)")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
+  // Cooldown (giây) sau khi khôi phục xoay khoá: ví chối MỌI chữ ký trong cửa
+  // sổ này để kẻ chiếm được đợt khôi phục không rút ngay. Mặc định 24h.
+  VITE_RECOVERY_COOLDOWN_SECS: z.coerce.number().int().positive().default(86400),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

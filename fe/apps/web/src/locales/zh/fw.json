@@ -1,244 +1,294 @@
 {
   "block": {
     "alert": {
+      "backCta": "返回安全中心",
       "cta": "立即阻止",
       "description": "另一台设备发起了恢复请求。如果不是你本人，请在等待期结束前阻止它 — 结束后将无法撤销。",
-      "title": "有人想接管你的钱包",
-      "nothingOpen": "目前没有需要阻止的恢复请求。",
-      "backCta": "返回安全中心",
-      "requestTitle": "请求的内容",
-      "requestBody": "{approvals, plural, other {# 位家人}}已同意（需要 {threshold} 位）。等待期结束后，新的钥匙将接管此钱包。",
       "fingerprintLabel": "新钥匙 ID：{fingerprint}",
+      "nothingOpen": "目前没有需要阻止的恢复请求。",
+      "requestBody": "{approvals, plural, other {# 位家人}}已同意（需要 {threshold} 位）。等待期结束后，新的钥匙将接管此钱包。",
+      "requestTitle": "请求的内容",
+      "title": "有人想接管你的钱包",
       "window": "阻止的剩余时间：{countdown}（截至 {absolute}）"
     },
     "confirm": {
-      "description": "这将取消该请求并提醒你的守护人。",
-      "title": "阻止这次恢复？",
+      "backCta": "返回",
       "biometricNote": "用指纹或面容确认是你本人 — 在此之前不会发送任何内容。",
       "cta": "立即阻止",
-      "signing": "正在等待你的确认…",
-      "backCta": "返回",
+      "description": "这将取消该请求并提醒你的守护人。",
       "errors": {
-        "walletLocked": "钱包在此设备上处于锁定状态。请先打开钱包再重试。",
         "alreadyStopped": "好消息 — 该请求已被阻止。你的钱包是安全的。",
+        "notSent": "尚未发送任何内容。阻止指令未到达网络 — 你可以安全地重试。",
         "tooLate": "该请求在被阻止前已经完成。请立即联系你的家人。",
-        "notSent": "尚未发送任何内容。阻止指令未到达网络 — 你可以安全地重试。"
-      }
+        "walletLocked": "钱包在此设备上处于锁定状态。请先打开钱包再重试。"
+      },
+      "signing": "正在等待你的确认…",
+      "title": "阻止这次恢复？"
     },
     "done": {
+      "cta": "返回安全中心",
       "description": "请求已被阻止。你的钱包是安全的。",
-      "title": "已阻止",
       "guardiansNote": "已自动通知你的家人。",
-      "txLabel": "网络上的凭证：{hash}",
-      "cta": "返回安全中心"
+      "title": "已阻止",
+      "txLabel": "网络上的凭证：{hash}"
     }
   },
   "getStarted": {
-    "description": "创建一个新钱包，或打开你已有的钱包。",
-    "title": "你想怎样开始？",
-    "createTitle": "创建新钱包",
     "createBody": "建立一个用指纹或面容保护的新钱包。",
     "createCta": "创建钱包",
-    "haveTitle": "我已经有一个",
+    "createTitle": "创建新钱包",
+    "description": "创建一个新钱包，或打开你已有的钱包。",
     "haveBody": "在此设备上打开你现有的钱包。",
-    "haveCta": "打开我的钱包"
+    "haveCta": "打开我的钱包",
+    "haveTitle": "我已经有一个",
+    "title": "你想怎样开始？"
   },
   "guardian": {
     "approve": {
-      "description": "在同意之前，请当面或通过通话与他们确认。",
-      "title": "确认是本人",
-      "gone": "该请求已不再开放。",
       "backCta": "返回请求列表",
-      "votes": "目前 {approvals, plural, other {# 票}}，共需 {threshold} 票。你这一票可能是决定性的。",
-      "fingerprintLabel": "新钥匙 ID：{fingerprint}",
-      "verifyNote": "给发起请求的人打电话，互相核对钥匙 ID。如果不一致，请不要同意。",
       "biometricNote": "用指纹或面容确认这一票 — 在此之前不会发送任何内容。",
-      "signing": "正在等待你的确认…",
       "cta": "我同意 — 协助恢复",
+      "description": "在同意之前，请当面或通过通话与他们确认。",
       "errors": {
         "alreadyVoted": "你已经为该请求投过票了，无需重复投票。",
         "closed": "该请求已关闭 — 已被阻止或已完成。",
         "deviceKeyMissing": "此设备没有你对该钱包的守护人钥匙。请在你设置为守护人的设备上打开应用。",
         "notSent": "你的投票未发送。没有内容到达网络 — 你可以安全地重试。"
-      }
+      },
+      "fingerprintLabel": "新钥匙 ID：{fingerprint}",
+      "gone": "该请求已不再开放。",
+      "signing": "正在等待你的确认…",
+      "title": "确认是本人",
+      "verifyNote": "给发起请求的人打电话，互相核对钥匙 ID。如果不一致，请不要同意。",
+      "votes": "目前 {approvals, plural, other {# 票}}，共需 {threshold} 票。你这一票可能是决定性的。"
     },
     "approveWarning": {
+      "approveCta": "我已核实——查看并批准",
+      "backCta": "暂不",
       "cta": "先给他们打电话",
       "ctaSecondary": "仍然同意",
       "description": "该请求对这个人来说不太寻常。如果并非本人，同意就等于交出他们的钱包。请先亲自打电话 — 听到他们的声音后再同意。",
-      "title": "先别同意",
-      "rulesLabel": "基于规则的检查——不是 AI",
-      "rulesNote": "这些是对请求的简单检查，不是智能猜测。它们只是提醒你谨慎——始终由你决定。",
       "rules": {
+        "flagged": "我们的自动检查将这个请求标记为不寻常。",
         "newKey": "这会把钱包交给一把全新的密钥。批准前，请通过语音把密钥的指纹念给对方核对。",
         "unusualHour": "这个请求是在半夜开启的——一个不寻常的时间。",
-        "veryRecent": "它刚刚被开启，几乎还没有人确认。",
-        "flagged": "我们的自动检查将这个请求标记为不寻常。"
+        "veryRecent": "它刚刚被开启，几乎还没有人确认。"
       },
-      "approveCta": "我已核实——查看并批准",
-      "backCta": "暂不"
+      "rulesLabel": "基于规则的检查——不是 AI",
+      "rulesNote": "这些是对请求的简单检查，不是智能猜测。它们只是提醒你谨慎——始终由你决定。",
+      "title": "先别同意"
     },
     "approved": {
+      "cta": "返回请求列表",
       "description": "你的确认已被记录。",
-      "title": "谢谢你",
       "nextNote": "如果有足够的家人同意，仍会有一段等待期，其间钱包主人可以阻止它。",
-      "txLabel": "网络上的凭证：{hash}",
-      "cta": "返回请求列表"
+      "title": "谢谢你",
+      "txLabel": "网络上的凭证：{hash}"
     },
     "inbox": {
       "description": "你守护的人需要你的确认。",
-      "title": "等你处理的请求",
       "empty": "目前没有需要你帮助的人。",
-      "walletLabel": "钱包 {address}",
-      "votes": "需要 {approvals, plural, other {# 票}}，共 {threshold} 票",
-      "since": "开始于 {when}",
-      "reviewCta": "查看该请求",
-      "knockTitle": "有新设备请求帮助",
       "knockBody": "有人表示丢失了对钱包 {address} 的访问权限并设置了新设备。在开始任何操作前，请确认确实是本人。",
-      "knockCta": "查看并发起恢复"
+      "knockCta": "查看并发起恢复",
+      "knockTitle": "有新设备请求帮助",
+      "reviewCta": "查看该请求",
+      "since": "开始于 {when}",
+      "title": "等你处理的请求",
+      "votes": "需要 {approvals, plural, other {# 票}}，共 {threshold} 票",
+      "walletLabel": "钱包 {address}"
     },
     "initiate": {
-      "title": "为该钱包发起恢复？",
-      "description": "这将开始家庭恢复流程。其他受信任的联系人仍需同意，钱包主人也可在等待期内阻止。",
-      "gone": "该请求已不再开放。",
       "backCta": "返回请求列表",
-      "fingerprintLabel": "新钥匙 ID：{fingerprint}",
-      "verifyNote": "给钱包主人打电话。请他们读出新设备上的钥匙 ID — 必须与这个完全一致。如果不一致，请到此为止。",
       "biometricNote": "用指纹或面容确认 — 在此之前不会发送任何内容。",
-      "signing": "正在等待你的确认…",
       "cta": "我已核实 — 发起恢复",
+      "description": "这将开始家庭恢复流程。其他受信任的联系人仍需同意，钱包主人也可在等待期内阻止。",
       "errors": {
-        "mismatch": "停止：签名请求中的钥匙与这里显示的钥匙不一致。请勿签名。请联系家人并报告此事。",
         "alreadyOpen": "该钱包已有一个进行中的恢复 — 请改为对它投票。",
         "deviceKeyMissing": "此设备没有你对该钱包的守护人钥匙。请在你设置为守护人的设备上打开应用。",
+        "mismatch": "停止：签名请求中的钥匙与这里显示的钥匙不一致。请勿签名。请联系家人并报告此事。",
         "notSent": "尚未发送任何内容。你可以安全地重试。"
-      }
+      },
+      "fingerprintLabel": "新钥匙 ID：{fingerprint}",
+      "gone": "该请求已不再开放。",
+      "signing": "正在等待你的确认…",
+      "title": "为该钱包发起恢复？",
+      "verifyNote": "给钱包主人打电话。请他们读出新设备上的钥匙 ID — 必须与这个完全一致。如果不一致，请到此为止。"
     }
   },
   "guardians": {
+    "accept": {
+      "addressLabel": "你的身份",
+      "badBody": "可能已过期或已被使用。请让他们重新发一个链接给你。",
+      "badTitle": "此链接无法使用",
+      "creating": "正在创建…",
+      "cta": "创建我的安全身份",
+      "description": "{label} 请你成为可以帮他们重新进入钱包的人之一。",
+      "doneBody": "你的安全身份已在这台设备上准备好。",
+      "doneTitle": "全部完成",
+      "homeCta": "前往我的钱包",
+      "point1": "你不会保管他们的钱，也无法动用。",
+      "point2": "如果他们丢了手机，你和另一位家人可以让他们重新进入。",
+      "point3": "你的密钥留在这台设备上。任何人都复制不走，包括我们。",
+      "title": "有人请你帮忙",
+      "waitingOwner": "现在他们需要在自己的手机上确认你。你不用再做任何事。",
+      "whatTitle": "这意味着什么"
+    },
     "detail": {
+      "backCta": "返回列表",
       "description": "此人的连接历史与选项。",
-      "title": "守护人详情",
-      "statusLabel": "连接",
-      "lastSeen": "最后一次收到消息",
-      "lastConfirm": "最后一次当面确认",
       "keyLabel": "他们的钥匙",
+      "lastConfirm": "最后一次当面确认",
+      "lastSeen": "最后一次收到消息",
       "never": "尚未",
       "notFound": "此人已不在你的名单上。",
-      "backCta": "返回列表"
+      "statusLabel": "连接",
+      "title": "守护人详情"
+    },
+    "inviteList": {
+      "addCta": "添加到钱包",
+      "addFailed": "添加失败，没有任何改动，请再试一次。",
+      "adding": "正在添加…",
+      "status": {
+        "accepted": "他们已打开链接",
+        "deployed": "他们已完成——请添加到你的钱包",
+        "expired": "链接已过期",
+        "registered": "可以帮你重新进入钱包",
+        "sent": "等待他们打开链接"
+      },
+      "title": "你邀请的人"
+    },
+    "list": {
+      "empty": "还没有受信任的联系人。邀请家人，这样万一你丢失此设备，钱包也能被恢复。",
+      "itemLabel": "受信任的联系人",
+      "noWallet": "你还没有钱包。请先设置钱包，然后邀请家人一起看护它。"
     },
     "manage": {
       "description": "查看谁在守护你的钱包，以及我们是否还能联系到他们。",
       "title": "你的守护人"
     },
-    "list": {
-      "noWallet": "你还没有钱包。请先设置钱包，然后邀请家人一起看护它。",
-      "empty": "还没有受信任的联系人。邀请家人，这样万一你丢失此设备，钱包也能被恢复。",
-      "itemLabel": "受信任的联系人"
+    "recoverability": {
+      "notYetBody": "{threshold} 位中已有 {available} 位完成。还需要 {missing} 位接受邀请，钱包才能恢复。",
+      "notYetTitle": "还没有人能帮你重新进入",
+      "ok": "有 {count} 位家人可以帮你重新进入钱包。"
     },
     "status": {
-      "invited": "已邀请",
       "active": "已连接",
-      "slow": "最近较少响应",
+      "invited": "已邀请",
       "offline": "无法联系",
-      "removed": "已移除"
+      "removed": "已移除",
+      "slow": "最近较少响应"
     }
+  },
+  "history": {
+    "empty": "还没有任何动态。你钱包上的活动会显示在这里。",
+    "kind": {
+      "actionSubmitted": "一个操作已发送到网络",
+      "gap": "此时间段内可能有部分事件缺失",
+      "other": "钱包活动",
+      "recoveryApproved": "一位受信任的联系人确认了恢复",
+      "recoveryBlocked": "一次恢复尝试已被阻止",
+      "recoveryDone": "钱包恢复已完成",
+      "recoveryStarted": "已发起一次钱包恢复",
+      "requestExpired": "一个待处理请求已过期",
+      "walletRegistered": "已设置家庭保护"
+    },
+    "noWallet": "你还没有钱包，所以这里没有可显示的内容。"
   },
   "inheritance": {
     "claim": {
       "description": "按步骤领取属于你的份额。",
       "title": "领取留给你的资产"
     },
+    "claimNew": {
+      "backCta": "返回",
+      "description": "如果你发生意外，这是家人接收这个钱包的方式。",
+      "finalWindowLabel": "取消的最后窗口",
+      "finalWindowValue": "开启申请后 {days, plural, other {# 天}}",
+      "guardianNote": "由家人自己发起——我们绝不代为开始，你离开后也无法停止。",
+      "heartbeatCta": "我很好——重置",
+      "noPlan": "此钱包尚未设置继承。",
+      "stage1": "如果你连续 {days, plural, other {# 天}} 没有签到，家人可以申请接收钱包。",
+      "stage2": "他们申请后，会有最后 {days, plural, other {# 天}} 的窗口期。如果是误会，你仍可在此期间取消。",
+      "stage3": "窗口期过后，每个人接收各自的份额。",
+      "stagesTitle": "运作方式",
+      "statusAsking": "正在询问家人是否开始接收钱包。",
+      "statusClaimable": "家人现在可以申请接收钱包。",
+      "statusHealthy": "一切正常。你最近签到过，没有任何东西被转移。",
+      "statusReminding": "我们已提醒你签到。点击“我很好”即可重置。",
+      "statusTitle": "目前"
+    },
+    "empty": "还没有设置谁来接收此钱包。你可以在这里选择你的家人。",
     "heartbeat": {
       "description": "时不时确认一下，这样在你还在时不会有任何东西被传承出去。",
       "title": "我一切都好"
     },
+    "heartbeatButton": "我很好",
+    "heartbeatCta": "告诉家人你一切都好",
+    "heartbeatDone": "谢谢！你的家人不会担心了。",
+    "noWallet": "你还没有钱包，所以没有可传承的内容。",
     "setup": {
       "description": "选择谁来接收你的资产，以及每个人分得多少。",
       "title": "决定日后由谁接收"
-    },
-    "noWallet": "你还没有钱包，所以没有可传承的内容。",
-    "empty": "还没有设置谁来接收此钱包。你可以在这里选择你的家人。",
-    "heartbeatCta": "告诉家人你一切都好",
-    "heartbeatButton": "我很好",
-    "heartbeatDone": "谢谢！你的家人不会担心了。",
-    "claimNew": {
-      "description": "如果你发生意外，这是家人接收这个钱包的方式。",
-      "stagesTitle": "运作方式",
-      "stage1": "如果你连续 {days, plural, other {# 天}} 没有签到，家人可以申请接收钱包。",
-      "stage2": "他们申请后，会有最后 {days, plural, other {# 天}} 的窗口期。如果是误会，你仍可在此期间取消。",
-      "stage3": "窗口期过后，每个人接收各自的份额。",
-      "guardianNote": "由家人自己发起——我们绝不代为开始，你离开后也无法停止。",
-      "statusTitle": "目前",
-      "statusHealthy": "一切正常。你最近签到过，没有任何东西被转移。",
-      "statusReminding": "我们已提醒你签到。点击“我很好”即可重置。",
-      "statusAsking": "正在询问家人是否开始接收钱包。",
-      "statusClaimable": "家人现在可以申请接收钱包。",
-      "finalWindowLabel": "取消的最后窗口",
-      "finalWindowValue": "开启申请后 {days, plural, other {# 天}}",
-      "noPlan": "此钱包尚未设置继承。",
-      "heartbeatCta": "我很好——重置",
-      "backCta": "返回"
     }
   },
   "nightWatch": {
     "alert": {
       "cta": "处理这个问题",
       "description": "你的一位守护人没有回应我们的每日检查。如果太多人失联，你可能没有足够的人来找回钱包。请替换他们，或帮助他们重新连接。",
-      "title": "有一位守护人无法联系",
-      "subtitle": "这些人在每日检查中没有回应。帮他们重新连接，或替换他们，让你始终有足够的人。",
-      "none": "所有人都能联系到。目前没有需要你处理的事。",
       "lastSeen": "最近一次联系",
-      "resolveCta": "我能做什么？"
+      "none": "所有人都能联系到。目前没有需要你处理的事。",
+      "resolveCta": "我能做什么？",
+      "subtitle": "这些人在每日检查中没有回应。帮他们重新连接，或替换他们，让你始终有足够的人。",
+      "title": "有一位守护人无法联系"
     },
+    "allQuiet": "一切平静。没有人试图接管此钱包，也没有需要你关注的事项。",
     "center": {
       "description": "我们每天悄悄检查你的保护状况，并尽早提醒你。",
       "title": "守夜"
     },
+    "contacts": {
+      "cta": "看看谁在看护你的钱包",
+      "summary": "{reachable, plural, other {# 人可联系}}，{quiet} 人最近较少响应，{unreachable} 人无法联系。",
+      "title": "你家人的连接状况"
+    },
     "guardianView": {
-      "description": "保持安装此应用 — 大多数日子你只需这样做。",
-      "title": "你是一位守护人",
-      "statusLabel": "你的连接",
       "active": "活跃——可以联系到你",
-      "lastCheck": "你刚刚签到",
+      "description": "保持安装此应用 — 大多数日子你只需这样做。",
       "inboxCta": "查看需要我处理的请求",
-      "privacyNote": "只有钱包主人能看到这个状态——其他人永远看不到。"
+      "lastCheck": "你刚刚签到",
+      "privacyNote": "只有钱包主人能看到这个状态——其他人永远看不到。",
+      "statusLabel": "你的连接",
+      "title": "你是一位守护人"
     },
     "log": {
       "description": "每日检查及其结果。",
       "title": "每日检查历史"
     },
+    "logEmpty": "还没有安全事件。万一你的钱包发生任何情况，都会显示在这里。",
+    "noWallet": "你还没有钱包，所以没有需要看护的内容。",
+    "openRecovery": {
+      "body": "目前已有 {approvals, plural, other {# 位家人确认}}，需要 {threshold} 位。如果这不是你的家人在帮你，请立即阻止。",
+      "cta": "这不是我 — 阻止它",
+      "title": "有人正在恢复此钱包",
+      "window": "你仍可在 {countdown} 内阻止它（截至 {absolute}）。"
+    },
     "resolve": {
+      "backCta": "返回",
       "description": "替换这位守护人，或帮助他们重新连接。",
-      "title": "恢复你的保护",
+      "replaceCta": "查看我的守护人",
       "step1": "给他们发消息，请他们打开一次这个应用——这样就会自动重新连接。",
       "step2": "如果联系不上，就换成另一个你信任的人。",
-      "waitingCta": "我已通知他们——等待重新连接",
-      "replaceCta": "查看我的守护人",
-      "backCta": "返回"
+      "title": "恢复你的保护",
+      "waitingCta": "我已通知他们——等待重新连接"
     },
     "waiting": {
+      "backCta": "返回夜间守护",
       "description": "他们一回来，我们就会通知你。",
-      "title": "等待重新连接",
-      "none": "所有人都回来了。没有人在等待重新连接。",
-      "item": "自最近一次联系 {when} 起等待",
       "hint": "顺其自然——他们一打开应用，这一项就会自动消失。",
-      "backCta": "返回夜间守护"
-    },
-    "noWallet": "你还没有钱包，所以没有需要看护的内容。",
-    "allQuiet": "一切平静。没有人试图接管此钱包，也没有需要你关注的事项。",
-    "openRecovery": {
-      "title": "有人正在恢复此钱包",
-      "body": "目前已有 {approvals, plural, other {# 位家人确认}}，需要 {threshold} 位。如果这不是你的家人在帮你，请立即阻止。",
-      "window": "你仍可在 {countdown} 内阻止它（截至 {absolute}）。",
-      "cta": "这不是我 — 阻止它"
-    },
-    "contacts": {
-      "title": "你家人的连接状况",
-      "summary": "{reachable, plural, other {# 人可联系}}，{quiet} 人最近较少响应，{unreachable} 人无法联系。",
-      "cta": "看看谁在看护你的钱包"
-    },
-    "logEmpty": "还没有安全事件。万一你的钱包发生任何情况，都会显示在这里。"
+      "item": "自最近一次联系 {when} 起等待",
+      "none": "所有人都回来了。没有人在等待重新连接。",
+      "title": "等待重新连接"
+    }
   },
   "passkey": {
     "connected": "你的钱包已打开：{wallet}",
@@ -255,68 +305,68 @@
   },
   "recovery": {
     "countdown": {
+      "backCta": "返回进度",
       "description": "已获得足够同意。等待期保护你免受冒名者侵害。",
-      "title": "就快好了",
-      "window": "剩余时间：{countdown}（截至 {absolute}）",
-      "note": "设立这段等待期，是为了让钱包主人能阻止他们并未发起的恢复。如果那正是你 — 什么都不用做，等待即可。",
       "doneCta": "在此设备上完成",
-      "backCta": "返回进度"
+      "note": "设立这段等待期，是为了让钱包主人能阻止他们并未发起的恢复。如果那正是你 — 什么都不用做，等待即可。",
+      "title": "就快好了",
+      "window": "剩余时间：{countdown}（截至 {absolute}）"
     },
     "done": {
-      "description": "你的钱包现在就在这台设备上。",
-      "title": "欢迎回来",
-      "cooldownNote": "恢复后的一小段时间内，钱包会拒绝一切操作。这是安全机制，不是错误。",
       "connectCta": "在此设备上打开我的钱包",
-      "openWalletCta": "前往钱包登录",
+      "cooldownNote": "恢复后的一小段时间内，钱包会拒绝一切操作。这是安全机制，不是错误。",
+      "description": "你的钱包现在就在这台设备上。",
       "errors": {
         "noDraft": "此设备未保存任何恢复钥匙。请在此设备上从头开始恢复。"
-      }
+      },
+      "openWalletCta": "前往钱包登录",
+      "title": "欢迎回来"
     },
     "findWallet": {
-      "description": "告诉我们如何找到你想恢复的钱包。",
-      "title": "找到你的钱包",
-      "label": "你的钱包地址",
-      "placeholder": "C…",
-      "invalid": "这看起来不像钱包地址。它以 C 开头，共 56 个字符。",
-      "passkeyNote": "接下来，此设备会请求你的指纹或面容以创建新钥匙。",
       "creating": "正在创建你的新钥匙…",
       "cta": "创建新钥匙并请求家人协助",
+      "description": "告诉我们如何找到你想恢复的钱包。",
       "errors": {
         "notConfigured": "应用尚未连接到网络。请稍后重试或联系支持。",
         "notSent": "无法连接网络。没有发送任何内容 — 你可以重试。"
-      }
+      },
+      "invalid": "这看起来不像钱包地址。它以 C 开头，共 56 个字符。",
+      "label": "你的钱包地址",
+      "passkeyNote": "接下来，此设备会请求你的指纹或面容以创建新钥匙。",
+      "placeholder": "C…",
+      "title": "找到你的钱包"
     },
     "progress": {
+      "checkNote": "此页面会自动更新 — 你可以保持打开。",
+      "countdownCta": "查看等待期",
       "description": "查看目前有谁已确认。",
-      "title": "等待同意",
+      "doneCta": "在此设备上完成",
       "missingAddressCta": "请先输入你的钱包地址",
       "state": {
+        "executed": "完成 — 你的钱包现在听从你的新钥匙。",
         "none": "尚未发起恢复。你的家人可能仍在核实是你本人。",
         "pending": "你的家人正在陆续同意，请稍候。",
         "ready": "已有足够家人同意。切换前有一小段等待期保护钱包。",
-        "executed": "完成 — 你的钱包现在听从你的新钥匙。",
         "vetoed": "此次恢复已被阻止。如果确实是你发起的，请联系你的家人。"
       },
-      "votes": "需要 {approvals, plural, other {# 票}}，共 {threshold} 票",
-      "checkNote": "此页面会自动更新 — 你可以保持打开。",
-      "countdownCta": "查看等待期",
-      "doneCta": "在此设备上完成"
+      "title": "等待同意",
+      "votes": "需要 {approvals, plural, other {# 票}}，共 {threshold} 票"
     },
     "sent": {
       "description": "已请求你的守护人确认确实是你本人。",
-      "title": "请求已发送",
       "fingerprintLabel": "你的新钥匙 ID",
+      "progressCta": "查看进度",
       "readNote": "给家人打电话，把这串代码读给他们听。他们必须看到完全相同的代码后才能同意。",
-      "progressCta": "查看进度"
+      "title": "请求已发送"
     },
     "start": {
+      "cta": "开始 — 我丢失了设备",
       "description": "手机丢了？你的家人可以帮你把一切找回来。",
-      "title": "找回你的钱包",
+      "progressCta": "我已请求 — 查看进度",
       "step1": "在这台新设备上，你会创建一把全新的钥匙。它永远不会离开这台设备。",
       "step2": "你的家人核实确实是你 — 通过电话，而不是通过此应用。",
       "step3": "当足够多的人同意且等待期结束后，你的钱包便听从新钥匙。地址不变，资产不动。",
-      "cta": "开始 — 我丢失了设备",
-      "progressCta": "我已请求 — 查看进度"
+      "title": "找回你的钱包"
     }
   },
   "setup": {
@@ -329,29 +379,38 @@
       "title": "选择你的守护人"
     },
     "done": {
+      "addGuardiansCta": "添加家庭守护人",
       "description": "万一你丢失手机，你的家人可以帮你把这个钱包找回来。",
-      "title": "你的钱包已受保护",
       "guardiansNote": "接下来，添加可以在你丢失手机时帮你恢复钱包的家人 — 在此之前它像普通钱包一样工作。",
-      "walletCta": "前往我的钱包",
-      "addGuardiansCta": "添加家庭守护人"
+      "title": "你的钱包已受保护",
+      "walletCta": "前往我的钱包"
     },
     "intro": {
+      "creating": "正在创建你的钱包…",
+      "cta": "创建我的钱包",
       "description": "选择可信赖的人，万一你丢失手机，他们能帮你恢复这个钱包。",
-      "title": "保护你的钱包",
+      "errors": {
+        "failed": "无法创建钱包。设备未确认 — 请重试。",
+        "notConfigured": "应用尚未连接到钱包网络。这是我们团队的事。"
+      },
+      "haveWalletCta": "我已有钱包",
       "point1": "钱包用面容或指纹解锁 — 没有助记词可丢失。",
       "point2": "你可以随后添加家人，让他们帮你恢复钱包。",
       "point3": "同一个钱包在手机、电脑和浏览器上都能用。",
-      "creating": "正在创建你的钱包…",
-      "cta": "创建我的钱包",
-      "haveWalletCta": "我已有钱包",
-      "errors": {
-        "notConfigured": "应用尚未连接到钱包网络。这是我们团队的事。",
-        "failed": "无法创建钱包。设备未确认 — 请重试。"
-      }
+      "title": "保护你的钱包"
     },
     "invite": {
-      "description": "给每个人发送一个链接。他们在自己的手机上接受。",
-      "title": "邀请他们"
+      "addTitle": "添加一个人",
+      "copyCta": "复制链接",
+      "createCta": "创建链接",
+      "createFailed": "链接创建失败，请再试一次。",
+      "creating": "正在创建…",
+      "description": "给每个人发一个链接。他们在自己的手机上接受——你随时可以离开再回来。",
+      "doneCta": "返回我的钱包",
+      "labelField": "你怎么称呼他们",
+      "labelPlaceholder": "妈妈、哥哥、女儿…",
+      "linkHint": "把这个链接发给他们，7 天内有效。",
+      "title": "邀请家人"
     },
     "review": {
       "description": "开启前检查一遍所有内容。",
@@ -370,91 +429,76 @@
       "useSimpleCta": "设置我的钱包"
     }
   },
+  "state": {
+    "error": "暂时无法加载。请下拉刷新或稍后重试。"
+  },
   "wallet": {
     "history": {
       "description": "你钱包里发生的一切。",
       "title": "动态"
     },
     "home": {
-      "description": "余额、近期动态和保护状态一目了然。",
-      "title": "你的钱包",
-      "noWallet": "你还没有钱包。",
-      "setupCta": "设置我的钱包",
       "addressLabel": "你的钱包地址",
-      "sendCta": "发送",
-      "receiveCta": "接收",
+      "description": "余额、近期动态和保护状态一目了然。",
       "historyCta": "历史",
-      "nightWatchCta": "安全"
+      "nightWatchCta": "安全",
+      "noWallet": "你还没有钱包。",
+      "receiveCta": "接收",
+      "sendCta": "发送",
+      "setupCta": "设置我的钱包",
+      "title": "你的钱包"
     },
     "receive": {
-      "description": "出示你的二维码，或分享你的钱包地址。",
-      "title": "接收",
-      "noWallet": "你还没有钱包。",
-      "copyCta": "复制地址",
       "copied": "已复制",
-      "stableNote": "此地址永不改变 — 即使恢复之后也一样。分享一次，长期使用。"
+      "copyCta": "复制地址",
+      "description": "出示你的二维码，或分享你的钱包地址。",
+      "noWallet": "你还没有钱包。",
+      "stableNote": "此地址永不改变 — 即使恢复之后也一样。分享一次，长期使用。",
+      "title": "接收"
     },
     "send": {
-      "description": "向任何人发送资金。",
-      "title": "发送",
-      "noWallet": "你还没有钱包。",
       "amountLabel": "金额（XLM）",
-      "recipientLabel": "发送至",
       "checking": "正在检查…",
       "cta": "继续",
-      "review": {
-        "title": "发送前请核对",
-        "amount": "金额",
-        "to": "收款方",
-        "biometricNote": "用指纹或面容确认这笔支付 — 在此之前不会发送任何内容。",
-        "signing": "正在等待你的确认…",
-        "cta": "确认并发送",
-        "backCta": "返回"
-      },
-      "guardian": {
-        "title": "正在等待你的家人",
-        "description": "这笔金额需要一位受信任的联系人先同意。我们已经询问他们 — 获批后会通知你。"
-      },
+      "description": "向任何人发送资金。",
       "done": {
-        "title": "已发送",
         "description": "你的资金正在途中。",
+        "title": "已发送",
         "txLabel": "网络上的凭证：{hash}"
       },
       "errors": {
-        "insufficient": "余额不足。你还需要 {shortfall}（含手续费）。",
         "badRecipient": "这看起来不是有效地址（以 G 或 C 开头，56 个字符）。",
         "delayed": "为了你的安全，这笔支付正在审核中。请稍后重试。",
-        "walletLocked": "钱包在此设备上已锁定。请先打开钱包再重试。",
+        "insufficient": "余额不足。你还需要 {shortfall}（含手续费）。",
         "network": "无法连接网络。请稍后重试。",
-        "notSent": "没有发送任何内容。你可以安全地重试。"
-      }
+        "notSent": "没有发送任何内容。你可以安全地重试。",
+        "walletLocked": "钱包在此设备上已锁定。请先打开钱包再重试。"
+      },
+      "guardian": {
+        "description": "这笔金额需要一位受信任的联系人先同意。我们已经询问他们 — 获批后会通知你。",
+        "title": "正在等待你的家人"
+      },
+      "noWallet": "你还没有钱包。",
+      "recipientLabel": "发送至",
+      "review": {
+        "amount": "金额",
+        "backCta": "返回",
+        "biometricNote": "用指纹或面容确认这笔支付 — 在此之前不会发送任何内容。",
+        "cta": "确认并发送",
+        "signing": "正在等待你的确认…",
+        "title": "发送前请核对",
+        "to": "收款方"
+      },
+      "title": "发送"
     }
   },
   "welcome": {
+    "cta": "开始",
     "description": "一个家人能帮你恢复的钱包 — 无需记忆，也不会丢失。",
-    "title": "欢迎使用家庭钱包",
+    "haveCta": "我已经有钱包了",
     "point1": "用面容或指纹打开——没有助记词需要抄写或丢失。",
     "point2": "万一丢了手机，你信任的人会帮你找回。",
     "point3": "决定由谁继承，万一你发生意外，也不会有东西被搁置。",
-    "cta": "开始",
-    "haveCta": "我已经有钱包了"
-  },
-  "state": {
-    "error": "暂时无法加载。请下拉刷新或稍后重试。"
-  },
-  "history": {
-    "noWallet": "你还没有钱包，所以这里没有可显示的内容。",
-    "empty": "还没有任何动态。你钱包上的活动会显示在这里。",
-    "kind": {
-      "recoveryStarted": "已发起一次钱包恢复",
-      "recoveryApproved": "一位受信任的联系人确认了恢复",
-      "recoveryBlocked": "一次恢复尝试已被阻止",
-      "recoveryDone": "钱包恢复已完成",
-      "walletRegistered": "已设置家庭保护",
-      "actionSubmitted": "一个操作已发送到网络",
-      "requestExpired": "一个待处理请求已过期",
-      "gap": "此时间段内可能有部分事件缺失",
-      "other": "钱包活动"
-    }
+    "title": "欢迎使用家庭钱包"
   }
 }

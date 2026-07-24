@@ -4,7 +4,7 @@
 // HTTP — việc ký passkey nằm ở features/wallet (cấm import chéo feature).
 import { apiClient } from "@/lib/api-client";
 
-export type RecoveryActionName = "register" | "initiate" | "approve" | "veto";
+export type RecoveryActionName = "register" | "initiate" | "approve" | "veto" | "addGuardian";
 
 export type BuiltRecoveryAction = {
   action: RecoveryActionName;
@@ -30,6 +30,8 @@ export async function buildRecoveryAction(input: {
   action: RecoveryActionName;
   walletId: string;
   newSigner?: NewSignerMaterial;
+  /** Chỉ addGuardian: địa chỉ hợp đồng của người bảo hộ (wizard mức B). */
+  guardianAddress?: string;
 }): Promise<BuiltRecoveryAction> {
   const res = await apiClient.post<{ data: BuiltRecoveryAction }>(`/api/recovery/${input.action}`, {
     wallet_id: input.walletId,
@@ -39,6 +41,7 @@ export async function buildRecoveryAction(input: {
           new_signer_key: input.newSigner.keyBase64,
         }
       : {}),
+    ...(input.guardianAddress ? { guardian_address: input.guardianAddress } : {}),
   });
   return res.data;
 }
