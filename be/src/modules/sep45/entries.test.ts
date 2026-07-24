@@ -42,9 +42,9 @@ describe("sep45 entries", () => {
   it("build → decode: 2 entry, server ký trước, client chưa ký", async () => {
     const entries = decodeEntriesXdr(await freshChallenge());
     expect(entries).toHaveLength(2);
-    // Entry server có chữ ký (scvVec 1 phần tử); entry client rỗng.
+    // Entry server có chữ ký (scvVec 1 phần tử); entry client là scvVoid (chưa ký).
     expect(entries[0]?.credentials().address().signature().vec()?.length).toBe(1);
-    expect(entries[1]?.credentials().address().signature().vec()?.length).toBe(0);
+    expect(entries[1]?.credentials().address().signature().switch().name).toBe("scvVoid");
   });
 
   it("validate chấp nhận challenge nguyên vẹn (chưa cần chữ ký client — simulate lo)", async () => {

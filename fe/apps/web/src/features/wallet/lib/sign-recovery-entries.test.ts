@@ -77,6 +77,9 @@ describe("signRecoveryEntries", () => {
     expect(kitMock.signAuthEntry.mock.calls[0]?.[1]).toMatchObject({
       credentialId: "cred-1",
       expiration: 1120,
+      // Bắt buộc truyền rule ids: placeholder scvVoid không tự khai được (on-chain
+      // sẽ chối nếu digest không bind rule ids — đã chứng minh ở BE e2e).
+      contextRuleIds: [0],
     });
   });
 

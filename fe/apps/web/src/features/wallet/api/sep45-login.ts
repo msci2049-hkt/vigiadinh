@@ -10,6 +10,7 @@ import {
   entryExpirationLedger,
   findEntryIndexForAccount,
 } from "../lib/sep45-entries";
+import { DEFAULT_CONTEXT_RULE_IDS } from "../lib/sign-wallet-entries";
 import { saveWalletToken } from "../lib/wallet-token";
 
 type ChallengeResponse = { authorization_entries: string; network_passphrase: string };
@@ -41,9 +42,12 @@ export async function sep45Login(override?: {
   const entry = entries[index];
   if (index < 0 || !entry) throw new Sep45LoginError("CHALLENGE_MISSING_WALLET_ENTRY");
 
+  // contextRuleIds tường minh: placeholder BE là scvVoid nên kit không tự đọc
+  // được rule ids từ entry (cùng lý do với sign-wallet-entries).
   entries[index] = await kit.signAuthEntry(entry, {
     credentialId,
     expiration: entryExpirationLedger(entry),
+    contextRuleIds: DEFAULT_CONTEXT_RULE_IDS,
   });
 
   const { token } = await apiClient.post<TokenResponse>("/api/sep45/token", {

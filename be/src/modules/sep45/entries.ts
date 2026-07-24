@@ -117,7 +117,10 @@ function unsignedEntry(
           BigInt.asIntN(64, crypto.getRandomValues(new BigUint64Array(1))[0] ?? 0n),
         ),
         signatureExpirationLedger: validUntilLedger,
-        signature: xdr.ScVal.scvVec([]),
+        // scvVoid = placeholder chuẩn "chưa ký" (khớp simulation RPC). KHÔNG dùng
+        // scvVec([]): kit FE đọc placeholder qua readAuthPayload — scvVoid được
+        // hiểu là payload rỗng, scvVec bị coi là AuthPayload hỏng và throw.
+        signature: xdr.ScVal.scvVoid(),
       }),
     ),
     rootInvocation: invocation,

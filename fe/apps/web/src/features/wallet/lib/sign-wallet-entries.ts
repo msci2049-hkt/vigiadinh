@@ -13,6 +13,13 @@ export class WalletSignError extends Error {
   }
 }
 
+// Mức A: ví có MỘT context rule (id 0 — chủ ví), đúng công thức đã chứng minh
+// on-chain (BE e2e ký digest với rule_ids [0]). PHẢI truyền tường minh: entry từ
+// simulation mang signature placeholder scvVoid nên kit KHÔNG tự đọc được rule
+// ids từ entry (readAuthPayload trả rỗng → throw). Mức B (nhiều rule/guardian):
+// resolve động theo rule của người ký.
+export const DEFAULT_CONTEXT_RULE_IDS = [0];
+
 function entryAddress(entry: xdr.SorobanAuthorizationEntry): string | null {
   if (entry.credentials().switch() !== xdr.SorobanCredentialsType.sorobanCredentialsAddress()) {
     return null;
@@ -40,7 +47,11 @@ export async function signWalletEntries(input: {
   for (const b64 of input.entriesXdr) {
     const entry = xdr.SorobanAuthorizationEntry.fromXDR(b64, "base64");
     if (entryAddress(entry) === contractId) {
-      const signed = await kit.signAuthEntry(entry, { credentialId, expiration });
+      const signed = await kit.signAuthEntry(entry, {
+        credentialId,
+        expiration,
+        contextRuleIds: DEFAULT_CONTEXT_RULE_IDS,
+      });
       out.push(signed.toXDR("base64"));
       signedAny = true;
     } else {
