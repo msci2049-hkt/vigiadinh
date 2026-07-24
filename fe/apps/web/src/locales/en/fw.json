@@ -145,13 +145,35 @@
     "empty": "No one is set to receive this wallet yet. You'll be able to choose your family here.",
     "heartbeatCta": "Tell your family you're okay",
     "heartbeatButton": "I'm okay",
-    "heartbeatDone": "Thanks! Your family won't be worried."
+    "heartbeatDone": "Thanks! Your family won't be worried.",
+    "claimNew": {
+      "description": "This is how your family receives this wallet if something happens to you.",
+      "stagesTitle": "How it works",
+      "stage1": "If you stop checking in for {days, plural, one {# day} other {# days}}, your family can ask to receive the wallet.",
+      "stage2": "After they ask, there is a final {days, plural, one {# day} other {# days}} window. You can still cancel during that time if it was a mistake.",
+      "stage3": "Once that window passes, each person receives their share.",
+      "guardianNote": "Your family opens this themselves — we never start it for them, and we cannot stop it once you're gone.",
+      "statusTitle": "Right now",
+      "statusHealthy": "All good. You've checked in recently, so nothing is being passed on.",
+      "statusReminding": "We've reminded you to check in. Tap “I'm okay” to reset this.",
+      "statusAsking": "Your family is being asked whether to start receiving the wallet.",
+      "statusClaimable": "Your family can now ask to receive the wallet.",
+      "finalWindowLabel": "Final window to cancel",
+      "finalWindowValue": "{days, plural, one {# day} other {# days}} after a request is opened",
+      "noPlan": "No inheritance is set up for this wallet yet.",
+      "heartbeatCta": "I'm okay — reset this",
+      "backCta": "Back"
+    }
   },
   "nightWatch": {
     "alert": {
       "cta": "Fix this",
       "description": "One of your protectors hasn't answered our daily check. If too many go quiet, you may not have enough people to get your wallet back. Replace them, or help them reconnect.",
-      "title": "A protector is out of reach"
+      "title": "A protector is out of reach",
+      "subtitle": "These people went quiet on our daily check. Help them reconnect, or replace them so you always have enough.",
+      "none": "Everyone is reachable. Nothing needs your attention right now.",
+      "lastSeen": "Last reached",
+      "resolveCta": "What can I do?"
     },
     "center": {
       "description": "We quietly check on your protection every day and warn you early.",
@@ -159,7 +181,12 @@
     },
     "guardianView": {
       "description": "Keep this app installed — that's all you need to do most days.",
-      "title": "You're a protector"
+      "title": "You're a protector",
+      "statusLabel": "Your connection",
+      "active": "Active — you are reachable",
+      "lastCheck": "You just checked in",
+      "inboxCta": "See requests that need me",
+      "privacyNote": "Only the wallet owner can see this status — never other people."
     },
     "log": {
       "description": "Daily checks and what they found.",
@@ -167,11 +194,20 @@
     },
     "resolve": {
       "description": "Replace this protector, or help them reconnect.",
-      "title": "Restore your protection"
+      "title": "Restore your protection",
+      "step1": "Message them and ask them to open this app once — that reconnects them automatically.",
+      "step2": "If you cannot reach them, replace them with someone else you trust.",
+      "waitingCta": "I have asked them — watch for reconnect",
+      "replaceCta": "See my protectors",
+      "backCta": "Back"
     },
     "waiting": {
       "description": "We'll tell you the moment they're back.",
-      "title": "Waiting to reconnect"
+      "title": "Waiting to reconnect",
+      "none": "Everyone is back. No one is waiting to reconnect.",
+      "item": "Waiting since last reached {when}",
+      "hint": "Leave this with them — the moment they open the app, this clears on its own.",
+      "backCta": "Back to night watch"
     },
     "noWallet": "You don't have a wallet yet, so there's nothing to watch over.",
     "allQuiet": "All quiet. No one is trying to take over this wallet, and nothing needs your attention.",

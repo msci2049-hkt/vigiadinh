@@ -145,13 +145,35 @@
     "empty": "还没有设置谁来接收此钱包。你可以在这里选择你的家人。",
     "heartbeatCta": "告诉家人你一切都好",
     "heartbeatButton": "我很好",
-    "heartbeatDone": "谢谢！你的家人不会担心了。"
+    "heartbeatDone": "谢谢！你的家人不会担心了。",
+    "claimNew": {
+      "description": "如果你发生意外，这是家人接收这个钱包的方式。",
+      "stagesTitle": "运作方式",
+      "stage1": "如果你连续 {days, plural, other {# 天}} 没有签到，家人可以申请接收钱包。",
+      "stage2": "他们申请后，会有最后 {days, plural, other {# 天}} 的窗口期。如果是误会，你仍可在此期间取消。",
+      "stage3": "窗口期过后，每个人接收各自的份额。",
+      "guardianNote": "由家人自己发起——我们绝不代为开始，你离开后也无法停止。",
+      "statusTitle": "目前",
+      "statusHealthy": "一切正常。你最近签到过，没有任何东西被转移。",
+      "statusReminding": "我们已提醒你签到。点击“我很好”即可重置。",
+      "statusAsking": "正在询问家人是否开始接收钱包。",
+      "statusClaimable": "家人现在可以申请接收钱包。",
+      "finalWindowLabel": "取消的最后窗口",
+      "finalWindowValue": "开启申请后 {days, plural, other {# 天}}",
+      "noPlan": "此钱包尚未设置继承。",
+      "heartbeatCta": "我很好——重置",
+      "backCta": "返回"
+    }
   },
   "nightWatch": {
     "alert": {
       "cta": "处理这个问题",
       "description": "你的一位守护人没有回应我们的每日检查。如果太多人失联，你可能没有足够的人来找回钱包。请替换他们，或帮助他们重新连接。",
-      "title": "有一位守护人无法联系"
+      "title": "有一位守护人无法联系",
+      "subtitle": "这些人在每日检查中没有回应。帮他们重新连接，或替换他们，让你始终有足够的人。",
+      "none": "所有人都能联系到。目前没有需要你处理的事。",
+      "lastSeen": "最近一次联系",
+      "resolveCta": "我能做什么？"
     },
     "center": {
       "description": "我们每天悄悄检查你的保护状况，并尽早提醒你。",
@@ -159,7 +181,12 @@
     },
     "guardianView": {
       "description": "保持安装此应用 — 大多数日子你只需这样做。",
-      "title": "你是一位守护人"
+      "title": "你是一位守护人",
+      "statusLabel": "你的连接",
+      "active": "活跃——可以联系到你",
+      "lastCheck": "你刚刚签到",
+      "inboxCta": "查看需要我处理的请求",
+      "privacyNote": "只有钱包主人能看到这个状态——其他人永远看不到。"
     },
     "log": {
       "description": "每日检查及其结果。",
@@ -167,11 +194,20 @@
     },
     "resolve": {
       "description": "替换这位守护人，或帮助他们重新连接。",
-      "title": "恢复你的保护"
+      "title": "恢复你的保护",
+      "step1": "给他们发消息，请他们打开一次这个应用——这样就会自动重新连接。",
+      "step2": "如果联系不上，就换成另一个你信任的人。",
+      "waitingCta": "我已通知他们——等待重新连接",
+      "replaceCta": "查看我的守护人",
+      "backCta": "返回"
     },
     "waiting": {
       "description": "他们一回来，我们就会通知你。",
-      "title": "等待重新连接"
+      "title": "等待重新连接",
+      "none": "所有人都回来了。没有人在等待重新连接。",
+      "item": "自最近一次联系 {when} 起等待",
+      "hint": "顺其自然——他们一打开应用，这一项就会自动消失。",
+      "backCta": "返回夜间守护"
     },
     "noWallet": "你还没有钱包，所以没有需要看护的内容。",
     "allQuiet": "一切平静。没有人试图接管此钱包，也没有需要你关注的事项。",

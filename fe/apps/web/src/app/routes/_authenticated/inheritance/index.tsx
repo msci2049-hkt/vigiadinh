@@ -62,9 +62,14 @@ function InheritanceSetupScreen() {
       </ul>
 
       {wallet !== null ? (
-        <Button asChild>
-          <Link to="/inheritance/heartbeat">{t("inheritance.heartbeatCta")}</Link>
-        </Button>
+        <div className="mt-2 flex flex-col gap-2">
+          <Button asChild>
+            <Link to="/inheritance/heartbeat">{t("inheritance.heartbeatCta")}</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link to="/inheritance/claim">{t("inheritance.claim.title")}</Link>
+          </Button>
+        </div>
       ) : null}
     </main>
   );

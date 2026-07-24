@@ -145,13 +145,35 @@
     "empty": "Chưa chọn ai nhận ví này. Bạn sẽ chọn người thân ở đây.",
     "heartbeatCta": "Báo người thân rằng bạn vẫn ổn",
     "heartbeatButton": "Tôi vẫn ổn",
-    "heartbeatDone": "Cảm ơn bạn! Người thân sẽ không phải lo lắng."
+    "heartbeatDone": "Cảm ơn bạn! Người thân sẽ không phải lo lắng.",
+    "claimNew": {
+      "description": "Đây là cách người thân nhận được ví này nếu chẳng may bạn gặp chuyện.",
+      "stagesTitle": "Cách hoạt động",
+      "stage1": "Nếu bạn ngừng điểm danh trong {days, plural, other {# ngày}}, người thân có thể xin nhận ví.",
+      "stage2": "Sau khi họ xin, có một cửa sổ cuối {days, plural, other {# ngày}}. Trong thời gian đó bạn vẫn huỷ được nếu là nhầm lẫn.",
+      "stage3": "Hết cửa sổ đó, mỗi người nhận phần của mình.",
+      "guardianNote": "Người thân tự mở việc này — chúng tôi không bao giờ bắt đầu hộ, và không thể dừng lại khi bạn đã đi xa.",
+      "statusTitle": "Hiện tại",
+      "statusHealthy": "Mọi thứ ổn. Bạn vừa điểm danh nên chưa có gì được chuyển giao.",
+      "statusReminding": "Chúng tôi đã nhắc bạn điểm danh. Chạm “Tôi vẫn ổn” để đặt lại.",
+      "statusAsking": "Người thân đang được hỏi có bắt đầu nhận ví hay không.",
+      "statusClaimable": "Người thân giờ có thể xin nhận ví.",
+      "finalWindowLabel": "Cửa sổ cuối để huỷ",
+      "finalWindowValue": "{days, plural, other {# ngày}} sau khi mở yêu cầu",
+      "noPlan": "Ví này chưa thiết lập thừa kế.",
+      "heartbeatCta": "Tôi vẫn ổn — đặt lại",
+      "backCta": "Quay lại"
+    }
   },
   "nightWatch": {
     "alert": {
       "cta": "Xử lý ngay",
       "description": "Một người bảo hộ không trả lời lần kiểm tra hằng ngày. Nếu nhiều người cùng mất liên lạc, bạn có thể không còn đủ người để lấy lại ví. Hãy thay người khác, hoặc giúp họ kết nối lại.",
-      "title": "Một người bảo hộ đang mất liên lạc"
+      "title": "Một người bảo hộ đang mất liên lạc",
+      "subtitle": "Những người này im ắng ở lần kiểm tra hằng ngày. Hãy giúp họ kết nối lại, hoặc thay người khác để bạn luôn đủ người.",
+      "none": "Mọi người đều liên lạc được. Hiện chưa có gì cần bạn để tâm.",
+      "lastSeen": "Lần gần nhất",
+      "resolveCta": "Tôi làm gì được?"
     },
     "center": {
       "description": "Chúng tôi lặng lẽ kiểm tra lớp bảo vệ mỗi ngày và cảnh báo bạn từ sớm.",
@@ -159,7 +181,12 @@
     },
     "guardianView": {
       "description": "Chỉ cần giữ ứng dụng trong máy — hầu hết thời gian bạn không phải làm gì cả.",
-      "title": "Bạn là người bảo hộ"
+      "title": "Bạn là người bảo hộ",
+      "statusLabel": "Kết nối của bạn",
+      "active": "Đang hoạt động — bạn liên lạc được",
+      "lastCheck": "Bạn vừa điểm danh",
+      "inboxCta": "Xem việc cần tôi",
+      "privacyNote": "Chỉ chủ ví thấy trạng thái này — người khác không bao giờ thấy."
     },
     "log": {
       "description": "Các lần kiểm tra hằng ngày và kết quả.",
@@ -167,11 +194,20 @@
     },
     "resolve": {
       "description": "Thay người bảo hộ này, hoặc giúp họ kết nối lại.",
-      "title": "Khôi phục lớp bảo vệ"
+      "title": "Khôi phục lớp bảo vệ",
+      "step1": "Nhắn họ mở ứng dụng này một lần — như vậy là kết nối lại tự động.",
+      "step2": "Nếu không liên lạc được, hãy thay bằng một người khác mà bạn tin.",
+      "waitingCta": "Đã nhắn họ — chờ kết nối lại",
+      "replaceCta": "Xem người thân của tôi",
+      "backCta": "Quay lại"
     },
     "waiting": {
       "description": "Chúng tôi sẽ báo ngay khi họ kết nối trở lại.",
-      "title": "Đang chờ nối lại"
+      "title": "Đang chờ nối lại",
+      "none": "Mọi người đã trở lại. Không còn ai đang chờ kết nối lại.",
+      "item": "Chờ từ lần gần nhất {when}",
+      "hint": "Cứ để họ tự nhiên — khoảnh khắc họ mở ứng dụng, mục này tự hết.",
+      "backCta": "Về trang gác đêm"
     },
     "noWallet": "Bạn chưa có ví nên chưa có gì để trông chừng.",
     "allQuiet": "Mọi thứ yên ổn. Không ai đang cố chiếm ví, và không có gì cần bạn để mắt.",

@@ -98,6 +98,11 @@ function NightWatchCenterScreen() {
             <p className="text-foreground text-sm">
               {t("nightWatch.contacts.summary", { reachable, quiet, unreachable })}
             </p>
+            {quiet + unreachable > 0 ? (
+              <Button asChild variant="destructive">
+                <Link to="/night-watch/alert">{t("nightWatch.alert.resolveCta")}</Link>
+              </Button>
+            ) : null}
             <Button asChild variant="outline">
               <Link to="/guardians">{t("nightWatch.contacts.cta")}</Link>
             </Button>
