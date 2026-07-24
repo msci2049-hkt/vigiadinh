@@ -532,3 +532,48 @@ bundle ra thư mục tạm → **136 commit**, đỉnh `182c698`, tree SHA `9585
   khai thẳng (origin-verifier DEV, WebAuthn-kit nhánh passkey, AI chưa nối, mainnet chưa lên).
 - Câu hỏi thử vàng "chiếm backend làm được gì" trả lời bằng thiết kế thật: registry chỉ là
   invoker cho ĐÚNG cửa recovery_rotate + cooldown; BE không ký được của user.
+
+## PHA 6 SEND + tạo ví · HAI ĐẦU PHỄU — 2026-07-24
+
+> Prompt "hai đầu phễu": lõi khôi phục/guardian xong, còn thiếu GỬI TIỀN + TẠO VÍ.
+> Send trước (đường mòn, mở "ví hoàn chỉnh"); tạo ví mức A sau.
+
+### SEND — đóng CHUỖI HAI-NỬA (passkey → __check_auth → verifier → transfer, 1 tx)
+- Sự thật giao thức: ví C… KHÔNG dùng payment op → invoke `transfer` trên SAC
+  (RESEARCH-LOG SEND). SAC native testnet `CDLZFC3S…CYSC`. amount i128 stroops.
+- BE `modules/intents/features/send-flow`: lái intent qua pipeline PHA 3 (KHÔNG gọi
+  thẳng SAC từ màn nhập): prepare(draft→validating→**kiểm số dư TRƯỚC biometric**→review)
+  · confirm(policy: allow→build tx+awaiting_signature | người lạ/vượt 20M XLM→awaiting_guardian
+  +phiếu bound K5 | delay→đứng policy_gate) · guardian-approve(off-chain, K5 binding + P3
+  re-eval — guardian clear ngưỡng đã kích hoạt, không áp lại → không loop) · sign(whitelist
+  entry: SAC+transfer+from=ví, không sub-invocation → submit → settled/submit_failed).
+  `domain/transfer.ts` thuần (transferArgs/balanceArgs/validateSignedTransfer). Env
+  `CONTRACT_ID_SAC_NATIVE` (chưa set → 503).
+- FE `/wallet/send`: máy 4 bước nhập→review→ký→xong; AmountInput PHA 7.1 (RAW+parse locale,
+  cấm format tự chế); cổng sinh trắc học = prompt passkey (signWalletEntries — tách chung với
+  recovery); vượt ngưỡng → màn "chờ người thân"; taxonomy lỗi "tiền đã đi chưa" (insufficient
+  kèm shortfall / badRecipient / delayed / walletLocked / network / notSent).
+- **E2e testnet 2 pass, 3 tx** (`docs/evidence/TESTNET.md §PHA 6 SEND`): deploy ví C… → nạp
+  XLM (G→SAC→C) → **gửi 1 XLM, người nhận NHẬN ĐỦ đúng số** (đọc SAC.balance). Số dư thiếu +
+  guardian-gate phủ bằng integration test (5 ca DB thật). **Đóng rủi ro kỹ thuật lớn nhất còn lại.**
+
+### TẠO VÍ mức A (ví một người ký, thêm guardian sau)
+- BE `POST /api/wallets`: mirror ví C… FE deploy (không deploy/không giữ khoá); idempotent
+  theo địa chỉ cho chính user, địa chỉ user khác → 409.
+- FE `/setup` + `/setup/done`: kit.createWallet (passkey + deploy) → mirror BE → wallet hub;
+  màn done nhắc thêm guardian là bước kế. Wizard đầy đủ (chọn guardian/threshold/timelock —
+  cần trao đổi khoá đa bên) là Mức B, các màn setup/* khác giữ nhãn đúng.
+
+### Deploy-readiness (PHA 9.2 prep, không cần key)
+- `docs/DEPLOY.md` go-live checklist + bảng contract (v2 dùng, v1 bỏ) · extension `key` CỐ ĐỊNH
+  → ID `chrome-extension://aakakeieeijeflbnblolnlhmooibddmc` (origin phải allow-list verifier prod)
+  · `contracts/scripts/deploy-origin-verifier.sh` tham số hoá.
+
+### Gate
+- BE **225 pass / 7 skip / 0 fail** (+ e2e send opt-in) · contracts 34/34 · FE validate/test/build
+  (gate cuối phủ send+setup+create-wallet).
+
+### Còn stub (subsystem chưa dựng) / PARK
+- Wizard setup mức B (trao đổi khoá guardian đa bên) · night-watch alert/resolve/waiting/
+  guardian-view · guardian/approve-warning (cần AI risk) · inheritance/claim · welcome/get-started.
+- PARK 9.2 mainnet: cần key + domain (DEPLOY.md sẵn).

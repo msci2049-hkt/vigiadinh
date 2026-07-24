@@ -43,6 +43,19 @@ TRONG smart account** (audit P0); AI chưa nối; két di chúc ĐÃ HỦY (bấ
    (gỡ guardian dưới threshold bị chặn — test `remove_guardian_lockout_blocked`).
 3. **js-xdr 4.0.0 `toXDR`** hỏng — encode vector auth entry tự đóng khung (be+fe đối xứng).
 
+## Gửi tiền (SEND) — kẻ địch + đòn đỡ (bổ sung 2026-07-24)
+
+| Kẻ địch | Đòn đỡ | Cưỡng chế |
+|---|---|---|
+| Chiếm BE, cố rút tiền | BE build+simulate nhưng KHÔNG ký được của user; ví phí chỉ ký ENVELOPE | Chữ ký `from` qua `__check_auth` passkey; whitelist /sign chặn source-account credentials (ví phí tự authorize) |
+| Ký mù (tráo nội dung tx sau khi người dùng đồng ý) | Challenge dẫn xuất từ tx đã simulate (K2) — kit derive digest từ entry; sửa amount/recipient = entry khác = chữ ký cũ chết | `send-flow` build tx → FE ký entry đó; `validateSignedTransfer` khớp SAC+transfer+from |
+| Vượt hạn mức lén | Policy gate → awaiting_guardian, phiếu bound challenge_hash (K5); guardian duyệt off-chain rồi owner MỚI ký | `confirmSend` + `guardianApproveIntent` (P3 re-eval); amount đổi sau duyệt → K5 binding chết |
+| Người nhận lạ | Policy v1: recipient chưa từng settled → require_guardian (mặc định an toàn) | `policy-engine` unknown_recipient |
+| Double-tap / gửi 2 lần | intent idempotent (unique wallet+client_intent_id); state machine 1 chiều submitting→settled | `createIdempotent` + `assertTransition` |
+| Số dư thiếu → tạo tx rác | Kiểm số dư TRƯỚC khi tạo signable tx; thiếu → chặn ở validating, không sang review | `prepareSend` (đọc SAC.balance trước biometric) |
+
+Chứng minh on-chain: e2e testnet gửi 1 XLM từ ví C…, người nhận nhận đủ (`docs/evidence §PHA 6 SEND`).
+
 ## Bất biến kỹ thuật đang cưỡng chế bằng test/guard
 
 - K1 origin allow-list (3 vỏ): `origin-verifier` cargo test; production pin domain thật (TODO khi có domain).
