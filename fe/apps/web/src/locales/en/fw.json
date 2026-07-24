@@ -364,6 +364,10 @@
     "timelock": {
       "description": "Recovery only completes after this delay — time for you to stop anything suspicious.",
       "title": "Waiting period"
+    },
+    "wizard": {
+      "comingSoon": "Guided setup with protectors is coming next. For now, create your wallet — you can add protectors right afterward.",
+      "useSimpleCta": "Set up my wallet"
     }
   },
   "wallet": {

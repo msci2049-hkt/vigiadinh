@@ -137,6 +137,16 @@ test.describe("night-watch + inheritance screens (mocked BE)", () => {
     await expect(page.getByText(/Bạn vừa điểm danh/)).toBeVisible();
   });
 
+  test("mức-B wizard stub is honest — labels the step + exits to the working setup", async ({
+    page,
+  }) => {
+    await page.goto("/setup/choose-guardians");
+    await expect(page.getByRole("heading", { name: "Chọn người bảo hộ" })).toBeVisible();
+    // Không giả vờ chạy: có lối ra RÕ về mức A đang chạy.
+    await page.getByRole("link", { name: "Thiết lập ví của tôi" }).click();
+    await expect(page).toHaveURL(/\/setup$/);
+  });
+
   test("guardian inbox → rule-based warning (not AI) before approving", async ({ page }) => {
     await page.goto("/guardian");
     await page.getByRole("link", { name: "Xem yêu cầu này" }).click();

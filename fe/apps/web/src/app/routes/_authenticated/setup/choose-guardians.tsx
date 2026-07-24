@@ -1,6 +1,8 @@
+// Bước wizard mức B — stub NHÃN ĐÚNG (trao đổi khoá đa bên chưa dựng; lối ra về
+// mức A đang chạy). Xem features/family/components/wizard-step.tsx.
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ScreenStub } from "@/components/screen-stub";
+import { WizardStep } from "@/features/family/components/wizard-step";
 
 export const Route = createFileRoute("/_authenticated/setup/choose-guardians")({
   component: SetupChooseGuardiansScreen,
@@ -9,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/setup/choose-guardians")({
 function SetupChooseGuardiansScreen() {
   const { t } = useTranslation("fw");
   return (
-    <ScreenStub
+    <WizardStep
       title={t("setup.chooseGuardians.title")}
       description={t("setup.chooseGuardians.description")}
     />

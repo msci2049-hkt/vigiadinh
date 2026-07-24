@@ -364,6 +364,10 @@
     "timelock": {
       "description": "Khôi phục chỉ hoàn tất sau khoảng chờ này — đủ thời gian để bạn chặn điều bất thường.",
       "title": "Thời gian chờ"
+    },
+    "wizard": {
+      "comingSoon": "Thiết lập có người bảo hộ theo từng bước sẽ có ở bước kế. Hiện tại, hãy tạo ví — bạn có thể thêm người thân ngay sau đó.",
+      "useSimpleCta": "Thiết lập ví của tôi"
     }
   },
   "wallet": {

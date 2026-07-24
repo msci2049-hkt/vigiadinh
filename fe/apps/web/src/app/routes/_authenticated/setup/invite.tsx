@@ -1,6 +1,8 @@
+// Bước wizard mức B — stub NHÃN ĐÚNG (trao đổi khoá đa bên chưa dựng; lối ra về
+// mức A đang chạy). Xem features/family/components/wizard-step.tsx.
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ScreenStub } from "@/components/screen-stub";
+import { WizardStep } from "@/features/family/components/wizard-step";
 
 export const Route = createFileRoute("/_authenticated/setup/invite")({
   component: SetupInviteScreen,
@@ -8,5 +10,5 @@ export const Route = createFileRoute("/_authenticated/setup/invite")({
 
 function SetupInviteScreen() {
   const { t } = useTranslation("fw");
-  return <ScreenStub title={t("setup.invite.title")} description={t("setup.invite.description")} />;
+  return <WizardStep title={t("setup.invite.title")} description={t("setup.invite.description")} />;
 }

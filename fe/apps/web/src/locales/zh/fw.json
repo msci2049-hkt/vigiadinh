@@ -364,6 +364,10 @@
     "timelock": {
       "description": "恢复只有在此延迟之后才完成 — 给你时间阻止任何可疑情况。",
       "title": "等待期"
+    },
+    "wizard": {
+      "comingSoon": "带守护人的引导式设置即将推出。目前请先创建钱包——之后即可添加守护人。",
+      "useSimpleCta": "设置我的钱包"
     }
   },
   "wallet": {
