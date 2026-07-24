@@ -32,6 +32,10 @@ export const inheritancePlans = pgTable(
     // Timelock cuối sau claim, trước execute — cửa sổ veto của owner.
     finalTimelockSecs: integer("final_timelock_secs").notNull().default(604_800),
     status: varchar("status", { length: 16 }).notNull().default("draft"),
+    // PHA 4.3: bậc leo thang heartbeat hiện tại (0 khoẻ → 3 gợi ý claim).
+    // Chỉ tăng khi sweep thấy im lặng thêm kỳ; heartbeat của owner reset về 0.
+    // Notify CHỈ bắn khi tier TĂNG — đó là debounce.
+    escalationTier: integer("escalation_tier").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

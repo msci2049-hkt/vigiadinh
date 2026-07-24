@@ -7,6 +7,7 @@
 import "@/lib/sentry";
 
 import type { Worker } from "bullmq";
+import { createHeartbeatWorker, scheduleHeartbeatWatch } from "@/jobs/heartbeat-watch";
 import { createIndexerWorker, scheduleIndexerPoll } from "@/jobs/indexer-poll";
 import { createIntentSweeperWorker, scheduleIntentSweeper } from "@/jobs/intent-sweeper";
 import { createPresenceWorker, schedulePresencePing } from "@/jobs/presence-ping";
@@ -17,11 +18,13 @@ const workers: Worker[] = [
   createIntentSweeperWorker(),
   createPresenceWorker(),
   createIndexerWorker(),
+  createHeartbeatWorker(),
 ];
 // Lịch lặp đăng ký từ worker process (jobId cố định → gọi lại vô hại).
 void scheduleIntentSweeper();
 void schedulePresencePing();
 void scheduleIndexerPoll();
+void scheduleHeartbeatWatch();
 
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {

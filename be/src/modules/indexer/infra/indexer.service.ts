@@ -135,5 +135,15 @@ async function applyEvent(tx: Tx, event: SimplifiedEvent): Promise<void> {
       params: { walletId: wallet.id, eventId: event.id, ...event.data },
       channel: "push",
     });
+    // Recovery BẮT BUỘC có kênh NGOÀI app (pipeline §7): app bị chiếm thì email
+    // vẫn tới. Nút veto hoạt động từ email nối ở PHA 5 (route veto + link ký).
+    if (route.notifyTemplate.startsWith("recovery.")) {
+      await enqueueNotificationTx(tx, {
+        userId: wallet.ownerUserId,
+        templateKey: route.notifyTemplate,
+        params: { walletId: wallet.id, eventId: event.id, ...event.data },
+        channel: "email",
+      });
+    }
   }
 }

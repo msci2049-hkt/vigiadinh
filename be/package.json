@@ -53,6 +53,7 @@
     "drizzle-orm": "^0.45.2",
     "firebase-admin": "^14.2.0",
     "hono": "^4.12.28",
+    "intl-messageformat": "^11.2.12",
     "ioredis": "^5.10.1",
     "nodemailer": "^9.0.3",
     "ofetch": "^1.5.1",

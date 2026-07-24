@@ -1,0 +1,1 @@
+ALTER TABLE "inheritance_plans" ADD COLUMN "escalation_tier" integer DEFAULT 0 NOT NULL;
