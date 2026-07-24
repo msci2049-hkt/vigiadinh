@@ -40,7 +40,21 @@
   "guardian": {
     "approve": {
       "description": "Hãy gặp hoặc gọi cho họ trước khi bạn đồng ý.",
-      "title": "Xác nhận đúng là họ"
+      "title": "Xác nhận đúng là họ",
+      "gone": "Yêu cầu này không còn mở.",
+      "backCta": "Về danh sách yêu cầu",
+      "votes": "Đã có {approvals, plural, other {# phiếu}} trên {threshold}. Phiếu của bạn có thể là phiếu quyết định.",
+      "fingerprintLabel": "Mã chìa khoá mới: {fingerprint}",
+      "verifyNote": "Gọi cho người nhờ bạn và đọc mã chìa khoá cho nhau nghe. Không khớp thì đừng đồng ý.",
+      "biometricNote": "Vân tay hoặc khuôn mặt xác nhận phiếu — trước đó chưa có gì được gửi đi.",
+      "signing": "Đang chờ bạn xác nhận…",
+      "cta": "Tôi đồng ý — giúp khôi phục",
+      "errors": {
+        "alreadyVoted": "Bạn đã bỏ phiếu cho yêu cầu này rồi. Không cần bỏ lại.",
+        "closed": "Yêu cầu này đã đóng — bị chặn hoặc đã hoàn tất.",
+        "deviceKeyMissing": "Máy này không giữ chìa khoá bảo hộ của bạn cho ví đó. Mở ứng dụng trên máy bạn đã thiết lập làm người bảo hộ.",
+        "notSent": "Phiếu chưa được gửi. Chưa có gì đến mạng — bạn có thể thử lại an toàn."
+      }
     },
     "approveWarning": {
       "cta": "Gọi cho họ trước",
@@ -50,11 +64,19 @@
     },
     "approved": {
       "description": "Xác nhận của bạn đã được ghi nhận.",
-      "title": "Cảm ơn bạn"
+      "title": "Cảm ơn bạn",
+      "nextNote": "Nếu đủ người thân đồng ý, vẫn còn một khoảng chờ để chủ ví kịp chặn lại.",
+      "txLabel": "Bằng chứng trên mạng: {hash}",
+      "cta": "Về danh sách yêu cầu"
     },
     "inbox": {
       "description": "Người bạn bảo hộ đang cần bạn xác nhận.",
-      "title": "Yêu cầu dành cho bạn"
+      "title": "Yêu cầu dành cho bạn",
+      "empty": "Hiện chưa có ai cần bạn giúp.",
+      "walletLabel": "Ví {address}",
+      "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có",
+      "since": "Bắt đầu {when}",
+      "reviewCta": "Xem yêu cầu này"
     }
   },
   "guardians": {

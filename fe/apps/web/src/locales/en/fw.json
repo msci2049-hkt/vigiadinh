@@ -40,7 +40,21 @@
   "guardian": {
     "approve": {
       "description": "Check with them in person or by call before you approve.",
-      "title": "Confirm it's them"
+      "title": "Confirm it's them",
+      "gone": "This request is no longer open.",
+      "backCta": "Back to requests",
+      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} so far. Yours could be the deciding one.",
+      "fingerprintLabel": "New key ID: {fingerprint}",
+      "verifyNote": "Call the person who asked for this and read the key ID to each other. If it does not match, do not agree.",
+      "biometricNote": "Your fingerprint or face confirms the vote — nothing is sent before that.",
+      "signing": "Waiting for your confirmation…",
+      "cta": "I agree — help recover",
+      "errors": {
+        "alreadyVoted": "You already voted on this request. No need to vote again.",
+        "closed": "This request is closed — it was stopped or already finished.",
+        "deviceKeyMissing": "This device does not hold your protector key for this wallet. Open the app on the device you set up as protector.",
+        "notSent": "Your vote was not sent. Nothing reached the network — you can try again safely."
+      }
     },
     "approveWarning": {
       "cta": "Call them first",
@@ -50,11 +64,19 @@
     },
     "approved": {
       "description": "Your confirmation has been recorded.",
-      "title": "Thank you"
+      "title": "Thank you",
+      "nextNote": "If enough family members agree, there is still a waiting period during which the wallet owner can stop it.",
+      "txLabel": "Proof on the network: {hash}",
+      "cta": "Back to requests"
     },
     "inbox": {
       "description": "Someone you protect needs your confirmation.",
-      "title": "Requests for you"
+      "title": "Requests for you",
+      "empty": "No one needs your help right now.",
+      "walletLabel": "Wallet {address}",
+      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
+      "since": "Started {when}",
+      "reviewCta": "Review this request"
     }
   },
   "guardians": {
