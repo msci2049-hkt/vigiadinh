@@ -282,10 +282,17 @@
     log = audit lọc sự kiện an toàn, chung cache với history. Không nút tự huỷ (luật 6).
   - i18n +37 key fw.json en+vi (ICU plural phía en), giọng ux-writer.
 - **Gate mỗi batch:** validate 11/11 + honest build xanh (2 lần) + test 56 pass.
-- **Điểm resume cụm ĐỌC còn lại:** `/inheritance` (GET /api/inheritance/wallet/:id có sẵn) ·
-  `/wallet` hub (chưa có endpoint balance — hiện address + tiles) · `/recovery/progress`
-  (PUBLIC — cần endpoint public BE, làm cùng cụm GHI recovery) · `/guardian` inbox
-  (cần endpoint approvals theo guardian — cụm GHI). Sau đó: cụm GHI theo ROUTES.md.
+- `/inheritance` + `/inheritance/heartbeat` (commit thứ 3 của pha): heirs % qua Intl
+  percent locale tường minh; nút "Tôi vẫn ổn" POST heartbeat reset thang nhắc 4.3
+  (server không bao giờ tự mở thừa kế — bất biến 2). **Tổng 7 màn stub đã thay.**
+- **Điểm resume cụm ĐỌC còn lại:** `/wallet` hub (chưa có endpoint balance — hiện address
+  + tiles) · `/recovery/progress` (PUBLIC — cần endpoint public BE, làm cùng cụm GHI
+  recovery) · `/guardian` inbox (cần endpoint approvals theo guardian — cụm GHI).
+- **Điểm vào cụm GHI (phiên sau):** FE recovery actions — gọi 4 route build PHA 5.2,
+  ký auth entry bằng kit (`kit.signAuthEntry`) rồi POST /submit. ⚠️ ĐÂY là chỗ rủi ro
+  B-23-2 lộ ra (kit ↔ OZ 0.7.2 đường KÝ GIAO DỊCH — prompt phiên §2 có sẵn thang xử lý
+  3 bước: bindings từ contract deployed → craft entry tay bằng stellar-sdk → BLOCKERS
+  + đổi tuyến). Luồng /block (veto) nên đi ĐẦU: có màn night-watch trỏ sang rồi.
 
 ## CI · SCAN + FIX CI ĐỎ (2026-07-23)
 
