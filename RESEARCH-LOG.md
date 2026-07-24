@@ -136,3 +136,39 @@
     `wallets.stellarAddress` trong DB. `owner` hiện tại đọc từ `get_wallet_config` (đổi sau finalize).
 - Áp vào: PHA 5.2 route recovery (`/recovery/register|initiate|approve|veto|finalize|submit`) — build invoke qua `services/stellar`, FE ký auth entry, BE validate entry + fee-wallet ký envelope + submit.
 - Mâu thuẫn skill? Không.
+
+## PASSKEY-ONCHAIN — mổ chuỗi lỗi khi đóng mắt xích passkey (2026-07-24)
+
+- Hỏi: vì sao `kit.createWallet`/`signAuthEntry` (smart-account-kit 0.4.2) chết khi chạy
+  bằng virtual authenticator Playwright 1.61, trong khi cargo test + BE e2e (ed25519) xanh?
+- Nguồn: chạy THẬT + đọc bundle kit (`dist/utils.js`, `kit/webauthn-ops.js`,
+  `kit/auth-payload.js`, `kit/deploy-ops.js`) + bundle Playwright (`coreBundle.js`)
+  + probe `canonicalize_key` trên verifier DEV deployed (simulate 3 độ dài key).
+- Kết luận — BA tầng lỗi độc lập, bóc lần lượt:
+  1. **Shim credentials của Playwright 1.61** (JS-level, KHÔNG phải CDP authenticator):
+     `AuthenticatorAttestationResponse.getPublicKey()` không có, và
+     `getAuthenticatorData()` trả NHẦM cả attestationObject CBOR (`{fmt,attStmt,authData}`).
+     Kit vì thế rơi vào parser fallback offset-cứng trên buffer sai → key rác 17B →
+     constructor deploy chết `Error(Contract, #3119) KeyDataInvalid` (OZ webauthn:
+     `extract_from_bytes(0..65)` fail). Vá TRONG TEST: `e2e/support-passkey.ts` polyfill
+     `getPublicKey` (bóc CBOR "authData" + tìm nhãn toạ độ x/y `0x21/0x22 0x58 0x20`
+     trong vùng COSE → SPKI DER). Trình duyệt thật CÓ getPublicKey — không đụng sản phẩm.
+  2. **Bug SẢN PHẨM — thiếu `contextRuleIds`**: entry từ simulation mang signature
+     placeholder `scvVoid`; `readAuthPayload(scvVoid)` trả payload rỗng nên
+     `kit.signAuthEntry` không có rule ids → throw "contextRuleIds are required".
+     `signWalletEntries` + `sep45Login` chưa truyền → CHẾT với MỌI backend thật
+     (BE e2e không lộ vì test BE tự dựng payload map với rule_ids [0]).
+     Vá: `DEFAULT_CONTEXT_RULE_IDS = [0]` (mức A một rule chủ ví — đúng công thức
+     digest đã chứng minh on-chain ở audit P0; mức B resolve động theo rule người ký).
+  3. **Bug SẢN PHẨM — placeholder sai loại**: BE SEP-45 dựng entry ví với
+     `scvVec([])`; `readAuthPayload` coi scvVec là AuthPayload hỏng → throw ngay cả
+     khi đã truyền rule ids. Vá: `scvVoid()` (khớp chuẩn simulation RPC).
+- Kiểm chứng shim phía KÝ (đọc coreBundle `_handleGet`): chữ ký = `crypto.sign` DER ✓
+  (khớp `compactSignature` kit), authData assertion đúng format, flags `1|4` = UP+UV ✓,
+  clientDataJSON có origin thật của trang ✓ → không cần polyfill cho đường ký.
+- Kết quả sau 3 vá: e2e `passkey-onchain.spec.ts` PASS — deploy passkey thật + gửi
+  1 XLM ký secp256r1 settled (tx `e83adb27…`, TESTNET.md §PASSKEY-ONCHAIN).
+- Phát hiện kèm: `signAuthEntry` tìm signer bằng `get_context_rule` TỪ CHAIN →
+  ví CHƯA deploy không ký được (luồng /passkey createCta cũ là dead-end; spec
+  passkey-login skip có chủ đích, createCta nên trỏ về /setup).
+- Mâu thuẫn skill? Không — fw-passkey-auth đúng; bổ sung được chi tiết kit 0.4.2.

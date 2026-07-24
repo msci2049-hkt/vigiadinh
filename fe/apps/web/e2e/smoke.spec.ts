@@ -37,10 +37,14 @@ test("theme toggle applies .dark and persists across reload (FOUC guard)", async
   await expect(html).toHaveClass(/dark/); // inline script set it before first paint
 });
 
-test("language switch toggles vi ⇄ en", async ({ page }) => {
+test("language switch cycles vi → zh → en (PHA 7.2: 3 ngôn ngữ)", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("link", { name: "Trang chủ" })).toBeVisible();
 
   await page.getByRole("button", { name: "Ngôn ngữ" }).click();
+  await expect(page.getByRole("link", { name: "首页" })).toBeVisible();
+
+  // Nhãn nút cũng localize theo ngôn ngữ hiện hành (vi "Ngôn ngữ" → zh "语言").
+  await page.getByRole("button", { name: "语言" }).click();
   await expect(page.getByRole("link", { name: "Home" })).toBeVisible();
 });

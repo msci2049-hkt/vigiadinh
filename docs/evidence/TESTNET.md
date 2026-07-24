@@ -107,3 +107,33 @@ sign[ký entry ví bằng External/ed25519 qua __check_auth]→submit; verify ng
 
 Số dư thiếu → chặn TRƯỚC biometric (không tạo tx ký được) + vượt ngưỡng → awaiting_guardian →
 guardian duyệt: phủ bằng integration test (`send-flow.test.ts`, DB thật + gateway fake, 5 ca).
+
+## PASSKEY-ONCHAIN — Mắt xích cuối: WebAuthn secp256r1 KÝ TX THẬT (2026-07-24)
+
+Mục SEND ở trên chạy `__check_auth` bằng khoá **ed25519** (External/verifier-ed25519) —
+nhánh passkey WebAuthn thật là phần CHƯA chạm (B-23-2). Mục này đóng nốt: **toàn bộ
+luồng sản phẩm chạy bằng passkey secp256r1 thật** (virtual authenticator Playwright,
+ceremony `navigator.credentials` thật trong chromium) — KHÔNG còn ed25519 ở chỗ nào
+của đường ký user.
+
+**E2e — chạy THẬT trên testnet 2026-07-24** (`fe/apps/web/e2e/passkey-onchain.spec.ts`,
+opt-in `RUN_TESTNET_E2E=1`, **1 pass, 41.6s**; lái ĐÚNG UI sản phẩm: `/setup` bấm
+"Tạo ví của tôi" → `/wallet/send` nhập 1 XLM → "Xác nhận và gửi"; BE mock qua
+`page.route` nhưng HAI CHÂN ON-CHAIN THẬT — build tx = simulate RPC thật, submit =
+gửi mạng thật, mirror đúng `be/services/stellar`):
+
+| Bước | Chứng minh | Bằng chứng |
+|---|---|---|
+| deploy ví bằng passkey | `kit.createWallet` autoSubmit — signer duy nhất = External(origin-verifier DEV, **key secp256r1 65B `0x04…` + credentialId suffix**) | [ví CBWLUXGF…E5A7](https://stellar.expert/explorer/testnet/contract/CBWLUXGFB7IL4FIU3UFA2RV4J6Q3QJYKAPL2H4VF774JIBYLZUWAE5A7) |
+| nạp 3 XLM vào ví | G funder invoke SAC transfer(G→C) | [074a7fd2](https://stellar.expert/explorer/testnet/tx/074a7fd2f70a5e13d4a92cc65eee4e66c4ade269350a84022bb0ba2a406a4bba) |
+| **GỬI 1 XLM ký bằng PASSKEY** | **secp256r1 → `__check_auth` → origin-verifier (rpIdHash pin + origin allow-list + UP/UV) → SAC transfer, MỘT tx, settled**; người nhận +1 XLM đúng số ✅ | [e83adb27](https://stellar.expert/explorer/testnet/tx/e83adb2733ce04ec753b875af89b0f80e8124b2172964c67e3e0f9362ebb5cd4) — verify độc lập RPC: SUCCESS, ledger 3777940, 15:43:11Z |
+| signer đọc TỪ SMART ACCOUNT | `get_context_rule(0)`: đúng 1 signer External, verifier = `CCNS6O5H…` (webauthn), key 81B (65 pubkey + 16 credId), **KHÔNG phải verifier-ed25519** ✅ | assert trong spec, chạy sau khi settled |
+
+Hai bug SẢN PHẨM thật tìm ra và vá trong quá trình đóng (chi tiết RESEARCH-LOG
+§PASSKEY-ONCHAIN): (1) `signWalletEntries`/`sep45Login` không truyền `contextRuleIds`
+— entry simulation mang placeholder `scvVoid` nên kit không tự đọc được, ký sẽ chết ở
+runtime với MỌI backend thật; (2) placeholder entry ví của BE SEP-45 là `scvVec([])`
+— kit `readAuthPayload` coi là AuthPayload hỏng và throw; đổi thành `scvVoid`.
+Workaround test-env (KHÔNG phải code sản phẩm): shim credentials Playwright 1.61
+thiếu `getPublicKey()` + `getAuthenticatorData()` trả nhầm attestationObject →
+polyfill trong `e2e/support-passkey.ts` (trình duyệt thật có sẵn các API này).

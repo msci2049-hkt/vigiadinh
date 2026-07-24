@@ -577,3 +577,44 @@ bundle ra thư mục tạm → **136 commit**, đỉnh `182c698`, tree SHA `9585
 - Wizard setup mức B (trao đổi khoá guardian đa bên) · night-watch alert/resolve/waiting/
   guardian-view · guardian/approve-warning (cần AI risk) · inheritance/claim · welcome/get-started.
 - PARK 9.2 mainnet: cần key + domain (DEPLOY.md sẵn).
+
+## §1 PASSKEY ON-CHAIN · MẮT XÍCH CUỐI ĐÃ ĐÓNG THẬT — 2026-07-24
+
+> Checklist phiên: "chuỗi hai-nửa" trước đây on-chain bằng **ed25519** — nhánh passkey
+> WebAuthn là phần chưa chạm (B-23-2). Phiên này đóng bằng bằng chứng, không bằng tiêu đề.
+
+### Gỡ fail-env KI-2 (không cần sudo) — mở đường mọi việc sau
+- chromium Playwright chạy được local: `apt-get download libnspr4 libnss3 libasound2t64`
+  (không cần root) → `dpkg -x` vào `~/chrome-libs/extracted` → export
+  `LD_LIBRARY_PATH=~/chrome-libs/extracted/usr/lib/x86_64-linux-gnu`. Chrome for
+  Testing 149 chạy, 0 lib thiếu. **Toàn suite e2e chromium chạy local LẦN ĐẦU.**
+
+### Bằng chứng (e2e `fe/apps/web/e2e/passkey-onchain.spec.ts`, RUN_TESTNET_E2E=1, 1 pass/41.6s)
+- Lái ĐÚNG UI sản phẩm trên bản build production: `/setup` "Tạo ví của tôi" (passkey ảo
+  → `kit.createWallet` autoSubmit = **DEPLOY THẬT**) → nạp 3 XLM → `/wallet/send` nhập
+  1 XLM → "Xác nhận và gửi" (prompt passkey → `signWalletEntries`) → màn "Đã gửi" + tx hash.
+- **Chuỗi `passkey secp256r1 → __check_auth → origin-verifier → SAC transfer` chạy trong
+  MỘT tx settled**: `e83adb27…` (verify độc lập RPC: SUCCESS, ledger 3777940). Người nhận
+  +1 XLM đúng số (đọc SAC.balance). `get_context_rule(0)` đọc TỪ smart account: 1 signer
+  External(verifier webauthn `CCNS6O5H…`, key 65B `0x04…`+credId) — KHÔNG phải ed25519.
+- Ví: `CBWLUXGF…E5A7` · bảng đầy đủ: docs/evidence/TESTNET.md §PASSKEY-ONCHAIN.
+- BE trong spec là mock page.route NHƯNG hai chân on-chain THẬT (build = simulate RPC thật,
+  submit = mạng thật, mirror đúng services/stellar) — điều spec chứng minh là đường KÝ.
+
+### HAI BUG SẢN PHẨM THẬT tìm ra nhờ chạy thật (B-23-2 hiện hình) — đã vá + test
+1. `fe features/wallet`: `signWalletEntries` + `sep45Login` không truyền `contextRuleIds`
+   → ký chết runtime với MỌI backend thật (placeholder simulation là scvVoid, kit không
+   tự đọc được). Vá `DEFAULT_CONTEXT_RULE_IDS=[0]` + unit test khoá option này.
+2. `be modules/sep45`: placeholder entry ví `scvVec([])` → kit throw "not AuthPayload".
+   Vá `scvVoid()` + test đổi theo. (Chi tiết 3 tầng lỗi: RESEARCH-LOG §PASSKEY-ONCHAIN.)
+- Workaround TEST-ENV (không phải sản phẩm): shim credentials Playwright 1.61 thiếu
+  `getPublicKey()`/`getAuthenticatorData()` trả nhầm attestationObject → polyfill
+  `e2e/support-passkey.ts` (browser thật có sẵn API).
+
+### Suite e2e chromium local (lần đầu chạy được)
+- **23 pass / 1 skip / 0 fail** sau 2 sửa spec: smoke language-switch viết cho 2 ngôn ngữ
+  (PHA 7.2 đã thành vòng en→vi→zh + nhãn nút localize) · passkey-login **skip có chủ đích**
+  (kit 0.4.2 không ký được cho ví CHƯA deploy — đọc rule từ chain; bằng chứng passkey
+  giờ là passkey-onchain.spec; luồng /passkey createCta là dead-end legacy → §2.5 trỏ về /setup).
+- Gate: BE 223 pass/9 skip (sep45 19/19 sau vá) · FE validate + unit 25 pass + honest build
+  xanh 2 lần · contracts 34/34 (không đổi).

@@ -123,3 +123,27 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
 - **Dấu hiệu sẽ lộ:** e2e passkey CI (giờ simulate deploy bằng wasm hash MỚI `a67ea40e…` —
   fe/.env.example đã trỏ) fail ở bước ký/submit.
 - **Cần để gỡ:** đọc job e2e ở CI (B-CI-1).
+
+## CẬP NHẬT 2026-07-24 (phiên đóng mắt xích passkey)
+
+### B-23-2 · ĐÃ ĐÓNG ✅ — kit ↔ contract OZ verify on-chain bằng passkey THẬT
+- Bằng chứng: tx `e83adb27…` — WebAuthn secp256r1 (virtual authenticator, ceremony
+  navigator.credentials thật) ký SAC transfer qua `__check_auth` → origin-verifier,
+  settled testnet. `docs/evidence/TESTNET.md §PASSKEY-ONCHAIN`.
+- Rủi ro "kit ↔ OZ đường WebAuthn" hiện hình thành 2 bug sản phẩm (contextRuleIds +
+  scvVoid placeholder) — ĐÃ vá + test (BUILD-LOG §1 PASSKEY ON-CHAIN, RESEARCH-LOG).
+
+### B-CI-2 · THU HẸP — e2e chromium ĐÃ chạy local (firefox/webkit còn nguyên)
+- Workaround không cần sudo: `apt-get download libnspr4 libnss3 libasound2t64` →
+  `dpkg -x` vào `~/chrome-libs/extracted` → `LD_LIBRARY_PATH=~/chrome-libs/extracted/usr/lib/x86_64-linux-gnu`.
+- Suite chromium local: **23 pass / 1 skip / 0 fail** (2026-07-24). Kết quả CI GitHub
+  vẫn chưa đọc được từ máy này (B-CI-1 còn nguyên); firefox/webkit chưa thử vá lib
+  tương tự (B-52-1 còn nguyên).
+
+### B-23-1 · CẬP NHẬT — spec passkey-login skip CÓ CHỦ ĐÍCH
+- Chạy local lần đầu lộ: spec không thể xanh với kit 0.4.2 — `signAuthEntry` đọc
+  `get_context_rule` TỪ CHAIN để tìm signer, ví do `createWallet` (không autoSubmit)
+  chưa tồn tại on-chain → ký luôn fail. Spec giờ `test.skip` kèm lý do trong file;
+  bằng chứng passkey chuyển sang `passkey-onchain.spec.ts` (opt-in RUN_TESTNET_E2E,
+  đã pass local). Việc treo: e2e đăng-nhập-lại với ví ĐÃ deploy (cần fixture
+  credential ổn định) + đổi /passkey createCta trỏ về /setup (§2.5).
