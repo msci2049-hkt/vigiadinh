@@ -481,3 +481,55 @@ fn signer_fingerprint_cross_language_vector() {
         "cdc9947d62f44d6d81d4a532ce36da82c95465da589777c51ffdb5f9b0cda94e"
     );
 }
+
+// ---------- VETO đổi registry: người thân chặn được đường cắt-đường-cứu ----------
+
+/// Chuỗi auth đầy đủ: guardian ký ở registry → registry gọi vào ví với tư cách
+/// INVOKER → đơn đổi registry bị huỷ. Đây là đòn đỡ cho kịch bản passkey chủ ví
+/// bị chiếm rồi kẻ tấn công xin trỏ ví sang registry của nó.
+#[test]
+fn guardian_vetoes_registry_change_through_registry() {
+    let e = Env::default();
+    let w = setup(&e);
+    let hostile_registry = Address::generate(&e);
+
+    w.account
+        .propose_recovery_registry(&hostile_registry, &1u64);
+    assert!(w.account.pending_recovery_registry().is_some());
+
+    w.registry.veto_registry_change(&w.account_addr, &w.g1);
+
+    assert!(w.account.pending_recovery_registry().is_none());
+    // Registry hiện tại KHÔNG đổi — người thân vẫn cứu được ví.
+    assert_eq!(
+        w.account.get_recovery_registry(),
+        Some((w.registry.address.clone(), COOLDOWN))
+    );
+}
+
+/// Người lạ (không nằm trong danh sách guardian của ví) không veto được — nếu
+/// không thì bất kỳ ai cũng khoá vĩnh viễn được việc chủ ví đổi registry.
+#[test]
+fn non_guardian_cannot_veto_registry_change() {
+    let e = Env::default();
+    let w = setup(&e);
+    w.account
+        .propose_recovery_registry(&Address::generate(&e), &1u64);
+
+    let err = w
+        .registry
+        .try_veto_registry_change(&w.account_addr, &Address::generate(&e))
+        .err()
+        .unwrap();
+    assert_eq!(err, Ok(RegistryError::NotAGuardian.into()));
+    assert!(w.account.pending_recovery_registry().is_some());
+}
+
+/// TTL: gia hạn cho ví nằm im, không đòi auth ai.
+#[test]
+fn extend_ttl_runs_without_auth() {
+    let e = Env::default();
+    let w = setup(&e);
+    w.registry.extend_ttl(&w.account_addr);
+    assert!(w.registry.is_registered(&w.account_addr));
+}

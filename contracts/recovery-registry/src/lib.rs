@@ -51,10 +51,13 @@ pub enum RegistryError {
 
 const MAX_GUARDIANS: u32 = 10;
 
-/// Cửa xoay khoá trên smart account (xem smart-account::recovery_rotate).
+/// Cửa registry được gọi trên smart account. ĐÚNG HAI việc, không hơn: xoay
+/// khoá khi khôi phục, và huỷ đơn xin đổi registry (veto của người thân — ví
+/// không biết ai là guardian, registry mới biết).
 #[contractclient(name = "AccountClient")]
 pub trait RecoveryAccount {
     fn recovery_rotate(e: Env, new_signer: Signer);
+    fn cancel_recovery_registry_change(e: Env, caller: Address);
 }
 
 #[contracttype]
@@ -97,18 +100,39 @@ enum DataKey {
 #[contract]
 pub struct RecoveryRegistry;
 
+/// TTL: ngưỡng còn lại mà dưới đó thì gia hạn, và mốc gia hạn tới (ledger).
+/// ~17 ngày / ~180 ngày ở nhịp 5s/ledger. Cùng tinh thần OZ: mỗi lần ĐỌC là một
+/// lần gia hạn, nên ví đang được dùng không bao giờ archive.
+const TTL_THRESHOLD: u32 = 300_000;
+const TTL_EXTEND_TO: u32 = 3_110_400;
+
 fn config(e: &Env, wallet: &Address) -> WalletConfig {
+    let key = DataKey::Config(wallet.clone());
+    let cfg = e
+        .storage()
+        .persistent()
+        .get(&key)
+        .unwrap_or_else(|| panic_with_error!(e, RegistryError::NotRegistered));
+    // Gia hạn khi đọc — khuôn của OZ (`smart_account::storage::get_persistent_entry`).
+    // Thiếu dòng này thì cấu hình guardian của ví archive sau vài tháng im lặng
+    // và khôi phục chết đúng lúc gia đình cần.
     e.storage()
         .persistent()
-        .get(&DataKey::Config(wallet.clone()))
-        .unwrap_or_else(|| panic_with_error!(e, RegistryError::NotRegistered))
+        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+    cfg
 }
 
 fn request(e: &Env, wallet: &Address) -> RecoveryRequest {
+    let key = DataKey::Request(wallet.clone());
+    let req = e
+        .storage()
+        .persistent()
+        .get(&key)
+        .unwrap_or_else(|| panic_with_error!(e, RegistryError::NoActiveRecovery));
     e.storage()
         .persistent()
-        .get(&DataKey::Request(wallet.clone()))
-        .unwrap_or_else(|| panic_with_error!(e, RegistryError::NoActiveRecovery))
+        .extend_ttl(&key, TTL_THRESHOLD, TTL_EXTEND_TO);
+    req
 }
 
 /// Request đang SỐNG (Pending/Approved) — chặn đổi cấu hình + initiate chồng.
@@ -327,6 +351,39 @@ impl RecoveryRegistry {
             (symbol_short!("finalize"), wallet),
             signer_fingerprint(e, &req.new_signer),
         );
+    }
+
+    /// VETO ĐỔI REGISTRY — người thân chặn việc ví bị trỏ sang registry khác.
+    ///
+    /// Vì sao đường này phải đi qua registry chứ không gọi thẳng vào ví: ví
+    /// không giữ danh sách guardian (registry giữ), nên ví không tự biết ai có
+    /// quyền chặn. Registry kiểm tư cách rồi gọi vào ví với tư cách INVOKER —
+    /// cùng khuôn auth đã chứng minh ở `recovery_rotate`.
+    ///
+    /// Đây là đòn đỡ cho kịch bản: passkey chủ ví bị chiếm → kẻ tấn công xin
+    /// đổi registry để cắt đứt đường cứu. Timelock cho người thân thấy, hàm này
+    /// cho họ chặn.
+    pub fn veto_registry_change(e: &Env, wallet: Address, guardian: Address) {
+        guardian.require_auth();
+        let cfg = config(e, &wallet);
+        if !cfg.guardians.contains(&guardian) {
+            panic_with_error!(e, RegistryError::NotAGuardian);
+        }
+        AccountClient::new(e, &wallet)
+            .cancel_recovery_registry_change(&e.current_contract_address());
+        e.events()
+            .publish((symbol_short!("rl_veto"), wallet), guardian);
+    }
+
+    /// GIA HẠN TTL cho ví nằm im — cron ví phí gọi (`be/src/jobs/ttl-keeper.ts`).
+    /// Không đòi auth: gia hạn không đổi được gì, chỉ tốn phí người gọi.
+    /// Đọc `config` bên trong nên chính nó đã gia hạn; gọi cả instance của
+    /// registry để bản thân registry không archive.
+    pub fn extend_ttl(e: &Env, wallet: Address) {
+        let _ = config(e, &wallet);
+        e.storage()
+            .instance()
+            .extend_ttl(TTL_THRESHOLD, TTL_EXTEND_TO);
     }
 
     // ---- Views (shape v1) ----

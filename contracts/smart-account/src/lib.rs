@@ -29,18 +29,33 @@ use soroban_sdk::{
 };
 use stellar_accounts::smart_account::{
     self, AuthPayload, ContextRule, ContextRuleType, ExecutionEntryPoint, Signer, SmartAccount,
-    SmartAccountError,
+    SmartAccountError, SmartAccountStorageKey,
 };
+
+mod registry_link;
+pub use registry_link::{FwConstructorEntry, PendingRegistry};
 
 /// Mã lỗi riêng của wrapper — bắt đầu 100 để không đè SmartAccountError của OZ.
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
 pub enum FamilyWalletError {
-    /// `recovery_rotate` khi chưa `set_recovery_registry`.
+    /// `recovery_rotate` khi chưa cắm registry.
     RecoveryNotConfigured = 100,
     /// Mọi chữ ký bị chối trong cửa sổ cooldown sau xoay khoá.
     CooldownActive = 101,
+    /// Map `policies` của constructor chở nhiều hơn MỘT mục registry.
+    DuplicateRecoveryEntry = 102,
+    /// `set_recovery_registry` khi ĐÃ có registry — đổi phải đi đường timelock.
+    RegistryAlreadyConfigured = 103,
+    /// `apply`/`cancel` đổi registry khi không có đơn nào đang chờ.
+    NoPendingRegistryChange = 104,
+    /// `apply` khi timelock chưa hết.
+    RegistryChangeNotDue = 105,
+    /// `propose` chồng lên đơn đang chờ — huỷ đơn cũ trước.
+    RegistryChangePending = 106,
+    /// Huỷ đơn đổi registry bởi người không phải chủ ví lẫn registry hiện tại.
+    NotAuthorizedToCancel = 107,
 }
 
 #[contracttype]
@@ -52,6 +67,8 @@ pub enum FwDataKey {
     OwnerRuleId,
     /// Timestamp lần xoay khoá gần nhất (mốc tính cooldown).
     LastRotation,
+    /// Đơn xin đổi registry đang chờ hết timelock ([`PendingRegistry`]).
+    PendingRegistry,
 }
 
 #[contract]
@@ -68,7 +85,12 @@ fn owner_rule_id(e: &Env) -> u32 {
 #[contractimpl]
 impl FamilyWalletAccount {
     /// Rule mặc định với signers (thường: External passkey) + policies của người dùng.
+    ///
+    /// Nếu map `policies` chở mục [`FwConstructorEntry::RecoveryRegistry`] thì
+    /// registry khôi phục được cắm NGAY trong tx này — ví sinh ra đã khôi phục
+    /// được, không có cửa sổ "ví sống nhưng chưa nối registry".
     pub fn __constructor(e: &Env, signers: Vec<Signer>, policies: Map<Address, Val>) {
+        let (recovery, policies) = registry_link::split_recovery_entry(e, &policies);
         let rule = smart_account::add_context_rule(
             e,
             &ContextRuleType::Default,
@@ -80,6 +102,9 @@ impl FamilyWalletAccount {
         e.storage()
             .instance()
             .set(&FwDataKey::OwnerRuleId, &rule.id);
+        if let Some((registry, cooldown_secs)) = recovery {
+            registry_link::store(e, &registry, cooldown_secs);
+        }
     }
 
     /// Thêm signer (vd nối vỏ mới) — chỉ chính tài khoản tự ký mới được đổi.
@@ -88,17 +113,89 @@ impl FamilyWalletAccount {
         smart_account::batch_add_signer(e, context_rule_id, &signers);
     }
 
-    /// Trỏ registry recovery + độ dài cooldown. Chỉ tài khoản tự ký (passkey chủ ví).
-    /// Gỡ quyền = trỏ sang registry khác hoặc đặt lại — cùng cửa tự-ký này.
+    /// Cắm registry LẦN ĐẦU cho ví chưa có (ví deploy trước bản constructor này,
+    /// hoặc luồng test). Chỉ tài khoản tự ký (passkey chủ ví).
+    ///
+    /// ĐỔI registry đã có KHÔNG đi cửa này — nó phải qua timelock + veto
+    /// (`propose_recovery_registry`), nếu không passkey chủ ví bị chiếm là kẻ
+    /// tấn công trỏ ví sang registry của nó và cắt đứt người thân khỏi ví.
     pub fn set_recovery_registry(e: &Env, registry: Address, cooldown_secs: u64) {
         e.current_contract_address().require_auth();
-        e.storage()
-            .instance()
-            .set(&FwDataKey::RecoveryRegistry, &(registry, cooldown_secs));
+        if registry_link::link(e).is_some() {
+            panic_with_error!(e, FamilyWalletError::RegistryAlreadyConfigured);
+        }
+        registry_link::store(e, &registry, cooldown_secs);
     }
 
     pub fn get_recovery_registry(e: &Env) -> Option<(Address, u64)> {
-        e.storage().instance().get(&FwDataKey::RecoveryRegistry)
+        registry_link::link(e)
+    }
+
+    /// Xin ĐỔI registry — chủ ví tự ký, nhưng chỉ có hiệu lực sau timelock và
+    /// người thân veto được trong cửa sổ đó (`RecoveryRegistry::veto_registry_change`).
+    /// Không có timelock thì passkey chủ ví bị chiếm là kẻ tấn công trỏ ví sang
+    /// registry của nó, cắt đứt đường cứu duy nhất mà không ai kịp biết.
+    pub fn propose_recovery_registry(e: &Env, registry: Address, cooldown_secs: u64) {
+        e.current_contract_address().require_auth();
+        let apply_at = registry_link::propose(e, registry.clone(), cooldown_secs);
+        e.events().publish(
+            (symbol_short!("rl_prop"), e.current_contract_address()),
+            (registry, apply_at),
+        );
+    }
+
+    /// Áp đơn đã hết timelock. KHÔNG đòi auth: quyết định đã được chủ ví ký ở
+    /// `propose`, timelock + veto là cổng gác — cùng khuôn `finalize_recovery`.
+    pub fn apply_recovery_registry(e: &Env) {
+        let registry = registry_link::apply_pending(e);
+        e.events().publish(
+            (symbol_short!("rl_apply"), e.current_contract_address()),
+            registry,
+        );
+    }
+
+    /// Huỷ đơn đổi registry. Hai người được huỷ: CHÍNH VÍ (chủ đổi ý) và
+    /// REGISTRY HIỆN TẠI (người thân veto — registry là nơi biết ai là guardian,
+    /// ví thì không). Registry gọi trực tiếp nên `require_auth` của nó là invoker
+    /// auth, cùng khuôn `recovery_rotate`.
+    pub fn cancel_recovery_registry_change(e: &Env, caller: Address) {
+        caller.require_auth();
+        let (registry, _) = registry_link::require_link(e);
+        if caller != e.current_contract_address() && caller != registry {
+            panic_with_error!(e, FamilyWalletError::NotAuthorizedToCancel);
+        }
+        registry_link::cancel_pending(e);
+        e.events().publish(
+            (symbol_short!("rl_cxl"), e.current_contract_address()),
+            caller,
+        );
+    }
+
+    /// Đơn đổi registry đang chờ (None = không có) — FE hiện cảnh báo + đếm ngược.
+    pub fn pending_recovery_registry(e: &Env) -> Option<PendingRegistry> {
+        registry_link::pending(e)
+    }
+
+    /// GIA HẠN TTL — chống "ví biến mất" sau nhiều tháng nằm im.
+    ///
+    /// Soroban archive entry hết TTL. OZ tự gia hạn entry persistent của nó MỖI
+    /// LẦN ĐỌC (`storage.rs::get_persistent_entry`), nên ví đang được dùng tự
+    /// lành. Nhưng ví thừa kế được thiết kế để nằm im nhiều tháng — không có lần
+    /// đọc nào, và instance storage (dây nối registry, owner rule id, mốc xoay
+    /// khoá) thì KHÔNG ai gia hạn cả. Hết TTL = tiền còn đó nhưng không ai mở
+    /// được, đúng lúc gia đình cần nhất.
+    ///
+    /// Không đòi auth: gia hạn TTL không đổi được gì, ai trả phí cũng tốt (cron
+    /// ví phí của app gọi — xem `be/src/jobs/ttl-keeper.ts`). Tự nó cũng là một
+    /// lần đọc rule nên OZ gia hạn luôn phần persistent của rule chủ ví.
+    pub fn extend_ttl(e: &Env, threshold: u32, extend_to: u32) {
+        e.storage().instance().extend_ttl(threshold, extend_to);
+        let rule_id = owner_rule_id(e);
+        e.storage().persistent().extend_ttl(
+            &SmartAccountStorageKey::ContextRuleData(rule_id),
+            threshold,
+            extend_to,
+        );
     }
 
     /// Timestamp lần xoay khoá gần nhất (None = chưa từng xoay).
