@@ -109,8 +109,15 @@ export const envShape = {
     .string()
     .regex(/^S[A-Z2-7]{55}$/, "phải là secret key (S...)")
     .optional(),
-  // Contract nghiệp vụ đã deploy (testnet: recovery registry từ spike cũ).
+  // Contract nghiệp vụ đã deploy (testnet: recovery registry v2).
   CONTRACT_ID_RECOVERY: z
+    .string()
+    .regex(/^C[A-Z2-7]{55}$/)
+    .optional(),
+  // SAC native (XLM) — gửi tiền từ ví hợp đồng = invoke transfer trên đây (PHA 6
+  // SEND). Lấy: `stellar contract id asset --asset native --network <net>`.
+  // Chưa set → route send trả 503 (app sống). Testnet id trong .env.
+  CONTRACT_ID_SAC_NATIVE: z
     .string()
     .regex(/^C[A-Z2-7]{55}$/)
     .optional(),

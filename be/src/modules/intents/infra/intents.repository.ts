@@ -2,13 +2,14 @@
 // unique (wallet_id, client_intent_id); INSERT đụng 23505 → SELECT bản cũ trả về.
 // Đây là chốt đúng cho 50 request song song (Redis NX chỉ là guard phụ cho
 // double-tap KÝ ở PHA 5 — không thay được unique index).
-import { and, eq, inArray, lt } from "drizzle-orm";
+import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
+import { guardians } from "../../guardians/infra/guardians.schema";
 import { auditLog } from "../../indexer/infra/audit-log.schema";
-import { wallets } from "../../wallets/infra/wallets.schema";
+import { type Wallet, wallets } from "../../wallets/infra/wallets.schema";
 import { computeIntentHash } from "../domain/hashing";
 import { DRAFT_TTL_SECONDS, expiresAtFrom } from "../domain/ttl";
-import { approvalRequests } from "./approvals.schema";
+import { type ApprovalRequest, approvalRequests } from "./approvals.schema";
 import {
   type NewTransactionIntent,
   type TransactionIntent,
@@ -88,6 +89,132 @@ export async function createIdempotent(
     if (!existing) throw err;
     return { intent: existing, deduplicated: true };
   }
+}
+
+export async function walletById(walletId: string): Promise<Wallet | null> {
+  const [row] = await db.select().from(wallets).where(eq(wallets.id, walletId)).limit(1);
+  return row ?? null;
+}
+
+export async function intentById(id: string): Promise<TransactionIntent | null> {
+  const [row] = await db
+    .select()
+    .from(transactionIntents)
+    .where(eq(transactionIntents.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+/** Cập nhật intent (state transition + trường policy/hash). updatedAt luôn set. */
+export async function updateIntent(
+  id: string,
+  patch: Partial<
+    Pick<
+      TransactionIntent,
+      "status" | "policyDecision" | "policyVersion" | "policyReasons" | "intentHash"
+    >
+  >,
+): Promise<TransactionIntent> {
+  const [row] = await db
+    .update(transactionIntents)
+    .set({ ...patch, updatedAt: new Date() })
+    .where(eq(transactionIntents.id, id))
+    .returning();
+  if (!row) throw new Error("INTENT_UPDATE_FAILED");
+  return row;
+}
+
+/** Người nhận ĐÃ từng gửi thành công (settled) — cho policy known_recipient. */
+export async function knownRecipients(walletId: string): Promise<string[]> {
+  const rows = await db
+    .selectDistinct({ recipient: transactionIntents.recipient })
+    .from(transactionIntents)
+    .where(
+      and(eq(transactionIntents.walletId, walletId), eq(transactionIntents.status, "settled")),
+    );
+  return rows.map((r) => r.recipient).filter((r): r is string => r !== null);
+}
+
+/** Tổng đã chi trong ngày (settled, từ mốc `since`) — cho policy daily limit. */
+export async function dailySpent(walletId: string, since: Date): Promise<bigint> {
+  const [row] = await db
+    .select({ total: sql<string>`coalesce(sum(${transactionIntents.amount}), 0)` })
+    .from(transactionIntents)
+    .where(
+      and(
+        eq(transactionIntents.walletId, walletId),
+        eq(transactionIntents.status, "settled"),
+        gte(transactionIntents.createdAt, since),
+      ),
+    );
+  return BigInt(row?.total ?? "0");
+}
+
+/** Guardian hiệu lực (id) của ví — tạo phiếu duyệt cho intent vượt ngưỡng. */
+export async function activeGuardianIds(walletId: string): Promise<string[]> {
+  const rows = await db
+    .select({ id: guardians.id })
+    .from(guardians)
+    .where(and(eq(guardians.walletId, walletId), sql`${guardians.status} != 'removed'`));
+  return rows.map((r) => r.id);
+}
+
+/** Tạo phiếu duyệt cho MỖI guardian, bind challenge_hash (K5). Idempotent nhờ
+ * unique (intent, guardian, version): tạo lại cùng version → bỏ qua trùng. */
+export async function createGuardianApprovals(input: {
+  intentId: string;
+  intentVersion: number;
+  challengeHash: string;
+  guardianIds: string[];
+  expiresAt: Date;
+}): Promise<void> {
+  if (input.guardianIds.length === 0) return;
+  await db
+    .insert(approvalRequests)
+    .values(
+      input.guardianIds.map((guardianId) => ({
+        intentId: input.intentId,
+        intentVersion: input.intentVersion,
+        guardianId,
+        challengeHash: input.challengeHash,
+        expiresAt: input.expiresAt,
+      })),
+    )
+    .onConflictDoNothing();
+}
+
+export async function approvalForGuardianUser(
+  intentId: string,
+  userId: string,
+): Promise<{ approval: ApprovalRequest; guardianId: string } | null> {
+  const [row] = await db
+    .select({ approval: approvalRequests, guardianId: guardians.id })
+    .from(approvalRequests)
+    .innerJoin(guardians, eq(approvalRequests.guardianId, guardians.id))
+    .where(and(eq(approvalRequests.intentId, intentId), eq(guardians.userId, userId)))
+    .limit(1);
+  return row ? { approval: row.approval, guardianId: row.guardianId } : null;
+}
+
+export async function markApproval(
+  id: string,
+  decision: "approved" | "rejected",
+  verifiedCall: boolean,
+): Promise<void> {
+  await db
+    .update(approvalRequests)
+    .set({ decision, verifiedCall, decidedAt: new Date() })
+    .where(eq(approvalRequests.id, id));
+}
+
+export async function appendIntentAudit(entry: {
+  walletId: string;
+  kind: string;
+  actorType: "owner" | "guardian" | "system";
+  actorId?: string;
+  payload: Record<string, unknown>;
+}): Promise<void> {
+  await db.insert(auditLog).values(entry);
 }
 
 /** Các state có đường system.expire trong bảng state machine — giữ ĐỒNG BỘ với

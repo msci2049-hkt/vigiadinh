@@ -64,6 +64,28 @@
 - Áp vào: `be/src/modules/indexer/infra/{indexer.service,rpc-source,checkpoint.schema}.ts`.
 - Mâu thuẫn skill? Không — khớp fw-indexer-notify (checkpoint mỗi batch + dedupe id + cửa sổ 7 ngày).
 
+### 2026-07-24 · PHA 6 SEND · Gửi tiền từ ví HỢP ĐỒNG = invoke SAC transfer (không payment op)
+
+- Hỏi: gửi XLM TỪ ví C… (smart account) làm thế nào? Payment op có được không?
+- Nguồn: docs Stellar ("payment operations cannot have contract addresses as source or
+  destination") + `.d.ts`/runtime `@stellar/stellar-sdk` bản cài + `stellar contract id asset`.
+- Kết luận:
+  - Ví C… KHÔNG dùng payment op. Gửi = **invoke `transfer(from,to,amount)` trên SAC** (Stellar
+    Asset Contract — built-in mỗi asset một instance). from = địa chỉ ví C…; auth `from.require_auth()`
+    đi qua `__check_auth` của smart account → verifier passkey (CHÍNH chuỗi đã dựng ở audit P0).
+  - **SAC native testnet: `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`**
+    (`stellar contract id asset --asset native --network testnet`). Mainnet id khác — lấy lại khi lên.
+  - `amount` = i128: `nativeToScVal(bigint, {type:"i128"})` (runtime xác nhận → scvI128). Đơn vị stroops.
+  - Số dư đọc = simulate `balance(id: Address)` trên SAC (view, không tốn phí) → i128 native.
+  - Nhận tiền vào C… bình thường ở tầng giao thức → màn receive (địa chỉ) là đủ, chỉ chiều GỬI cần invoke.
+  - Transfer SAC KHÔNG có field memo → sàn cần memo phải muxed address (chưa cần cho gia đình — TODO).
+  - Trustline: XLM không cần; asset khác (USDC…) ví C… cần trustline trước → phase này CHỈ XLM.
+- Áp vào: `be/src/modules/intents/features/send-flow/*` (build transfer qua `services/stellar`,
+  đi TRỌN pipeline intent PHA 3: draft→validating→review→policy_gate→awaiting_signature|guardian→
+  submitting→settled). FE ký entry ví bằng passkey (reuse `signRecoveryEntries` → đổi tên chung).
+- Mâu thuẫn skill? Không — khớp vi-backend-pipeline §1-3 (pipeline intent) + stellar-security K2
+  (challenge dẫn xuất từ tx đã simulate, kit tự làm).
+
 ### 2026-07-24 · AUDIT P0 · Registry v1 KHÔNG xoay signer smart account — lỗ hổng THẬT, đã thay bằng v2
 
 - Hỏi: `finalize_recovery` của `CCPGVSLR…GT3V` có xoay passkey bên trong smart account không?
