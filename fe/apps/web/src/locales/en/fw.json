@@ -35,7 +35,13 @@
   },
   "getStarted": {
     "description": "Create a new wallet, or open one you already have.",
-    "title": "How would you like to start?"
+    "title": "How would you like to start?",
+    "createTitle": "Create a new wallet",
+    "createBody": "Set up a fresh wallet secured by your fingerprint or face.",
+    "createCta": "Create a wallet",
+    "haveTitle": "I already have one",
+    "haveBody": "Open your existing wallet on this device.",
+    "haveCta": "Open my wallet"
   },
   "guardian": {
     "approve": {
@@ -60,7 +66,17 @@
       "cta": "Call them first",
       "ctaSecondary": "Approve anyway",
       "description": "This request looks unusual for this person. If it isn't really them, approving hands over their wallet. Call them yourself first — approve only after you hear their voice.",
-      "title": "Do not approve yet"
+      "title": "Do not approve yet",
+      "rulesLabel": "Rule-based checks — not AI",
+      "rulesNote": "These are simple checks on the request, not a smart guess. They only remind you to be careful — you always decide.",
+      "rules": {
+        "newKey": "This hands the wallet to a brand-new key. Read the key's fingerprint back to the person by voice before you approve.",
+        "unusualHour": "This request was opened in the middle of the night — an unusual time.",
+        "veryRecent": "It was opened just now and barely anyone has confirmed it yet.",
+        "flagged": "Our automatic checks flagged this request as unusual."
+      },
+      "approveCta": "I've verified — review & approve",
+      "backCta": "Not now"
     },
     "approved": {
       "description": "Your confirmation has been recorded.",
@@ -412,7 +428,12 @@
   },
   "welcome": {
     "description": "A wallet your family can help you recover — nothing to memorize, nothing to lose.",
-    "title": "Welcome to FamilyWallet"
+    "title": "Welcome to FamilyWallet",
+    "point1": "Open it with your face or fingerprint — no seed phrase to write down or lose.",
+    "point2": "If you ever lose your phone, people you trust help you get it back.",
+    "point3": "Decide who inherits it, so nothing is stranded if something happens to you.",
+    "cta": "Get started",
+    "haveCta": "I already have a wallet"
   },
   "state": {
     "error": "Couldn't load this right now. Pull to refresh or try again shortly."

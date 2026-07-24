@@ -85,8 +85,9 @@ function GuardianInboxScreen() {
                 when: formatDateTime(item.request.startedAt, { locale: i18n.language }),
               })}
             </p>
+            {/* Qua màn cảnh báo theo quy tắc TRƯỚC (speed-bump chống social-engineering). */}
             <Button asChild>
-              <Link to="/guardian/approve" search={{ wallet: item.wallet.id }}>
+              <Link to="/guardian/approve-warning" search={{ wallet: item.wallet.id }}>
                 {t("guardian.inbox.reviewCta")}
               </Link>
             </Button>

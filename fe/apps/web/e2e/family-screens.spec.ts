@@ -62,13 +62,37 @@ const PLAN = {
   updatedAt: "2026-07-24T00:00:00Z",
 };
 
+// Một yêu cầu khôi phục ĐANG MỞ trên ví mình bảo hộ (cho hộp thư guardian).
+const INBOX = [
+  {
+    request: {
+      id: "r1",
+      walletId: "w1",
+      newOwner: "abc123fingerprint",
+      status: "pending",
+      riskScore: null,
+      approvals: 0,
+      threshold: 2,
+      txHash: null,
+      vetoUntil: null,
+      startedAt: "2026-07-24T14:00:00Z",
+      expiresAt: null,
+    },
+    wallet: { id: "w1", stellarAddress: WALLET.stellarAddress, threshold: 2, timelockSecs: 0 },
+  },
+];
+
 async function mockBackend(page: Page): Promise<void> {
   await page.route("**/api/auth/get-session", (r) => r.fulfill({ json: SESSION }));
   await page.route("**/api/config/validation", (r) => r.fulfill({ json: { data: {} } }));
   await page.route("**/api/wallets", (r) => r.fulfill({ json: { data: [WALLET] } }));
   await page.route("**/api/guardians/wallet/**", (r) => r.fulfill({ json: { data: GUARDIANS } }));
   await page.route("**/api/recovery/wallet/**", (r) => r.fulfill({ json: { data: [] } }));
-  // Playwright: route đăng ký SAU thắng → route cụ thể (/plan) phải sau route rộng.
+  // Playwright: route đăng ký SAU thắng → route cụ thể phải sau route rộng.
+  await page.route("**/api/recovery/guardian/device-requests", (r) =>
+    r.fulfill({ json: { data: [] } }),
+  );
+  await page.route("**/api/recovery/guardian", (r) => r.fulfill({ json: { data: INBOX } }));
   await page.route("**/api/inheritance/wallet/**", (r) => r.fulfill({ json: { data: [] } }));
   await page.route("**/api/inheritance/wallet/*/plan", (r) => r.fulfill({ json: { data: PLAN } }));
 }
@@ -111,5 +135,17 @@ test.describe("night-watch + inheritance screens (mocked BE)", () => {
     await expect(page.getByText(/7 ngày/).first()).toBeVisible();
     // Tier 0 → trạng thái khoẻ.
     await expect(page.getByText(/Bạn vừa điểm danh/)).toBeVisible();
+  });
+
+  test("guardian inbox → rule-based warning (not AI) before approving", async ({ page }) => {
+    await page.goto("/guardian");
+    await page.getByRole("link", { name: "Xem yêu cầu này" }).click();
+    await expect(page).toHaveURL(/\/guardian\/approve-warning/);
+    // Nhãn RÕ "theo quy tắc — không phải AI".
+    await expect(page.getByText("Cảnh báo theo quy tắc — không phải AI")).toBeVisible();
+    // Cảnh báo newKey luôn kích (khôi phục cài khoá mới).
+    await expect(page.getByText(/trao ví cho một khoá mới toanh/)).toBeVisible();
+    // Luật 6: vẫn có đường sang màn duyệt thật (cảnh báo chỉ nhắc, không chặn).
+    await expect(page.getByRole("link", { name: "Tôi đã xác minh — xem và duyệt" })).toBeVisible();
   });
 });

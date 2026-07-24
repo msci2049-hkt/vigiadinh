@@ -35,7 +35,13 @@
   },
   "getStarted": {
     "description": "Tạo ví mới, hoặc mở ví bạn đã có.",
-    "title": "Bạn muốn bắt đầu thế nào?"
+    "title": "Bạn muốn bắt đầu thế nào?",
+    "createTitle": "Tạo ví mới",
+    "createBody": "Lập một ví mới, mở bằng vân tay hoặc khuôn mặt của bạn.",
+    "createCta": "Tạo ví",
+    "haveTitle": "Tôi đã có ví",
+    "haveBody": "Mở ví sẵn có của bạn trên thiết bị này.",
+    "haveCta": "Mở ví của tôi"
   },
   "guardian": {
     "approve": {
@@ -60,7 +66,17 @@
       "cta": "Gọi cho họ trước",
       "ctaSecondary": "Vẫn đồng ý",
       "description": "Yêu cầu này khác thường so với người đó. Nếu không đúng là họ, việc bạn đồng ý sẽ trao ví của họ cho kẻ khác. Hãy tự gọi cho họ trước — chỉ đồng ý sau khi nghe được giọng họ.",
-      "title": "Khoan đồng ý"
+      "title": "Khoan đồng ý",
+      "rulesLabel": "Cảnh báo theo quy tắc — không phải AI",
+      "rulesNote": "Đây là các kiểm tra đơn giản trên yêu cầu, không phải suy đoán thông minh. Chúng chỉ nhắc bạn cẩn trọng — bạn luôn là người quyết định.",
+      "rules": {
+        "newKey": "Việc này trao ví cho một khoá mới toanh. Hãy đọc vân tay của khoá cho người kia nghe qua điện thoại trước khi duyệt.",
+        "unusualHour": "Yêu cầu này được mở giữa đêm — một khung giờ bất thường.",
+        "veryRecent": "Nó vừa mới được mở và gần như chưa ai xác nhận.",
+        "flagged": "Kiểm tra tự động đánh dấu yêu cầu này là bất thường."
+      },
+      "approveCta": "Tôi đã xác minh — xem và duyệt",
+      "backCta": "Chưa vội"
     },
     "approved": {
       "description": "Xác nhận của bạn đã được ghi nhận.",
@@ -412,7 +428,12 @@
   },
   "welcome": {
     "description": "Ví mà gia đình có thể giúp bạn lấy lại — không phải nhớ gì, không sợ mất gì.",
-    "title": "Chào mừng đến FamilyWallet"
+    "title": "Chào mừng đến FamilyWallet",
+    "point1": "Mở bằng khuôn mặt hoặc vân tay — không có seed phrase để ghi hay để mất.",
+    "point2": "Chẳng may mất điện thoại, những người bạn tin sẽ giúp bạn lấy lại.",
+    "point3": "Chọn ai thừa kế, để không có gì kẹt lại nếu bạn gặp chuyện.",
+    "cta": "Bắt đầu",
+    "haveCta": "Tôi đã có ví"
   },
   "state": {
     "error": "Chưa tải được mục này. Kéo để làm mới hoặc thử lại sau ít phút."
