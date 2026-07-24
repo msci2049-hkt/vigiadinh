@@ -40,5 +40,6 @@ export const POLICY_REASON_CODES = [
   "reevaluation_required", // sau guardian approval phải chạy policy lại
   "approval_expired", // TTL guardian approval đã hết
   "challenge_expired", // TTL biometric challenge đã hết
+  "non_payment_review", // require_guardian — intent không phải thanh toán (đổi cấu hình) luôn cần người thật duyệt
 ] as const;
 export type PolicyReasonCode = (typeof POLICY_REASON_CODES)[number];

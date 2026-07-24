@@ -34,7 +34,8 @@ async function makeWallet(): Promise<string> {
 afterAll(async () => {
   if (!dbUp) return;
   for (const id of cleanupWalletIds) {
-    await db.delete(auditLog).where(eq(auditLog.walletId, id));
+    // KHÔNG xoá audit_log — append-only có trigger chặn (PHA 3.4, A7); dòng audit
+    // sống lâu hơn ví là ĐÚNG thiết kế. Wallet id mới mỗi lần chạy → assert không lẫn.
     await db.delete(wallets).where(eq(wallets.id, id)); // cascade dọn intents/approvals
   }
 });
