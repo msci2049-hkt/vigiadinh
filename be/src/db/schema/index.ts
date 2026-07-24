@@ -17,6 +17,7 @@ export * from "../../modules/notifications/infra/notifications.schema";
 export * from "../../modules/presence/infra/devices.schema";
 export * from "../../modules/presence/infra/presence-pings.schema";
 export * from "../../modules/product/infra/products.schema";
+export * from "../../modules/recovery/infra/device-requests.schema";
 export * from "../../modules/recovery/infra/recovery-requests.schema";
 export * from "../../modules/wallets/infra/families.schema";
 export * from "../../modules/wallets/infra/wallets.schema";

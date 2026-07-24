@@ -7,9 +7,18 @@ import { HTTPException } from "hono/http-exception";
 import { requireAuth } from "@/middlewares/auth";
 import * as repo from "../../infra/recovery.repository";
 
-export const guardianInboxRoute = new Hono().get("/guardian", requireAuth, async (c) => {
-  const user = c.get("user");
-  if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
-  const items = await repo.openRequestsForGuardianUser(user.id);
-  return c.json({ data: items });
-});
+export const guardianInboxRoute = new Hono()
+  .get("/guardian", requireAuth, async (c) => {
+    const user = c.get("user");
+    if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
+    const items = await repo.openRequestsForGuardianUser(user.id);
+    return c.json({ data: items });
+  })
+  // "Tiếng gõ cửa" từ thiết bị mới trên các ví mình bảo hộ — nguồn cho màn
+  // initiate của guardian (xác minh fingerprint NGOÀI BĂNG rồi mới mở on-chain).
+  .get("/guardian/device-requests", requireAuth, async (c) => {
+    const user = c.get("user");
+    if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
+    const items = await repo.openDeviceRequestsForGuardianUser(user.id);
+    return c.json({ data: items });
+  });

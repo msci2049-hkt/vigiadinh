@@ -1,9 +1,11 @@
 import { and, desc, eq, inArray, isNotNull, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { guardians } from "../../guardians/infra/guardians.schema";
-// Ngoại lệ TẦNG SCHEMA có chủ đích (như intents.repository): audit ghi cùng nơi.
+// Ngoại lệ TẦNG SCHEMA có chủ đích (như intents.repository): audit + notify ghi cùng nơi.
 import { auditLog } from "../../indexer/infra/audit-log.schema";
+import { notifications } from "../../notifications/infra/notifications.schema";
 import { type Wallet, wallets } from "../../wallets/infra/wallets.schema";
+import { type RecoveryDeviceRequest, recoveryDeviceRequests } from "./device-requests.schema";
 import { type RecoveryRequest, recoveryRequests } from "./recovery-requests.schema";
 
 const LIST_LIMIT = 100;
@@ -56,6 +58,119 @@ export async function appendOnchainAudit(entry: {
   payload: Record<string, unknown>;
 }): Promise<void> {
   await db.insert(auditLog).values(entry);
+}
+
+export async function walletByStellarAddress(address: string): Promise<Wallet | null> {
+  const [row] = await db.select().from(wallets).where(eq(wallets.stellarAddress, address)).limit(1);
+  return row ?? null;
+}
+
+/** Máy mới gõ cửa: MỖI ví một request mở — cái mới đè cái cũ (superseded),
+ * tránh guardian nhìn thấy chồng chất vật liệu khoá lẫn lộn. */
+export async function upsertDeviceRequest(input: {
+  walletId: string;
+  verifier: string;
+  keyBase64: string;
+  fingerprint: string;
+}): Promise<void> {
+  await db.transaction(async (tx) => {
+    await tx
+      .update(recoveryDeviceRequests)
+      .set({ status: "superseded" })
+      .where(
+        and(
+          eq(recoveryDeviceRequests.walletId, input.walletId),
+          eq(recoveryDeviceRequests.status, "open"),
+        ),
+      );
+    await tx.insert(recoveryDeviceRequests).values({ ...input, status: "open" });
+  });
+}
+
+/** Notify MỌI guardian hiệu lực CÓ TÀI KHOẢN của ví: thiết bị mới xin khôi phục.
+ * (guardians.userId nullable — người được mời chưa có account thì chưa notify được.) */
+export async function notifyGuardiansDeviceRequested(walletId: string): Promise<void> {
+  const rows = await db
+    .select({ userId: guardians.userId })
+    .from(guardians)
+    .where(
+      and(
+        eq(guardians.walletId, walletId),
+        ne(guardians.status, "removed"),
+        isNotNull(guardians.userId),
+      ),
+    );
+  for (const g of rows) {
+    if (!g.userId) continue;
+    await db.insert(notifications).values({
+      userId: g.userId,
+      templateKey: "recovery.device_requested",
+      params: {},
+      channel: "push",
+    });
+  }
+}
+
+/** Request thiết-bị-mới đang MỞ trên các ví user bảo hộ — cho màn initiate. */
+export async function openDeviceRequestsForGuardianUser(
+  userId: string,
+): Promise<
+  Array<{ deviceRequest: RecoveryDeviceRequest; wallet: { id: string; stellarAddress: string } }>
+> {
+  const rows = await db
+    .select({
+      deviceRequest: recoveryDeviceRequests,
+      walletId: wallets.id,
+      stellarAddress: wallets.stellarAddress,
+    })
+    .from(recoveryDeviceRequests)
+    .innerJoin(wallets, eq(recoveryDeviceRequests.walletId, wallets.id))
+    .innerJoin(
+      guardians,
+      and(
+        eq(guardians.walletId, wallets.id),
+        eq(guardians.userId, userId),
+        ne(guardians.status, "removed"),
+      ),
+    )
+    .where(eq(recoveryDeviceRequests.status, "open"))
+    .orderBy(desc(recoveryDeviceRequests.createdAt))
+    .limit(LIST_LIMIT);
+  return rows.map((r) => ({
+    deviceRequest: r.deviceRequest,
+    wallet: { id: r.walletId, stellarAddress: r.stellarAddress },
+  }));
+}
+
+/** Tiến độ khôi phục PUBLIC theo địa chỉ — chỉ trường vô hại (vốn public on-chain). */
+export async function publicProgressByAddress(address: string): Promise<{
+  status: string;
+  approvals: number;
+  threshold: number | null;
+  vetoUntil: string | null;
+  startedAt: string;
+} | null> {
+  const [row] = await db
+    .select({
+      status: recoveryRequests.status,
+      approvals: recoveryRequests.approvals,
+      threshold: recoveryRequests.threshold,
+      vetoUntil: recoveryRequests.vetoUntil,
+      startedAt: recoveryRequests.startedAt,
+    })
+    .from(recoveryRequests)
+    .innerJoin(wallets, eq(recoveryRequests.walletId, wallets.id))
+    .where(eq(wallets.stellarAddress, address))
+    .orderBy(desc(recoveryRequests.startedAt))
+    .limit(1);
+  if (!row) return null;
+  return {
+    status: row.status,
+    approvals: row.approvals,
+    threshold: row.threshold,
+    vetoUntil: row.vetoUntil ? row.vetoUntil.toISOString() : null,
+    startedAt: row.startedAt.toISOString(),
+  };
 }
 
 export type GuardianInboxItem = {

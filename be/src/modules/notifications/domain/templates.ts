@@ -32,6 +32,16 @@ export const TEMPLATES: Catalog = {
     en: { title: "Back online", body: "A trusted contact's device is reachable again." },
     vi: { title: "Đã kết nối lại", body: "Máy của người thân đã kết nối trở lại." },
   },
+  "recovery.device_requested": {
+    en: {
+      title: "Someone lost access and asks for your help",
+      body: "A new device says it belongs to the owner of a wallet you protect. Call them to verify, then review the request in the app. Nothing happens without enough family approvals.",
+    },
+    vi: {
+      title: "Có người mất quyền truy cập và cần bạn giúp",
+      body: "Một thiết bị mới nói rằng nó thuộc về chủ ví mà bạn đang bảo hộ. Hãy gọi xác minh với họ, rồi xem yêu cầu trong ứng dụng. Chưa có gì xảy ra khi chưa đủ người thân đồng ý.",
+    },
+  },
   "recovery.initiated": {
     en: {
       title: "Wallet recovery started",
