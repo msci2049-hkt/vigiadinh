@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { guardians } from "../../guardians/infra/guardians.schema";
 // Ngoại lệ TẦNG SCHEMA có chủ đích (như intents.repository): audit ghi cùng nơi.
@@ -56,6 +56,49 @@ export async function appendOnchainAudit(entry: {
   payload: Record<string, unknown>;
 }): Promise<void> {
   await db.insert(auditLog).values(entry);
+}
+
+export type GuardianInboxItem = {
+  request: RecoveryRequest;
+  wallet: { id: string; stellarAddress: string; threshold: number; timelockSecs: number };
+};
+
+/** Yêu cầu ĐANG MỞ trên các ví user đang là guardian hiệu lực — hộp thư guardian.
+ * Chỉ pending/ready: việc guardian là BỎ PHIẾU, chuyện đã đóng không nằm ở inbox. */
+export async function openRequestsForGuardianUser(
+  userId: string,
+  limit = LIST_LIMIT,
+): Promise<GuardianInboxItem[]> {
+  const rows = await db
+    .select({
+      request: recoveryRequests,
+      walletId: wallets.id,
+      stellarAddress: wallets.stellarAddress,
+      threshold: wallets.threshold,
+      timelockSecs: wallets.timelockSecs,
+    })
+    .from(recoveryRequests)
+    .innerJoin(wallets, eq(recoveryRequests.walletId, wallets.id))
+    .innerJoin(
+      guardians,
+      and(
+        eq(guardians.walletId, wallets.id),
+        eq(guardians.userId, userId),
+        ne(guardians.status, "removed"),
+      ),
+    )
+    .where(inArray(recoveryRequests.status, ["pending", "ready"]))
+    .orderBy(desc(recoveryRequests.startedAt))
+    .limit(limit);
+  return rows.map((r) => ({
+    request: r.request,
+    wallet: {
+      id: r.walletId,
+      stellarAddress: r.stellarAddress,
+      threshold: r.threshold,
+      timelockSecs: r.timelockSecs,
+    },
+  }));
 }
 
 export async function listByWalletForOwner(
