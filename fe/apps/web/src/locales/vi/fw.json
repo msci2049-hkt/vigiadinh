@@ -41,11 +41,30 @@
   "guardians": {
     "detail": {
       "description": "Lịch sử kết nối và tùy chọn cho người này.",
-      "title": "Chi tiết người bảo hộ"
+      "title": "Chi tiết người bảo hộ",
+      "statusLabel": "Kết nối",
+      "lastSeen": "Lần gần nhất có tin",
+      "lastConfirm": "Lần xác nhận trực tiếp gần nhất",
+      "keyLabel": "Khoá của người này",
+      "never": "Chưa có",
+      "notFound": "Người này không còn trong danh sách của bạn.",
+      "backCta": "Về danh sách"
     },
     "manage": {
       "description": "Xem ai đang bảo vệ ví, và chúng tôi còn liên lạc được với ai.",
       "title": "Người bảo hộ của bạn"
+    },
+    "list": {
+      "noWallet": "Bạn chưa có ví. Hãy tạo ví trước, rồi mời người thân cùng trông giúp.",
+      "empty": "Chưa có người thân nào. Mời người thân để ví có thể khôi phục nếu bạn mất máy.",
+      "itemLabel": "Người thân trông ví"
+    },
+    "status": {
+      "invited": "Đã mời",
+      "active": "Đang kết nối",
+      "slow": "Im ắng gần đây",
+      "offline": "Mất liên lạc",
+      "removed": "Đã gỡ"
     }
   },
   "inheritance": {
@@ -183,5 +202,23 @@
   "welcome": {
     "description": "Ví mà gia đình có thể giúp bạn lấy lại — không phải nhớ gì, không sợ mất gì.",
     "title": "Chào mừng đến FamilyWallet"
+  },
+  "state": {
+    "error": "Chưa tải được mục này. Kéo để làm mới hoặc thử lại sau ít phút."
+  },
+  "history": {
+    "noWallet": "Bạn chưa có ví nên chưa có gì để xem ở đây.",
+    "empty": "Chưa có hoạt động nào. Mọi việc xảy ra với ví sẽ hiện ở đây.",
+    "kind": {
+      "recoveryStarted": "Có yêu cầu khôi phục ví",
+      "recoveryApproved": "Một người thân đã xác nhận khôi phục",
+      "recoveryBlocked": "Một yêu cầu khôi phục đã bị chặn",
+      "recoveryDone": "Khôi phục ví hoàn tất",
+      "walletRegistered": "Đã bật bảo vệ gia đình cho ví",
+      "actionSubmitted": "Một thao tác đã được gửi lên mạng lưới",
+      "requestExpired": "Một yêu cầu chờ đã hết hạn",
+      "gap": "Có thể thiếu một số sự kiện trong khoảng thời gian này",
+      "other": "Hoạt động của ví"
+    }
   }
 }

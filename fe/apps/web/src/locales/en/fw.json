@@ -41,11 +41,30 @@
   "guardians": {
     "detail": {
       "description": "Connection history and options for this person.",
-      "title": "Protector details"
+      "title": "Protector details",
+      "statusLabel": "Connection",
+      "lastSeen": "Last heard from",
+      "lastConfirm": "Last confirmed in person",
+      "keyLabel": "Their key",
+      "never": "Not yet",
+      "notFound": "This person isn't on your list anymore.",
+      "backCta": "Back to the list"
     },
     "manage": {
       "description": "See who protects your wallet, and whether we can still reach them.",
       "title": "Your protectors"
+    },
+    "list": {
+      "noWallet": "You don't have a wallet yet. Set one up first, then invite family to help look after it.",
+      "empty": "No trusted contacts yet. Invite family so your wallet can be recovered if you ever lose this device.",
+      "itemLabel": "Trusted contact"
+    },
+    "status": {
+      "invited": "Invited",
+      "active": "Connected",
+      "slow": "Quiet lately",
+      "offline": "Unreachable",
+      "removed": "Removed"
     }
   },
   "inheritance": {
@@ -183,5 +202,23 @@
   "welcome": {
     "description": "A wallet your family can help you recover — nothing to memorize, nothing to lose.",
     "title": "Welcome to FamilyWallet"
+  },
+  "state": {
+    "error": "Couldn't load this right now. Pull to refresh or try again shortly."
+  },
+  "history": {
+    "noWallet": "You don't have a wallet yet, so there's nothing to show here.",
+    "empty": "Nothing has happened yet. Activity on your wallet will appear here.",
+    "kind": {
+      "recoveryStarted": "A wallet recovery was started",
+      "recoveryApproved": "A trusted contact confirmed the recovery",
+      "recoveryBlocked": "A recovery attempt was blocked",
+      "recoveryDone": "Wallet recovery completed",
+      "walletRegistered": "Family protection was set up",
+      "actionSubmitted": "An action was sent to the network",
+      "requestExpired": "A pending request expired",
+      "gap": "Some events may be missing from this period",
+      "other": "Wallet activity"
+    }
   }
 }

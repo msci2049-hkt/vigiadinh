@@ -1,4 +1,9 @@
-# ROUTES.md — nguồn sự thật route FE (chốt 2026-07-23, PHA 1.5 §5)
+# ROUTES.md — nguồn sự thật route FE (chốt 2026-07-23 PHA 1.5 §5 · XÁC NHẬN 2026-07-24 PHA 6.1)
+
+> **PHA 6.1 chốt:** bảng dưới là danh sách DUY NHẤT — không còn ba danh sách. Thứ tự dựng
+> PHA 6: cụm ĐỌC (guardians ✅ · guardians/$id ✅ · wallet/history ✅ · night-watch ·
+> recovery status) → cụm GHI (send · guardian-approve · recovery · setup). Màn đánh N
+> không dựng; màn "Sau v1" ở bảng B giữ nguyên quyết định — KHÔNG thêm route mới ngoài bảng.
 
 > Quy tắc đã chốt: **giữ tên route FE đang có** (ux-v2), map 1-1 sang ngữ nghĩa handoff §08
 > (46 route id). **Handoff thắng về ngữ nghĩa, FE thắng về tên.** Prototype mobile-ui (50 key)
