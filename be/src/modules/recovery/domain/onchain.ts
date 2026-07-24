@@ -1,7 +1,8 @@
-// Tầng THUẦN cho luồng ghi recovery on-chain (PHA 5.2) — không env/IO, test hermetic.
-// Interface contract đọc TỪ CHAIN (RESEARCH-LOG 2026-07-24 "Interface recovery contract
-// testnet — bản ĐẦY ĐỦ"): "wallet" trong registry = địa chỉ đăng ký lúc register_wallet
-// = wallets.stellarAddress; owner HIỆN TẠI đọc từ get_wallet_config (đổi sau finalize).
+// Tầng THUẦN cho luồng ghi recovery on-chain (PHA 5.2, nâng v2 ở audit P0 2026-07-24)
+// — không env/IO, test hermetic. Interface = contracts/recovery-registry (v2, trong
+// repo): "wallet" = địa chỉ SMART ACCOUNT (C…) tự đăng ký; initiate chở Signer OZ
+// (guardian phê duyệt ĐÚNG khoá mới); finalize xoay khoá BÊN TRONG smart account —
+// địa chỉ ví không đổi. Veto = chính ví ký (cancel_recovery(wallet), bỏ arg owner v1).
 import { Address, nativeToScVal, xdr } from "@stellar/stellar-sdk";
 
 /** Lỗi domain — route map sang 400/409, không leak stack/XDR. */
@@ -30,7 +31,8 @@ const SIGNABLE_METHODS = new Set<string>([
   RECOVERY_METHODS.veto,
 ]);
 
-/** Bảng Error enum của contract (đọc từ chain) — dịch mã #N thành tên đọc được. */
+/** Bảng Error enum registry v2 (1..16 giữ nguyên v1) + mã smart account (100/101)
+ * có thể nổi lên khi finalize/tx của ví — dịch mã #N thành tên đọc được. */
 export const CONTRACT_ERROR_NAMES: Record<number, string> = {
   1: "AlreadyRegistered",
   2: "NotRegistered",
@@ -48,6 +50,9 @@ export const CONTRACT_ERROR_NAMES: Record<number, string> = {
   14: "GuardianExists",
   15: "GuardianNotFound",
   16: "DuplicateGuardian",
+  // FamilyWalletError của smart-account (contracts/smart-account) — lộ qua sub-call.
+  100: "RecoveryNotConfigured",
+  101: "CooldownActive",
 };
 
 /** `SIMULATION_FAILED:...Error(Contract, #9)...` → `CONTRACT_ERROR:ThresholdNotMet`.
@@ -60,6 +65,30 @@ export function contractErrorCode(simError: string): string | null {
 }
 
 const addr = (a: string): xdr.ScVal => nativeToScVal(new Address(a));
+
+/** Độ dài key hợp lệ: ed25519 raw 32B · secp256r1 uncompressed 65B (+credential id ≤96B). */
+const SIGNER_KEY_MIN = 32;
+const SIGNER_KEY_MAX = 96;
+
+/**
+ * `Signer::External(verifier, key)` của OZ smart account dạng ScVal
+ * (enum tuple-variant → Vec[Symbol, ...fields]). Khoá MỚI đi từ THIẾT BỊ MỚI của
+ * người dùng qua guardian — backend chỉ đóng gói, không sinh, không giữ.
+ */
+export function externalSignerScVal(input: { verifier: string; keyBase64: string }): xdr.ScVal {
+  let key: Buffer;
+  try {
+    key = Buffer.from(input.keyBase64, "base64");
+  } catch {
+    fail("SIGNER_KEY_NOT_BASE64");
+  }
+  if (key.length < SIGNER_KEY_MIN || key.length > SIGNER_KEY_MAX) fail("SIGNER_KEY_LENGTH");
+  return xdr.ScVal.scvVec([
+    xdr.ScVal.scvSymbol("External"),
+    addr(input.verifier),
+    xdr.ScVal.scvBytes(key),
+  ]);
+}
 
 export function registerArgs(input: {
   wallet: string;
@@ -77,18 +106,24 @@ export function registerArgs(input: {
 
 export function initiateArgs(input: {
   wallet: string;
-  newOwner: string;
+  newSignerVerifier: string;
+  newSignerKeyBase64: string;
   initiator: string;
 }): xdr.ScVal[] {
-  return [addr(input.wallet), addr(input.newOwner), addr(input.initiator)];
+  return [
+    addr(input.wallet),
+    externalSignerScVal({ verifier: input.newSignerVerifier, keyBase64: input.newSignerKeyBase64 }),
+    addr(input.initiator),
+  ];
 }
 
 export function approveArgs(input: { wallet: string; guardian: string }): xdr.ScVal[] {
   return [addr(input.wallet), addr(input.guardian)];
 }
 
-export function vetoArgs(input: { wallet: string; owner: string }): xdr.ScVal[] {
-  return [addr(input.wallet), addr(input.owner)];
+/** v2: veto = `cancel_recovery(wallet)` — chính VÍ ký qua __check_auth, hết arg owner. */
+export function vetoArgs(input: { wallet: string }): xdr.ScVal[] {
+  return [addr(input.wallet)];
 }
 
 export function finalizeArgs(input: { wallet: string }): xdr.ScVal[] {

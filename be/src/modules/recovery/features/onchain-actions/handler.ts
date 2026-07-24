@@ -91,7 +91,8 @@ function buildRoute(action: BuildableAction) {
         action,
         walletId: body.wallet_id,
         userId: user.id,
-        ...(body.new_owner ? { newOwner: body.new_owner } : {}),
+        ...(body.new_signer_verifier ? { newSignerVerifier: body.new_signer_verifier } : {}),
+        ...(body.new_signer_key ? { newSignerKey: body.new_signer_key } : {}),
       }).catch(mapError);
       return c.json({
         data: {

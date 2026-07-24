@@ -72,7 +72,13 @@ async function memberRole(
 export async function buildRecoveryAction(
   gateway: OnchainGateway,
   registryContractId: string,
-  input: { action: BuildableAction; walletId: string; userId: string; newOwner?: string },
+  input: {
+    action: BuildableAction;
+    walletId: string;
+    userId: string;
+    newSignerVerifier?: string;
+    newSignerKey?: string;
+  },
 ): Promise<{ action: BuildableAction; walletId: string } & BuiltInvoke> {
   const wallet = await requireWallet(input.walletId);
   let args: xdr.ScVal[];
@@ -80,10 +86,13 @@ export async function buildRecoveryAction(
   switch (input.action) {
     case "initiate": {
       const initiator = await requireGuardian(wallet.id, input.userId);
-      if (!input.newOwner) throw new RecoveryActionError(400, "NEW_OWNER_REQUIRED");
+      if (!input.newSignerVerifier || !input.newSignerKey) {
+        throw new RecoveryActionError(400, "NEW_SIGNER_REQUIRED");
+      }
       args = initiateArgs({
         wallet: wallet.stellarAddress,
-        newOwner: input.newOwner,
+        newSignerVerifier: input.newSignerVerifier,
+        newSignerKeyBase64: input.newSignerKey,
         initiator,
       });
       break;
@@ -95,13 +104,9 @@ export async function buildRecoveryAction(
     }
     case "veto": {
       if (wallet.userId !== input.userId) throw new RecoveryActionError(403, "NOT_OWNER");
-      // Owner HIỆN TẠI đọc từ chain (sau finalize sẽ khác stellarAddress) — ground truth.
-      const config = (await gateway.read({
-        contractId: registryContractId,
-        method: "get_wallet_config",
-        args: finalizeArgs({ wallet: wallet.stellarAddress }),
-      })) as { owner: string };
-      args = vetoArgs({ wallet: wallet.stellarAddress, owner: config.owner });
+      // v2: veto = cancel_recovery(wallet) — CHÍNH VÍ ký (địa chỉ ví không đổi
+      // sau khôi phục, khỏi tra owner từ chain như v1).
+      args = vetoArgs({ wallet: wallet.stellarAddress });
       break;
     }
     case "register": {

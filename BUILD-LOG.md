@@ -266,6 +266,50 @@
   dung, làm SAU PHA 6); locale số tách khỏi ngôn ngữ UI (hiện dùng i18n.language — đủ cho
   v1, tách khi có settings).
 
+## AUDIT P0 · LỖ HỔNG KHÔI PHỤC — TÌM RA THẬT, ĐÃ VÁ + CHỨNG MINH ON-CHAIN (2026-07-24)
+
+> Prompt audit hỏi: `finalize_recovery` của registry có xoay passkey BÊN TRONG smart
+> account không? **Trả lời bằng code: KHÔNG.** Registry v1 (spike classic, ngoài repo)
+> chỉ đổi `owner` trong storage của nó; e2e 5.2 verify bằng chính registry và wallet
+> là account G… — chưa từng có smart account tham gia. Nặng hơn: v1 không CHỞ nổi
+> vật liệu passkey (`new_owner: Address` ≠ `External(verifier, key)`). 3 bằng chứng
+> grep + interface: RESEARCH-LOG mục "AUDIT P0".
+
+### Vá (phương án B — registry làm ĐÚNG MỘT việc trên ví: xoay khoá)
+- **contracts/smart-account**: `set_recovery_registry` (tự-ký) + `recovery_rotate`
+  (registry là DIRECT INVOKER → invoker auth chuẩn Soroban, né hẳn bẫy
+  delegated-entry-phải-tự-craft của skill §0) — thay TOÀN BỘ signer owner-rule,
+  đóng dấu `last_rotation`; `__check_auth` chối MỌI chữ ký trong cửa sổ **cooldown**
+  sau xoay (chống xoay-rồi-rút-ngay). Mã lỗi riêng 100/101.
+- **contracts/recovery-registry v2**: giữ nguyên tên hàm + error codes 1..16 + event
+  topics v1 (indexer đổi tối thiểu); `initiate_recovery` nhận `Signer` OZ — guardian
+  bỏ phiếu cho ĐÚNG khoá mới; `finalize_recovery` gọi `recovery_rotate` rồi mới
+  Finalized; đóng băng đổi guardian khi recovery đang mở; **chống lockout on-chain**
+  (gỡ guardian dưới threshold bị chặn). `cancel_recovery(wallet)` = VÍ tự ký veto.
+- **contracts/verifier-ed25519**: External signer thuần ed25519 (e2e CI không cần
+  authenticator; sau này = khoá lạnh NGƯỜI DÙNG giữ — không phải backend).
+- **BE v2**: initiateArgs chở (verifier, key b64) + validate; vetoArgs bỏ owner; DTO
+  `new_signer_verifier`/`new_signer_key`; indexer initiate value = (initiator,
+  fingerprint) → newOwner cột 56 = hex cắt 56; bảng lỗi +100/101; env trỏ registry v2.
+- **Cargo test workspace 33/33** (10 test registry mới, có ký thật ed25519 qua
+  `__check_auth` + finalize `set_auths(&[])` chứng minh invoker auth). BE **201 pass /
+  7 skip / 0 fail** + validate xanh.
+
+### DONE-gate audit — chứng minh TRÊN TESTNET THẬT (4 pass/0 fail, 238s, 12 tx)
+- [x] Khôi phục xong → **khoá MỚI ký được tx thật** (`b675f53b…`), **khoá CŨ bị chối**
+- [x] Verify signer list đọc **TỪ SMART ACCOUNT** (`get_context_rule(0)`), không phải registry
+- [x] **Cooldown sau xoay tồn tại**: ngay sau finalize cả khoá mới cũng bị chối #101
+- [x] Địa chỉ ví KHÔNG đổi, tiền không di chuyển — chỉ khoá bên trong đổi
+- Bảng tx đầy đủ: docs/evidence/TESTNET.md §AUDIT P0. Deploy mới: registry v2
+  `CAN4LHSY…27SY` · verifier-ed25519 `CAIPS7XW…LLBT` · smart-account wasm `a67ea40e…2d25`
+  (FE .env + .env.example đã trỏ hash mới — CI e2e passkey dùng bản mới).
+
+### Ghi chú cho PHA 6 (màn khôi phục)
+- Màn guardian initiate/approve PHẢI decode entry + hiện **fingerprint khoá mới** trước
+  khi ký (chống BE bị chiếm tráo khoá trong entry — cùng lớp chống-ký-mù K2).
+- Màn "khôi phục xong" hiện trạng thái cooldown (last_rotation + cooldown_secs từ
+  account) — trong cửa sổ đó ví từ chối mọi chữ ký là HÀNH VI ĐÚNG, không phải lỗi.
+
 ## PHA 6 · CHỐT ROUTE + THAY STUB — ĐANG LÀM (2026-07-24)
 
 - **6.1 ✅** ROUTES.md xác nhận là danh sách DUY NHẤT + ghi thứ tự dựng (commit `3d40f5d`).

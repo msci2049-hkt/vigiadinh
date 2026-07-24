@@ -23,7 +23,12 @@ const dbUp = await pgReachable();
 const testIt = dbUp ? it : it.skip;
 if (!dbUp) console.warn(SKIP_REASON);
 
-const REGISTRY = "CCPGVSLRFSUOGRFH3LAOWXSHJ2Y3QBFEA2ZTV4PWIINVGJWVDFA5GT3V";
+const REGISTRY = "CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY";
+const VERIFIER = "CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT";
+const NEW_SIGNER = {
+  newSignerVerifier: VERIFIER,
+  newSignerKey: Buffer.alloc(32, 7).toString("base64"),
+};
 const OWNER_USER = `it-owner-${crypto.randomUUID().slice(0, 8)}`;
 const GUARDIAN_USER = `it-guard-${crypto.randomUUID().slice(0, 8)}`;
 const STRANGER = `it-stranger-${crypto.randomUUID().slice(0, 8)}`;
@@ -110,7 +115,7 @@ describe("recovery onchain service (DB thật + gateway fake)", () => {
       action: "initiate",
       walletId,
       userId: GUARDIAN_USER,
-      newOwner: Keypair.random().publicKey(),
+      ...NEW_SIGNER,
     });
     expect(result.action).toBe("initiate");
     expect(calls.build[0]?.method).toBe("initiate_recovery");
@@ -124,31 +129,31 @@ describe("recovery onchain service (DB thật + gateway fake)", () => {
         action: "initiate",
         walletId,
         userId,
-        newOwner: Keypair.random().publicKey(),
+        ...NEW_SIGNER,
       }).catch((e) => e);
       expect(err).toBeInstanceOf(RecoveryActionError);
       expect((err as RecoveryActionError).status).toBe(403);
     }
   });
 
-  testIt("initiate thiếu new_owner → 400; guardian chưa có khoá on-chain → 409", async () => {
-    const noNewOwner = await buildRecoveryAction(fakeGateway().gateway, REGISTRY, {
+  testIt("initiate thiếu new_signer → 400; guardian chưa có khoá on-chain → 409", async () => {
+    const noSigner = await buildRecoveryAction(fakeGateway().gateway, REGISTRY, {
       action: "initiate",
       walletId: await seedWallet(),
       userId: GUARDIAN_USER,
     }).catch((e) => e);
-    expect((noNewOwner as RecoveryActionError).status).toBe(400);
+    expect((noSigner as RecoveryActionError).status).toBe(400);
 
     const keyless = await buildRecoveryAction(fakeGateway().gateway, REGISTRY, {
       action: "initiate",
       walletId: await seedWallet({ guardianOnchainKey: null }),
       userId: GUARDIAN_USER,
-      newOwner: Keypair.random().publicKey(),
+      ...NEW_SIGNER,
     }).catch((e) => e);
     expect((keyless as RecoveryActionError).status).toBe(409);
   });
 
-  testIt("veto: CHỈ chủ ví; owner arg lấy từ get_wallet_config trên chain", async () => {
+  testIt("veto: CHỈ chủ ví; v2 KHÔNG cần đọc chain (ví tự ký cancel)", async () => {
     const walletId = await seedWallet();
     let readCalled = false;
     const { gateway, calls } = fakeGateway({
@@ -158,7 +163,7 @@ describe("recovery onchain service (DB thật + gateway fake)", () => {
       },
     });
     await buildRecoveryAction(gateway, REGISTRY, { action: "veto", walletId, userId: OWNER_USER });
-    expect(readCalled).toBe(true);
+    expect(readCalled).toBe(false);
     expect(calls.build[0]?.method).toBe("cancel_recovery");
 
     const err = await buildRecoveryAction(gateway, REGISTRY, {

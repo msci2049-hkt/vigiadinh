@@ -6,6 +6,7 @@ import { Address, Keypair, xdr } from "@stellar/stellar-sdk";
 import {
   approveArgs,
   contractErrorCode,
+  externalSignerScVal,
   initiateArgs,
   RECOVERY_METHODS,
   RecoveryOnchainError,
@@ -14,7 +15,10 @@ import {
   vetoArgs,
 } from "./onchain";
 
-const REGISTRY = "CCPGVSLRFSUOGRFH3LAOWXSHJ2Y3QBFEA2ZTV4PWIINVGJWVDFA5GT3V";
+// Registry v2 (audit P0) — giá trị test, không cần trùng env.
+const REGISTRY = "CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY";
+const VERIFIER = "CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT";
+const KEY32_B64 = Buffer.alloc(32, 7).toString("base64");
 const WALLET = Keypair.random().publicKey();
 const OTHER = Keypair.random().publicKey();
 
@@ -68,14 +72,43 @@ describe("recovery onchain args builders", () => {
 
   it("initiate/approve/veto: arg đầu luôn là VÍ (khoá định danh registry)", () => {
     for (const args of [
-      initiateArgs({ wallet: WALLET, newOwner: OTHER, initiator: OTHER }),
+      initiateArgs({
+        wallet: WALLET,
+        newSignerVerifier: VERIFIER,
+        newSignerKeyBase64: KEY32_B64,
+        initiator: OTHER,
+      }),
       approveArgs({ wallet: WALLET, guardian: OTHER }),
-      vetoArgs({ wallet: WALLET, owner: OTHER }),
+      vetoArgs({ wallet: WALLET }),
     ]) {
       const first = args[0];
       if (!first) throw new Error("args rỗng");
       expect(Address.fromScAddress(first.address()).toString()).toBe(WALLET);
     }
+  });
+
+  it("initiate v2: arg[1] là Signer::External (Vec[Symbol, Address, Bytes])", () => {
+    const args = initiateArgs({
+      wallet: WALLET,
+      newSignerVerifier: VERIFIER,
+      newSignerKeyBase64: KEY32_B64,
+      initiator: OTHER,
+    });
+    expect(args).toHaveLength(3);
+    const signer = args[1]?.vec();
+    if (!signer) throw new Error("arg[1] không phải vec");
+    expect(signer[0]?.sym().toString()).toBe("External");
+    expect(Address.fromScAddress(signer[1]?.address() as xdr.ScAddress).toString()).toBe(VERIFIER);
+    expect(signer[2]?.bytes().length).toBe(32);
+  });
+
+  it("externalSignerScVal: key ngoài [32,96] byte hoặc không phải base64 → chối", () => {
+    expect(() =>
+      externalSignerScVal({ verifier: VERIFIER, keyBase64: Buffer.alloc(8).toString("base64") }),
+    ).toThrow(RecoveryOnchainError);
+    expect(() =>
+      externalSignerScVal({ verifier: VERIFIER, keyBase64: Buffer.alloc(100).toString("base64") }),
+    ).toThrow(RecoveryOnchainError);
   });
 });
 
@@ -128,7 +161,7 @@ describe("validateSignedSubmission — whitelist trước khi ví phí trả ti�
       "hai entry khác invocation",
       () => [
         makeEntry({}),
-        makeEntry({ method: "cancel_recovery", args: vetoArgs({ wallet: WALLET, owner: OTHER }) }),
+        makeEntry({ method: "cancel_recovery", args: vetoArgs({ wallet: WALLET }) }),
       ],
     ],
     ["XDR rác", () => ["not-xdr!!"]],

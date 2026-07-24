@@ -56,3 +56,30 @@ validate whitelist → ví phí ký envelope → submit + poll):
 
 Audit GATE 5 (custody): `grep Keypair.fromSecret|.sign(` ngoài test = 4 hit, toàn bộ
 là ví phí (`services/stellar`) + SEP-45 server key — **0 chỗ ký thay người dùng**.
+
+## AUDIT P0 — Khôi phục ví CONTRACT thật: registry v2 xoay khoá BÊN TRONG smart account (2026-07-24)
+
+Lỗ hổng: registry v1 (`CCPGVSLR…GT3V`) chỉ đổi `owner` trong storage CỦA NÓ — smart
+account không hề biết, thiết bị mới không ký được gì (chi tiết RESEARCH-LOG). Thay bằng:
+
+- **recovery-registry v2**: [`CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY`](https://stellar.expert/explorer/testnet/contract/CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY)
+- **verifier-ed25519** (External signer không-WebAuthn cho e2e/khoá lạnh): `CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT`
+- **smart-account wasm MỚI** (recovery hook + cooldown): hash `a67ea40eeca05bdd59b4f8bea87d40709415aac94978f8ef0630d9c919b92d25`
+
+**E2e — chạy THẬT trên testnet 2026-07-24** (`RUN_TESTNET_E2E=1 bun test onchain.e2e`
+→ **4 pass / 0 fail, 238s**; wallet = SMART ACCOUNT C…, ký `__check_auth` thật bằng
+External(ed25519), digest = sha256(payload ++ scvVec(rule_ids).toXDR()) đúng công thức OZ):
+
+| Bước | Chứng minh | Tx |
+|---|---|---|
+| deploy account 1+2 | ví contract mở bằng wasm hash + constructor (khoá CŨ) | [5d83767c](https://stellar.expert/explorer/testnet/tx/5d83767c42f74bd3c16866721b4fd38cf28cf30572a635bf738b35f5bd8e9355) · [562002bb](https://stellar.expert/explorer/testnet/tx/562002bbc2dfdc18ba45375b1a7a2e4c49a4bb418a473cfd5f0a31013ff4e1c8) |
+| set_recovery_registry ×2 | KHOÁ CŨ ký qua `__check_auth` (crypto thật, không mock) | [f552f9c9](https://stellar.expert/explorer/testnet/tx/f552f9c91e4a28963aee1e31035118e58f92766fda1b8e78c37836ed3b84e8ec) · [6ca9bb92](https://stellar.expert/explorer/testnet/tx/6ca9bb92357db578871074ecd4697279e786ed83e14c7d34b1043deb4c1b9141) |
+| register_wallet a1 | VÍ CONTRACT tự ký entry đăng ký registry | [fa76615b](https://stellar.expert/explorer/testnet/tx/fa76615bed6a3f3735ccada5d1fbea9bf37dac8881cdb8832d5ccef7233560e3) |
+| initiate (g1, chở KHOÁ MỚI thật) | guardian bỏ phiếu cho ĐÚNG khoá mới (Signer trong entry đã ký) | [239d47f8](https://stellar.expert/explorer/testnet/tx/239d47f8496c69c31d53bd67831e727c5899b7b06548e4875ffb7f7541923d1a) |
+| approve (g2 → đủ ngưỡng 2) | số phiếu ĐỌC thật từ chain | [f469d573](https://stellar.expert/explorer/testnet/tx/f469d573f756e2ab466683e70de77785d4a614b0c3b0bf53acbe9659bdde7de0) |
+| chờ `timelock_remaining=0` → **finalize** | **registry gọi `recovery_rotate` — khoá đổi BÊN TRONG account** (invoker auth, zero auth entry người dùng) | [76d74ba8](https://stellar.expert/explorer/testnet/tx/76d74ba8a7ac922d07e94a8017984ea5f3698d65117f2e63f4f84a281b2bb306) |
+| verify TỪ SMART ACCOUNT | `get_context_rule(0).signers` = [khoá MỚI], khoá cũ biến mất; `last_rotation` có dấu; địa chỉ ví KHÔNG đổi ✅ | (simulateRead) |
+| cooldown 20s | NGAY sau xoay: cả khoá MỚI cũng bị chối `Error(Contract,#101)` CooldownActive ✅ | (simulate) |
+| hết cooldown: **KHOÁ MỚI KÝ ĐƯỢC tx thật** | passkey/khoá mới sở hữu ví thật sự | [b675f53b](https://stellar.expert/explorer/testnet/tx/b675f53b263dfb42a23ba61dea3afc782adee5933d9058a146cc69761c523bc1) |
+| khoá CŨ ký → CHẾT | `SIMULATION_FAILED` (UnauthorizedSigner) ✅ | (simulate) |
+| veto khẩn a2: register → initiate → **cancel (VÍ tự ký)** | approve sau veto chết đúng mã; khoá gốc a2 còn sống | [6cd62791](https://stellar.expert/explorer/testnet/tx/6cd62791c2f9c40d3d3535c76dcdb5b2a996e1038008aeb187df5e99e9bf0f57) · [6a55f24c](https://stellar.expert/explorer/testnet/tx/6a55f24c35e680c752ed359ea55e5736075acb30b66b7419920fa554d71349cb) · [a098b872](https://stellar.expert/explorer/testnet/tx/a098b8720f6de500b738f0b760b3e5ac5e1e9096fdcdb799d9ad57210d37cbf8) |

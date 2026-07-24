@@ -135,13 +135,17 @@ async function applyRegistryMirror(
   const walletScope = eq(recoveryRequests.walletId, wallet.id);
   switch (kind) {
     case "initiate": {
-      // value = new_owner_candidate (Address→string). vetoUntil ƯỚC LƯỢNG từ mirror
-      // timelock của ví (mốc chuẩn on-chain là started_at contract — FE đọc qua
-      // get_recovery_status khi cần chính xác tuyệt đối).
-      if (typeof data.value !== "string") return;
+      // Registry v2: value = (initiator Address, fingerprint sha256 của Signer mới).
+      // newOwner (varchar 56) lưu fingerprint hex CẮT 56 ký tự (28B — đủ đối chiếu
+      // UI/audit; khoá đầy đủ nằm on-chain qua get_recovery_status). vetoUntil ƯỚC
+      // LƯỢNG từ mirror timelock ví (mốc chuẩn = started_at contract).
+      const value = data.value;
+      if (!Array.isArray(value)) return;
+      const fp = value[1];
+      if (!(fp instanceof Uint8Array)) return;
       await tx.insert(recoveryRequests).values({
         walletId: wallet.id,
-        newOwner: data.value,
+        newOwner: Buffer.from(fp).toString("hex").slice(0, 56),
         status: "pending",
         approvals: 0,
         threshold: wallet.threshold,

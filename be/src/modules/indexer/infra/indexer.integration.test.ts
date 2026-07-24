@@ -145,15 +145,21 @@ describe("indexer core (Postgres thật)", () => {
       if (!w) throw new Error("wallet insert failed");
       cleanupWalletIds.push(w.id);
 
-      const newOwner = `G${"N".repeat(55)}`;
       const guardian = `G${"G".repeat(55)}`;
+      // Registry v2: value initiate = (initiator, fingerprint sha256 Signer mới).
+      const fingerprint = new Uint8Array(32).fill(0xab);
+      const fingerprintHex56 = Buffer.from(fingerprint).toString("hex").slice(0, 56);
       // Shape data đúng rpc-source.simplify: {topics, value, txHash}; MỌI event chung
       // contractId = registry — ví chỉ nhận ra được qua topics[1].
       const initiate = {
         ...makeEvent("initiate"),
         ledger: 1,
         contractId: registryId,
-        data: { topics: ["initiate", walletAddress], value: newOwner, txHash: "a".repeat(64) },
+        data: {
+          topics: ["initiate", walletAddress],
+          value: [guardian, fingerprint],
+          txHash: "a".repeat(64),
+        },
       };
       const approve = {
         ...makeEvent("approve"),
@@ -178,7 +184,7 @@ describe("indexer core (Postgres thật)", () => {
         .from(recoveryRequests)
         .where(eq(recoveryRequests.walletId, w.id));
       expect(afterApprove?.status).toBe("pending");
-      expect(afterApprove?.newOwner).toBe(newOwner);
+      expect(afterApprove?.newOwner).toBe(fingerprintHex56);
       expect(afterApprove?.approvals).toBe(1);
       expect(afterApprove?.threshold).toBe(2);
       expect(afterApprove?.txHash).toBe("a".repeat(64));
