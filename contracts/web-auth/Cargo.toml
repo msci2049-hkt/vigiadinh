@@ -1,0 +1,19 @@
+[package]
+name = "web-auth"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+# Contract SEP-45 (web_auth_verify) — đứng cùng cụm SDK 26.1.1 với origin-verifier +
+# smart-account vì được invoke trong CÙNG tx với __check_auth của smart account.
+# Không phụ thuộc OZ: chỉ require_auth trên các address rút từ args (spec SEP-45).
+[dependencies]
+soroban-sdk = "=26.1.1"
+
+[dev-dependencies]
+soroban-sdk = { version = "=26.1.1", features = ["testutils"] }
