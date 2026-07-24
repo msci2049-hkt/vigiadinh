@@ -30,3 +30,12 @@ export async function insert(data: NewWallet): Promise<Wallet> {
   if (!row) throw new Error(WALLET_ERRORS.CREATE_FAILED);
   return row;
 }
+
+export async function findByAddress(stellarAddress: string): Promise<Wallet | null> {
+  const [row] = await db
+    .select()
+    .from(wallets)
+    .where(eq(wallets.stellarAddress, stellarAddress))
+    .limit(1);
+  return row ?? null;
+}
