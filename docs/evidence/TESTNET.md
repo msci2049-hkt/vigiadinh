@@ -137,3 +137,32 @@ runtime với MỌI backend thật; (2) placeholder entry ví của BE SEP-45 l�
 Workaround test-env (KHÔNG phải code sản phẩm): shim credentials Playwright 1.61
 thiếu `getPublicKey()` + `getAuthenticatorData()` trả nhầm attestationObject →
 polyfill trong `e2e/support-passkey.ts` (trình duyệt thật có sẵn các API này).
+
+## P0 CONSTRUCTOR-REGISTRY — ví sinh ra ĐÃ khôi phục được (2026-07-24)
+
+**Lỗ hổng vá ở đây:** trước bản này KHÔNG đường sản phẩm nào gọi `set_recovery_registry`
+(chỉ test gọi — grep toàn repo). Mọi ví tạo qua `/setup` deploy ra là ví **không khôi phục
+được**: `recovery_rotate` chết mã 100 `RecoveryNotConfigured`. Toàn bộ máy khôi phục chạy
+hoàn hảo on-chain nhưng không áp dụng cho ví thật nào — tính năng đầu bảng của sản phẩm
+không tồn tại với người dùng.
+
+**Cách vá:** registry cắm NGAY trong tx deploy qua mục đặt chỗ trong map `policies` của
+constructor (`FwConstructorEntry::RecoveryRegistry(cooldown)`). Không tách thành tx thứ hai
+vì tx đó fail = ví vĩnh viễn không cứu được, và không ai biết cho tới đúng lúc cần.
+Vì sao phải lách qua `policies`: `smart-account-kit` khoá cứng constructor đúng hai tham số
+(`kit/deploy-ops.js` → `SmartAccountClient.deploy`).
+
+| Bước | Chứng minh | Bằng chứng |
+|---|---|---|
+| upload wasm smart-account bản có hook | hash `d86d927e…572f` (bản cũ `a67ea40e…` BỎ) | [ddc5924b](https://stellar.expert/explorer/testnet/tx/ddc5924bf7d9e11e1d3ddccab036631f1b39023697a972eabdbf2ad1cbbb5117) |
+| deploy registry v2.1 (thêm `veto_registry_change`) | `CCZWMNT6…2NLL` (bản `CAN4LHSY…27SY` BỎ) | [75336a4f](https://stellar.expert/explorer/testnet/tx/75336a4ff650e55375c0a9984f1396f4b39f002fadc5f758d12998713771b4b3) |
+| **deploy ví có mục đặt chỗ — MỘT tx** | tx thành công đã tự là bằng chứng tách đúng: mục lọt sang OZ thì `add_context_rule` gọi `install()` lên registry và deploy CHẾT | [bc3f7261](https://stellar.expert/explorer/testnet/tx/bc3f72611e42b85bf8273c11709b02fb7d6b8a0ed318b52d729464fc2cb22bd8) — ví [CAU26NTA…XCWL](https://stellar.expert/explorer/testnet/contract/CAU26NTA7ZVN6TRPMZY6V6ZPMONR5YOWNEJI5YUVBSAO5JWRU55RXCWL) |
+| **đọc NGƯỢC từ ví** | `get_recovery_registry()` = `("CCZWMNT6…2NLL", 86400)` ✅ — registry nằm trong storage CỦA VÍ, không phải niềm tin ở FE | simulate RPC thật |
+| **CỔNG CHỐNG HỒI QUY** | `get_context_rule(0)`: `signers.len = 1` · `policies.len = 0` ✅ — ví chủ ĐÚNG MỘT signer, guardian không bao giờ là signer ở đây | simulate RPC thật |
+
+Ký bằng gì: deploy ký bằng **ed25519 ví phí** (envelope) — đây là tx deploy, chưa có chữ ký
+người dùng nào. Signer cài vào ví trong lần chạy này là External(verifier-ed25519) cho gọn;
+đường passkey secp256r1 đã chứng minh riêng ở §PASSKEY-ONCHAIN và dùng chung đúng constructor.
+
+⚠️ **Ví testnet tạo TRƯỚC 2026-07-24 (wasm `a67ea40e…`) không khôi phục được** — không có
+đường vá vì `set_recovery_registry` nay chặn ghi đè và ví cũ chưa từng được cắm. Tạo lại ví.

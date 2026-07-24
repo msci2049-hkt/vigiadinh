@@ -160,3 +160,40 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
   network-free + API chuẩn cross-browser (đã chứng minh trên 2 engine) → rất khả năng
   xanh trên CI (runner có `--with-deps`). Chưa chạy local thì chưa gọi là xanh.
 - **Cần để gỡ:** đọc job e2e CI (B-CI-1), hoặc `sudo playwright install-deps webkit`.
+
+## §3 QUÉT "CHỈ TEST GỌI" — 2026-07-24 (bảng đầy đủ: `docs/COVERAGE-PRODUCT.md`)
+
+Lớp lỗi: hàm contract đã cài + đã test on-chain nhưng KHÔNG đường sản phẩm nào chạm tới.
+Hai P0 tìm được đã VÁ trong phiên (`set_recovery_registry` → constructor · `extend_ttl`
+→ hàm contract + cron `ttl-keeper`). Các mục dưới là phần CHƯA dựng, ghi lý do:
+
+### B-COV-1 · `remove_guardian` chưa có đường sản phẩm
+- **Chặn:** không thay được người bảo hộ đã mất liên lạc. `/night-watch/resolve` hiện chỉ là
+  hướng dẫn bằng chữ ("nhờ mở app / thay người"), chưa có nút hành động.
+- **Vì sao chưa làm:** gỡ guardian là đổi-quyền chạm custody, phải đi qua đúng luồng có
+  timelock + chống lockout (contract đã chặn rớt dưới threshold). Cần màn xác nhận riêng.
+- **Cần để gỡ:** dựng màn thay-người ở cụm GHI, cùng khuôn `/block` (fingerprint + biometric).
+
+### B-COV-2 · Đổi registry (propose/apply/veto) chưa có UI
+- **Chặn:** không di cư được ví sang registry v3 qua giao diện.
+- **Vì sao chưa làm:** đây là admin surface hiếm dùng (di cư contract), và đường an toàn đã
+  có trên chain (timelock 7 ngày + veto guardian). Dựng UI cho nó trước khi có v3 là dựng
+  cửa cho kẻ tấn công dùng, không phải cho người dùng.
+- **Cần để gỡ:** khi thật sự có registry v3 → dựng màn + banner cảnh báo khi có đơn đang chờ.
+
+### B-COV-3 · `get_recovery_registry` không hiện ở màn ví
+- **Chặn:** người dùng không tự kiểm được "ví này khôi phục được chưa" từ NGUỒN THẬT (chain).
+- **Vì sao quan trọng:** đúng lớp lỗi vừa vá — nếu có ô này từ đầu thì P0 §2 đã lộ ngay.
+- **Cần để gỡ:** thêm dòng đọc từ chain vào `/wallet` hub (1 simulateRead).
+
+### B-COV-4 · `batch_add_signer` chưa có đường sản phẩm
+- **Chặn:** không nối thêm thiết bị/vỏ (extension quyền hẹp — PHA 9 đường B) vào ví.
+- **Vì sao chưa làm:** subsystem chưa dựng, ghi đúng nhãn từ PHA 9.1.
+
+### B-COV-5 · Cooldown sau khôi phục KHÔNG được giải thích ở UI
+- **Chặn:** khôi phục xong, ví chối MỌI chữ ký trong cửa sổ cooldown (hành vi ĐÚNG, chống
+  xoay-rồi-rút-ngay). Không màn nào đọc `last_rotation` + `cooldown_secs` để nói "còn N giờ".
+  Người dùng thấy "ví bị khoá" ngay sau khi vừa cứu được ví — trải nghiệm tệ nhất có thể.
+- **Vì sao chưa làm:** BUILD-LOG PHA 6 có ghi TODO này, chưa dựng.
+- **Cần để gỡ:** `/recovery/done` + `/wallet` đọc 2 giá trị từ ví, hiện đếm ngược (timelockView
+  đã có sẵn từ PHA 7.1).

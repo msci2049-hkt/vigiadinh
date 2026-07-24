@@ -675,3 +675,92 @@ wizard mức B (đa bên, chạm custody) để honest-stub theo đúng cho phé
   ×3, inheritance claim, guardian warning, wizard-stub-exit) + smoke **5 pass** + passkey-onchain
   (§1, opt-in) **1 pass**. Tổng suite chromium **23 pass / 1 skip** (passkey-login skip chủ đích).
 - i18n en/vi/zh parity giữ (mọi key mới thêm đủ 3 ngôn ngữ).
+
+## §2+§3 P0 KÉP + §4 WIZARD MỨC B — 2026-07-24 (đính chính mô hình guardian)
+
+> Prompt phiên này ĐÍNH CHÍNH spec cũ: câu "verify `get_context_rule(0)` ví chủ có 3 signer
+> secp256r1" là SAI — nó trộn multisig với social recovery. Chốt **phương án 1**: guardian =
+> smart account riêng của họ (C…) đăng ký vào registry. Lý do là KIỂU DỮ LIỆU, không phải sở
+> thích: registry cần `require_auth()` để nhận phiếu, mà chỉ `Address` mới require_auth được;
+> passkey thô là `Signer`. Hệ quả: **rule 0 ví chủ vẫn ĐÚNG MỘT signer** — cổng chống hồi quy
+> quan trọng nhất, đã test ở cả unit lẫn on-chain.
+
+### §2 · P0 THỨ NHẤT — ví tạo qua `/setup` KHÔNG khôi phục được
+
+Grep toàn repo: `set_recovery_registry` chỉ khớp trong `*/test.rs` và `*.e2e.test.ts`. **Không
+đường sản phẩm nào gọi.** Mọi ví thật deploy ra đều chết mã 100 `RecoveryNotConfigured` khi cần
+cứu — toàn bộ máy khôi phục chạy hoàn hảo on-chain nhưng không áp dụng cho ví nào.
+
+- **Vá bằng constructor, không bằng tx thứ hai** (tx đó fail = ví vĩnh viễn không cứu được, và
+  không ai biết cho tới đúng lúc cần). Cản trở: `smart-account-kit` khoá cứng constructor đúng
+  hai tham số `{signers, policies}` (`kit/deploy-ops.js` → `SmartAccountClient.deploy`) → không
+  thêm được tham số thứ ba mà không fork kit.
+- **Đường đi tìm được:** registry LÀ một `Address`, nên nó vào đúng kiểu khoá của map `policies`.
+  Định nghĩa mục ĐẶT CHỖ `FwConstructorEntry::RecoveryRegistry(cooldown)`; `__constructor` gỡ
+  mục đó ra TRƯỚC khi đưa phần còn lại cho OZ. Bắt buộc phải gỡ: OZ `add_context_rule` gọi
+  `PolicyClient::install()` lên MỌI key trong map (`storage.rs:690`) → để lọt là deploy chết.
+- Bộ phân biệt ghim bằng **vector XDR chéo Rust↔TS** (`recovery_entry_xdr_vector_matches_ts` ↔
+  `recovery-link.test.ts`) — lệch một bên là hai test cùng đỏ.
+- `set_recovery_registry` giờ CHỈ cắm lần đầu; ghi đè → mã 103. Đổi registry đi đường timelock.
+
+### §2b · Đổi registry có timelock + veto (chống cắt-đường-cứu)
+`propose_recovery_registry` (chủ ví tự ký) → chờ **7 ngày** → `apply_recovery_registry` (không
+đòi auth, cùng khuôn `finalize_recovery`). Huỷ được bởi HAI người: chính ví, và **registry hiện
+tại** — registry là nơi biết ai là guardian, ví thì không. Guardian veto qua
+`RecoveryRegistry::veto_registry_change(wallet, guardian)` → registry gọi vào ví với tư cách
+INVOKER (khuôn đã chứng minh ở `recovery_rotate`). Mã lỗi mới 102–107, đã thêm vào bảng dịch BE.
+
+### §3 · P0 THỨ HAI — `extend_ttl` KHÔNG TỒN TẠI Ở ĐÂU
+Quét `grep -rn "extend_ttl\|extendFootprintTtl" contracts/ be/ fe/ scripts/` → **rỗng**. Không
+hàm contract, không job, không script. 4 cron BullMQ hiện có đều không đụng TTL.
+- Phát hiện làm hẹp phạm vi (chứ không xoá): OZ **tự gia hạn** entry persistent mỗi lần ĐỌC
+  (`smart_account/storage.rs:1427`) → ví đang dùng tự lành. Nhưng ví thừa kế được thiết kế để
+  NẰM IM nhiều tháng — không có lần đọc nào; và instance storage của ta (dây nối registry,
+  owner rule id, mốc xoay khoá) không có đường tự lành nào cả.
+- Vá: `extend_ttl` ở CẢ HAI contract + registry gia hạn khi đọc (khuôn OZ) + cron
+  `be/src/jobs/ttl-keeper.ts` (03:00 UTC, ví phí trả, lỗi một ví không hỏng lượt ví khác).
+- Bảng đầy đủ mọi `pub fn` × có/không đường sản phẩm: **`docs/COVERAGE-PRODUCT.md`** (không
+  dòng trống). Còn **2 lỗ 🔴** (`add_guardian` — đã vá ở §4; `last_rotation`/cooldown chưa có UI)
+  và 7 mục 🟡, mỗi mục một dòng BLOCKERS §3 kèm lý do.
+
+### §4 · Wizard mức B — luồng TĂNG DẦN (BE xong, FE xong phần cốt lõi)
+- **BE**: bảng `guardian_invites` (migration 0007 additive, 0 DROP) — trạng thái một chiều
+  `sent→accepted→deployed→registered|expired`. Cột khoá duy nhất nhận được là
+  `guardian_address` (C…, công khai). 5 endpoint (`/api/guardians/invites*`), cửa đọc bằng token
+  là PUBLIC + rate-limit failOpen=false. Domain THUẦN + 8 test: **đếm theo người ĐÃ LÊN CHAIN,
+  không đếm lời mời đã gửi** — "mời 3 người, chưa ai nhận" phải trả về *chưa khôi phục được*.
+- **`add_guardian` nối đường sản phẩm** (đóng lỗ 🔴): `RECOVERY_METHODS.addGuardian` +
+  `addGuardianArgs` + whitelist SIGNABLE + route `/api/recovery/addGuardian`, gate chủ-ví.
+- **FE**: `/setup/invite` hết stub — tạo link mời, danh sách trạng thái từng người, nút ký
+  `add_guardian` cho người đã xong (MỘT tx / MỘT người). `/guardian/accept?token=` — người thân
+  tạo passkey + deploy hợp đồng của CHÍNH HỌ trên máy HỌ, chỉ gửi ĐỊA CHỈ về.
+  `RecoverabilityBanner` hiện "ví hiện CHƯA khôi phục được" khi `available < threshold`.
+- Ngôn ngữ: người bảo hộ là mẹ/anh chị, **cấm** gọi là "ví crypto của bạn" → copy dùng
+  "danh tính bảo mật". Phí deploy do ví phí app trả, không bắt guardian nạp XLM.
+- Boundary guard bắt đúng một lần: `family` không import `wallet` → việc ký nâng lên tầng `app/`.
+
+### Bằng chứng TESTNET THẬT (docs/evidence/TESTNET.md §P0 CONSTRUCTOR-REGISTRY)
+| Việc | Bằng chứng | Ký bằng gì |
+|---|---|---|
+| upload wasm `d86d927e…` (bản P0) | tx `ddc5924b…` | ed25519 ví deployer |
+| deploy registry v2 `CCZWMNT6…` | tx `75336a4f…` | ed25519 ví deployer |
+| **deploy ví có mục đặt chỗ, MỘT tx** | tx `bc3f7261…`, ví `CAU26NTA…XCWL` | ed25519 ví deployer (tx deploy, chưa có chữ ký user) |
+| **`get_recovery_registry()` đọc TỪ VÍ** = `(CCZWMNT6…, 86400)` | simulate RPC thật | — |
+| **`get_context_rule(0)`: 1 signer · 0 policy** | simulate RPC thật | — |
+| upload wasm CUỐI `78e7521f…` (thêm extend_ttl) | tx `994265d1…` | ed25519 ví deployer |
+| deploy registry CUỐI `CAFU4CZN…FMCO` | tx `50c02aaa…` | ed25519 ví deployer |
+
+### Gate
+- contracts **48/48** (34 → +14) · `cargo fmt --check` OK · 6 wasm build.
+- BE **231 pass / 9 skip / 0 fail** (223 → +8) · validate xanh (250→256 file).
+- FE validate **11/11** · unit **67 pass** (ui 3 + core 31 + web 33) · honest build xanh
+  (precache 97 / 1716 KiB) · i18n en/vi/zh parity **356 key khớp tuyệt đối 3 bên**.
+
+### CHƯA LÀM — khai thẳng, không gộp vào phần trên
+- **E2e nhiều BrowserContext CHƯA VIẾT, CHƯA CHẠY.** Đây là hạng mục §4 còn nợ. Luồng đã dựng
+  đủ để viết (mỗi context một authenticator ảo độc lập), nhưng chưa có spec nào chạy thật →
+  **không được coi là verify**. Cổng chống hồi quy "rule 0 = 1 signer" hiện được chứng minh bằng
+  unit test + đọc on-chain ví `CAU26NTA…` (thật), CHƯA qua đường UI nhiều thiết bị.
+- 3 màn wizard còn stub: `/setup/choose-guardians`, `/setup/threshold`, `/setup/timelock`
+  (ngưỡng + thời gian chờ hiện lấy từ mặc định ví, chưa có màn chỉnh).
+- Ví testnet tạo TRƯỚC phiên này không khôi phục được, không có đường vá — tạo lại.

@@ -8,13 +8,16 @@
 1. **origin-verifier production** — deploy instance MỚI pin rpIdHash domain thật + allow-list
    3 origin (web/APK/extension). Bản testnet hiện tại là DEV localhost, KHÔNG dùng cho prod.
    Script: `contracts/scripts/deploy-origin-verifier.sh` (tham số hoá — xem dưới).
-2. **smart-account** — wasm đã upload (hash `a67ea40e…`, bản có recovery hook). Mỗi ví là một
-   instance mở bằng constructor (verifier = origin-verifier prod ở bước 1).
+2. **smart-account** — wasm đã upload (hash `78e7521f…`). Mỗi ví là một instance mở bằng
+   constructor (verifier = origin-verifier prod ở bước 1). **Constructor phải chở mục đặt chỗ
+   registry** (`FwConstructorEntry::RecoveryRegistry`) — thiếu là ví deploy ra không khôi phục
+   được. FE làm việc này ở `features/wallet/lib/recovery-link.ts`.
 3. **recovery-registry v2** + **web-auth (SEP-45)** — deploy instance mainnet.
 4. **BE** — env mainnet (passphrase `Public Global Stellar Network ; September 2015`, RPC mainnet,
    ví phí MAINNET MỚI, CONTRACT_ID_* trỏ instance mainnet, CONTRACT_ID_SAC_NATIVE mainnet).
 5. **FE** — VITE_STELLAR_* mainnet, VITE_WEBAUTHN_VERIFIER_ADDRESS = origin-verifier prod,
-   VITE_ACCOUNT_WASM_HASH = `a67ea40e…`, rpId = domain thật.
+   VITE_ACCOUNT_WASM_HASH = `78e7521f…`, VITE_RECOVERY_REGISTRY_ADDRESS = registry mainnet,
+   rpId = domain thật.
 
 ## 3 origin phải allow-list trong origin-verifier prod (luật K1)
 
@@ -33,9 +36,12 @@ không cần). Sinh lại nếu mất: `openssl genrsa 2048 | openssl rsa -pubou
 
 | Contract | ID / hash | Trạng thái |
 |---|---|---|
-| recovery-registry **v2** | `CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY` | **ĐANG DÙNG** (env CONTRACT_ID_RECOVERY) |
+| recovery-registry **v2.1** | `CAFU4CZNPN5YWFV3QOCA4Y6FSJUB7IGI456MIGTQRJXA4DQLWUIHFMCO` | **ĐANG DÙNG** (env CONTRACT_ID_RECOVERY) — thêm `veto_registry_change` + `extend_ttl` + gia hạn TTL khi đọc |
+| recovery-registry v2.0 | `CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY` | BỎ (không có TTL keeper — entry archive sau vài tháng im lặng) |
 | recovery-registry v1 | `CCPGVSLRFSUOGRFH3LAOWXSHJ2Y3QBFEA2ZTV4PWIINVGJWVDFA5GT3V` | BỎ (classic-model, không xoay khoá — audit P0) |
-| smart-account wasm | hash `a67ea40eeca05bdd59b4f8bea87d40709415aac94978f8ef0630d9c919b92d25` | **ĐANG DÙNG** (bản có recovery hook) |
+| smart-account wasm | hash `78e7521f391123c2dc119bdf2c3ecae1a4655fbf360e5c2a17fd12be028da170` | **ĐANG DÙNG** — registry cắm trong constructor + `extend_ttl` + đổi-registry có timelock |
+| smart-account wasm (P0 tạm) | hash `d86d927e4b900e56904676afb7df0253dd337d30f7ac9baa444952e96683572f` | BỎ (chưa có extend_ttl) |
+| smart-account wasm cũ hơn | hash `a67ea40eeca05bdd59b4f8bea87d40709415aac94978f8ef0630d9c919b92d25` | BỎ — **ví tạo bằng bản này KHÔNG khôi phục được** (registry chưa từng được cắm) |
 | smart-account wasm cũ | hash `87194f6100c81fd5c290ca6a28034bc9ef2f6e42b2f7e73eefae37d5ad3b02a8` | BỎ (không có hook) |
 | verifier-ed25519 | `CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT` | DÙNG cho e2e / khoá lạnh (không WebAuthn) |
 | origin-verifier DEV | `CCNS6O5HBTF7XOOVCNF4XLTKORQ4JB4PKUKUA6CX2MW7OXOKGKKC2O4N` | DEV localhost — thay bằng prod khi có domain |
@@ -45,11 +51,13 @@ không cần). Sinh lại nếu mất: `openssl genrsa 2048 | openssl rsa -pubou
 
 Bảng tx hash đầy đủ: `docs/evidence/TESTNET.md`.
 
-## TTL / state archival (bắt buộc mainnet — sự cố production kinh điển)
+## TTL / state archival (ĐÃ DỰNG 2026-07-24 — trước đó KHÔNG tồn tại ở đâu)
 
-- Cron `extend_ttl` cho mọi entry sống còn: smart-account instance + wasm + recovery-registry
-  persistent keys. Quên = contract "biến mất" sau ~vài tuần/tháng (skill stellar-mainnet-deploy).
-- Job báo động entry sắp hết TTL.
+- `extend_ttl` có ở CẢ HAI contract; registry còn gia hạn mỗi lần ĐỌC (khuôn OZ).
+- Cron `be/src/jobs/ttl-keeper.ts` — 03:00 UTC hằng ngày, ví phí trả, lỗi một ví không
+  làm hỏng lượt của ví khác. Worker đã đăng ký trong `src/workers/index.ts`.
+- ⚠️ CÒN THIẾU: job báo động entry SẮP hết TTL (mới có gia hạn, chưa có cảnh báo khi
+  gia hạn thất bại nhiều ngày liên tiếp) — xem BLOCKERS.
 
 ## Trước khi mở cho người dùng thật
 
