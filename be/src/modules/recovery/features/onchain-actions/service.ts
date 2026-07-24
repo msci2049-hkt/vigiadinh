@@ -5,6 +5,7 @@
 import type { xdr } from "@stellar/stellar-sdk";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
 import {
+  addGuardianArgs,
   approveArgs,
   finalizeArgs,
   initiateArgs,
@@ -67,7 +68,7 @@ async function memberRole(
 /**
  * Build + simulate MỘT action → tx chưa ký + auth entries cho FE ký.
  * Gate BE theo vai trò (contract vẫn cưỡng chế lại bằng require_auth on-chain):
- * initiate/approve = guardian của ví · veto/register = chủ ví.
+ * initiate/approve = guardian của ví · veto/register/addGuardian = chủ ví.
  */
 export async function buildRecoveryAction(
   gateway: OnchainGateway,
@@ -78,6 +79,8 @@ export async function buildRecoveryAction(
     userId: string;
     newSignerVerifier?: string;
     newSignerKey?: string;
+    /** Chỉ addGuardian: địa chỉ ví hợp đồng của người bảo hộ. */
+    guardianAddress?: string;
   },
 ): Promise<{ action: BuildableAction; walletId: string } & BuiltInvoke> {
   const wallet = await requireWallet(input.walletId);
@@ -118,6 +121,20 @@ export async function buildRecoveryAction(
         guardians: guardianKeys,
         threshold: wallet.threshold,
         timelockSecs: wallet.timelockSecs,
+      });
+      break;
+    }
+    case "addGuardian": {
+      // Wizard mức B: người bảo hộ nhận lời SAU khi ví đã đăng ký được thêm
+      // bằng MỘT tx riêng. Không gom vào register — gom nghĩa là một người
+      // chậm treo cả nhà, và không có đường lùi giữa chừng.
+      if (wallet.userId !== input.userId) throw new RecoveryActionError(403, "NOT_OWNER");
+      if (!input.guardianAddress) {
+        throw new RecoveryActionError(400, "GUARDIAN_ADDRESS_REQUIRED");
+      }
+      args = addGuardianArgs({
+        wallet: wallet.stellarAddress,
+        guardian: input.guardianAddress,
       });
       break;
     }

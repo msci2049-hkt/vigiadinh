@@ -9,6 +9,8 @@ export const buildActionBody = z.object({
   wallet_id: z.string().length(26),
   /** Chỉ initiate cần: verifier của khoá mới (origin-verifier passkey hoặc ed25519). */
   new_signer_verifier: contractAddress.optional(),
+  /** Chỉ addGuardian cần: địa chỉ ví hợp đồng của người bảo hộ (C…). */
+  guardian_address: contractAddress.optional(),
   /** Chỉ initiate cần: public key khoá mới, base64 (ed25519 32B / secp256r1 65B). */
   new_signer_key: z
     .string()

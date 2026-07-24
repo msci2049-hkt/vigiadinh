@@ -20,6 +20,7 @@ export const RECOVERY_METHODS = {
   approve: "approve_recovery",
   veto: "cancel_recovery",
   finalize: "finalize_recovery",
+  addGuardian: "add_guardian",
 } as const;
 export type RecoveryAction = keyof typeof RECOVERY_METHODS;
 
@@ -29,6 +30,9 @@ const SIGNABLE_METHODS = new Set<string>([
   RECOVERY_METHODS.initiate,
   RECOVERY_METHODS.approve,
   RECOVERY_METHODS.veto,
+  // Chủ ví ký — wizard mức B thêm TỪNG người bảo hộ bằng tx độc lập, thay vì
+  // gom tất cả vào một lần đăng ký (một người chậm không treo cả nhà).
+  RECOVERY_METHODS.addGuardian,
 ]);
 
 /** Bảng Error enum registry v2 (1..16 giữ nguyên v1) + mã smart account (100/101)
@@ -53,6 +57,12 @@ export const CONTRACT_ERROR_NAMES: Record<number, string> = {
   // FamilyWalletError của smart-account (contracts/smart-account) — lộ qua sub-call.
   100: "RecoveryNotConfigured",
   101: "CooldownActive",
+  102: "DuplicateRecoveryEntry",
+  103: "RegistryAlreadyConfigured",
+  104: "NoPendingRegistryChange",
+  105: "RegistryChangeNotDue",
+  106: "RegistryChangePending",
+  107: "NotAuthorizedToCancel",
 };
 
 /** `SIMULATION_FAILED:...Error(Contract, #9)...` → `CONTRACT_ERROR:ThresholdNotMet`.
@@ -118,6 +128,13 @@ export function initiateArgs(input: {
 }
 
 export function approveArgs(input: { wallet: string; guardian: string }): xdr.ScVal[] {
+  return [addr(input.wallet), addr(input.guardian)];
+}
+
+/** `add_guardian(wallet, new_guardian)` — chủ ví ký. Guardian là ĐỊA CHỈ (ví
+ * hợp đồng của chính người bảo hộ), không phải vật liệu passkey: registry cần
+ * `require_auth()` để nhận phiếu, mà chỉ Address mới require_auth được. */
+export function addGuardianArgs(input: { wallet: string; guardian: string }): xdr.ScVal[] {
   return [addr(input.wallet), addr(input.guardian)];
 }
 

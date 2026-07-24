@@ -93,6 +93,7 @@ function buildRoute(action: BuildableAction) {
         userId: user.id,
         ...(body.new_signer_verifier ? { newSignerVerifier: body.new_signer_verifier } : {}),
         ...(body.new_signer_key ? { newSignerKey: body.new_signer_key } : {}),
+        ...(body.guardian_address ? { guardianAddress: body.guardian_address } : {}),
       }).catch(mapError);
       return c.json({
         data: {
@@ -112,6 +113,7 @@ export const onchainActionsRoute = new Hono()
   .route("/", buildRoute("initiate"))
   .route("/", buildRoute("approve"))
   .route("/", buildRoute("veto"))
+  .route("/", buildRoute("addGuardian"))
   .post("/submit", requireAuth, writeLimit, zv("json", submitBody), async (c) => {
     const user = requireUser(c);
     const body = c.req.valid("json");

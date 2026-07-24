@@ -5,6 +5,7 @@
 
 // PrivateMessage: OUT (M9, checklist 3.1) — KHÔNG dựng bảng nhắn tin.
 export * from "../../modules/care/infra/care-grants.schema";
+export * from "../../modules/guardians/infra/guardian-invites.schema";
 export * from "../../modules/guardians/infra/guardians.schema";
 export * from "../../modules/indexer/infra/audit-log.schema";
 export * from "../../modules/indexer/infra/checkpoint.schema";
