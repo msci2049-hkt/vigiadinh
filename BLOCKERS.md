@@ -78,3 +78,26 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
   tar -C /tmp -xzf /tmp/g.tar.gz gitleaks && mv /tmp/gitleaks ~/.local/bin/gitleaks
   gitleaks version   # → 8.30.1
   ```
+
+## PHA 2.3 (2026-07-24)
+
+### B-23-1 · E2e passkey (`fe/apps/web/e2e/passkey-login.spec.ts`) chưa chạy được local
+
+- **Chặn:** không tự xác nhận được e2e passkey xanh trên máy này.
+- **Vì sao:** fail-env cũ (KI-2 — chromium thiếu libnspr4/libnss3/libasound2, không sudo).
+- **Đã làm thay thế:** viết spec theo API `.d.ts` Playwright 1.61 đã cài
+  (`context.credentials.install()` + mock BE qua `page.route` — đúng triết lý e2e repo);
+  luồng ký FE phủ bằng 10 unit test (vitest) + BE phủ 19 test + smoke sống.
+- **Cần để gỡ:** đọc job e2e ở CI sau push (xem B-CI-1). LƯU Ý: spec này gọi RPC
+  **testnet thật** trong `kit.createWallet` (simulate deploy) — chỉ chạy chromium để
+  giảm bề mặt flake; nếu CI đỏ vì network testnet thì đó là flake hạ tầng, ghi lại đây.
+
+### B-23-2 · Tương thích smart-account-kit ↔ contract OZ 0.7.2 của ta CHƯA verify on-chain
+
+- **Chặn:** chưa chứng minh kit ký được tx mà `__check_auth` của `contracts/smart-account`
+  (OZ 0.7.2, SDK 26.1.1) chấp nhận — kit nhắm bản OZ mới hơn (bindings 0.3.0, P27 digest
+  + context-rule-ids binding).
+- **Dấu hiệu sẽ lộ:** e2e passkey CI (simulate deploy bằng wasm hash của ta
+  `87194f61…`) fail ở bước dựng constructor args, HOẶC PHA 5 khi ký tx thật.
+- **Cần để gỡ:** chạy e2e CI; nếu lệch → nâng OZ crates khi bản tương thích SDK 27 ra
+  (đã ghi §0.4 checklist) hoặc pin kit bản cũ hơn khớp 0.7.2.

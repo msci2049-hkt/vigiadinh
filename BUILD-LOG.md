@@ -117,6 +117,48 @@
 - CHẶN thực thi 2.3 trên máy hiện tại: browser e2e không chạy được local + smart-account-kit là
   npm package cần cài vào fe/ (đụng lockfile — làm khi vào 2.3 chính thức).
 
+## PHA 2.3 · TẦNG KÝ FE + BE SEP-45 — 2026-07-24 ✅
+
+> Từ pha này MỌI COMMIT VIẾT TIẾNG ANH (yêu cầu user 2026-07-23 — ban giám khảo đọc;
+> đã ghi CLAUDE.md root luật 5). Docs nội bộ vẫn tiếng Việt.
+
+### Việc đã làm (4 commit)
+1. `feat(contracts)`: contract `web-auth` SEP-45 (`web_auth_verify` — require_auth
+   account + server + optional client_domain; SDK 26.1.1 cùng cụm OZ). Cargo test
+   workspace **20/20** (15 cũ + 5 mới), 4 wasm build (web_auth.wasm 1229B).
+   **Deploy testnet thật**: `CAKV3MKK…2SST`, tx `ee36e934…` (docs/evidence/TESTNET.md).
+2. `feat(fe)` dep: smart-account-kit 0.4.2 vào apps/web — API đối chiếu `.d.ts` bản cài
+   (RESEARCH-LOG): challenge WebAuthn = P27 auth digest → K2 thoả từ kiến trúc.
+3. `feat(be)`: module `sep45` (layered, 2 endpoint public + rate-limit failOpen=false):
+   GET /challenge (entries XDR — server ký sẵn entry mình, nonce Redis SET NX EX 300s)
+   + POST /token (validate đủ checks spec → GETDEL nonce → **simulate qua RPC thật**
+   → JWT HS256 bind **địa chỉ ví + device**, không phải user id). P1-9: bật `bearer()`
+   Better Auth (WebView/extension gửi Authorization thay cookie; auth:generate no-op).
+   BE test **107 pass/3 skip** (88+19). Env +8 key (parity 35). **Smoke sống**: challenge
+   thật; token với entry chưa ký chết đúng `SIMULATION_FAILED Error(Auth, InvalidAction)`
+   từ contract testnet; replay → `NONCE_UNKNOWN_OR_USED`.
+4. `feat(fe)`: features/wallet — kit singleton (env, IndexedDB, rpId localhost dev) ·
+   sep45-entries helpers (browser-safe, không Buffer) · wallet-token Bearer localStorage
+   + restore lúc boot · device-id per-install · sep45-login (ký entry ví, expiration
+   giữ nguyên của BE) · PasskeyPanel nối màn /passkey (i18n en+vi 91 key). FE test
+   **35 pass** (25+10), validate + honest build xanh (precache 74/1536KiB).
+   E2e passkey: virtual authenticator Playwright 1.61 + mock BE, assert entry ĐƯỢC KÝ
+   thật; chỉ chromium (createWallet simulate deploy qua testnet thật bằng wasm hash
+   `87194f61…` đã upload + origin-verifier DEV `CCNS6O5H…` rpId=localhost).
+
+### Bug thư viện tự tìm ra (ghi cả RESEARCH-LOG)
+- js-xdr 4.0.0 (bản cài): `SorobanAuthorizationEntries.toXDR(value)` hỏng ("value is
+  not array") — instance toXDR không nhận value; `fromXDR` tốt. Encode tự đóng khung
+  uint32+concat ở CẢ be lẫn fe (2 file đối xứng, cùng ghi chú).
+
+### CHƯA verify — không được gọi là xanh (BLOCKERS B-23-1/B-23-2)
+- E2e passkey trên CI (local fail-env chromium libs; spec chạm testnet thật — flake mạng
+  là khả năng thật). Kết quả 4 workflow sau push cũng chưa đọc được từ máy này (B-CI-1).
+- Tương thích kit bindings 0.3.0 ↔ contract OZ 0.7.2 của ta khi KÝ THẬT vào smart
+  account — lộ ở e2e CI hoặc PHA 5.
+- GATE PHA 2 (checklist): "đăng nhập passkey chạy e2e trong CI" — chờ CI; mọi phần
+  còn lại của 2.3 đã có bằng chứng thật ở trên.
+
 ## CI · SCAN + FIX CI ĐỎ (2026-07-23)
 
 SHA sau fix: `e2682fd` (3 commit, đẩy lên `main`: `9ccc08b..e2682fd`).

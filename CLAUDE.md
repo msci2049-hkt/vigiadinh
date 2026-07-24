@@ -30,6 +30,9 @@ shared/     NGUỒN hợp đồng BE↔FE (enum trạng thái, intent state mach
    có chủ đích được đổi, và phải install + validate + test lại cả bên đó.
 4. Wiring dev: FE `VITE_API_URL` == BE `BETTER_AUTH_URL` (= `http://localhost:3000`),
    origin FE ∈ `TRUSTED_ORIGINS` của BE. `.env` không được commit (xem `.gitignore`).
+5. **Commit message viết bằng TIẾNG ANH** (subject + body) — ban giám khảo chấm bằng
+   tiếng Anh. Giữ conventional commits (`feat(be):` / `fix(contracts):` / `ci(fix):` …).
+   Docs nội bộ (BUILD-LOG, BLOCKERS…) vẫn tiếng Việt.
 
 ## Lệnh chuẩn từng bên
 
