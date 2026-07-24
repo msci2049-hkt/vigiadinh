@@ -12,6 +12,7 @@ import {
   Keypair,
   Operation,
   rpc,
+  scValToNative,
   type Transaction,
   TransactionBuilder,
   type xdr,
@@ -88,6 +89,86 @@ export async function buildInvokeTx(input: {
       authEntriesXdr: authEntries,
       latestLedger: sim.latestLedger,
     };
+  });
+}
+
+/**
+ * Đọc view fn qua simulation (không submit, không tốn phí) — trả retval native.
+ * Source vẫn là ví phí (chỉ mượn sequence để build, không ký gì).
+ */
+export async function simulateRead(input: {
+  contractId: string;
+  method: string;
+  args: xdr.ScVal[];
+}): Promise<unknown> {
+  return withRpc(async (server) => {
+    const source = await server.getAccount(feeWallet().publicKey());
+    const tx = new TransactionBuilder(source, {
+      fee: BASE_FEE,
+      networkPassphrase: env.STELLAR_NETWORK_PASSPHRASE,
+    })
+      .addOperation(
+        Operation.invokeContractFunction({
+          contract: input.contractId,
+          function: input.method,
+          args: input.args,
+        }),
+      )
+      .setTimeout(60)
+      .build();
+    const sim = await server.simulateTransaction(tx);
+    if (rpc.Api.isSimulationError(sim)) {
+      throw new StellarServiceError(`SIMULATION_FAILED:${sim.error}`);
+    }
+    const retval = sim.result?.retval;
+    return retval === undefined ? undefined : scValToNative(retval);
+  });
+}
+
+/**
+ * Invoke với auth entries ĐÃ KÝ (từ FE trả về): build lại op với entries đính kèm
+ * → simulate LẠI (chữ ký thật to hơn placeholder — resource fee phải tính theo
+ * entry đã ký, RESEARCH-LOG smart-account-kit) → assemble → ví phí ký envelope
+ * → submit + poll. entries RỖNG hợp lệ cho method không đòi auth người dùng
+ * (vd finalize_recovery — ai crank cũng được sau timelock).
+ */
+export async function invokeWithSignedEntries(input: {
+  contractId: string;
+  method: string;
+  args: xdr.ScVal[];
+  authEntries: xdr.SorobanAuthorizationEntry[];
+}): Promise<{ hash: string; status: string }> {
+  return withRpc(async (server) => {
+    const wallet = feeWallet();
+    const source = await server.getAccount(wallet.publicKey());
+    const tx = new TransactionBuilder(source, {
+      fee: BASE_FEE,
+      networkPassphrase: env.STELLAR_NETWORK_PASSPHRASE,
+    })
+      .addOperation(
+        Operation.invokeContractFunction({
+          contract: input.contractId,
+          function: input.method,
+          args: input.args,
+          auth: input.authEntries,
+        }),
+      )
+      .setTimeout(300)
+      .build();
+    const sim = await server.simulateTransaction(tx);
+    if (rpc.Api.isSimulationError(sim)) {
+      throw new StellarServiceError(`SIMULATION_FAILED:${sim.error}`);
+    }
+    const assembled = rpc.assembleTransaction(tx, sim).build();
+    assembled.sign(wallet);
+    const sent = await server.sendTransaction(assembled);
+    if (sent.status === "ERROR") {
+      throw new StellarServiceError(
+        `SUBMIT_REJECTED:${sent.errorResult?.result().switch().name ?? "unknown"}`,
+      );
+    }
+    const final = await server.pollTransaction(sent.hash, { attempts: 30 });
+    return { hash: sent.hash, status: final.status };
   });
 }
 
