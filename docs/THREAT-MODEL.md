@@ -41,6 +41,12 @@ TRONG smart account** (audit P0); AI chưa nối; két di chúc ĐÃ HỦY (bấ
 2. **Phiếu ma / DoS request treo / collusion** (C7/C8/C9): registry v2 — request có `started_at` +
    status, veto đóng request, đổi guardian bị đóng băng khi recovery mở, **chống-lockout on-chain**
    (gỡ guardian dưới threshold bị chặn — test `remove_guardian_lockout_blocked`).
+   ▸ **Collusion 2 guardian — DIỆT BẰNG KIẾN TRÚC, không phải bằng luật** (điểm mạnh nhất): custody
+   chuyển sang **contract account** (smart account) nên "đủ ngưỡng guardian" KHÔNG bằng "chiếm được
+   ví". Recovery chỉ XOAY SIGNER qua `recovery_rotate` + **timelock on-chain** + **cửa sổ veto của
+   chủ ví** + **cooldown sau xoay** (chối mọi chữ ký ngay sau finalize, mã #101). Guardian thông đồng
+   vẫn phải chờ hết timelock công khai, và chủ ví veto được trong cửa sổ đó — khác hẳn multisig classic
+   nơi đủ chữ ký là rút ngay. Chứng minh on-chain: audit P0 (khoá mới ký được, khoá cũ chối, cooldown chặn).
 3. **js-xdr 4.0.0 `toXDR`** hỏng — encode vector auth entry tự đóng khung (be+fe đối xứng).
 
 ## Gửi tiền (SEND) — kẻ địch + đòn đỡ (bổ sung 2026-07-24)
@@ -59,7 +65,8 @@ Chứng minh on-chain: e2e testnet gửi 1 XLM từ ví C…, người nhận nh
 ## Bất biến kỹ thuật đang cưỡng chế bằng test/guard
 
 - K1 origin allow-list (3 vỏ): `origin-verifier` cargo test; production pin domain thật (TODO khi có domain).
-- K2 challenge dẫn xuất từ tx: kit `signAuthEntry` + digest OZ; **chứng minh on-chain** ở e2e P0.
+- K2 challenge dẫn xuất từ tx: kit `signAuthEntry` + digest OZ; **chứng minh on-chain** ở e2e P0
+  (ed25519) VÀ §PASSKEY-ONCHAIN (secp256r1 thật — cùng đường digest, khác verifier).
 - K5 approval binding: `intents` `challenge_hash` (sửa amount → binding chết, test `approval-flow`).
 - Fingerprint khoá mới: **vector chéo Rust↔TS pin cứng** (`signer_fingerprint_cross_language_vector`).
 - Audit append-only: TRIGGER Postgres (migration 0002), UPDATE/DELETE chết thật (test integration).
@@ -68,8 +75,12 @@ Chứng minh on-chain: e2e testnet gửi 1 XLM từ ví C…, người nhận nh
 ## Còn hở — khai thẳng (chưa xong, không phải đã an toàn)
 
 - **origin-verifier production** còn là bản DEV localhost — chưa pin 3 origin domain thật (chờ domain).
-- **Đường ký WebAuthn qua kit vào contract** verify được ở e2e BE bằng ed25519; nhánh passkey thật
-  cần Chrome 122+ / máy có authenticator (B-23-2, thu hẹp nhiều sau P0).
+- **Đường ký WebAuthn qua kit vào contract — ĐÃ CHỨNG MINH ON-CHAIN** (B-23-2 ĐÓNG 2026-07-24):
+  passkey secp256r1 (virtual authenticator, ceremony `navigator.credentials` thật) ký SAC transfer
+  qua `__check_auth → origin-verifier` trong MỘT tx settled testnet (`docs/evidence §PASSKEY-ONCHAIN`,
+  tx `e83adb27…`; `get_context_rule(0)` = signer secp256r1, không phải ed25519). Còn lại: ký bằng
+  sinh trắc học của người dùng THẬT trên thiết bị thật (Chrome 122+/Safari iOS) — virtual authenticator
+  đã phủ đường crypto, phần còn lại là UX phần cứng.
 - **AI người gác đêm** chưa nối — risk banner/explainer là PHA sau; kill-switch là thiết kế sẵn.
 - **Mainnet** chưa lên (PARK 9.2): TTL extend cron, Audit Bank, pin crate OZ — checklist go-live chưa chạy.
 - **CI thật** chưa đọc được từ máy build (B-CI-1) — gate tái hiện local, chờ người mở tab Actions.
