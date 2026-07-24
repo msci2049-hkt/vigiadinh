@@ -12,12 +12,37 @@ export type GuardianInboxItem = {
 
 export const guardianInboxKeys = {
   all: ["family", "guardian-inbox"] as const,
+  deviceRequests: ["family", "guardian-inbox", "device-requests"] as const,
 };
 
 export const guardianInboxOptions = queryOptions({
   queryKey: guardianInboxKeys.all,
   queryFn: async () => {
     const res = await apiClient.get<{ data: GuardianInboxItem[] }>("/api/recovery/guardian");
+    return res.data;
+  },
+});
+
+/** "Tiếng gõ cửa" từ THIẾT BỊ MỚI trên các ví mình bảo hộ — nguồn màn initiate. */
+export type GuardianDeviceRequestItem = {
+  deviceRequest: {
+    id: string;
+    walletId: string;
+    verifier: string;
+    keyBase64: string;
+    fingerprint: string;
+    status: string;
+    createdAt: string;
+  };
+  wallet: { id: string; stellarAddress: string };
+};
+
+export const guardianDeviceRequestsOptions = queryOptions({
+  queryKey: guardianInboxKeys.deviceRequests,
+  queryFn: async () => {
+    const res = await apiClient.get<{ data: GuardianDeviceRequestItem[] }>(
+      "/api/recovery/guardian/device-requests",
+    );
     return res.data;
   },
 });

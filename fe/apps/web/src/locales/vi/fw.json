@@ -76,7 +76,27 @@
       "walletLabel": "Ví {address}",
       "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có",
       "since": "Bắt đầu {when}",
-      "reviewCta": "Xem yêu cầu này"
+      "reviewCta": "Xem yêu cầu này",
+      "knockTitle": "Một thiết bị mới xin được giúp",
+      "knockBody": "Có người nói họ mất quyền truy cập ví {address} và đã cài thiết bị mới. Hãy xác minh đúng là họ trước khi bắt đầu.",
+      "knockCta": "Xem và bắt đầu khôi phục"
+    },
+    "initiate": {
+      "title": "Bắt đầu khôi phục ví này?",
+      "description": "Việc này mở quy trình khôi phục gia đình. Những người thân khác vẫn phải đồng ý, và chủ ví có thể chặn trong khoảng chờ.",
+      "gone": "Yêu cầu này không còn mở.",
+      "backCta": "Về danh sách yêu cầu",
+      "fingerprintLabel": "Mã chìa khoá mới: {fingerprint}",
+      "verifyNote": "Gọi cho chủ ví. Nhờ họ đọc mã chìa khoá trên thiết bị mới của họ — phải TRÙNG KHỚP từng ký tự với mã này. Không khớp thì dừng lại.",
+      "biometricNote": "Vân tay hoặc khuôn mặt xác nhận — trước đó chưa có gì được gửi đi.",
+      "signing": "Đang chờ bạn xác nhận…",
+      "cta": "Tôi đã xác minh — bắt đầu khôi phục",
+      "errors": {
+        "mismatch": "DỪNG LẠI: chìa khoá trong lệnh ký KHÔNG khớp mã đang hiện. Đừng ký. Báo ngay cho gia đình.",
+        "alreadyOpen": "Ví này đang có khôi phục mở — hãy bỏ phiếu cho yêu cầu đó.",
+        "deviceKeyMissing": "Máy này không giữ chìa khoá bảo hộ của bạn cho ví đó. Mở ứng dụng trên máy bạn đã thiết lập làm người bảo hộ.",
+        "notSent": "Chưa có gì được gửi đi. Bạn có thể thử lại an toàn."
+      }
     }
   },
   "guardians": {
@@ -184,27 +204,67 @@
   "recovery": {
     "countdown": {
       "description": "Đã đủ người đồng ý. Thời gian chờ bảo vệ bạn khỏi kẻ mạo danh.",
-      "title": "Sắp xong"
+      "title": "Sắp xong",
+      "window": "Còn {countdown} (đến {absolute})",
+      "note": "Khoảng chờ này tồn tại để chủ ví kịp chặn khôi phục mà họ không yêu cầu. Nếu đó chính là bạn — không cần làm gì, chỉ cần chờ.",
+      "doneCta": "Hoàn tất trên máy này",
+      "backCta": "Về trang tiến độ"
     },
     "done": {
       "description": "Ví của bạn giờ nằm trên thiết bị này.",
-      "title": "Chào mừng trở lại"
+      "title": "Chào mừng trở lại",
+      "cooldownNote": "Ngay sau khôi phục, ví sẽ từ chối mọi thao tác trong một lúc ngắn. Đó là tính năng an toàn, không phải lỗi.",
+      "connectCta": "Mở ví của tôi trên máy này",
+      "openWalletCta": "Đến trang đăng nhập ví",
+      "errors": {
+        "noDraft": "Máy này chưa lưu chìa khoá khôi phục nào. Hãy bắt đầu lại từ đầu trên máy này."
+      }
     },
     "findWallet": {
       "description": "Cho chúng tôi biết cách tìm ví bạn muốn khôi phục.",
-      "title": "Tìm ví của bạn"
+      "title": "Tìm ví của bạn",
+      "label": "Địa chỉ ví của bạn",
+      "placeholder": "C…",
+      "invalid": "Đây chưa phải địa chỉ ví. Địa chỉ bắt đầu bằng C và dài 56 ký tự.",
+      "passkeyNote": "Tiếp theo, máy sẽ hỏi vân tay hoặc khuôn mặt để tạo chìa khoá mới.",
+      "creating": "Đang tạo chìa khoá mới…",
+      "cta": "Tạo chìa khoá mới và nhờ người thân",
+      "errors": {
+        "notConfigured": "Ứng dụng chưa kết nối mạng. Thử lại sau hoặc liên hệ hỗ trợ.",
+        "notSent": "Chưa kết nối được mạng. Chưa có gì được gửi — bạn có thể thử lại."
+      }
     },
     "progress": {
       "description": "Xem những ai đã xác nhận.",
-      "title": "Đang chờ xác nhận"
+      "title": "Đang chờ xác nhận",
+      "missingAddressCta": "Nhập địa chỉ ví trước đã",
+      "state": {
+        "none": "Chưa có khôi phục nào được mở. Người thân của bạn có thể vẫn đang xác minh.",
+        "pending": "Người thân đang đồng ý dần. Bạn chờ chút nhé.",
+        "ready": "Đã đủ người đồng ý. Còn một khoảng chờ ngắn để bảo vệ ví trước khi đổi khoá.",
+        "executed": "Xong — ví của bạn giờ nghe theo chìa khoá mới.",
+        "vetoed": "Khôi phục này đã bị chặn. Nếu đúng là bạn yêu cầu, hãy liên hệ người thân."
+      },
+      "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có",
+      "checkNote": "Trang này tự cập nhật — bạn cứ để mở.",
+      "countdownCta": "Xem khoảng chờ",
+      "doneCta": "Hoàn tất trên máy này"
     },
     "sent": {
       "description": "Người bảo hộ của bạn đã được đề nghị xác nhận đúng là bạn.",
-      "title": "Đã gửi yêu cầu"
+      "title": "Đã gửi yêu cầu",
+      "fingerprintLabel": "Mã chìa khoá mới của bạn",
+      "readNote": "Gọi cho người thân và đọc mã này cho họ. Họ phải thấy ĐÚNG mã này rồi mới đồng ý.",
+      "progressCta": "Xem tiến độ"
     },
     "start": {
       "description": "Mất điện thoại? Gia đình có thể giúp bạn khôi phục mọi thứ.",
-      "title": "Lấy lại ví của bạn"
+      "title": "Lấy lại ví của bạn",
+      "step1": "Trên thiết bị mới này, bạn tạo một chìa khoá mới. Chìa khoá không bao giờ rời máy.",
+      "step2": "Người thân xác minh đúng là bạn — qua điện thoại, không qua ứng dụng này.",
+      "step3": "Khi đủ người đồng ý và hết khoảng chờ, ví của bạn nghe theo chìa khoá mới. Địa chỉ giữ nguyên, tiền không di chuyển.",
+      "cta": "Bắt đầu — tôi mất thiết bị",
+      "progressCta": "Tôi đã gửi rồi — xem tiến độ"
     }
   },
   "setup": {
@@ -248,11 +308,22 @@
     },
     "home": {
       "description": "Số dư, hoạt động gần đây và tình trạng bảo vệ trong một màn hình.",
-      "title": "Ví của bạn"
+      "title": "Ví của bạn",
+      "noWallet": "Bạn chưa có ví.",
+      "setupCta": "Thiết lập ví của tôi",
+      "addressLabel": "Địa chỉ ví của bạn",
+      "sendCta": "Gửi",
+      "receiveCta": "Nhận",
+      "historyCta": "Lịch sử",
+      "nightWatchCta": "An toàn"
     },
     "receive": {
       "description": "Đưa mã của bạn cho người gửi, hoặc chia sẻ địa chỉ ví.",
-      "title": "Nhận tiền"
+      "title": "Nhận tiền",
+      "noWallet": "Bạn chưa có ví.",
+      "copyCta": "Sao chép địa chỉ",
+      "copied": "Đã sao chép",
+      "stableNote": "Địa chỉ này không bao giờ đổi — kể cả sau khi khôi phục. Chia sẻ một lần rồi dùng mãi."
     },
     "send": {
       "description": "Gửi tiền cho bất kỳ ai.",

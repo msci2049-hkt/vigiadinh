@@ -76,7 +76,27 @@
       "walletLabel": "Wallet {address}",
       "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
       "since": "Started {when}",
-      "reviewCta": "Review this request"
+      "reviewCta": "Review this request",
+      "knockTitle": "A new device asks for help",
+      "knockBody": "Someone says they lost access to wallet {address} and set up a new device. Verify it is really them before starting anything.",
+      "knockCta": "Review and start recovery"
+    },
+    "initiate": {
+      "title": "Start recovery for this wallet?",
+      "description": "This begins the family recovery process. Other trusted contacts still have to agree, and the wallet owner can stop it during the waiting period.",
+      "gone": "This request is no longer open.",
+      "backCta": "Back to requests",
+      "fingerprintLabel": "New key ID: {fingerprint}",
+      "verifyNote": "Call the wallet owner. Ask them to read the key ID from their new device — it must match this one exactly. If it does not, stop here.",
+      "biometricNote": "Your fingerprint or face confirms it — nothing is sent before that.",
+      "signing": "Waiting for your confirmation…",
+      "cta": "I verified — start recovery",
+      "errors": {
+        "mismatch": "STOP: the key inside the signing request does not match the key shown here. Do not sign. Contact the family and report this.",
+        "alreadyOpen": "A recovery is already in progress for this wallet — vote on it instead.",
+        "deviceKeyMissing": "This device does not hold your protector key for this wallet. Open the app on the device you set up as protector.",
+        "notSent": "Nothing was sent yet. You can try again safely."
+      }
     }
   },
   "guardians": {
@@ -184,27 +204,67 @@
   "recovery": {
     "countdown": {
       "description": "Enough approvals. The waiting period protects you from impostors.",
-      "title": "Almost there"
+      "title": "Almost there",
+      "window": "Time left: {countdown} (until {absolute})",
+      "note": "This waiting period exists so the wallet owner can stop a recovery they did not ask for. If that is you — do nothing, just wait.",
+      "doneCta": "Finish on this device",
+      "backCta": "Back to progress"
     },
     "done": {
       "description": "Your wallet is on this device now.",
-      "title": "Welcome back"
+      "title": "Welcome back",
+      "cooldownNote": "For a short while right after recovery, the wallet refuses every action. That is a safety feature, not an error.",
+      "connectCta": "Open my wallet on this device",
+      "openWalletCta": "Go to wallet sign-in",
+      "errors": {
+        "noDraft": "This device has no recovery key saved. Start the recovery from the beginning on this device."
+      }
     },
     "findWallet": {
       "description": "Tell us how to find the wallet you want to recover.",
-      "title": "Find your wallet"
+      "title": "Find your wallet",
+      "label": "Your wallet address",
+      "placeholder": "C…",
+      "invalid": "That does not look like a wallet address. It starts with C and has 56 characters.",
+      "passkeyNote": "Next, this device will ask for your fingerprint or face to create the new key.",
+      "creating": "Creating your new key…",
+      "cta": "Create new key and ask family",
+      "errors": {
+        "notConfigured": "This app is not connected to the network yet. Try again later or contact support.",
+        "notSent": "Could not reach the network. Nothing was sent — you can try again."
+      }
     },
     "progress": {
       "description": "See who has confirmed so far.",
-      "title": "Waiting for approvals"
+      "title": "Waiting for approvals",
+      "missingAddressCta": "Enter your wallet address first",
+      "state": {
+        "none": "No recovery has been started yet. Your family members may still be verifying it is you.",
+        "pending": "Your family is agreeing. Hang tight.",
+        "ready": "Enough family members agreed. A short waiting period protects the wallet before the switch.",
+        "executed": "Done — your wallet now answers to your new key.",
+        "vetoed": "This recovery was stopped. If you really asked for it, contact your family members."
+      },
+      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
+      "checkNote": "This page updates itself — you can leave it open.",
+      "countdownCta": "See the waiting period",
+      "doneCta": "Finish on this device"
     },
     "sent": {
       "description": "Your protectors have been asked to confirm it's really you.",
-      "title": "Request sent"
+      "title": "Request sent",
+      "fingerprintLabel": "Your new key ID",
+      "readNote": "Call your family members and read this code to them. They must see the exact same code before they agree.",
+      "progressCta": "Show progress"
     },
     "start": {
       "description": "Lost your phone? Your family can help you recover everything.",
-      "title": "Get your wallet back"
+      "title": "Get your wallet back",
+      "step1": "On this new device, you create a fresh key. It never leaves this device.",
+      "step2": "Your family members verify it is really you — by phone, not through this app.",
+      "step3": "When enough of them agree and the waiting period passes, your wallet answers to the new key. Same address, nothing moves.",
+      "cta": "Start — I lost my device",
+      "progressCta": "I already asked — show progress"
     }
   },
   "setup": {
@@ -248,11 +308,22 @@
     },
     "home": {
       "description": "Balance, recent activity and protection status at a glance.",
-      "title": "Your wallet"
+      "title": "Your wallet",
+      "noWallet": "You do not have a wallet yet.",
+      "setupCta": "Set up my wallet",
+      "addressLabel": "Your wallet address",
+      "sendCta": "Send",
+      "receiveCta": "Receive",
+      "historyCta": "History",
+      "nightWatchCta": "Safety"
     },
     "receive": {
       "description": "Show your code, or share your wallet address.",
-      "title": "Receive"
+      "title": "Receive",
+      "noWallet": "You do not have a wallet yet.",
+      "copyCta": "Copy address",
+      "copied": "Copied",
+      "stableNote": "This address never changes — even after a recovery. Share it once and reuse it."
     },
     "send": {
       "description": "Send money to anyone.",
