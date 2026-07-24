@@ -1,5 +1,6 @@
 import i18n from "i18next";
 import LanguageDetector from "i18next-browser-languagedetector";
+import ICU from "i18next-icu";
 import resourcesToBackend from "i18next-resources-to-backend";
 import { initReactI18next } from "react-i18next";
 
@@ -42,6 +43,7 @@ export function initI18n(options: InitI18nOptions): typeof i18n {
   } = options;
 
   void i18n
+    .use(ICU) // PHA 7.1: message syntax = ICU ({var}, {n, plural, ...}) — KHÔNG {{var}}
     .use(resourcesToBackend(loadNamespace))
     .use(LanguageDetector)
     .use(initReactI18next)
@@ -56,6 +58,9 @@ export function initI18n(options: InitI18nOptions): typeof i18n {
       interpolation: { escapeValue: false }, // React already escapes
       detection: { order: ["localStorage", "navigator"], caches: ["localStorage"] },
       react: { useSuspense: false },
+      // Key thiếu ở MỌI fallback → chuỗi RỖNG, cấm lộ key thô ra màn (luật i18n N5).
+      saveMissing: false,
+      parseMissingKeyHandler: () => "",
     });
 
   return i18n;

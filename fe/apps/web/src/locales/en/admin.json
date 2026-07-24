@@ -23,7 +23,7 @@
     "roleAll": "All roles",
     "loadError": "Failed to load users.",
     "empty": "No users match.",
-    "total": "{{count}} users",
+    "total": "{count, plural, one {# user} other {# users}}",
     "prev": "Prev",
     "next": "Next",
     "columns": {
@@ -39,7 +39,7 @@
       "banned": "Banned"
     },
     "actions": {
-      "menu": "Actions for {{email}}",
+      "menu": "Actions for {email}",
       "setRole": "Set role",
       "setPassword": "Set password",
       "revokeSessions": "Revoke all sessions",
@@ -65,7 +65,7 @@
       "newPassword": "New password (≥ 12 chars)",
       "passwordTooShort": "Minimum 12 characters (BE rule).",
       "removeTitle": "Remove user?",
-      "removeDescription": "Permanently deletes {{email}} with sessions/accounts. Cannot be undone."
+      "removeDescription": "Permanently deletes {email} with sessions/accounts. Cannot be undone."
     },
     "toasts": {
       "roleUpdated": "Role updated",
@@ -83,15 +83,15 @@
       "description": "Admin-created account — email counts as verified.",
       "name": "Name",
       "email": "Email",
-      "password": "Password (≥ {{min}} chars)",
+      "password": "Password (≥ {min} chars)",
       "role": "Role",
       "submit": "Create",
       "submitting": "Creating…",
       "errors": {
         "name": "Enter a name",
         "email": "Invalid email",
-        "password": "Minimum {{min}} characters",
-        "passwordMax": "Maximum {{max}} characters"
+        "password": "Minimum {min} characters",
+        "passwordMax": "Maximum {max} characters"
       }
     }
   },
@@ -100,7 +100,7 @@
     "description": "Devices holding a session for this admin account.",
     "unknownDevice": "Unknown device",
     "current": "Current session",
-    "expires": "Expires: {{value}}",
+    "expires": "Expires: {value}",
     "revoke": "Revoke",
     "revoked": "Session revoked"
   },

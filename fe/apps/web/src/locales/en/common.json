@@ -37,7 +37,7 @@
     "commandEmpty": "No results."
   },
   "impersonation": {
-    "banner": "Impersonating {{name}} — every action runs as this user.",
+    "banner": "Impersonating {name} — every action runs as this user.",
     "stop": "Stop impersonating"
   },
   "home": {

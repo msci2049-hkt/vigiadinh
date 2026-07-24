@@ -90,7 +90,7 @@
     }
   },
   "passkey": {
-    "connected": "Your wallet is open: {{wallet}}",
+    "connected": "Your wallet is open: {wallet}",
     "createCta": "Create a new wallet with face / fingerprint",
     "description": "Use your face or fingerprint — nothing to remember, nothing to lose.",
     "errorCancelled": "You closed the confirmation dialog. Press the button to try again whenever you're ready.",

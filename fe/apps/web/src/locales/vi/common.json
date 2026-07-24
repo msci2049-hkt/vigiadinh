@@ -37,7 +37,7 @@
     "commandEmpty": "Không có kết quả."
   },
   "impersonation": {
-    "banner": "Đang mạo danh {{name}} — thao tác dưới danh nghĩa người này.",
+    "banner": "Đang mạo danh {name} — thao tác dưới danh nghĩa người này.",
     "stop": "Thoát mạo danh"
   },
   "home": {

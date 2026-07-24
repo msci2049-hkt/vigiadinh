@@ -90,7 +90,7 @@
     }
   },
   "passkey": {
-    "connected": "Ví của bạn đã mở: {{wallet}}",
+    "connected": "Ví của bạn đã mở: {wallet}",
     "createCta": "Tạo ví mới bằng khuôn mặt / vân tay",
     "description": "Dùng khuôn mặt hoặc vân tay — không phải nhớ gì, không sợ mất gì.",
     "errorCancelled": "Bạn đã đóng hộp thoại xác nhận. Khi sẵn sàng, bấm nút để thử lại.",

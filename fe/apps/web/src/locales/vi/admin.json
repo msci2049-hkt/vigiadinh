@@ -23,7 +23,7 @@
     "roleAll": "Mọi vai trò",
     "loadError": "Không tải được danh sách.",
     "empty": "Không có người dùng nào khớp.",
-    "total": "{{count}} người dùng",
+    "total": "{count} người dùng",
     "prev": "Trước",
     "next": "Sau",
     "columns": {
@@ -39,7 +39,7 @@
       "banned": "Bị khoá"
     },
     "actions": {
-      "menu": "Thao tác với {{email}}",
+      "menu": "Thao tác với {email}",
       "setRole": "Đổi vai trò",
       "setPassword": "Đặt mật khẩu",
       "revokeSessions": "Thu hồi mọi phiên",
@@ -65,7 +65,7 @@
       "newPassword": "Mật khẩu mới (≥ 12 ký tự)",
       "passwordTooShort": "Mật khẩu tối thiểu 12 ký tự (theo BE).",
       "removeTitle": "Xoá người dùng?",
-      "removeDescription": "Xoá vĩnh viễn {{email}} cùng session/account. Không hoàn tác được."
+      "removeDescription": "Xoá vĩnh viễn {email} cùng session/account. Không hoàn tác được."
     },
     "toasts": {
       "roleUpdated": "Đã đổi vai trò",
@@ -83,15 +83,15 @@
       "description": "Tài khoản tạo bởi admin — email coi như đã xác minh.",
       "name": "Tên",
       "email": "Email",
-      "password": "Mật khẩu (≥ {{min}} ký tự)",
+      "password": "Mật khẩu (≥ {min} ký tự)",
       "role": "Vai trò",
       "submit": "Tạo",
       "submitting": "Đang tạo…",
       "errors": {
         "name": "Nhập tên",
         "email": "Email không hợp lệ",
-        "password": "Mật khẩu tối thiểu {{min}} ký tự",
-        "passwordMax": "Mật khẩu tối đa {{max}} ký tự"
+        "password": "Mật khẩu tối thiểu {min} ký tự",
+        "passwordMax": "Mật khẩu tối đa {max} ký tự"
       }
     }
   },
@@ -100,7 +100,7 @@
     "description": "Thiết bị đang giữ session của tài khoản admin này.",
     "unknownDevice": "Thiết bị không rõ",
     "current": "Phiên hiện tại",
-    "expires": "Hết hạn: {{value}}",
+    "expires": "Hết hạn: {value}",
     "revoke": "Thu hồi",
     "revoked": "Đã thu hồi phiên"
   },
