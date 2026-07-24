@@ -64,6 +64,35 @@
 - Áp vào: `be/src/modules/indexer/infra/{indexer.service,rpc-source,checkpoint.schema}.ts`.
 - Mâu thuẫn skill? Không — khớp fw-indexer-notify (checkpoint mỗi batch + dedupe id + cửa sổ 7 ngày).
 
+### 2026-07-24 · AUDIT P0 · Registry v1 KHÔNG xoay signer smart account — lỗ hổng THẬT, đã thay bằng v2
+
+- Hỏi: `finalize_recovery` của `CCPGVSLR…GT3V` có xoay passkey bên trong smart account không?
+- Bằng chứng (3 đường, không đoán):
+  1. grep `add_signer|remove_signer|rotate` toàn contracts/ + be/src/: KHÔNG có đường recovery nào
+     đụng signer; chỉ `batch_add_signer` tự-ký (nối vỏ) trong smart-account.
+  2. grep chéo contract ID: registry chỉ nằm trong be/.env + test; hai contract KHÔNG gọi nhau;
+     source registry v1 không có trong repo (spike cũ).
+  3. Interface v1 (RESEARCH-LOG dưới): `initiate_recovery(new_owner_candidate: Address)` — Address
+     KHÔNG CHỞ NỔI vật liệu passkey `External(verifier, key_bytes)` → v1 không sửa bằng wiring được.
+     E2e 5.2 verify bằng `get_wallet_config` của registry, wallet là account G… classic — chưa từng
+     có smart account tham gia.
+- Fix (phương án B, hiện thực bằng recovery hook): smart-account thêm `recovery_rotate` (registry là
+  DIRECT INVOKER → `require_auth(registry)` tự thoả — invoker auth chuẩn Soroban, KHÔNG cần craft
+  delegated entry cho đường xoay) + `set_recovery_registry` (tự-ký) + cooldown chặn `__check_auth`
+  sau xoay (mã lỗi riêng 100/101). Registry v2 (`contracts/recovery-registry`) giữ nguyên tên hàm +
+  error codes 1..16 + event topics v1; `initiate_recovery` nhận `Signer` OZ; finalize gọi
+  `recovery_rotate` rồi mới Finalized. Test 10/10 gồm: ký thật ed25519 qua `__check_auth`
+  (digest = sha256(payload ++ rule_ids.to_xdr()) — đúng công thức OZ do_check_auth), khoá cũ bị
+  chối sau xoay, cooldown chối cả khoá mới, finalize với `set_auths(&[])` (zero auth entry).
+- Deploy testnet 2026-07-24:
+  - **recovery-registry v2: `CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY`** (thay
+    `CCPGVSLR…GT3V` trong env — v1 bỏ, không dùng nữa)
+  - verifier-ed25519: `CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT`
+  - smart-account wasm MỚI (có recovery hook): hash `a67ea40eeca05bdd59b4f8bea87d40709415aac94978f8ef0630d9c919b92d25`
+    (hash cũ `87194f61…` là bản KHÔNG có hook — FE env phải trỏ hash mới)
+- Mâu thuẫn skill? Không — skill passkey §0 cảnh báo delegated-signer-phải-craft-entry vẫn đúng cho
+  đường KHÁC (client ký bằng delegated signer); đường xoay của ta né hẳn nó bằng invoker auth.
+
 ### 2026-07-24 · PHA 5.2 · Interface recovery contract testnet (đọc TỪ CHAIN — bản ĐẦY ĐỦ)
 
 - Hỏi: contract recovery `CCPGVSLR…GT3V` (spike cũ, ngoài repo) có hàm gì?

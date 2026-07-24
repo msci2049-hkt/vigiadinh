@@ -1,0 +1,21 @@
+[package]
+name = "recovery-registry"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+# SDK 26.1.1 = bằng OZ stellar-accounts 0.7.2 (xem origin-verifier/Cargo.toml).
+[dependencies]
+soroban-sdk = "=26.1.1"
+stellar-accounts = "=0.7.2"
+
+[dev-dependencies]
+soroban-sdk = { version = "=26.1.1", features = ["testutils"] }
+smart-account = { path = "../smart-account" }
+verifier-ed25519 = { path = "../verifier-ed25519" }
+ed25519-dalek = "2"
