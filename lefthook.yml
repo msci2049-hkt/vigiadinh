@@ -1,42 +1,33 @@
-# EXAMPLE USAGE:
+# Lefthook GỐC của monorepo — audit 2026-07-25 §1.3.
 #
-#   Refer for explanation to following link:
-#   https://lefthook.dev/configuration/
+# Trước phiên này file này là bản VÍ DỤ của lefthook, comment 100%, và
+# `.git/hooks/` chỉ có `prepare-commit-msg` — tức KHÔNG có pre-commit nào chạy.
+# Trong khi đó `be/.claude/rules/security.md:10` khẳng định "Pre-commit đã quét
+# `S[A-Z0-9]{55}` — không được tắt hook". Docs nói dối chứ không phải code hỏng, và
+# đó là dạng tệ hơn: người đọc rules tin là đã có gác nên bỏ bước kiểm bằng tay.
 #
-# pre-push:
-#   jobs:
-#     - name: packages audit
-#       tags:
-#         - frontend
-#         - security
-#       run: yarn audit
-#
-#     - name: gems audit
-#       tags:
-#         - backend
-#         - security
-#       run: bundle audit
-#
-# pre-commit:
-#   parallel: true
-#   jobs:
-#     - run: yarn eslint {staged_files}
-#       glob: "*.{js,ts,jsx,tsx}"
-#
-#     - name: rubocop
-#       glob: "*.rb"
-#       exclude:
-#         - config/application.rb
-#         - config/routes.rb
-#       run: bundle exec rubocop --force-exclusion -- {all_files}
-#
-#     - name: govet
-#       files: git ls-files -m
-#       glob: "*.go"
-#       run: go vet -- {files}
-#
-#     - script: "hello.js"
-#       runner: node
-#
-#     - script: "hello.go"
-#       runner: go run
+# Repo là monorepo (be/ bằng bun, fe/ bằng pnpm) nên hook phải ở GỐC — chạy
+# `lefthook install` từ be/ vẫn ghi vào family-wallet/.git/hooks/ và bị file này
+# quyết định. Cài: `lefthook install` ở thư mục gốc.
+
+pre-commit:
+  parallel: true
+  commands:
+    # Secret KHÔNG BAO GIỜ lên git. Pin 8.30.1 cho khớp CI (.github/workflows/ci.yml)
+    # — lệch bản là lệch luật, hook xanh mà CI đỏ (hoặc tệ hơn, ngược lại).
+    # Cần binary trên PATH: xem be/docs/HUMAN-TODO.md.
+    gitleaks:
+      run: gitleaks git --pre-commit --staged --redact --no-banner --config .gitleaks.toml
+      fail_text: |
+        gitleaks chặn secret trong staged files (hoặc binary chưa cài).
+        KHÔNG dùng --no-verify. Gỡ secret ra khỏi diff rồi commit lại.
+
+pre-push:
+  parallel: true
+  commands:
+    # Gate của BE. FE có gate riêng bên fe/ (pnpm) — không gộp, hai trình quản lý
+    # gói khác nhau, chạy chéo là hỏng lockfile.
+    be-validate:
+      root: "be/"
+      glob: "be/**/*"
+      run: bun run validate
