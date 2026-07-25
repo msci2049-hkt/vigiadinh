@@ -31,7 +31,7 @@ export default defineConfig({
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   webServer: {
-    command: `pnpm build && pnpm preview --port ${PORT} --strictPort`,
+    command: `corepack pnpm build && corepack pnpm preview --port ${PORT} --strictPort`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     // Monorepo build (tsc + vite) can be slow on CI/WSL — generous timeout.

@@ -1,6 +1,6 @@
 # UI Audit State — VíGiaĐình
 
-## Pha hiện tại: 2/6
+## Pha hiện tại: 3/6
 ## Màn đã đọc: 41/41
 
 | # | Route | File | Đọc xong | Thiếu gì | Đã vá | Commit |
@@ -163,11 +163,10 @@
 
 ## Việc tiếp theo chính xác
 
-1. Viết/chạy máy dò đủ 41 route: response ≥400, console error theo origin, font,
-   `naturalWidth`, ảnh 1×1, SVG rỗng.
-2. Xuất `docs/UI-ASSET-REPORT.md`.
-3. Chốt Pha 2 rồi commit checkpoint.
-3. Sau 41 màn, kiểm kê asset độc lập và đối chiếu hai chiều với code.
+1. Chuyển 25 icon family và spinner sang SVG nội bộ, xóa phụ thuộc Lucide khỏi luồng sản phẩm.
+2. Bổ sung kích thước nội tại cho 16/16 thẻ ảnh và tạo biến thể WebP/AVIF phù hợp.
+3. Xóa 18 asset không dùng sau khi đối chiếu lại hai chiều, sửa QR thật và mapping avatar guardian.
+4. Loại `@repo/ui` khỏi toàn bộ `apps/web/src`, rồi đo lại bundle production trước/sau.
 
 ## Quyết định đã chốt (đừng quyết lại)
 
@@ -187,6 +186,9 @@
 - Test hook: stage fixture seed giả rồi chạy commit thật; commit bị chặn với exit code 1.
 - Router sinh đúng 41 màn trong phạm vi: 39 màn sản phẩm + `/guardian/accept` +
   `/guardian/initiate`; không có route thiếu file trong phạm vi.
+- Máy dò runtime Pha 2 gắn listener trước lần `goto` đầu, không dùng `networkidle`, quét đủ
+  41/41 route production build: 23 lượt ảnh decode, 68 lượt SVG, 0 response ≥400, 0 lỗi console
+  cùng origin, 0 ảnh vỡ/1×1, 0 SVG rỗng và 0 lỗi font. Báo cáo ở `docs/UI-ASSET-REPORT.md`.
 
 ## Chỗ đang nghi ngờ
 
@@ -209,3 +211,8 @@
 - 2026-07-25: Gate Pha 1 `corepack pnpm validate` xanh 11/11. Lần gọi `pnpm` 11.9.0
   của runtime trước đó fail-env vì `postcss@8.5.23` chưa đủ minimum release age; đã khôi phục
   dependency bằng đúng pnpm 9.15.9 pin trong repo, không đổi lockfile.
+- 2026-07-25: Pha 2 hoàn tất; `corepack pnpm test:assets` xanh 41/41 trên Chromium production
+  build. Baseline runtime sạch; các thiếu sót tĩnh (Lucide, kích thước nội tại, asset thừa,
+  QR placeholder) được giữ làm đầu vào Pha 3.
+- 2026-07-25: Gate Pha 2 `corepack pnpm validate` xanh 11/11; dùng Corepack shim cục bộ trong
+  `.git/tools/` để Turbo gọi đúng pnpm 9.15.9 thay vì fallback pnpm 11 của runtime.
