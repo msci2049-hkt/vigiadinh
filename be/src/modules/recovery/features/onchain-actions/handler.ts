@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { requireAuth } from "@/middlewares/auth";
 import { rateLimit } from "@/middlewares/rate-limit";
 import { zv } from "@/middlewares/validator";
+import { FeePolicyError } from "@/services/stellar/fee-policy";
 import {
   buildInvokeTx,
   invokeWithSignedEntries,
@@ -44,6 +45,11 @@ function registryContractId(): string {
 function mapError(err: unknown): never {
   if (err instanceof RecoveryActionError) {
     throw new HTTPException(err.status, { message: err.message });
+  }
+  // Chối vì chính sách ví phí (B-SEC-3) → 403 với mã đọc được, KHÔNG để rơi xuống
+  // nhánh 500: cửa này chối là chuyện bình thường, không phải sự cố hạ tầng.
+  if (err instanceof FeePolicyError) {
+    throw new HTTPException(403, { message: err.message });
   }
   if (err instanceof RecoveryOnchainError) {
     throw new HTTPException(400, { message: err.message });

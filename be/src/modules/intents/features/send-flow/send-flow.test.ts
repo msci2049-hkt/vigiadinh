@@ -6,6 +6,7 @@ import { afterAll, describe, expect, it } from "bun:test";
 import { Address, Keypair, xdr } from "@stellar/stellar-sdk";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
+import { FeePolicyError } from "@/services/stellar/fee-policy";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
 import { pgReachable, SKIP_REASON } from "@/test-support/pg";
 import { guardians } from "../../../guardians/infra/guardians.schema";
@@ -28,6 +29,8 @@ const testIt = dbUp ? it : it.skip;
 if (!dbUp) console.warn(SKIP_REASON);
 
 const SAC = "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC";
+/** Registry giả — chỉ để cổng ví phí có chỗ hỏi `is_registered` (fake trả lời). */
+const REGISTRY = "CA7QYNF7SOWQ3GLR2BGMZEHXAVIRZA4KVWLTJJFI5FSFZ4KZTQBMPXOA";
 const OWNER = `it-send-owner-${crypto.randomUUID().slice(0, 8)}`;
 const GUARDIAN = `it-send-guard-${crypto.randomUUID().slice(0, 8)}`;
 const cleanupWalletIds: string[] = [];
@@ -49,8 +52,15 @@ async function seedWallet(): Promise<{ id: string; address: string }> {
   return { id: w.id, address };
 }
 
-/** Gateway fake — balance cấu hình được; build/invoke ghi lại lời gọi. */
-function fakeGateway(balance: bigint) {
+/**
+ * Gateway fake — balance cấu hình được; build/invoke ghi lại lời gọi.
+ *
+ * `read` phải phân biệt THEO METHOD kể từ closeout B-SEC-3: cổng ví phí đọc
+ * `is_registered` trên registry, còn luồng gửi đọc `balance` trên SAC. Bản cũ trả
+ * `balance` cho mọi method — nghĩa là cổng sponsorship sẽ nhận một `bigint` thay vì
+ * `true` và chối sạch. `registered` mặc định `true` để mọi test cũ giữ nguyên ý nghĩa.
+ */
+function fakeGateway(balance: bigint, opts?: { registered?: boolean }) {
   const calls = { build: 0, invoke: 0 };
   const built: BuiltInvoke = { transactionXdr: "tx", authEntriesXdr: ["e"], latestLedger: 1 };
   const gateway: SendGateway = {
@@ -62,7 +72,8 @@ function fakeGateway(balance: bigint) {
       calls.invoke++;
       return { hash: "h".repeat(64), status: "SUCCESS" };
     },
-    async read() {
+    async read(input: { contractId: string; method: string }) {
+      if (input.method === "is_registered") return opts?.registered ?? true;
       return balance;
     },
   };
@@ -231,7 +242,7 @@ describe("send flow (DB thật + gateway fake)", () => {
       amount: 5_000_000n,
     });
     await confirmSend(gateway, SAC, { intentId: review.intentId, userId: OWNER });
-    const result = await signAndSubmit(gateway, SAC, {
+    const result = await signAndSubmit(gateway, SAC, REGISTRY, {
       intentId: review.intentId,
       userId: OWNER,
       signedEntriesXdr: [signedEntry(w.address, recipient, 5_000_000n)],
@@ -243,5 +254,47 @@ describe("send flow (DB thật + gateway fake)", () => {
       .from(transactionIntents)
       .where(eq(transactionIntents.id, review.intentId));
     expect(row?.status).toBe("settled");
+  });
+
+  // B-SEC-3 hàng rào 1 — CA ÂM, và ca âm là ca quan trọng ở đây: whitelist
+  // contract+method đã xanh từ đợt 1, nhưng nó chỉ nói "tx đúng hình dạng". Nếu
+  // thiếu cổng `is_registered` thì bất kỳ tài khoản app nào cũng tạo ví C… rồi bơm
+  // entry hợp-hình-dạng cho tới khi ví phí cạn — và ví phí cạn là MỌI hộ mất đường
+  // ghi on-chain, kể cả recovery đang chạy.
+  testIt("sign của ví CHƯA đăng ký → 403 và ví phí không ký gì", async () => {
+    const w = await seedWallet();
+    const recipient = Keypair.random().publicKey();
+    await markRecipientKnown(w.id, recipient);
+    const { gateway, calls } = fakeGateway(10_000_000_000n, { registered: false });
+    const review = await prepareSend(gateway, SAC, {
+      walletId: w.id,
+      userId: OWNER,
+      clientIntentId: crypto.randomUUID(),
+      recipient,
+      amount: 5_000_000n,
+    });
+    await confirmSend(gateway, SAC, { intentId: review.intentId, userId: OWNER });
+    const invokesBefore = calls.invoke;
+
+    const err = await signAndSubmit(gateway, SAC, REGISTRY, {
+      intentId: review.intentId,
+      userId: OWNER,
+      signedEntriesXdr: [signedEntry(w.address, recipient, 5_000_000n)],
+    }).catch((e) => e);
+
+    expect(err).toBeInstanceOf(FeePolicyError);
+    expect((err as FeePolicyError).status).toBe(403);
+    expect((err as FeePolicyError).message).toBe("WALLET_NOT_REGISTERED_FOR_SPONSORSHIP");
+    // "Số dư ví phí KHÔNG đổi" trong test hermetic = ví phí chưa hề được gọi để ký/
+    // submit. Không có mạng ở đây nên đây là bằng chứng tương đương mạnh nhất; số dư
+    // thật chỉ chứng minh được ở e2e testnet (§7).
+    expect(calls.invoke).toBe(invokesBefore);
+    // Và intent phải còn ký lại được sau khi đăng ký — chối KHÔNG được đẩy nó vào
+    // ngõ cụt `submitting`/`submit_failed`.
+    const [row] = await db
+      .select({ status: transactionIntents.status })
+      .from(transactionIntents)
+      .where(eq(transactionIntents.id, review.intentId));
+    expect(row?.status).toBe("awaiting_signature");
   });
 });

@@ -41,15 +41,20 @@ const enabled =
   dbUp &&
   process.env.RUN_TESTNET_E2E === "1" &&
   Boolean(env.FEE_WALLET_SECRET) &&
-  Boolean(env.CONTRACT_ID_SAC_NATIVE);
+  Boolean(env.CONTRACT_ID_SAC_NATIVE) &&
+  // Từ closeout B-SEC-3, đường gửi đi qua cổng `is_registered` → không có registry
+  // thì e2e SKIP ồn ào, thay vì đỏ với 403 làm người đọc tưởng code hỏng.
+  Boolean(env.CONTRACT_ID_RECOVERY);
 const testIt = enabled ? it : it.skip;
 if (!enabled) {
   console.warn(
-    "SKIP send e2e: cần RUN_TESTNET_E2E=1 + Postgres + FEE_WALLET_SECRET + CONTRACT_ID_SAC_NATIVE",
+    "SKIP send e2e: cần RUN_TESTNET_E2E=1 + Postgres + FEE_WALLET_SECRET + CONTRACT_ID_SAC_NATIVE + CONTRACT_ID_RECOVERY",
   );
 }
 
 const SAC = env.CONTRACT_ID_SAC_NATIVE ?? "";
+/** Registry — cổng ví phí `is_registered` hỏi ở đây (B-SEC-3 hàng rào 1). */
+const REGISTRY = env.CONTRACT_ID_RECOVERY ?? "";
 const VERIFIER_ED25519 =
   process.env.E2E_VERIFIER_ED25519 ?? "CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT";
 const SMART_ACCOUNT_WASM =
@@ -252,7 +257,10 @@ describe("e2e testnet — GỬI TIỀN từ ví hợp đồng (đóng chuỗi ha
       const validUntil = confirmed.latestLedger + 120;
       const signed = confirmed.authEntriesXdr.map((b64) => signWalletEntry(b64, validUntil));
 
-      const result = await signAndSubmit(gateway, SAC, {
+      // Closeout B-SEC-3: `signAndSubmit` giờ gác `is_registered` trên registry
+      // TRƯỚC khi ví phí ký. Ví e2e này sinh mới và CHƯA đăng ký, nên e2e phải
+      // đăng ký nó trước bước này — xem BLOCKERS "e2e send cần bước register".
+      const result = await signAndSubmit(gateway, SAC, REGISTRY, {
         intentId: review.intentId,
         userId: OWNER_USER,
         signedEntriesXdr: signed,

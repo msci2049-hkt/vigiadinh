@@ -3,6 +3,7 @@
 // Bất biến custody: BE KHÔNG ký hộ người dùng — build trả entries cho FE ký,
 // submit chỉ validate entry đã ký + ví phí ký ENVELOPE (trả phí, không giữ quyền).
 import type { xdr } from "@stellar/stellar-sdk";
+import { assertSponsorshipAllowed, FEE_CAP_STROOPS } from "@/services/stellar/fee-policy";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
 import {
   addGuardianArgs,
@@ -34,6 +35,8 @@ export type OnchainGateway = {
     method: string;
     args: xdr.ScVal[];
     authEntries: xdr.SorobanAuthorizationEntry[];
+    /** Trần phí per-tx — ví phí không ký tx vượt trần (B-SEC-3 hàng rào 3). */
+    maxFeeStroops?: number;
   }): Promise<{ hash: string; status: string }>;
   read(input: { contractId: string; method: string; args: xdr.ScVal[] }): Promise<unknown>;
 };
@@ -164,11 +167,22 @@ export async function submitRecoveryAction(
     walletAddress: wallet.stellarAddress,
     entriesXdr: input.signedEntriesXdr,
   });
+  // B-SEC-3 hàng rào 1: whitelist contract + method (ở trên) CHƯA đủ — nó chỉ nói
+  // "tx này hình dạng đúng", không nói "ví này đáng để ví phí trả hộ". Không có
+  // cổng dưới, bất kỳ tài khoản app nào tạo một ví C… rồi bơm entry hợp-hình-dạng
+  // là ví phí trả tới lúc cạn. Đặt TRƯỚC `invoke` để ví phí chưa ký gì khi chối.
+  await assertSponsorshipAllowed({
+    read: gateway.read,
+    registryContractId,
+    walletAddress: wallet.stellarAddress,
+    method: validated.method,
+  });
   const result = await gateway.invoke({
     contractId: registryContractId,
     method: validated.method,
     args: validated.args,
     authEntries: validated.entries,
+    maxFeeStroops: FEE_CAP_STROOPS,
   });
   await repo.appendOnchainAudit({
     walletId: wallet.id,
@@ -200,11 +214,22 @@ export async function finalizeRecovery(
   if (built.authEntriesXdr.length > 0) {
     throw new RecoveryActionError(409, "FINALIZE_REQUIRES_AUTH_UNEXPECTED");
   }
+  // finalize KHÔNG đòi auth người dùng (ai crank cũng được sau timelock) → đây là
+  // cửa ví phí trả hộ mà KHÔNG có chữ ký người dùng nào chắn phía trước. Hàng rào
+  // `is_registered` vì thế còn cần hơn ở đây: ví chưa đăng ký thì không có yêu cầu
+  // khôi phục nào để finalize, mọi lệnh gọi như vậy chỉ là đốt phí.
+  await assertSponsorshipAllowed({
+    read: gateway.read,
+    registryContractId,
+    walletAddress: wallet.stellarAddress,
+    method: RECOVERY_METHODS.finalize,
+  });
   const result = await gateway.invoke({
     contractId: registryContractId,
     method: RECOVERY_METHODS.finalize,
     args,
     authEntries: [],
+    maxFeeStroops: FEE_CAP_STROOPS,
   });
   await repo.appendOnchainAudit({
     walletId: wallet.id,

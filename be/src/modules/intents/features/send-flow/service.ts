@@ -3,6 +3,7 @@
 // passkey, ví phí ký ENVELOPE. Đường ký = passkey → __check_auth → verifier →
 // transfer trong MỘT tx (chuỗi hai-nửa, đóng rủi ro kỹ thuật lớn nhất còn lại).
 import type { xdr } from "@stellar/stellar-sdk";
+import { assertSponsorshipAllowed, FEE_CAP_STROOPS } from "@/services/stellar/fee-policy";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
 import type { IntentState } from "@/shared-contract/intent";
 import { acceptGuardianApproval } from "../../domain/approval-flow";
@@ -41,6 +42,8 @@ export type SendGateway = {
     method: string;
     args: xdr.ScVal[];
     authEntries: xdr.SorobanAuthorizationEntry[];
+    /** Trần phí per-tx — ví phí không ký tx vượt trần (B-SEC-3 hàng rào 3). */
+    maxFeeStroops?: number;
   }): Promise<{ hash: string; status: string }>;
   read(input: { contractId: string; method: string; args: xdr.ScVal[] }): Promise<unknown>;
 };
@@ -372,6 +375,12 @@ export async function guardianApproveIntent(input: {
 export async function signAndSubmit(
   gateway: SendGateway,
   sacContractId: string,
+  /**
+   * Registry khôi phục — CHỈ dùng để gác chính sách ví phí (`is_registered`), không
+   * tham gia vào tx transfer. Truyền tường minh thay vì đọc env trong service để
+   * tầng này vẫn thuần/test được (luật module: service không đụng env).
+   */
+  registryContractId: string,
   input: { intentId: string; userId: string; signedEntriesXdr: string[] },
 ): Promise<{ intentId: string; status: string; hash: string }> {
   const intent = await repo.intentById(input.intentId);
@@ -393,6 +402,16 @@ export async function signAndSubmit(
   // "awaiting_signature" nên `assertTransition` tra một dòng luôn tồn tại và
   // KHÔNG BAO GIỜ ném: ký được cả intent đang chờ người thân duyệt (vượt cổng
   // chính sách) lẫn intent đã `settled` (gửi tiền lần hai).
+  // B-SEC-3 hàng rào 1 — gác TRƯỚC khi đổi trạng thái intent: chối ở đây thì intent
+  // vẫn nguyên `awaiting_signature`, người dùng ký lại được sau khi đăng ký ví. Gác
+  // sau `submitting` là đẩy intent vào ngõ cụt vì một lỗi cấu hình.
+  await assertSponsorshipAllowed({
+    read: gateway.read,
+    registryContractId,
+    walletAddress: wallet.stellarAddress,
+    method: "transfer",
+  });
+
   assertTransition(intent.status as IntentState, "owner", "sign"); // → submitting (409 nếu sai)
   await repo.updateIntent(intent.id, { status: "submitting" });
 
@@ -403,6 +422,7 @@ export async function signAndSubmit(
       method: "transfer",
       args: validated.args,
       authEntries: validated.entries,
+      maxFeeStroops: FEE_CAP_STROOPS,
     });
   } catch (err) {
     assertTransition("submitting", "system", "submit_fail"); // → submit_failed (retry được)

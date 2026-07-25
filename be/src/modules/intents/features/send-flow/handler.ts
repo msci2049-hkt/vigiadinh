@@ -11,6 +11,7 @@ import { logger } from "@/lib/logger";
 import { requireAuth } from "@/middlewares/auth";
 import { rateLimit } from "@/middlewares/rate-limit";
 import { zv } from "@/middlewares/validator";
+import { FeePolicyError } from "@/services/stellar/fee-policy";
 import {
   buildInvokeTx,
   invokeWithSignedEntries,
@@ -43,6 +44,18 @@ function sacContractId(): string {
   return env.CONTRACT_ID_SAC_NATIVE;
 }
 
+/**
+ * Registry cần cho cổng ví phí (`is_registered`, B-SEC-3). Chưa cấu hình → 503, KHÔNG
+ * bỏ qua cổng: thiếu registry nghĩa là hàng rào 1 không kiểm được, và fail-open ở cửa
+ * tiêu tiền là đúng cái luật phiên này cấm. Thà tắt đường gửi có ví phí trả hộ.
+ */
+function registryContractIdForSponsorship(): string {
+  if (!env.CONTRACT_ID_RECOVERY) {
+    throw new HTTPException(503, { message: "SPONSORSHIP_CHECK_UNAVAILABLE" });
+  }
+  return env.CONTRACT_ID_RECOVERY;
+}
+
 function requireUser(c: { get(k: "user"): { id: string } | null }): { id: string } {
   const user = c.get("user");
   if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
@@ -58,6 +71,10 @@ function mapError(err: unknown): never {
   }
   if (err instanceof SendError) {
     throw new HTTPException(400, { message: err.message });
+  }
+  // Chối vì chính sách ví phí (B-SEC-3) → 403 mã đọc được, không rơi xuống 500.
+  if (err instanceof FeePolicyError) {
+    throw new HTTPException(403, { message: err.message });
   }
   if (err instanceof Error && err.message.startsWith("INVALID_TRANSITION")) {
     throw new HTTPException(409, { message: err.message });
@@ -116,11 +133,16 @@ export const sendFlowRoute = new Hono()
   .post("/send/sign", requireAuth, writeLimit, zv("json", signSendBody), async (c) => {
     const user = requireUser(c);
     const body = c.req.valid("json");
-    const result = await signAndSubmit(gateway, sacContractId(), {
-      intentId: body.intent_id,
-      userId: user.id,
-      signedEntriesXdr: body.signed_entries,
-    }).catch(mapError);
+    const result = await signAndSubmit(
+      gateway,
+      sacContractId(),
+      registryContractIdForSponsorship(),
+      {
+        intentId: body.intent_id,
+        userId: user.id,
+        signedEntriesXdr: body.signed_entries,
+      },
+    ).catch(mapError);
     return c.json({ data: result });
   })
   .post(

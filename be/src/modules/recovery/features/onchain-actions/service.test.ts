@@ -5,12 +5,13 @@ import { afterAll, describe, expect, it } from "bun:test";
 import { Address, Keypair, xdr } from "@stellar/stellar-sdk";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
+import { FEE_CAP_STROOPS, FeePolicyError } from "@/services/stellar/fee-policy";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
 import { pgReachable, SKIP_REASON } from "@/test-support/pg";
 import { guardians } from "../../../guardians/infra/guardians.schema";
 import { auditLog } from "../../../indexer/infra/audit-log.schema";
 import { wallets } from "../../../wallets/infra/wallets.schema";
-import { approveArgs, RECOVERY_METHODS } from "../../domain/onchain";
+import { approveArgs, RECOVERY_METHODS, registerArgs } from "../../domain/onchain";
 import {
   buildRecoveryAction,
   finalizeRecovery,
@@ -60,8 +61,15 @@ afterAll(async () => {
   }
 });
 
-/** Gateway fake ghi lại lời gọi — không chạm mạng. */
-function fakeGateway(overrides?: Partial<OnchainGateway>) {
+/**
+ * Gateway fake ghi lại lời gọi — không chạm mạng.
+ *
+ * `read` phân biệt THEO METHOD từ closeout B-SEC-3: cổng ví phí hỏi `is_registered`,
+ * phần nghiệp vụ hỏi `get_wallet_config`. Bản cũ trả config cho mọi method → cổng
+ * nhận một object thay vì `true` và chối sạch mọi test. `registered` mặc định `true`
+ * để test cũ giữ nguyên ý nghĩa; ca âm truyền `false`.
+ */
+function fakeGateway(overrides?: Partial<OnchainGateway>, opts?: { registered?: boolean }) {
   const calls: { build: Array<{ method: string }>; invoke: Array<{ method: string }> } = {
     build: [],
     invoke: [],
@@ -76,7 +84,8 @@ function fakeGateway(overrides?: Partial<OnchainGateway>) {
       calls.invoke.push({ method: input.method });
       return { hash: "h".repeat(64), status: "SUCCESS" };
     },
-    async read() {
+    async read(input) {
+      if (input.method === "is_registered") return opts?.registered ?? true;
       return { owner: walletKey, guardians: [guardianKey], threshold: 2, timelock_secs: 60 };
     },
     ...overrides,
@@ -100,6 +109,35 @@ function signedApproveEntry(walletAddress: string): string {
           contractAddress: new Address(REGISTRY).toScAddress(),
           functionName: RECOVERY_METHODS.approve,
           args: approveArgs({ wallet: walletAddress, guardian: guardianKey }),
+        }),
+      ),
+      subInvocations: [],
+    }),
+  }).toXDR("base64");
+}
+
+/** Entry `register_wallet` — cửa bootstrap của cổng ví phí (ví chưa đăng ký). */
+function signedRegisterEntry(walletAddress: string): string {
+  return new xdr.SorobanAuthorizationEntry({
+    credentials: xdr.SorobanCredentials.sorobanCredentialsAddress(
+      new xdr.SorobanAddressCredentials({
+        address: new Address(walletKey).toScAddress(),
+        nonce: new xdr.Int64(2n),
+        signatureExpirationLedger: 1000,
+        signature: xdr.ScVal.scvVec([]),
+      }),
+    ),
+    rootInvocation: new xdr.SorobanAuthorizedInvocation({
+      function: xdr.SorobanAuthorizedFunction.sorobanAuthorizedFunctionTypeContractFn(
+        new xdr.InvokeContractArgs({
+          contractAddress: new Address(REGISTRY).toScAddress(),
+          functionName: RECOVERY_METHODS.register,
+          args: registerArgs({
+            wallet: walletAddress,
+            guardians: [guardianKey],
+            threshold: 1,
+            timelockSecs: 86_400,
+          }),
         }),
       ),
       subInvocations: [],
@@ -234,5 +272,68 @@ describe("recovery onchain service (DB thật + gateway fake)", () => {
       userId: OWNER_USER,
     }).catch((e) => e);
     expect((err as RecoveryActionError).message).toBe("FINALIZE_REQUIRES_AUTH_UNEXPECTED");
+  });
+
+  // B-SEC-3 hàng rào 1, CA ÂM trên đường recovery. Đợt 1 chỉ vá trần phí (và chỉ
+  // trong ttl-keeper); whitelist contract+method thì đã có nhưng nó không phân biệt
+  // "ví của một hộ thật" với "ví C… vừa tạo để đốt phí".
+  testIt("submit của ví CHƯA đăng ký → 403, ví phí KHÔNG ký gì", async () => {
+    const walletId = await seedWallet();
+    const [w] = await db.select().from(wallets).where(eq(wallets.id, walletId));
+    if (!w) throw new Error("wallet missing");
+    const { gateway, calls } = fakeGateway(undefined, { registered: false });
+
+    const err = await submitRecoveryAction(gateway, REGISTRY, {
+      walletId,
+      userId: OWNER_USER,
+      signedEntriesXdr: [signedApproveEntry(w.stellarAddress)],
+    }).catch((e) => e);
+
+    expect(err).toBeInstanceOf(FeePolicyError);
+    expect((err as FeePolicyError).status).toBe(403);
+    expect((err as FeePolicyError).message).toBe("WALLET_NOT_REGISTERED_FOR_SPONSORSHIP");
+    expect(calls.invoke).toHaveLength(0);
+  });
+
+  // Cửa bootstrap phải còn mở, nếu không thì không hộ nào đăng ký được lần đầu —
+  // hàng rào tự khoá luôn sản phẩm. Ca này gác chính cái ngoại lệ đó.
+  testIt("submit register_wallet của ví chưa đăng ký → VẪN qua (bootstrap)", async () => {
+    const walletId = await seedWallet();
+    const [w] = await db.select().from(wallets).where(eq(wallets.id, walletId));
+    if (!w) throw new Error("wallet missing");
+    const { gateway, calls } = fakeGateway(undefined, { registered: false });
+
+    const result = await submitRecoveryAction(gateway, REGISTRY, {
+      walletId,
+      userId: OWNER_USER,
+      signedEntriesXdr: [signedRegisterEntry(w.stellarAddress)],
+    });
+
+    expect(result.method).toBe("register_wallet");
+    expect(calls.invoke).toHaveLength(1);
+  });
+
+  // Trần phí per-tx (hàng rào 3) phải THẬT SỰ tới được ví phí, không chỉ tồn tại
+  // dưới dạng hàm. Đợt 1 viết `assertFeeWithinCap` nhưng hai cửa người dùng gọi
+  // truyền `undefined` → hàm return ngay, tức trần chỉ là trang trí.
+  testIt("submit truyền trần phí xuống gateway (hàng rào 3 nối dây thật)", async () => {
+    const walletId = await seedWallet();
+    const [w] = await db.select().from(wallets).where(eq(wallets.id, walletId));
+    if (!w) throw new Error("wallet missing");
+    const seen: Array<number | undefined> = [];
+    const { gateway } = fakeGateway({
+      async invoke(input) {
+        seen.push(input.maxFeeStroops);
+        return { hash: "h".repeat(64), status: "SUCCESS" };
+      },
+    });
+
+    await submitRecoveryAction(gateway, REGISTRY, {
+      walletId,
+      userId: OWNER_USER,
+      signedEntriesXdr: [signedApproveEntry(w.stellarAddress)],
+    });
+
+    expect(seen).toEqual([FEE_CAP_STROOPS]);
   });
 });
