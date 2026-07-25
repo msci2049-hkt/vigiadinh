@@ -35,6 +35,38 @@ regexes = ['''test-secret-[A-Za-z0-9_-]+''']
 description = "Liquify public Stellar RPC endpoint (shared key công khai)"
 regexes = ['''41EEWAH79Y5OCGI7/mainnet''']
 
+# ---------------------------------------------------------------------------
+# ĐỊNH DANH CÔNG KHAI — bị rule `generic-api-key` bắt nhầm vì entropy cao.
+# Tìm ra 2026-07-25 khi nâng binary local lên đúng bản CI (8.30.1): job
+# secret-scan ĐANG ĐỎ ở HEAD với 7 finding, không finding nào là secret.
+# Nguyên tắc giữ nguyên: allowlist THEO GIÁ TRỊ/HÌNH DẠNG, không theo file —
+# secret thật dán vào chính những file đó vẫn phải bị chặn.
+# ---------------------------------------------------------------------------
+
+# Địa chỉ HỢP ĐỒNG Soroban: base32 'C' + 55 ký tự. Công khai theo thiết kế —
+# nằm trong .env.example, docs, spec e2e và trên chính chuỗi khối. Cùng lý do
+# rule `stellar-secret-seed` ở trên chỉ quét 'S...': S là bí mật, C/G là công khai.
+# KHÔNG được nới thành [A-Z2-7] không neo chữ đầu — làm thế là mở cửa cho seed.
+[[allowlists]]
+description = "Stellar contract address (C... 56 ký tự) — định danh công khai"
+regexes = ['''\bC[A-Z2-7]{55}\b''']
+
+# Khoá CÔNG KHAI của Chrome extension (manifest `key`) — chính là thứ ghim
+# extension ID, có mặt trong mọi extension đã publish. Khoá RIÊNG (.pem) nằm
+# ngoài repo. Allowlist đúng MỘT giá trị này.
+[[allowlists]]
+description = "Chrome extension public key (ghim extension ID)"
+regexes = ['''MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAlpS\+CcEf9O9UtDnBPfsiq''']
+
+# Hash chứng chỉ ký APK dùng trong origin WebAuthn `android:apk-key-hash:...`.
+# Đây là HASH của chứng chỉ CÔNG KHAI — Google bắt buộc công bố nó ở
+# /.well-known/assetlinks.json cho cả thế giới đọc. Không phải khoá ký.
+[[allowlists]]
+description = "APK signing cert hash (công bố trong assetlinks.json)"
+# LƯU Ý cú pháp: `regexes` khớp với GIÁ TRỊ gitleaks bóc ra (Secret), KHÔNG
+# phải cả dòng — nên ở đây là hash trần, không kèm tiền tố `apk-key-hash:`.
+regexes = ['''EeIRMfosA0YknpwuGr3ULGIb9qIlUuSPV7_DS8kmx9U''']
+
 # YÊU CẦU gitleaks >= 8.25 (CI pin 8.30.1, xem be/docs/HUMAN-TODO.md §2).
 # KHÔNG thêm lại bảng SỐ ÍT [allowlist]: từ 8.25 gitleaks BÁO LỖI CHẾT khi có cả hai
 # ("[allowlist] is deprecated, it cannot be used alongside [[allowlists]]") → job

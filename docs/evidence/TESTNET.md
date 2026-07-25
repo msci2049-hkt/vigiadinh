@@ -166,3 +166,53 @@ người dùng nào. Signer cài vào ví trong lần chạy này là External(v
 
 ⚠️ **Ví testnet tạo TRƯỚC 2026-07-24 (wasm `a67ea40e…`) không khôi phục được** — không có
 đường vá vì `set_recovery_registry` nay chặn ghi đè và ví cũ chưa từng được cắm. Tạo lại ví.
+
+## MULTI-DEVICE — Ba người, ba máy, ba passkey độc lập (2026-07-25)
+
+Claim mạnh nhất của sản phẩm khi thi: **"người nhà bỏ phiếu bằng vân tay TRÊN MÁY CỦA
+CHÍNH HỌ"**. Trước phiên này nó chỉ được chứng minh gián tiếp (unit test + đọc ví tay).
+Giờ nó đi qua ĐÚNG UI sản phẩm, trên testnet thật.
+
+Cách mô phỏng nhiều máy mà không cần phần cứng: `browserContext.credentials` scope theo
+**BrowserContext**, nên mỗi context = một máy ảo với authenticator riêng, passkey riêng,
+storage riêng. Ba context ⇒ ba hợp đồng KHÁC NHAU là bằng chứng chúng không dùng chung
+passkey nào.
+
+| Vai | Hợp đồng | Tạo qua màn |
+|---|---|---|
+| chủ ví | `CBFHCYQQDJ5FDQB5MVYBB7TUBPU65ZR4SUBS2EVPSVRRSZVETPMPBOW5` | `/setup` |
+| người thân 1 | `CBIWMIHXK2RLZB2GC3EJRLN4Z5PVDR7PY75XIZIXEUDF6ATYJXSGDXOA` | `/guardian/accept` |
+| người thân 2 | `CAYSOPMNPRLJVF7K6ZBJLW4HRTUB2O3A4234TPBGP4M6WGK5AVIG2WSL` | `/guardian/accept` |
+
+| Bước | Tx | Ký bằng gì |
+|---|---|---|
+| `register_wallet` (chủ ví bật bảo vệ ở `/setup/review`) | `fe87434201fa494e24c92c472f0072e1477b6b172d1128ba074c0b36d9eb9b19` | **passkey chủ ví** (WebAuthn secp256r1, virtual authenticator máy 1) — envelope do ví phí ký, ví phí KHÔNG ký hộ người dùng |
+
+Verify ĐỘC LẬP (không tin lời test — hỏi thẳng Horizon):
+
+```bash
+curl -s https://horizon-testnet.stellar.org/transactions/fe87434201fa494e24c92c472f0072e1477b6b172d1128ba074c0b36d9eb9b19 \
+  | python3 -c "import json,sys; d=json.load(sys.stdin); print(d['successful'], d['ledger'], d['created_at'])"
+# → True 3785310 2026-07-25T01:58:31Z
+```
+
+https://stellar.expert/explorer/testnet/tx/fe87434201fa494e24c92c472f0072e1477b6b172d1128ba074c0b36d9eb9b19
+
+### Đọc lại TỪ CHAIN sau khi đăng ký (simulate, không phải mirror)
+
+- `get_wallet_config(ví chủ)` → đúng 2 người bảo hộ trên, `threshold = 2`.
+- `get_recovery_registry(ví chủ)` → `CAFU4CZN…FMCO` (registry cắm sẵn trong constructor).
+
+### CỔNG CHỐNG HỒI QUY — thứ phải xanh mãi mãi
+
+`get_context_rule(0)` của **ví CHỦ** = **đúng 1 signer**, và signer đó là verifier
+WebAuthn `CCNS6O5H…C2O4N`.
+
+Vì sao đây là cổng quan trọng nhất của cả dự án: nếu con số này thành 3 thì mô hình đã bị
+kéo về multisig, và theo `do_check_auth` của OZ, **một** signer trong rule không policy
+authorize được TOÀN BỘ context — tức mỗi người bảo hộ tự mình rút sạch ví được. Người bảo
+hộ KHÔNG BAO GIỜ là signer trên ví chủ; họ bỏ phiếu ở registry. Mỗi ví người thân cũng
+đúng 1 signer — của chính họ.
+
+Chạy lại: `RUN_TESTNET_E2E=1 pnpm --filter @repo/web exec playwright test e2e/multi-device
+--project=chromium` (cần preview `:4174`). Kết quả máy: `docs/evidence/multi-device-latest.json`.

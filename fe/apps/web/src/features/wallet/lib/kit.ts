@@ -33,7 +33,41 @@ export function getWalletKit(): SmartAccountKit {
   return kit;
 }
 
+let restoring: Promise<unknown> | null = null;
+
+/**
+ * Nối lại phiên ví ĐÃ LƯU rồi trả kit — IM LẶNG, không prompt sinh trắc học.
+ *
+ * Vì sao BẮT BUỘC: `contractId`/`credentialId` của kit là state TRONG BỘ NHỚ,
+ * chỉ được đặt bởi `createWallet`/`connectWallet`. Tải lại trang (F5, mở lại
+ * app, hay chỉ là điều hướng cứng) dựng kit MỚI với state rỗng, trong khi
+ * IndexedDB vẫn giữ phiên do `createWallet` lưu. Không có bước này thì mọi
+ * hành động cần chữ ký sau lần tải lại đầu tiên đều chết WALLET_NOT_CONNECTED —
+ * người dùng vừa tạo ví xong, quay lại hôm sau là không ký được gì.
+ *
+ * `connectWallet()` KHÔNG tham số = khôi phục im lặng từ storage (trả null nếu
+ * không có phiên) — không có ceremony WebAuthn nào, nên gọi được ở đường ngầm.
+ * Một chuyến duy nhất tại một thời điểm: hai màn cùng gọi thì dùng chung.
+ */
+export async function ensureWalletConnected(): Promise<SmartAccountKit> {
+  const k = getWalletKit();
+  if (k.contractId && k.credentialId) return k;
+  if (!restoring) {
+    // Phiên hết hạn / hợp đồng chưa lên chain → kit ném. Nuốt ở đây và để
+    // callsite quyết định: chúng đọc contractId rồi báo lỗi theo ngôn ngữ của
+    // mình (WALLET_NOT_CONNECTED) thay vì rò lỗi thô của thư viện ra UI.
+    restoring = k.connectWallet().catch(() => null);
+  }
+  try {
+    await restoring;
+  } finally {
+    restoring = null;
+  }
+  return k;
+}
+
 /** Reset cho test — không dùng trong app code. */
 export function resetWalletKitForTest(): void {
   kit = null;
+  restoring = null;
 }

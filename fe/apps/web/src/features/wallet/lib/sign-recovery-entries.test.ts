@@ -17,8 +17,16 @@ const kitMock = {
   contractId: WALLET_C as string | null,
   credentialId: "cred-1" as string | null,
   signAuthEntry: vi.fn(),
+  connectWallet: vi.fn(),
 };
-vi.mock("./kit", () => ({ getWalletKit: () => kitMock }));
+// Mock ĐÚNG hành vi thật của ensureWalletConnected: chỉ gọi connectWallet khi
+// state rỗng, và state sau đó do connectWallet đặt (khôi phục im lặng).
+vi.mock("./kit", () => ({
+  ensureWalletConnected: async () => {
+    if (!kitMock.contractId || !kitMock.credentialId) await kitMock.connectWallet();
+    return kitMock;
+  },
+}));
 
 function makeEntry(address: string): xdr.SorobanAuthorizationEntry {
   return new xdr.SorobanAuthorizationEntry({
@@ -53,6 +61,7 @@ function fakeSigned(entry: xdr.SorobanAuthorizationEntry): xdr.SorobanAuthorizat
 beforeEach(() => {
   kitMock.contractId = WALLET_C;
   kitMock.credentialId = "cred-1";
+  kitMock.connectWallet.mockReset();
   kitMock.signAuthEntry.mockReset();
   kitMock.signAuthEntry.mockImplementation(async (entry: xdr.SorobanAuthorizationEntry) =>
     fakeSigned(entry),
@@ -83,12 +92,33 @@ describe("signRecoveryEntries", () => {
     });
   });
 
-  it("ví chưa connect → WALLET_NOT_CONNECTED, kit không bị gọi", async () => {
+  it("ví chưa connect và KHÔNG có phiên lưu → WALLET_NOT_CONNECTED, kit không ký", async () => {
     kitMock.contractId = null;
     await expect(
       signRecoveryEntries({ entriesXdr: [makeEntry(WALLET_C).toXDR("base64")], latestLedger: 1 }),
     ).rejects.toThrow(RecoverySignError);
+    expect(kitMock.connectWallet).toHaveBeenCalledTimes(1); // đã THỬ khôi phục
     expect(kitMock.signAuthEntry).not.toHaveBeenCalled();
+  });
+
+  // HỒI QUY (lỗi đóng e2e đa thiết bị 2026-07-25): state kit nằm trong bộ nhớ,
+  // tải lại trang là rỗng dù IndexedDB còn phiên do createWallet lưu. Không
+  // khôi phục im lặng thì người dùng tạo ví xong, quay lại là không ký được gì.
+  it("tải lại trang: kit rỗng nhưng CÒN phiên lưu → tự nối lại rồi ký bình thường", async () => {
+    kitMock.contractId = null;
+    kitMock.credentialId = null;
+    kitMock.connectWallet.mockImplementation(async () => {
+      kitMock.contractId = WALLET_C;
+      kitMock.credentialId = "cred-1";
+    });
+    const out = await signRecoveryEntries({
+      entriesXdr: [makeEntry(WALLET_C).toXDR("base64")],
+      latestLedger: 1000,
+    });
+    expect(kitMock.connectWallet).toHaveBeenCalledTimes(1);
+    expect(kitMock.signAuthEntry).toHaveBeenCalledTimes(1);
+    const signed = xdr.SorobanAuthorizationEntry.fromXDR(out[0] ?? "", "base64");
+    expect(signed.credentials().address().signatureExpirationLedger()).toBe(99999);
   });
 
   it("không entry nào của ví → NO_ENTRY_FOR_WALLET (chặn sớm, khỏi chết mã contract khó hiểu)", async () => {

@@ -4,7 +4,7 @@
 // — công thức đã chứng minh on-chain), không challenge random = không ký mù.
 // Chỉ ký entry mà credentials.address = VÍ ĐANG CONNECT; entry khác giữ nguyên.
 import { Address, xdr } from "@stellar/stellar-sdk";
-import { getWalletKit } from "./kit";
+import { ensureWalletConnected } from "./kit";
 
 export class WalletSignError extends Error {
   constructor(code: "WALLET_NOT_CONNECTED" | "NO_ENTRY_FOR_WALLET") {
@@ -36,7 +36,9 @@ export async function signWalletEntries(input: {
   entriesXdr: string[];
   latestLedger: number;
 }): Promise<string[]> {
-  const kit = getWalletKit();
+  // Nối lại phiên đã lưu trước khi đọc state — sau khi tải lại trang kit rỗng
+  // dù IndexedDB còn phiên (xem ensureWalletConnected).
+  const kit = await ensureWalletConnected();
   const contractId = kit.contractId;
   const credentialId = kit.credentialId;
   if (!contractId || !credentialId) throw new WalletSignError("WALLET_NOT_CONNECTED");

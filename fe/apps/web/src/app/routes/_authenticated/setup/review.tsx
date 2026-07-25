@@ -81,12 +81,16 @@ function SetupReviewScreen() {
       {recoverability ? <RecoverabilityBanner value={recoverability} /> : null}
 
       {register.isSuccess ? (
-        <p className="rounded-md border border-border bg-muted/40 p-3 text-sm" role="status">
+        <p
+          className="rounded-md border border-border bg-muted/40 p-3 text-sm"
+          role="status"
+          data-testid="review-registered"
+        >
           {t("setup.review.registered")}
         </p>
       ) : null}
       {register.isError ? (
-        <p className="text-destructive text-sm" role="alert">
+        <p className="text-destructive text-sm" role="alert" data-testid="review-register-failed">
           {t("setup.review.registerFailed")}
         </p>
       ) : null}

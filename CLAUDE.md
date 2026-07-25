@@ -32,7 +32,20 @@ shared/     NGUỒN hợp đồng BE↔FE (enum trạng thái, intent state mach
    origin FE ∈ `TRUSTED_ORIGINS` của BE. `.env` không được commit (xem `.gitignore`).
 5. **Commit message viết bằng TIẾNG ANH** (subject + body) — ban giám khảo chấm bằng
    tiếng Anh. Giữ conventional commits (`feat(be):` / `fix(contracts):` / `ci(fix):` …).
-   Docs nội bộ (BUILD-LOG, BLOCKERS…) vẫn tiếng Việt.
+   Docs nội bộ (BUILD-LOG, BLOCKERS…) vẫn tiếng Việt. `README.md` gốc là cửa vào của
+   ban giám khảo → viết tiếng Anh, trỏ sang docs nội bộ tiếng Việt.
+6. **Generate migration xong PHẢI apply + test trên DB SẠCH trước khi commit.**
+   `db:generate` chỉ sinh file SQL — nó KHÔNG đụng database nào. Migration đã generate
+   mà chưa apply = test đang chạy trên schema CŨ, tức test **nói dối**: xanh ở máy này,
+   đỏ ở CI và VPS (nơi DB luôn dựng từ 0000). Quy trình bắt buộc:
+   ```bash
+   cd be && bun run db:migrate                       # apply lên DB dev
+   createdb familywallet_fresh                       # rồi CHỨNG MINH trên DB sạch
+   DATABASE_URL=…/familywallet_fresh bun run db:migrate && \
+   DATABASE_URL=…/familywallet_fresh bun run validate && bun test
+   ```
+   Cách kiểm DB dev có bị lệch không: diff `information_schema.columns` +
+   `pg_constraint` + `pg_indexes` giữa DB dev và DB dựng từ 0000 — phải GIỐNG HỆT.
 
 ## Lệnh chuẩn từng bên
 

@@ -95,6 +95,17 @@ async function mockBackend(page: Page): Promise<void> {
   await page.route("**/api/recovery/guardian", (r) => r.fulfill({ json: { data: INBOX } }));
   await page.route("**/api/inheritance/wallet/**", (r) => r.fulfill({ json: { data: [] } }));
   await page.route("**/api/inheritance/wallet/*/plan", (r) => r.fulfill({ json: { data: PLAN } }));
+  // CHƯA AI nhận lời — đúng trạng thái cần khoá ở màn chọn người bảo hộ.
+  await page.route("**/api/guardians/invites/wallet/**", (r) =>
+    r.fulfill({
+      json: {
+        data: {
+          invites: [],
+          recoverability: { available: 0, threshold: 2, recoverable: false, missing: 2 },
+        },
+      },
+    }),
+  );
 }
 
 test.describe("night-watch + inheritance screens (mocked BE)", () => {
@@ -137,14 +148,25 @@ test.describe("night-watch + inheritance screens (mocked BE)", () => {
     await expect(page.getByText(/Bạn vừa điểm danh/)).toBeVisible();
   });
 
-  test("mức-B wizard stub is honest — labels the step + exits to the working setup", async ({
-    page,
-  }) => {
+  // Trước đây test này khoá hành vi của một STUB. Màn đã được dựng thật ở
+  // `076c2ce` nhưng spec không được cập nhật cùng → e2e đỏ mà không ai biết
+  // (audit 2026-07-25). Giờ nó khoá đúng thứ đáng khoá: LUỒNG TĂNG DẦN.
+  test("wizard mức B đi tiếp được kể cả khi CHƯA AI nhận lời", async ({ page }) => {
     await page.goto("/setup/choose-guardians");
-    await expect(page.getByRole("heading", { name: "Chọn người bảo hộ" })).toBeVisible();
-    // Không giả vờ chạy: có lối ra RÕ về mức A đang chạy.
-    await page.getByRole("link", { name: "Thiết lập ví của tôi" }).click();
-    await expect(page).toHaveURL(/\/setup$/);
+    await expect(page.getByRole("heading", { name: "Chọn người có thể giúp bạn" })).toBeVisible();
+
+    // Chưa ai nhận lời → phải nói THẲNG là ví chưa cứu được, không trấn an giả.
+    await expect(page.getByTestId("recoverability-warning")).toBeVisible();
+
+    // …nhưng KHÔNG chặn đường đi tiếp. Đây là quyết định sản phẩm cốt lõi: ví đã
+    // dùng được từ bước 1-2, bắt chờ đủ người mới cho đi tiếp là quay lại đúng
+    // bẫy "một người thân chậm trả lời treo cả nhà".
+    await page.getByTestId("wizard-next-threshold").click();
+    await expect(page).toHaveURL(/\/setup\/threshold$/);
+
+    // Và luôn có lối rời đi: ví vẫn chạy, quay lại lúc nào cũng được.
+    await page.goto("/setup/choose-guardians");
+    await expect(page.getByText(/Ví của bạn đã dùng được rồi/)).toBeVisible();
   });
 
   test("guardian inbox → rule-based warning (not AI) before approving", async ({ page }) => {

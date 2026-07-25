@@ -764,3 +764,169 @@ hàm contract, không job, không script. 4 cron BullMQ hiện có đều không
 - 3 màn wizard còn stub: `/setup/choose-guardians`, `/setup/threshold`, `/setup/timelock`
   (ngưỡng + thời gian chờ hiện lấy từ mặc định ví, chưa có màn chỉnh).
 - Ví testnet tạo TRƯỚC phiên này không khôi phục được, không có đường vá — tạo lại.
+
+---
+
+## §AUDIT TOÀN DIỆN — 2026-07-25 (từ đỉnh `a460465`)
+
+Mục tiêu: tìm lỗi đang ẩn, đóng e2e đa thiết bị, chứng minh kho chạy được từ máy sạch.
+
+### 🔴 LỖI LỚN NHẤT TÌM ĐƯỢC — ví mất khả năng ký sau khi TẢI LẠI TRANG
+
+Đây là lỗi **sản phẩm**, không phải lỗi test. Nó là thứ giết e2e đa thiết bị, và nó
+giết cả người dùng thật.
+
+- **Triệu chứng:** tạo ví xong, tải lại trang (F5 / mở lại app / điều hướng cứng) rồi
+  bấm bất cứ nút nào cần chữ ký → chết `WALLET_NOT_CONNECTED`.
+- **Cơ chế:** `kit.contractId` / `kit.credentialId` là state **trong bộ nhớ**, chỉ được
+  đặt bởi `createWallet()` hoặc `connectWallet()`. Tải lại trang dựng `SmartAccountKit`
+  MỚI với state rỗng — trong khi IndexedDB **vẫn còn phiên** do `createWallet` lưu
+  (`storage.saveSession`, kit `wallet-ops.js`). Không code nào gọi khôi phục im lặng
+  lúc boot: `main.tsx` chỉ khôi phục JWT SEP-45 (`restoreWalletSession`) — tức app
+  khôi phục **quyền gọi API** nhưng không khôi phục **khả năng ký**. Hai thứ đó bị lệch
+  nhau và không ai để ý.
+- **Vì sao trốn được lâu:** mọi luồng đi bằng điều hướng client-side (`<Link>`) giữ
+  nguyên module state → kit vẫn connect. Chỉ lộ khi có `page.goto` / F5 thật.
+- **Vá:** `ensureWalletConnected()` trong `features/wallet/lib/kit.ts` — gọi
+  `kit.connectWallet()` KHÔNG tham số (khôi phục im lặng từ storage, **không** ceremony
+  WebAuthn, trả null nếu không có phiên), single-flight chống hai màn gọi song song.
+  `signWalletEntries` gọi nó trước khi đọc state. Vá tại ĐIỂM DÙNG, không phải lúc boot →
+  không có đua, không tốn một chuyến RPC cho người chưa có ví.
+- **Test khoá hồi quy:** `sign-recovery-entries.test.ts` thêm case "tải lại trang: kit rỗng
+  nhưng CÒN phiên lưu → tự nối lại rồi ký bình thường" (4 test, xanh).
+
+### ❌ GIẢ THUYẾT "migration 0007 = nguyên nhân e2e fail" — SAI, đã bác bỏ
+
+Checklist audit đặt đây là nghi phạm số một. Kiểm xong: **hai việc rời nhau thật**, không
+phải một lỗi.
+
+- Spec `multi-device-recovery.spec.ts` **mock TOÀN BỘ route BE** bằng `page.route`
+  (`/api/wallets`, `/api/guardians/invites/*`, `/api/recovery/register|submit`) — nó
+  **không chạm Postgres một lần nào**. Bảng `guardian_invites` thiếu hay đủ không ảnh
+  hưởng gì tới spec này.
+- Bài học: đọc spec trước khi tin một giả thuyết nghe hợp lý. Hai sự kiện trùng thời điểm
+  không có nghĩa là cùng nguyên nhân.
+
+### ✅ Nhưng migration 0007 ĐÚNG LÀ ĐANG THIẾU — vá luôn
+
+- DB dev đứng ở 0006: `__drizzle_migrations` có 7 dòng, `\dt` **không có** `guardian_invites`.
+  Migration đã generate + review nhưng chưa apply lên DB nào — đúng lớp lỗi "test xanh trên
+  schema cũ" checklist cảnh báo.
+- Đã `bun run db:migrate` → schema khớp file 0007 từng cột/index/constraint.
+
+### ✅ E2E ĐA THIẾT BỊ — XANH, có hash
+
+`RUN_TESTNET_E2E=1 … playwright test e2e/multi-device --project=chromium` →
+**1 passed (49.1s)**. Trước đó 10.7 phút vì đứng chờ locator không bao giờ xuất hiện;
+giờ 49s vì luồng chạy thẳng.
+
+| Bằng chứng | Giá trị |
+|---|---|
+| ví chủ | `CBFHCYQQDJ5FDQB5MVYBB7TUBPU65ZR4SUBS2EVPSVRRSZVETPMPBOW5` |
+| người thân 1 | `CBIWMIHXK2RLZB2GC3EJRLN4Z5PVDR7PY75XIZIXEUDF6ATYJXSGDXOA` |
+| người thân 2 | `CAYSOPMNPRLJVF7K6ZBJLW4HRTUB2O3A4234TPBGP4M6WGK5AVIG2WSL` |
+| `register_wallet` | tx `fe87434201fa494e24c92c472f0072e1477b6b172d1128ba074c0b36d9eb9b19` |
+
+Tx verify ĐỘC LẬP qua Horizon (không tin lời test): `successful: true`, ledger `3785310`,
+`2026-07-25T01:58:31Z`. Ba địa chỉ khác nhau ⇒ ba authenticator ảo độc lập theo
+BrowserContext ⇒ **đúng claim "mỗi người một máy"**.
+
+**Cổng chống hồi quy giờ đã qua ĐƯỜNG UI** (trước chỉ có unit test + đọc ví tay):
+`get_context_rule(0)` ví chủ = **đúng 1 signer**, và signer đó là verifier WebAuthn —
+guardian KHÔNG bao giờ là signer trên ví chủ. Mỗi ví guardian cũng đúng 1 signer của họ.
+
+Cải tiến để lần sau không mù nữa:
+- `step()` in mốc thời gian từng bước → biết chết ở đâu thay vì đoán.
+- Đua `review-registered` vs `review-register-failed` rồi **in nội dung lỗi** — trước đây
+  mutation hỏng thì spec đứng chờ đủ 600s rồi timeout mà không nói vì sao.
+- `dumpEvidence()` ghi `docs/evidence/multi-device-latest.json` **trước** các assert còn
+  lại — bằng chứng không phụ thuộc test pass.
+- Thêm `data-testid` cho cả ô báo xong lẫn ô báo lỗi ở `/setup/review`.
+
+### ✅ DB SẠCH TỪ 0000 — môi trường test đáng tin
+
+- `familywallet_fresh` dựng mới, `db:migrate` chạy **0000 → 0007 tuần tự, không thao tác tay**.
+- Diff DB dev ↔ DB sạch: `information_schema.columns`, `pg_constraint`, `pg_indexes`
+  **GIỐNG HỆT** cả ba. DB dev không bị lệch.
+- `bun run validate` xanh + `bun test` **249 pass / 9 skip / 0 fail** trên DB sạch —
+  **giống hệt** kết quả trên DB cũ. Không có lỗi nào ẩn sau schema drift.
+- Luật mới ghi vào `CLAUDE.md` §6.
+
+### 🔴 CI `secret-scan` ĐANG ĐỎ Ở HEAD — không ai biết vì không đọc được Actions
+
+Nâng gitleaks local 8.24.3 → **8.30.1** (đúng bản CI pin) rồi chạy ĐÚNG lệnh CI
+(`gitleaks git --redact --no-banner`) → **7 finding, exit 1**. Job này đỏ ở `a460465`.
+
+Bảy finding **không cái nào là secret** — toàn định danh công khai bị rule
+`generic-api-key` bắt vì entropy cao:
+
+| Giá trị | Vì sao KHÔNG phải secret |
+|---|---|
+| `C…` × 4 | địa chỉ hợp đồng Soroban — công khai trên chính chuỗi khối |
+| manifest `key` | khoá **công khai** ghim extension ID, có trong mọi extension đã publish |
+| `apk-key-hash:…` | hash chứng chỉ **công khai**, Google bắt công bố ở `/.well-known/assetlinks.json` |
+
+Vá bằng 3 `[[allowlists]]` **theo GIÁ TRỊ/HÌNH DẠNG, không theo file** (giữ đúng triết lý
+sẵn có: secret thật dán vào chính file đó vẫn phải bị chặn). Sau vá: **no leaks found, exit 0**.
+
+Chứng minh allowlist KHÔNG làm thủng rào — probe file có cả hai:
+- seed `S…` → **BỊ BẮT** (`stellar-secret-seed`) ✅
+- địa chỉ `C…` → bỏ qua ✅
+
+Bẫy cú pháp ghi lại để khỏi mất giờ lần sau: `regexes` của allowlist khớp với **giá trị
+gitleaks bóc ra (Secret)**, KHÔNG phải cả dòng — nên phải viết hash trần, bỏ tiền tố
+`apk-key-hash:`.
+
+### ✅ Máy sạch — clone ra chỗ khác chạy được
+
+- `git clone` sang đường dẫn Linux native + làm ĐÚNG theo tài liệu → chạy được.
+- **Không có `README.md` gốc** — ban giám khảo clone về sẽ thấy `BLOCKERS.md` +
+  `BUILD-LOG.md` tiếng Việt và không có cửa vào. **Đã viết `README.md`** (tiếng Anh, theo
+  đúng lý do commit message dùng tiếng Anh): dự án là gì · yêu cầu đúng version CI ·
+  lệnh từng phần · link `docs/evidence` + `docs/DEMO.md` · thời gian thật.
+- **Bẫy cho người làm theo tài liệu:** `.env.example` để
+  `DATABASE_URL=postgresql://USER:PASS@HOST:5432/DBNAME` — copy nguyên là `db:migrate`
+  chết. README giờ ghi thẳng giá trị đúng khớp `docker-compose.yml`
+  (`postgresql://app:app@localhost:5432/app`).
+- `.env.example` **đủ biến**: FE 11/11 `VITE_*` code đọc đều có khai (so bằng grep);
+  BE có gate tự động `check:env-parity` (40 key) xanh.
+- **0 contract ID hardcode** trong `be/src` + `fe/apps/web/src` (`[CG][A-Z2-7]{55}`).
+  URL RPC duy nhất trong source là `.default()` của zod schema — đè được bằng env.
+- Thời gian thật (fs Linux native, cache ấm): clone 14s · be install 21s · migrate 1.5s ·
+  fe install 46s (pnpm 9.15.9 của CI) · honest build 37s → **≈ 2 phút**.
+- ⚠️ Cùng build đó trên `/mnt/d` (WSL) mất **4m08s** — phạt filesystem, không phải dự án.
+
+### Rà toàn cục (§5)
+
+| # | Kiểm | Kết quả |
+|---|---|---|
+| 1 | Lỗ 🔴 COVERAGE-PRODUCT | **KHÔNG còn 🔴** — quét lại độc lập, khớp tài liệu |
+| 2 | Mục 🟡 | còn **3** (không phải 7): `remove_guardian` B-COV-1 · đổi registry B-COV-2 · `batch_add_signer` B-COV-4 — đều "chưa dựng CÓ CHỦ ĐÍCH", giữ nguyên |
+| 3 | Veto đọc từ chain | ✅ `chain-truth/handler.ts` `simulateRead` thẳng, chain thắng mirror khi lệch |
+| 4 | Cooldown có UI | ✅ `CooldownNotice` nói đủ 4 điều: đang bảo vệ · còn bao lâu · vì sao · làm gì được |
+| 5 | `docs/INHERITANCE.md` | ✅ ghi rõ auto-restore Protocol 23 (CAP-0066); cron = tối ưu phí, KHÔNG phải điểm chết |
+| 6 | i18n parity | ✅ en/vi/zh **401/401/401 key** khớp tuyệt đối (đã tăng từ 356) |
+| 7 | Module tiền | ✅ `toLocaleString\|toFixed` ngoài module tiền: **0 hit** |
+| 8 | `shared/` không lệch | ✅ `check:contract` xanh |
+
+### Đồng bộ công cụ local ↔ CI (§6)
+
+| Tool | Local | CI | |
+|---|---|---|---|
+| gitleaks | 8.24.3 → **8.30.1** | 8.30.1 | ✅ đã nâng phiên này |
+| stellar-cli | 27.0.0 | 27.0.0 | ✅ |
+| rustc | 1.97.1 | stable | ✅ (Cargo.toml đòi ≥1.91.0) |
+| bun | 1.3.14 | 1.3.11 | ⚠️ lệch patch, local mới hơn |
+| **pnpm** | **11.11.0** | **9.15.9** | ⚠️ lệch 2 major — **đã kiểm: KHÔNG gãy** |
+| node | 22.23.1 | matrix 20/22/24 | ⚠️ chỉ tái hiện được 22 |
+
+Lệch pnpm nghe đáng sợ nhưng đã CHỨNG MINH vô hại: chạy `corepack pnpm@9.15.9 install
+--frozen-lockfile` trên clone sạch → xanh 45.7s; `pnpm build` honest bằng chính pnpm 9 →
+xanh 36.8s. Lockfile `lockfileVersion 9.0` cả hai bản đều đọc được.
+
+### Gate phiên này
+- BE **249 pass / 9 skip / 0 fail** trên CẢ DB cũ lẫn DB sạch từ 0000 · validate xanh.
+- contracts **48/48**.
+- FE honest build xanh (cả trên `/mnt/d` lẫn clone sạch bằng pnpm 9 của CI).
+- e2e đa thiết bị **1 passed**, tx verify độc lập qua Horizon.
+- gitleaks 8.30.1 **no leaks found**.

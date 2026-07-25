@@ -20,6 +20,10 @@
 // Opt-in (chạm testnet thật, cần preview :4174 chạy sẵn):
 //   RUN_TESTNET_E2E=1 pnpm --filter @repo/web exec playwright test e2e/multi-device --project=chromium
 // WSL không sudo: export LD_LIBRARY_PATH=~/chrome-libs/extracted/usr/lib/x86_64-linux-gnu
+
+import { writeFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { type BrowserContext, expect, type Page, test } from "@playwright/test";
 import {
   Address,
@@ -42,6 +46,32 @@ const WEBAUTHN_VERIFIER = "CCNS6O5HBTF7XOOVCNF4XLTKORQ4JB4PKUKUA6CX2MW7OXOKGKKC2
 
 const enabled = process.env.RUN_TESTNET_E2E === "1";
 const server = new rpc.Server(RPC_URL);
+
+/** Mốc thời gian từng bước — chạy 10+ phút, phải biết chết ở ĐÂU chứ không đoán. */
+const t0 = Date.now();
+function step(name: string): void {
+  console.log(`[STEP +${((Date.now() - t0) / 1000).toFixed(1)}s] ${name}`);
+}
+
+/**
+ * In + GHI bằng chứng ra đĩa NGAY khi có, trước mọi assert còn lại. Bằng chứng
+ * không được phụ thuộc việc test pass: hash đã settle trên testnet là sự thật
+ * kể cả khi một assert phía sau đỏ.
+ */
+function dumpEvidence(ownerWallet: string, guardians: string[]): void {
+  const payload = { ownerWallet, guardianAddresses: guardians, evidence };
+  console.log("EVIDENCE", JSON.stringify(payload, null, 2));
+  const out = path.resolve(
+    fileURLToPath(new URL(".", import.meta.url)),
+    "../../../../docs/evidence/multi-device-latest.json",
+  );
+  try {
+    writeFileSync(out, `${JSON.stringify(payload, null, 2)}\n`);
+    console.log(`[EVIDENCE] ghi ${out}`);
+  } catch (e) {
+    console.log(`[EVIDENCE] KHÔNG ghi được ${out}: ${(e as Error).message}`);
+  }
+}
 /** Ví phí của "BE" mock — ký ENVELOPE trả phí, không bao giờ ký hộ người dùng. */
 const feePayer = Keypair.random();
 const evidence: Array<{ step: string; hash: string }> = [];
@@ -143,6 +173,7 @@ test.describe("khôi phục đa thiết bị — người nhà ký bằng passke
     browser,
   }) => {
     test.setTimeout(1_800_000); // 3 deploy thật + register on-chain trên WSL
+    step("friendbot ví phí");
     await friendbot(feePayer);
 
     // ---------- MÁY 1: chủ ví tạo ví qua /setup ----------
@@ -169,12 +200,14 @@ test.describe("khôi phục đa thiết bị — người nhà ký bằng passke
       }
       await route.fulfill({ json: { data: ownerWallet ? [ownerRow()] : [] } });
     });
+    step("MÁY 1 — chủ ví deploy qua /setup");
     await owner.page.goto("/setup");
     await owner.page
       .getByRole("button", { name: /tạo ví|create my wallet/i })
       .first()
       .click();
     await expect(owner.page).toHaveURL(/\/setup\/done/, { timeout: 600_000 });
+    step(`ví chủ = ${ownerWallet}`);
     expect(ownerWallet).toMatch(/^C[A-Z2-7]{55}$/);
 
     // Ví sinh ra ĐÃ nối registry (mục đặt chỗ trong constructor) — nếu không,
@@ -204,11 +237,13 @@ test.describe("khôi phục đa thiết bị — người nhà ký bằng passke
         r.fulfill({ json: { data: { status: "deployed" } } }),
       );
 
+      step(`MÁY ${i + 2} — ${userId} nhận lời mời + deploy hợp đồng của họ`);
       await g.page.goto(`/guardian/accept?token=tok${i + 1}`);
       await g.page.getByTestId("guardian-accept-cta").click();
       await expect(g.page.getByTestId("guardian-identity-address")).toBeVisible({
         timeout: 600_000,
       });
+      step(`${userId} = ${addr}`);
       expect(addr).toMatch(/^C[A-Z2-7]{55}$/);
       guardianAddresses.push(addr);
       await g.ctx.close();
@@ -274,11 +309,24 @@ test.describe("khôi phục đa thiết bị — người nhà ký bằng passke
       });
     });
 
+    step("chủ ví bấm 'Bật bảo vệ' ở /setup/review (điều hướng CỨNG — kit phải tự nối lại phiên)");
     await owner.page.goto("/setup/review");
     await owner.page.getByTestId("review-register").click();
-    await expect(owner.page.getByRole("status")).toBeVisible({ timeout: 600_000 });
+
+    // Đua thành-công vs lỗi: nếu mutation hỏng, màn render role="alert" và ta
+    // sẽ đứng chờ "status" đủ 10 phút rồi timeout mà KHÔNG biết vì sao. Bắt cả
+    // hai rồi in nội dung lỗi ra — đây đúng là chỗ phiên trước mù.
+    const ok = owner.page.getByTestId("review-registered");
+    const failed = owner.page.getByTestId("review-register-failed");
+    await expect(ok.or(failed)).toBeVisible({ timeout: 600_000 });
+    if (await failed.isVisible()) {
+      throw new Error(`register FAILED ở UI: ${(await failed.innerText()).trim()}`);
+    }
+    step("đăng ký lên registry XONG (UI xác nhận)");
+    dumpEvidence(ownerWallet, guardianAddresses);
 
     // ---------- Verify TỪ CHAIN ----------
+    step("đọc get_wallet_config từ registry");
     const cfg = (await simulateRead(REGISTRY, "get_wallet_config", [
       new Address(ownerWallet).toScVal(),
     ])) as { guardians: string[]; threshold: number };
@@ -287,6 +335,7 @@ test.describe("khôi phục đa thiết bị — người nhà ký bằng passke
 
     // CỔNG CHỐNG HỒI QUY — ví chủ ĐÚNG MỘT signer, và signer đó là passkey
     // (verifier WebAuthn), không phải ed25519, không phải guardian.
+    step("CỔNG CHỐNG HỒI QUY — get_context_rule(0) của ví CHỦ");
     const rule = (await simulateRead(ownerWallet, "get_context_rule", [
       nativeToScVal(0, { type: "u32" }),
     ])) as { signers: unknown[] };
@@ -302,7 +351,8 @@ test.describe("khôi phục đa thiết bị — người nhà ký bằng passke
       expect(JSON.stringify(gRule.signers)).toContain(WEBAUTHN_VERIFIER);
     }
 
-    console.log("EVIDENCE", JSON.stringify({ ownerWallet, guardianAddresses, evidence }, null, 2));
+    step("TẤT CẢ ASSERT XANH");
+    dumpEvidence(ownerWallet, guardianAddresses);
     await owner.ctx.close();
   });
 });

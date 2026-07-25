@@ -64,6 +64,16 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
 
 ## Máy dev
 
+### B-DEV-1 · ĐÃ GỠ ✅ (2026-07-25) — gitleaks local đã lên 8.30.1
+
+Nâng xong (`gitleaks version` → 8.30.1). Nâng xong LẠI LỘ chuyện lớn hơn: chạy đúng lệnh
+CI thì **job `secret-scan` đang ĐỎ ở `a460465`** với 7 finding — không cái nào là secret
+(địa chỉ hợp đồng `C…`, khoá CÔNG KHAI của extension, hash chứng chỉ APK công bố trong
+`assetlinks.json`). Đã vá bằng 3 `[[allowlists]]` theo GIÁ TRỊ; sau vá `no leaks found`.
+Chi tiết + probe chứng minh seed `S…` vẫn bị bắt: BUILD-LOG §AUDIT 2026-07-25.
+
+<details><summary>Ghi chép gốc</summary>
+
 ### B-DEV-1 · gitleaks local (8.24.3) lệch bản CI (8.30.1) → pre-commit báo nhầm
 
 - **Triệu chứng:** sau commit `91eeb57`, hook pre-commit chạy bằng gitleaks 8.24.3 sẽ báo
@@ -78,6 +88,8 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
   tar -C /tmp -xzf /tmp/g.tar.gz gitleaks && mv /tmp/gitleaks ~/.local/bin/gitleaks
   gitleaks version   # → 8.30.1
   ```
+
+</details>
 
 ## PHA 5–7 (2026-07-24)
 
@@ -198,6 +210,22 @@ Hai P0 tìm được đã VÁ trong phiên (`set_recovery_registry` → construc
 - **Cần để gỡ:** `/recovery/done` + `/wallet` đọc 2 giá trị từ ví, hiện đếm ngược (timelockView
   đã có sẵn từ PHA 7.1).
 
+### B-E2E-MULTI · ĐÃ ĐÓNG ✅ (2026-07-25, phiên audit) — e2e đa thiết bị XANH
+
+- **Nguyên nhân KHÔNG phải locator** (giả thuyết cũ dưới đây sai): mutation đăng ký chết
+  thật, mã `WALLET_NOT_CONNECTED`. `page.goto("/setup/review")` là điều hướng CỨNG →
+  `SmartAccountKit` dựng mới, `contractId`/`credentialId` (state trong bộ nhớ) rỗng, dù
+  IndexedDB vẫn còn phiên. Đây là **lỗi sản phẩm**, không phải lỗi test — người dùng thật
+  tạo ví xong tải lại trang cũng không ký được gì. Vá: `ensureWalletConnected()`
+  (BUILD-LOG §AUDIT 2026-07-25).
+- **Kết quả:** `1 passed (49.1s)` — trước là 10.7 phút vì đứng chờ locator không bao giờ
+  hiện. Tx `fe874342…` verify độc lập qua Horizon: `successful: true`, ledger 3785310.
+- **Cổng chống hồi quy giờ đã qua đường UI đa thiết bị:** `get_context_rule(0)` ví chủ =
+  đúng 1 signer (verifier WebAuthn). Không còn phụ thuộc unit test + đọc ví tay.
+- Bằng chứng máy: `docs/evidence/multi-device-latest.json` (spec tự ghi, trước mọi assert).
+
+<details><summary>Ghi chép gốc khi còn đỏ — giữ lại để đối chiếu</summary>
+
 ### B-E2E-MULTI · E2e đa thiết bị CHẠY ĐƯỢC nhưng FAIL ở bước cuối (2026-07-25)
 
 - **Đã chứng minh** (spec chạy tới dòng 279 nghĩa là mọi assert trước đó PASS):
@@ -214,3 +242,42 @@ Hai P0 tìm được đã VÁ trong phiên (`set_recovery_registry` → construc
 - **Cần để gỡ:** sửa locator (dùng `getByTestId` cho thông báo đăng-ký-xong thay vì role
   status), chạy lại. Preview :4174 + `RUN_TESTNET_E2E=1 pnpm exec playwright test
   e2e/multi-device --project=chromium`, `LD_LIBRARY_PATH=~/chrome-libs/...`.
+
+</details>
+
+## AUDIT 2026-07-25 — việc còn hở sau phiên audit
+
+### B-AUD-1 · CI vẫn CHƯA ĐỌC ĐƯỢC — không được gọi bất cứ workflow nào là xanh
+
+- **Chặn:** 4 workflow trên `main` vẫn chưa ai xác nhận. B-CI-1 còn nguyên.
+- **Đã thử lại trong phiên này, vẫn không được:** `gh` không cài · `GITHUB_TOKEN`/`GH_TOKEN`
+  không có trong env · probe API không token trả **404** (repo private).
+- **Điều DUY NHẤT được khẳng định:** đã chạy ĐÚNG lệnh + ĐÚNG version CI pin ở local cho
+  gitleaks (8.30.1), pnpm (9.15.9 qua corepack), stellar-cli (27.0.0). Đó là tái hiện,
+  KHÔNG phải kết quả CI.
+- **Việc phải làm ngay khi có người đọc được Actions:** xem lại job `secret-scan` —
+  phiên này tìm ra nó **đang đỏ ở `a460465`** và đã vá; cần xác nhận run sau khi push xanh thật.
+
+### B-AUD-2 · Lệch version local ↔ CI còn lại (đã đo, chưa gỡ hết)
+
+| Tool | Local | CI | Đánh giá |
+|---|---|---|---|
+| pnpm | 11.11.0 | 9.15.9 | **đã chứng minh vô hại** — chạy `corepack pnpm@9.15.9 install --frozen-lockfile` + `pnpm build` honest trên clone sạch đều xanh. Dùng `corepack pnpm` khi muốn giống CI. |
+| bun | 1.3.14 | 1.3.11 | lệch patch, local mới hơn; chưa thấy triệu chứng |
+| node | 22.23.1 | matrix 20 / 22 / 24 | chỉ tái hiện được nhánh **22**. Nhánh 20 và 24 chưa chạy local (B-CI-3 còn nguyên) |
+
+- **Cần để gỡ:** `nvm install 20 24` rồi chạy lại chuỗi gate từng nhánh; hoặc đọc CI.
+
+### B-AUD-3 · Firefox/webkit cho e2e đa thiết bị — CHƯA chạy, và có lý do
+
+- Spec `multi-device-recovery.spec.ts` tự `test.skip` khi `browserName !== "chromium"`:
+  virtual authenticator + testnet thật, chạy ×3 engine là nhân ba bề mặt flake và nhân ba
+  số hợp đồng deploy lên testnet. Đây là lựa chọn CÓ CHỦ ĐÍCH, không phải bỏ sót.
+- Webkit vẫn fail-env local (thiếu stack GTK4, không sudo) — B-52-1 còn nguyên.
+
+### B-AUD-4 · `be/README.md` mô tả layout ĐÃ CHẾT
+
+- `be/README.md` còn viết frontend ở `../stellar-fe-vite/` và contract ở `../vigiadinh-main/`
+  — đó là layout TRƯỚC khi gộp monorepo. Người đọc theo sẽ đi tìm thư mục không tồn tại.
+- **Chưa sửa trong phiên này** (ngoài phạm vi audit, và `README.md` gốc mới viết đã dẫn
+  đúng đường). Cần một lượt rà lại `be/README.md` + `fe/README.md` cho khớp cây hiện tại.
