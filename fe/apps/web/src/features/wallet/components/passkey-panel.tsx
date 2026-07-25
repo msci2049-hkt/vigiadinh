@@ -2,13 +2,13 @@
 // account → đăng nhập SEP-45 → giữ JWT Bearer. LƯU Ý PHA 2.3: createWallet mới
 // TẠO passkey + build tx deploy (chưa submit) — deploy on-chain + tài trợ phí
 // là việc PHA 5; đăng nhập với BE thật chỉ xanh khi ví đã tồn tại trên mạng.
-import { Button } from "@repo/ui";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { connectAndLogin } from "../api/sep45-login";
 import { WalletNotConfiguredError } from "../lib/kit";
 

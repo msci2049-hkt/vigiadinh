@@ -1,10 +1,11 @@
 // Ví đã tạo (mức A). Nhắc bước kế: thêm người bảo hộ để khôi phục được khi mất
 // máy — đó là điều làm ví này khác ví thường (chưa thêm = chưa khôi phục được).
-import { Button } from "@repo/ui";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { DEMO_GUARDIANS, GuardianAvatarCluster } from "@/components/family/guardian-avatar-cluster";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 
 export const Route = createFileRoute("/_authenticated/setup/done")({ component: SetupDoneScreen });
 

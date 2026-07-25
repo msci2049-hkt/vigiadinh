@@ -2,7 +2,6 @@
 // ví cũ vẫn còn quyền chặn tới hết cửa sổ — hiện CẢ đếm ngược LẪN mốc tuyệt
 // đối (luật i18n §2, timelockView PHA 7.1). Poll để tự chuyển khi xong.
 import { timelockView } from "@repo/core";
-import { Button } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -10,6 +9,7 @@ import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { TimelockCountdown } from "@/components/family/timelock-countdown";
+import { Button } from "@/components/family/ui";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { publicProgressOptions } from "@/features/wallet/api/device-recovery";
 

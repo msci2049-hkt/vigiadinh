@@ -1,12 +1,13 @@
 // Các màn kết cục của luồng gửi tiền (WP3 fe-smooth) — tách khỏi send.tsx để
 // route chính dưới trần 300 dòng. Tiền tố `-` = TanStack Router bỏ qua file
 // này khi sinh route tree (co-located, không phải route).
-import { Button } from "@repo/ui";
+
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
 
 export function Shell({ children }: { children: React.ReactNode }) {

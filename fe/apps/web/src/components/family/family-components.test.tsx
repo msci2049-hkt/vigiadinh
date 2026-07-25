@@ -1,4 +1,3 @@
-import { Button } from "@repo/ui";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BiometricGate } from "./biometric-gate";
@@ -9,6 +8,7 @@ import { DetailRow, IconDisc, PrimaryZone, ProductScreen, ScreenHeader } from ".
 import { Sheet } from "./sheet";
 import { StatusPill } from "./status-pill";
 import { TimelockCountdown } from "./timelock-countdown";
+import { Button } from "./ui";
 
 describe("FamilyWallet design system", () => {
   it("renders the fixed icon map without exposing decorative icons", () => {
@@ -114,8 +114,27 @@ describe("FamilyWallet design system", () => {
         "data-variant",
         variant,
       );
+      expect(screen.getByRole("button", { name: variant })).toHaveAttribute(
+        "data-slot",
+        "family-button",
+      );
     }
     expect(screen.getByRole("button", { name: "Loading action" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Unavailable action" })).toBeDisabled();
+  });
+
+  it("blocks an as-child link while its action is disabled", () => {
+    const onClick = vi.fn();
+    render(
+      <Button asChild disabled onClick={onClick}>
+        <a href="/wallet">Open wallet</a>
+      </Button>,
+    );
+
+    const link = screen.getByRole("link", { name: "Open wallet" });
+    expect(link).toHaveAttribute("aria-disabled", "true");
+    expect(link).toHaveAttribute("tabindex", "-1");
+    fireEvent.click(link);
+    expect(onClick).not.toHaveBeenCalled();
   });
 });

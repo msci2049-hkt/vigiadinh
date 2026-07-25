@@ -1,11 +1,12 @@
 // Màn "đã bỏ phiếu" — kết quả thật (tx hash) + giải thích bước kế: đủ phiếu
 // thì còn CỬA SỔ CHỜ để chủ ví chặn, không phải xong ngay (đúng ngữ nghĩa timelock).
-import { Button } from "@repo/ui";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
 
 export const Route = createFileRoute("/_authenticated/guardian/approved")({

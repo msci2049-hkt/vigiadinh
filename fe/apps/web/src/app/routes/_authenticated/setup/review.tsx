@@ -5,12 +5,13 @@
 // rõ còn thiếu ai và ví vẫn chạy bình thường trong lúc chờ — không chặn đường.
 //
 // Sau khi đăng ký, ngưỡng + thời gian chờ ĐÓNG BĂNG trên chain.
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { inviteKeys, invitesOptions } from "@/features/family/api/invites";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { timelockLabelKey } from "@/features/family/api/wallets";

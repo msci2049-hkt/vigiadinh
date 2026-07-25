@@ -3,13 +3,13 @@
 // xác nhận" nào thay được chữ ký. Taxonomy lỗi trả lời đúng một câu hỏi:
 // "lệnh chặn ĐÃ đến mạng chưa?" — chưa ký / chưa gửi ≠ đã gửi mà thất bại.
 import { ApiError } from "@repo/core";
-import { Button } from "@repo/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { recoveryKeys } from "@/features/family/api/recovery";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";

@@ -7,7 +7,7 @@
 // BẤT BIẾN: khoá sinh ra và Ở LẠI máy này. Thứ duy nhất gửi lên server là ĐỊA
 // CHỈ hợp đồng — công khai, ai cũng đọc được trên chain. Server không bao giờ
 // sinh khoá hộ và không bao giờ nhận khoá bí mật.
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
+
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -15,6 +15,7 @@ import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { acceptInvite, inviteByTokenOptions } from "@/features/family/api/invites";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { createGuardianIdentity } from "@/features/wallet/api/guardian-identity";

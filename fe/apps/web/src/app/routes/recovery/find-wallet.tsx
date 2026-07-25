@@ -2,7 +2,6 @@
 // rời máy) → gửi vật liệu public cho người thân qua cửa public của server.
 // Form RHF + Zod (một field — vẫn đi đúng đường validate chuẩn repo).
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Card, CardContent, Input } from "@repo/ui";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
@@ -11,6 +10,7 @@ import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent, Input } from "@/components/family/ui";
 import { knockWithNewPasskey } from "@/features/wallet/api/device-recovery";
 import { WalletNotConfiguredError } from "@/features/wallet/lib/kit";
 

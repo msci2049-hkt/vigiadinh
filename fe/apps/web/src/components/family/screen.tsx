@@ -1,8 +1,8 @@
-import { cn } from "@repo/ui";
 import type { ComponentProps, ReactNode } from "react";
+import { cn } from "./utils";
 
 export function ProductScreen({ className, ...props }: ComponentProps<"main">) {
-  return <main className={cn("product-screen gap-6", className)} {...props} />;
+  return <main className={cn("product-screen", className)} {...props} />;
 }
 
 export function ScreenHeader({

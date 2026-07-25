@@ -1,7 +1,7 @@
-import { Button } from "@repo/ui";
 import type { ComponentProps, ReactNode } from "react";
 import { Icon } from "./icon";
 import { Sheet } from "./sheet";
+import { Button } from "./ui";
 
 export function BiometricGate({
   label,

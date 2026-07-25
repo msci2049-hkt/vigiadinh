@@ -4,7 +4,7 @@
 // BẤT BIẾN 2: mở claim là hành động on-chain của guardian — server KHÔNG tự kích
 // hoạt; màn này chỉ trình bày, không có nút "bắt đầu thừa kế". Điểm-danh còn mở
 // (chưa tới bậc claim) thì có nút "tôi vẫn ổn" reset.
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { StatusPill } from "@/components/family/status-pill";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { planKeys, planOptions, sendHeartbeat } from "@/features/family/api/inheritance";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";

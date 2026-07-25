@@ -999,8 +999,10 @@ của brief giữ nguyên tuyệt đối (0 optimistic, 0 persist chạm tiền)
   namespace tải chậm từng làm sót hai hàng rỗng ở `/get-started` và `/recovery`.
 - QA mobile 390×844: `/welcome`, `/get-started`, `/passkey`, `/recovery` không tràn trang;
   CTA chính y=684, CTA phụ y=752. Lỗi console còn lại đến từ Chrome extension, không thuộc app.
-- Gate FE: validate xanh 11/11 task; **108/108 test pass**; production PWA build pass
-  (3.052 module, 123 precache entry). Cảnh báo cũ: test send-machine có React `act(...)`;
+- Gate FE: validate xanh 11/11 task; **109/109 test pass**; production PWA build pass
+  (3.054 module, 123 precache entry). Cảnh báo cũ: test send-machine có React `act(...)`;
   locale common vừa static vừa dynamic import.
+- Hệ primitive cho 39 màn sản phẩm đã tách riêng tại `components/family`: 0 import
+  `@repo/ui` trong scope sản phẩm; button riêng cao 58 px, link phụ 44 px và không tràn EN/VI.
 - Gate BE: `bun run validate` pass. Bộ test đầy đủ vướng timeout Windows có sẵn tại
   `deploy/backup.test.ts` (process không trả exit code trong giới hạn 5 giây), không phải lỗi UI.

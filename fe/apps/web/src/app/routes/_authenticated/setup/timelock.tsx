@@ -7,13 +7,14 @@
 //
 // Ba lựa chọn khớp `TIMELOCK_CHOICES_SECS` của BE — BE là nơi cưỡng chế; danh
 // sách ở đây chỉ để dựng nút.
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import {
   TIMELOCK_CHOICES_SECS,
   timelockLabelKey,

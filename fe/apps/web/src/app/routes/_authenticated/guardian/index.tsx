@@ -1,12 +1,12 @@
 // Hộp thư guardian (PHA 6 cụm GHI) — các yêu cầu khôi phục ĐANG MỞ trên ví
 // mình bảo hộ. Mỗi thẻ → màn bỏ phiếu (/guardian/approve?wallet=…).
 import { formatDateTime } from "@repo/core";
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/family/icon";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import {
   guardianDeviceRequestsOptions,
   guardianInboxOptions,

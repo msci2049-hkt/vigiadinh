@@ -1,12 +1,13 @@
 // Nhận tiền (PHA 6) — hiện địa chỉ ví thật để chia sẻ + nút copy. QR để pha
 // sau (cần lib QR — không thêm dep vội). Địa chỉ ví CONTRACT không đổi kể cả
 // sau khôi phục (audit P0), nên chia sẻ một lần là dùng mãi.
-import { Button, Card, CardContent } from "@repo/ui";
+
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 

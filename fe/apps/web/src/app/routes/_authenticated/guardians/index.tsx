@@ -1,10 +1,11 @@
 // Màn quản lý người thân trông ví (PHA 6 — cụm ĐỌC). Dữ liệu thật từ
 // GET /api/guardians/wallet/:id; trạng thái kết nối chỉ CHỦ VÍ thấy (luật 5).
-import { Card, CardContent } from "@repo/ui";
+
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Card, CardContent } from "@/components/family/ui";
 import { guardiansOptions } from "@/features/family/api/guardians";
 import { GuardianStatusBadge } from "@/features/family/components/guardian-status-badge";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";

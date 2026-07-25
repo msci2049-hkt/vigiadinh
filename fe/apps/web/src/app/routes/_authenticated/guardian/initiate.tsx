@@ -6,7 +6,6 @@
 //      khoá là hai phía lệch nhau → DỪNG, không ký.
 //   3. Cổng sinh trắc học = chính prompt passkey.
 import { ApiError } from "@repo/core";
-import { Button, Card, CardContent } from "@repo/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -14,6 +13,7 @@ import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 import {
   type GuardianDeviceRequestItem,
   guardianDeviceRequestsOptions,

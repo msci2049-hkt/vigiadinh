@@ -1,11 +1,12 @@
 // Cổng khôi phục (PUBLIC — người mất máy chưa có session, chủ ý). Giải thích
 // 3 bước bằng chữ người thường rồi dẫn vào find-wallet; ai đã gửi rồi thì
 // nhảy thẳng sang tiến độ (draft còn trong localStorage).
-import { Button } from "@repo/ui";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { type FamilyIconName, Icon } from "@/components/family/icon";
 import { IconDisc, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { loadRecoveryDraft } from "@/features/wallet/api/device-recovery";
 
 export const Route = createFileRoute("/recovery/")({ component: RecoveryStartScreen });

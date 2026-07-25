@@ -6,13 +6,14 @@
 //
 // Ngưỡng ĐÓNG BĂNG sau khi ví đăng ký lên registry (registry v2 không có
 // `set_threshold`) — copy nói thẳng, không để người dùng tự đoán.
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { invitesOptions } from "@/features/family/api/invites";
 import { updateRecoveryConfig, walletKeys } from "@/features/family/api/wallets";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";

@@ -1,12 +1,13 @@
 // Hub ví (PHA 6) — địa chỉ ví thật + lối vào các luồng. Số dư CHƯA có endpoint
 // (cần đọc SAC token balance — subsystem riêng, ghi BUILD-LOG); hiện địa chỉ +
 // tiles điều hướng. Không tự chế format tiền ở đây (luật §3.7).
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
+
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { type FamilyIconName, Icon } from "@/components/family/icon";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { invitesOptions } from "@/features/family/api/invites";
 import { chainTruthOptions } from "@/features/family/api/recovery";
 import { CooldownNotice } from "@/features/family/components/cooldown-notice";

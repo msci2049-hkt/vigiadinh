@@ -1,7 +1,7 @@
 // Bước 2: "đã gửi lời nhắn" — hiện MÃ CHÌA KHOÁ MỚI thật to để chủ ví đọc cho
 // người thân qua điện thoại (đối chiếu ngoài băng — hàng rào chống tráo khoá,
 // cùng mã mà guardian thấy trong app của họ trước khi mở khôi phục).
-import { Button } from "@repo/ui";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -9,6 +9,7 @@ import { ErrorBanner } from "@/components/family/error-banner";
 import { DEMO_GUARDIANS, GuardianAvatarCluster } from "@/components/family/guardian-avatar-cluster";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { loadRecoveryDraft } from "@/features/wallet/api/device-recovery";
 
 export const Route = createFileRoute("/recovery/sent")({

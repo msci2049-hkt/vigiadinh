@@ -7,7 +7,10 @@ machines and navigation destinations remain intact.
 
 ## System delivered
 
-- Three-layer primitive → semantic → component tokens in `@repo/ui/theme.css`.
+- App-local primitive → semantic → component tokens in
+  `fe/apps/web/src/components/family/family.css`.
+- Product routes use FamilyWallet-local `Button`, `Card`, `Input` and `Skeleton` components;
+  `@repo/ui` remains limited to auth/admin workspace screens outside this 39-screen scope.
 - Local Fraunces, Inter and JetBrains Mono variable fonts; no runtime Google Fonts request.
 - Fixed Lucide icon map, 1.5 px stroke, 20/24/32 px sizes.
 - Primary, secondary, ghost, danger and link buttons with hover, pressed, disabled and loading.
@@ -78,11 +81,20 @@ the same system because real invite/recovery links land there.
 
 ## Verification
 
-- Mobile visual QA at 390×844 on `/welcome`, `/get-started`, `/passkey` and `/recovery`.
-  Primary actions land at y=684 and secondary actions at y=752 without page overflow.
+- Mobile visual QA at 390×844 on `/welcome`, `/get-started`, `/passkey` and `/recovery`,
+  plus desktop QA at 1024×900. Product routes have no horizontal overflow.
+- Primary product buttons render at 58 px, secondary links at 44 px, and English/Vietnamese
+  labels fit without clipping. Disabled `asChild` links are removed from the tab order and
+  cannot activate through pointer or keyboard input.
+- Browser console QA found no application errors. A Chrome extension error was isolated to its
+  own `chrome-extension://` script and is unrelated to the app.
 - Async-i18n QA found translated copy being used as React list keys on three screens. Stable,
   language-independent keys now prevent empty duplicate rows during initial namespace loading.
-- Frontend validation, type checking, boundary checks, localization parity, 108 tests and the
-  production PWA build pass.
+- Frontend validation passes 11/11 tasks; type checking, boundary checks and localization parity
+  are clean. The suite passes 109/109 tests and the production PWA build completes with 123
+  precached files.
+- Existing non-blocking diagnostics remain outside this visual change: React `act(...)` notices
+  in the send-machine tests, locale chunking notices and the large main-bundle warning. No
+  production application error was observed during browser QA.
 - Backend source was scanned for route contracts and API parity but was not changed as part of
   this UI rebuild.

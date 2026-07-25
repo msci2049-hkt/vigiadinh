@@ -1,12 +1,13 @@
 // Màn "đã chặn xong" (PHA 6 cụm GHI) — kết quả THẬT: tx hash on-chain qua
 // search param (validateSearch Zod). Người thân được báo tự động (indexer
 // bắt event `cancel` → notify priority 0 — PHA 5.2).
-import { Button } from "@repo/ui";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
 
 export const Route = createFileRoute("/_authenticated/block/done")({

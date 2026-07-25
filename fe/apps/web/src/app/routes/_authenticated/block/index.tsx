@@ -10,7 +10,6 @@
 // nghỉ đúng một ngày. Mirror vẫn dùng để lấy fingerprint khoá mới (chi tiết
 // hiển thị), nhưng CÓ HAY KHÔNG một yêu cầu đang mở thì hỏi chain.
 import { timelockView } from "@repo/core";
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -18,6 +17,7 @@ import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { TimelockCountdown } from "@/components/family/timelock-countdown";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import {
   chainTruthOptions,
   openOnchainRequest,

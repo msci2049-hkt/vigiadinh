@@ -1,12 +1,13 @@
 // Màn thừa kế (PHA 6 — cụm ĐỌC): danh sách người nhận + phần chia (%).
 // bps 0..10000 → hiện % bằng Intl percent, locale tường minh (PHA 7.1 — cấm
 // format tự chế). Sửa danh sách là việc cụm GHI (ký on-chain) — chưa mở ở đây.
-import { Button, Card, CardContent } from "@repo/ui";
+
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 import { heirsOptions } from "@/features/family/api/inheritance";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";

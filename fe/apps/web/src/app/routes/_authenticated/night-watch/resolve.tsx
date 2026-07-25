@@ -2,11 +2,12 @@
 // lần (tự kết nối lại) hoặc thay người khác. Không có nút "hệ thống tự sửa" nào:
 // kết nối lại là hành động của CON NGƯỜI (mở app trên máy họ). Dẫn sang /waiting
 // (đã nhắn, chờ) hoặc /guardians (thay người).
-import { Button, Card, CardContent } from "@repo/ui";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 
 export const Route = createFileRoute("/_authenticated/night-watch/resolve")({
   component: NightWatchResolveScreen,

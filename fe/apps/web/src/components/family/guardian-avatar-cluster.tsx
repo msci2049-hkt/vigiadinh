@@ -1,5 +1,5 @@
-import { cn } from "@repo/ui";
 import { Icon } from "./icon";
+import { cn } from "./utils";
 
 export type GuardianFace = {
   name: string;

@@ -2,7 +2,7 @@
 // này" nối kit vào ĐÚNG địa chỉ ví cũ bằng credential đã tạo lúc gõ cửa
 // (địa chỉ không đổi, tiền không di chuyển — audit P0). Lưu ý cooldown: ngay
 // sau khôi phục ví từ chối MỌI chữ ký một thời gian ngắn — hành vi đúng.
-import { Button } from "@repo/ui";
+
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -10,6 +10,7 @@ import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { connectRecoveredWallet, loadRecoveryDraft } from "@/features/wallet/api/device-recovery";
 
 export const Route = createFileRoute("/recovery/done")({

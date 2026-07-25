@@ -5,7 +5,6 @@
 // im lặng, không sinh trắc học, không side effect) để bấm "Xác nhận" là hộp
 // thoại vân tay hiện không phải chờ.
 import { ApiError, formatAmount } from "@repo/core";
-import { Button, Card, CardContent, Input } from "@repo/ui";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
@@ -14,6 +13,7 @@ import { AmountInput, useParsedAmount } from "@/components/amount-input";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent, Input } from "@/components/family/ui";
 import { prepareSend, type SendReview } from "@/features/family/api/send";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";

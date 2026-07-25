@@ -1,13 +1,14 @@
 // Màn "tôi vẫn ổn" (PHA 6): MỘT nút chạm — POST /api/inheritance/heartbeat
 // reset thang nhắc thừa kế (PHA 4.3). Server không bao giờ tự mở thừa kế
 // (bất biến 2) — nút này chỉ là tín hiệu sống của CHỦ VÍ.
-import { Button } from "@repo/ui";
+
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { sendHeartbeat } from "@/features/family/api/inheritance";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";

@@ -1,0 +1,617 @@
+.product-shell {
+  --fw-paper: #fdfcf7;
+  --fw-paper-raised: #fffef9;
+  --fw-paper-muted: #f4f1e8;
+  --fw-ink: #0a0a0a;
+  --fw-ink-soft: #62625f;
+  --fw-line: rgb(10 10 10 / 13%);
+  --fw-line-strong: rgb(10 10 10 / 28%);
+  --fw-yellow: #fdda24;
+  --fw-yellow-soft: #fff3a8;
+  --fw-danger: #c9392f;
+  --fw-danger-soft: #fff0ed;
+  --fw-success: #197a4b;
+  --fw-success-soft: #e8f5ee;
+  --fw-shadow-card: 0 1px 0 rgb(10 10 10 / 6%), 0 18px 48px -36px rgb(10 10 10 / 42%);
+  --fw-shadow-button: 0 4px 0 rgb(10 10 10 / 88%), 0 13px 28px -18px rgb(10 10 10 / 62%);
+  /*
+   * Product routes still use semantic Tailwind utilities for dense layouts.
+   * Remapping them here keeps every visual token inside FamilyWallet and
+   * prevents workspace theme changes from leaking into the 39 product screens.
+   */
+  --background: var(--fw-paper);
+  --foreground: var(--fw-ink);
+  --card: var(--fw-paper-raised);
+  --card-foreground: var(--fw-ink);
+  --popover: var(--fw-paper-raised);
+  --popover-foreground: var(--fw-ink);
+  --primary: var(--fw-yellow);
+  --primary-foreground: var(--fw-ink);
+  --secondary: var(--fw-paper-muted);
+  --secondary-foreground: var(--fw-ink);
+  --muted: var(--fw-paper-muted);
+  --muted-foreground: var(--fw-ink-soft);
+  --accent: var(--fw-yellow-soft);
+  --accent-foreground: var(--fw-ink);
+  --destructive: var(--fw-danger);
+  --border: var(--fw-line);
+  --input: var(--fw-line-strong);
+  --ring: var(--fw-yellow);
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow: hidden;
+  color: var(--fw-ink);
+  background: var(--fw-paper);
+  font-family: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+.product-shell::before,
+.product-shell::after {
+  position: fixed;
+  z-index: -1;
+  width: 23rem;
+  height: 23rem;
+  pointer-events: none;
+  content: "";
+  background-image: radial-gradient(circle, var(--fw-yellow) 0 2.1px, transparent 2.7px);
+  background-size: 1.55rem 1.55rem;
+  mask-image: radial-gradient(circle at center, black 0 10%, transparent 70%);
+}
+
+.product-shell::before {
+  top: -7.5rem;
+  left: -9.5rem;
+}
+
+.product-shell::after {
+  right: -10rem;
+  bottom: -9.5rem;
+  opacity: 0.68;
+}
+
+.product-shell__chrome,
+.product-shell__content {
+  width: min(100%, 34rem);
+  margin-inline: auto;
+}
+
+.product-shell__chrome {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(1rem, env(safe-area-inset-top)) 1.5rem 0.5rem;
+}
+
+.product-shell__languages {
+  display: flex;
+  min-height: 2.75rem;
+  align-items: center;
+}
+
+.product-shell__language {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  padding-inline: 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  color: var(--fw-ink-soft);
+  background: transparent;
+  font:
+    650 0.875rem / 1 "Inter Variable",
+    sans-serif;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.product-shell__language:hover,
+.product-shell__language[aria-pressed="true"] {
+  color: var(--fw-ink);
+  background: rgb(253 218 36 / 22%);
+}
+
+.product-shell__language-separator {
+  color: var(--fw-line-strong);
+}
+
+.product-shell__network {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  padding-inline: 1rem;
+  border: 1px solid rgb(10 10 10 / 5%);
+  border-radius: 999px;
+  color: var(--fw-ink-soft);
+  background: rgb(10 10 10 / 5%);
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.product-screen {
+  display: flex;
+  width: 100%;
+  min-height: calc(100svh - 4.75rem);
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1rem 1.5rem max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.product-display,
+.product-title {
+  margin: 0;
+  color: var(--fw-ink);
+  font-family: "Fraunces Variable", ui-serif, Georgia, serif;
+}
+
+.product-display {
+  font-size: clamp(3rem, 14vw, 4.6rem);
+  font-weight: 620;
+  line-height: 0.98;
+  letter-spacing: -0.045em;
+}
+
+.product-title {
+  font-size: clamp(2rem, 8vw, 2.625rem);
+  font-weight: 620;
+  line-height: 1.04;
+  letter-spacing: -0.035em;
+}
+
+.product-copy {
+  max-width: 36ch;
+  color: var(--fw-ink-soft);
+  font-size: 1rem;
+  line-height: 1.58;
+}
+
+.product-money,
+.money-amount {
+  font-variant-numeric: tabular-nums;
+}
+
+.product-money {
+  font-family: "Fraunces Variable", ui-serif, Georgia, serif;
+  font-size: clamp(2rem, 10vw, 3.35rem);
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.035em;
+}
+
+.primary-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  margin-top: auto;
+  padding-top: 2rem;
+}
+
+.welcome-screen {
+  gap: 1rem;
+}
+
+.welcome-hero {
+  position: relative;
+  min-height: 20rem;
+}
+
+.welcome-banker {
+  position: absolute;
+  right: -2.75rem;
+  bottom: 0;
+  width: 16rem;
+  height: 20rem;
+  object-fit: contain;
+  object-position: bottom;
+}
+
+.welcome-promise {
+  position: absolute;
+  bottom: 2rem;
+  left: 0;
+  z-index: 2;
+  max-width: 13.5rem;
+  padding: 1rem;
+  border: 1.25px solid var(--fw-line);
+  border-radius: 1.25rem;
+  background: rgb(255 254 249 / 92%);
+  box-shadow: var(--fw-shadow-card);
+  backdrop-filter: blur(10px);
+}
+
+.fw-button {
+  position: relative;
+  display: inline-flex;
+  min-width: 2.75rem;
+  min-height: 3.625rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1.5rem;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  border-radius: 1.25rem;
+  outline: none;
+  font-family: "Inter Variable", ui-sans-serif, sans-serif;
+  font-size: 1rem;
+  font-weight: 780;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fw-button > svg {
+  width: 1.55rem;
+  height: 1.55rem;
+  flex: none;
+  stroke-width: 1.75;
+}
+
+.fw-button--primary,
+.fw-button--danger {
+  box-shadow: var(--fw-shadow-button);
+}
+
+.fw-button--primary {
+  border-color: rgb(10 10 10 / 14%);
+  color: var(--fw-ink);
+  background: var(--fw-yellow);
+}
+
+.fw-button--primary:hover {
+  background: #ffe34f;
+  transform: translateY(-1px);
+}
+
+.fw-button--secondary {
+  border-color: var(--fw-line-strong);
+  color: var(--fw-ink);
+  background: rgb(255 254 249 / 88%);
+  box-shadow: 0 2px 0 rgb(10 10 10 / 12%);
+}
+
+.fw-button--secondary:hover {
+  border-color: var(--fw-ink);
+  background: var(--fw-paper-raised);
+}
+
+.fw-button--ghost {
+  color: var(--fw-ink-soft);
+  background: transparent;
+}
+
+.fw-button--ghost:hover {
+  color: var(--fw-ink);
+  background: rgb(10 10 10 / 5%);
+}
+
+.fw-button--danger {
+  border-color: #9f241d;
+  color: white;
+  background: var(--fw-danger);
+}
+
+.fw-button--danger:hover {
+  background: #ae2b23;
+  transform: translateY(-1px);
+}
+
+.fw-button--link {
+  min-height: 2.75rem;
+  padding: 0.5rem;
+  border: 0;
+  border-radius: 0.75rem;
+  color: var(--fw-ink);
+  background: transparent;
+  box-shadow: none;
+  font-weight: 620;
+  text-decoration: underline;
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.3rem;
+}
+
+.fw-button--link:hover {
+  background: rgb(253 218 36 / 14%);
+  text-decoration: none;
+}
+
+.fw-button:active {
+  box-shadow: 0 1px 0 rgb(10 10 10 / 84%);
+  transform: translateY(3px);
+}
+
+.fw-button:focus-visible {
+  outline: 3px solid rgb(253 218 36 / 48%);
+  outline-offset: 3px;
+}
+
+.fw-button:disabled,
+.fw-button[aria-disabled="true"] {
+  color: rgb(10 10 10 / 42%);
+  background: #e8e5db;
+  border-color: transparent;
+  box-shadow: none;
+  cursor: not-allowed;
+  opacity: 1;
+  transform: none;
+  pointer-events: none;
+}
+
+.fw-button--lg {
+  min-height: 4.25rem;
+  padding-inline: 1.75rem;
+  border-radius: 1.4rem;
+  font-size: 1.125rem;
+}
+
+.fw-button--sm,
+.fw-button--xs {
+  min-height: 2.875rem;
+  padding: 0.65rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+}
+
+.fw-button--icon,
+.fw-button--icon-lg {
+  width: 3.625rem;
+  padding: 0;
+}
+
+.fw-button--icon-xs,
+.fw-button--icon-sm {
+  width: 2.875rem;
+  min-height: 2.875rem;
+  padding: 0;
+}
+
+.fw-button__spinner {
+  animation: fw-spin 900ms linear infinite;
+}
+
+.fw-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-block: 1.25rem;
+  overflow: hidden;
+  border: 1.25px solid var(--fw-line);
+  border-radius: 1.5rem;
+  color: var(--fw-ink);
+  background: rgb(255 254 249 / 91%);
+  box-shadow: var(--fw-shadow-card);
+  backdrop-filter: blur(12px);
+}
+
+.fw-card::after {
+  position: absolute;
+  top: 0;
+  left: 1.25rem;
+  width: 3.25rem;
+  height: 0.25rem;
+  border-radius: 0 0 999px 999px;
+  background: var(--fw-yellow);
+  content: "";
+}
+
+.fw-card-header,
+.fw-card-content {
+  padding-inline: 1.25rem;
+}
+
+.fw-card-header {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.fw-card-title {
+  font-size: 1rem;
+  font-weight: 760;
+  line-height: 1.3;
+}
+
+.fw-card-description {
+  color: var(--fw-ink-soft);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.fw-input {
+  width: 100%;
+  min-height: 3.625rem;
+  padding: 0.85rem 1rem;
+  border: 1.5px solid var(--fw-line-strong);
+  border-radius: 1.125rem;
+  outline: none;
+  color: var(--fw-ink);
+  background: rgb(255 254 249 / 92%);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 65%);
+  font-family: "Inter Variable", ui-sans-serif, sans-serif;
+  font-size: 1rem;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background-color 150ms ease;
+}
+
+.fw-input::placeholder {
+  color: rgb(10 10 10 / 38%);
+}
+
+.fw-input:hover {
+  border-color: rgb(10 10 10 / 48%);
+}
+
+.fw-input:focus {
+  border-color: var(--fw-ink);
+  background: var(--fw-paper-raised);
+  box-shadow: 0 0 0 4px rgb(253 218 36 / 34%);
+}
+
+.fw-input[aria-invalid="true"] {
+  border-color: var(--fw-danger);
+  box-shadow: 0 0 0 4px rgb(201 57 47 / 12%);
+}
+
+.fw-input:disabled {
+  color: rgb(10 10 10 / 42%);
+  background: #e8e5db;
+  cursor: not-allowed;
+}
+
+.fw-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: #e9e6dd;
+}
+
+.fw-skeleton::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 58%), transparent);
+  content: "";
+  animation: fw-shimmer 1.5s ease-in-out infinite;
+  transform: translateX(-100%);
+}
+
+.fw-banner {
+  display: flex;
+  gap: 0.875rem;
+  padding: 1rem;
+  border: 1.25px solid var(--fw-line);
+  border-radius: 1.125rem;
+  background: var(--fw-paper-raised);
+  box-shadow: 0 10px 32px -28px rgb(10 10 10 / 55%);
+}
+
+.fw-banner[data-state="warn"] {
+  border-color: rgb(253 218 36 / 75%);
+  background: #fff9d8;
+}
+
+.fw-banner[data-state="error"] {
+  border-color: rgb(201 57 47 / 45%);
+  background: var(--fw-danger-soft);
+}
+
+.fw-banner[data-state="pending"] {
+  border-style: dashed;
+}
+
+.fw-status-pill {
+  display: inline-flex;
+  min-height: 1.875rem;
+  align-items: center;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--fw-line);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 760;
+  letter-spacing: 0.055em;
+  text-transform: uppercase;
+}
+
+.fw-status-pill[data-state="active"] {
+  color: var(--fw-success);
+  background: var(--fw-success-soft);
+}
+
+.fw-status-pill[data-state="slow"] {
+  color: var(--fw-ink);
+  background: var(--fw-yellow-soft);
+}
+
+.fw-status-pill[data-state="offline"] {
+  color: var(--fw-ink-soft);
+  background: var(--fw-paper-muted);
+}
+
+.fw-status-pill[data-state="pending"] {
+  color: var(--fw-ink-soft);
+  border-style: dashed;
+  background: var(--fw-paper-raised);
+}
+
+@keyframes fw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes fw-shimmer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@media (min-width: 48rem) {
+  .product-shell__chrome,
+  .product-shell__content {
+    width: min(100% - 3rem, 42rem);
+  }
+
+  .product-screen {
+    padding-inline: 2.25rem;
+  }
+
+  .welcome-hero {
+    min-height: 22rem;
+  }
+
+  .welcome-banker {
+    right: -1rem;
+    width: 19rem;
+    height: 22rem;
+  }
+
+  .product-shell::before {
+    left: calc(50% - 31rem);
+  }
+
+  .product-shell::after {
+    right: calc(50% - 31rem);
+  }
+}
+
+@media (max-width: 23rem) {
+  .product-shell__chrome,
+  .product-screen {
+    padding-inline: 1rem;
+  }
+
+  .fw-button {
+    padding-inline: 1rem;
+    font-size: 0.9375rem;
+  }
+
+  .product-display {
+    font-size: 2.75rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fw-button,
+  .product-shell__language {
+    transition: none;
+  }
+
+  .fw-button__spinner,
+  .fw-skeleton::after,
+  .animate-spin,
+  .animate-pulse {
+    animation: none;
+  }
+}

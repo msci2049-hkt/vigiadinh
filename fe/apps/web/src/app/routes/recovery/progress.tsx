@@ -1,7 +1,7 @@
 // Bước 3: tiến độ khôi phục (PUBLIC, poll 30s — dữ liệu vốn public on-chain).
 // Mỗi trạng thái một câu chữ người thường + đường đi kế: chờ phiếu → cửa sổ
 // chờ (countdown) → xong (done) → hoặc đã bị chặn.
-import { Button, Card, CardContent } from "@repo/ui";
+
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -9,6 +9,7 @@ import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { publicProgressOptions } from "@/features/wallet/api/device-recovery";
 

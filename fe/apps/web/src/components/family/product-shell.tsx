@@ -15,31 +15,31 @@ export function ProductShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="product-shell">
-      <header className="relative z-20 mx-auto flex w-full max-w-md items-center justify-between px-6 pt-[max(1.25rem,env(safe-area-inset-top))] pb-2">
-        <nav className="flex min-h-11 items-center" aria-label={t("language.label")}>
+      <header className="product-shell__chrome">
+        <nav className="product-shell__languages" aria-label={t("language.label")}>
           {LANGUAGES.map((language, index) => (
             <span key={language.code} className="flex items-center">
               <button
                 type="button"
-                className="min-h-11 min-w-11 rounded-full px-2 font-medium text-muted-foreground text-sm transition-colors hover:text-foreground aria-pressed:text-foreground"
+                className="product-shell__language"
                 aria-pressed={active === language.code}
                 onClick={() => void i18n.changeLanguage(language.code)}
               >
                 {language.label}
               </button>
               {index < LANGUAGES.length - 1 ? (
-                <span aria-hidden className="text-border">
+                <span aria-hidden className="product-shell__language-separator">
                   ·
                 </span>
               ) : null}
             </span>
           ))}
         </nav>
-        <span className="rounded-full bg-muted px-4 py-2 font-medium text-muted-foreground text-sm">
+        <span className="product-shell__network">
           {isTestnet ? t("network.testnet") : t("network.mainnet")}
         </span>
       </header>
-      <div className="relative z-10 mx-auto w-full max-w-md">{children}</div>
+      <div className="product-shell__content">{children}</div>
     </div>
   );
 }

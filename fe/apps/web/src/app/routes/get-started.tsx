@@ -1,11 +1,12 @@
 // Ngã ba mở đầu (PHA 2.5) — public: tạo ví mới (cần phiên app để mirror ví →
 // /sign-up rồi /setup) HOẶC mở ví đã có trên máy này (/passkey — connect + đăng
 // nhập SEP-45, không cần email).
-import { Button, Card, CardContent } from "@repo/ui";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { type FamilyIconName, Icon } from "@/components/family/icon";
 import { IconDisc, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 
 export const Route = createFileRoute("/get-started")({ component: GetStartedScreen });
 

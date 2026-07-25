@@ -3,7 +3,7 @@
 // không gọi lại mạng), chạy rule THUẦN (recovery-warnings.ts — KHÔNG phải AI),
 // hiện các cảnh báo đã kích + nhãn RÕ "theo quy tắc, không phải AI". Luật 6:
 // cảnh báo chỉ nhắc, KHÔNG chặn — vẫn có nút sang màn duyệt thật.
-import { Button, Card, CardContent } from "@repo/ui";
+
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -11,6 +11,7 @@ import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 import { guardianInboxOptions } from "@/features/family/api/guardian-inbox";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { evaluateRecoveryWarnings } from "@/features/family/lib/recovery-warnings";

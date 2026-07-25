@@ -3,12 +3,12 @@
 // xem — PHA 7.1); loại sự kiện dịch qua map key i18n, loại lạ → nhãn chung.
 
 import { formatDateTime } from "@repo/core";
-import { Card, CardContent } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/family/icon";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Card, CardContent } from "@/components/family/ui";
 import { auditOptions } from "@/features/family/api/audit";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";

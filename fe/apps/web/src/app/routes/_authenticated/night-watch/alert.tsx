@@ -3,12 +3,12 @@
 // sang /resolve. Trạng thái này CHỈ chủ ví thấy (luật 5). API không có tên hiển
 // thị → tham chiếu bằng khoá rút gọn + thời gian, KHÔNG bịa tên.
 import { formatDateTime } from "@repo/core";
-import { Button, Card, CardContent } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 import { type Guardian, guardiansOptions } from "@/features/family/api/guardians";
 import { GuardianStatusBadge } from "@/features/family/components/guardian-status-badge";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";

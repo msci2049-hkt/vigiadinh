@@ -2,13 +2,14 @@
 // trắc học = prompt passkey khi kit.createWallet. Wizard đầy đủ (chọn guardian
 // + threshold + timelock, cần trao đổi khoá đa bên) là bước SAU — các màn
 // setup/* khác giữ nhãn đúng, dựng khi có luồng mời guardian.
-import { Button } from "@repo/ui";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button } from "@/components/family/ui";
 import { walletKeys } from "@/features/family/api/wallets";
 import { createWalletMinimal } from "@/features/wallet/api/create-wallet";
 import { WalletNotConfiguredError } from "@/features/wallet/lib/kit";

@@ -8,9 +8,9 @@ import {
   type ParseAmountResult,
   parseAmountInput,
 } from "@repo/core";
-import { Input } from "@repo/ui";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { Input } from "@/components/family/ui";
 
 type AmountInputProps = {
   /** RAW đúng như người gõ — state thuộc form cha (RHF field.value). */

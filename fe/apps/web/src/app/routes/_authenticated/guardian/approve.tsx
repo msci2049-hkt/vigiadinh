@@ -3,7 +3,6 @@
 // mạng (vật liệu khoá mới đã chốt lúc initiate) — màn hiện fingerprint từ
 // mirror-chain để người bảo hộ đối chiếu với người thân qua kênh ngoài.
 import { ApiError } from "@repo/core";
-import { Button, Card, CardContent } from "@repo/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
@@ -11,6 +10,7 @@ import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 import { guardianInboxKeys, guardianInboxOptions } from "@/features/family/api/guardian-inbox";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";

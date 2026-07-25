@@ -2,11 +2,12 @@
 // là đủ, họ đang "hoạt động" (có phiên = app còn cài = ladder BE thấy sống). Dẫn
 // sang hộp việc cần họ (/guardian). Đây là màn phía người thân, KHÁC trang chủ
 // ví thấy trạng thái NGƯỜI KHÁC — trạng thái người khác chỉ chủ ví thấy (luật 5).
-import { Button, Card, CardContent } from "@repo/ui";
+
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { StatusPill } from "@/components/family/status-pill";
+import { Button, Card, CardContent } from "@/components/family/ui";
 
 export const Route = createFileRoute("/_authenticated/night-watch/guardian-view")({
   component: NightWatchGuardianViewScreen,

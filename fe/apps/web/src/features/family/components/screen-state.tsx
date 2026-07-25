@@ -1,9 +1,9 @@
 // Trạng thái chờ/lỗi/rỗng dùng chung cho các màn đọc (PHA 6) — một chỗ,
 // mọi chuỗi qua i18n key do màn truyền vào.
-import { Skeleton } from "@repo/ui";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icon";
+import { Skeleton } from "@/components/family/ui";
 
 export function LoadingRows() {
   return (

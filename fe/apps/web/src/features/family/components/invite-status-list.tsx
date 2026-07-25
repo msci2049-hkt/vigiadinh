@@ -6,10 +6,10 @@
 //
 // Việc KÝ không nằm ở đây: nó thuộc feature `wallet`, và feature không import
 // feature. Route ở tầng app/ ghép hai bên lại và truyền xuống `onAdd`.
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/family/icon";
 import { StatusPill } from "@/components/family/status-pill";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import type { GuardianInvite } from "../api/invites";
 
 export function InviteStatusList({

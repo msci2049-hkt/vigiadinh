@@ -3,11 +3,11 @@
 // khoá về ví chủ, deploy smart account đa-signer) — chưa dựng trong phiên này.
 // Màn hiện tiêu đề/mô tả bước (cho thấy luồng dự kiến) + lối ra RÕ về mức A đang
 // chạy, KHÔNG có nút giả vờ hoạt động. Custody không bị đụng.
-import { Button, Card, CardContent } from "@repo/ui";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/family/icon";
 import { IconDisc, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { Button, Card, CardContent } from "@/components/family/ui";
 
 export function WizardStep({ title, description }: { title: string; description: string }) {
   const { t } = useTranslation("fw");

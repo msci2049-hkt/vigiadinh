@@ -32,6 +32,7 @@
     "hono": "^4.12.26",
     "i18next": "^26.3.1",
     "lucide-react": "^1.21.0",
+    "radix-ui": "^1.6.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
     "react-hook-form": "^7.80.0",
