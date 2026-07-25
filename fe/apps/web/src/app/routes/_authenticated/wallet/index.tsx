@@ -2,8 +2,13 @@
 // (cần đọc SAC token balance — subsystem riêng, ghi BUILD-LOG); hiện địa chỉ +
 // tiles điều hướng. Không tự chế format tiền ở đây (luật §3.7).
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { invitesOptions } from "@/features/family/api/invites";
+import { chainTruthOptions } from "@/features/family/api/recovery";
+import { CooldownNotice } from "@/features/family/components/cooldown-notice";
+import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 
@@ -12,6 +17,11 @@ export const Route = createFileRoute("/_authenticated/wallet/")({ component: Wal
 function WalletHomeScreen() {
   const { t } = useTranslation("fw");
   const { wallet, isLoading, isError } = useActiveWallet();
+  // Hai câu hỏi người dùng cần trả lời ngay ở hub, đọc từ NGUỒN THẬT:
+  // "ví có đang trong cửa sổ bảo vệ không" (chain) và "cứu được chưa" (số
+  // người bảo hộ đã lên chain).
+  const chain = useQuery({ ...chainTruthOptions(wallet?.id ?? ""), enabled: wallet !== null });
+  const invites = useQuery({ ...invitesOptions(wallet?.id ?? ""), enabled: wallet !== null });
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
@@ -20,6 +30,9 @@ function WalletHomeScreen() {
 
       {isLoading ? <LoadingRows /> : null}
       {isError ? <ErrorState /> : null}
+
+      {chain.data ? <CooldownNotice cooldown={chain.data.cooldown} /> : null}
+      {invites.data ? <RecoverabilityBanner value={invites.data.recoverability} /> : null}
       {!isLoading && !isError && !wallet ? (
         <div className="flex flex-col gap-3">
           <EmptyState message={t("wallet.home.noWallet")} />

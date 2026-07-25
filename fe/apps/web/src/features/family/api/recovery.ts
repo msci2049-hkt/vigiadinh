@@ -34,3 +34,57 @@ export const recoveryOptions = (walletId: string) =>
       return res.data;
     },
   });
+
+// ---- Sự thật TỪ CHAIN (không qua mirror) ----
+//
+// Màn veto phải đọc chain: chủ ví chỉ chặn được nếu BIẾT có khôi phục đang mở,
+// mà "biết" qua mirror nghĩa là indexer chết trong cửa sổ timelock thì không ai
+// báo, không ai chặn, khôi phục hoàn tất. Kẻ tấn công không cần phá chữ ký nào.
+
+export type OnchainRecoveryStatus = "pending" | "approved" | "finalized" | "cancelled";
+
+/** Cửa sổ bảo vệ sau khôi phục — ví chối MỌI chữ ký tới khi hết (hành vi ĐÚNG). */
+export type ChainCooldown = {
+  active: boolean;
+  /** Unix giây; null = chưa từng khôi phục. */
+  activeUntil: number | null;
+  cooldownSecs: number;
+};
+
+export type ChainTruth = {
+  registered: boolean;
+  cooldown: ChainCooldown;
+  config: { guardians: string[]; threshold: number; timelockSecs: number } | null;
+  request: {
+    status: OnchainRecoveryStatus;
+    approvals: string[];
+    startedAt: number;
+    timelockRemainingSecs: number;
+  } | null;
+};
+
+export const chainTruthKeys = {
+  byWallet: (walletId: string) => ["family", "recovery", "chain-truth", walletId] as const,
+};
+
+export const chainTruthOptions = (walletId: string) =>
+  queryOptions({
+    queryKey: chainTruthKeys.byWallet(walletId),
+    queryFn: async () => {
+      const res = await apiClient.get<{ data: ChainTruth }>(
+        `/api/recovery/chain-truth/${walletId}`,
+      );
+      return res.data;
+    },
+    // Cửa sổ chặn tính bằng giờ; làm mới thường xuyên hơn mirror vì đây là
+    // nguồn quyết định việc người dùng có kịp chặn hay không.
+    refetchInterval: 20_000,
+    staleTime: 0,
+  });
+
+/** Yêu cầu đang MỞ theo chain (pending/approved) — thứ duy nhất veto được. */
+export function openOnchainRequest(truth: ChainTruth | undefined) {
+  const req = truth?.request;
+  if (!req) return null;
+  return req.status === "pending" || req.status === "approved" ? req : null;
+}

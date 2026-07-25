@@ -26,3 +26,42 @@ export const walletsOptions = queryOptions({
     return res.data;
   },
 });
+
+/** Lựa chọn thời gian chờ — khớp `TIMELOCK_CHOICES_SECS` của BE. */
+export const TIMELOCK_CHOICES_SECS = [3600, 86400, 259200] as const;
+
+/**
+ * Số giây → key i18n. Trả literal (không ghép chuỗi runtime) vì key i18n của
+ * repo có kiểu chặt: union hữu hạn, template literal không qua được tsc.
+ */
+export const TIMELOCK_LABEL_KEY = {
+  3600: "setup.timelock.choice.hour1",
+  86400: "setup.timelock.choice.day1",
+  259200: "setup.timelock.choice.day3",
+} as const;
+
+export type TimelockLabelKey = (typeof TIMELOCK_LABEL_KEY)[keyof typeof TIMELOCK_LABEL_KEY];
+
+/** Giá trị lạ (ví cấu hình ngoài app) → rơi về nhãn 1 ngày thay vì hiện key thô. */
+export function timelockLabelKey(secs: number): TimelockLabelKey {
+  return TIMELOCK_LABEL_KEY[secs as keyof typeof TIMELOCK_LABEL_KEY] ?? TIMELOCK_LABEL_KEY[86400];
+}
+
+/**
+ * Sửa ngưỡng + thời gian chờ. CHỈ được trước khi ví đăng ký lên registry —
+ * sau đó chain đóng băng hai giá trị này và BE trả 409 ALREADY_REGISTERED_ONCHAIN.
+ */
+export async function updateRecoveryConfig(input: {
+  walletId: string;
+  threshold?: number;
+  timelockSecs?: number;
+}): Promise<FamilyWallet> {
+  const res = await apiClient.patch<{ data: FamilyWallet }>(
+    `/api/wallets/${input.walletId}/recovery-config`,
+    {
+      ...(input.threshold !== undefined ? { threshold: input.threshold } : {}),
+      ...(input.timelockSecs !== undefined ? { timelock_secs: input.timelockSecs } : {}),
+    },
+  );
+  return res.data;
+}

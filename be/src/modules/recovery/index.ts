@@ -3,3 +3,5 @@
 // deep-import domain (luật module-boundary).
 export { externalSignerScVal } from "./domain/onchain";
 export type { NewRecoveryRequest, RecoveryRequest, RecoveryStatus } from "./domain/recovery.entity";
+// Giải mã view registry — job recovery-watch dùng để đọc THẲNG chain.
+export { type ChainRecoveryRequest, parseRecoveryStatus } from "./features/chain-truth/domain";

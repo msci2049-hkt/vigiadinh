@@ -2,12 +2,16 @@
   "block": {
     "alert": {
       "backCta": "Back to safety center",
+      "chainDownBody": "We could not reach the network, so we cannot tell you whether a recovery is open. Try again — and if this keeps happening, check from another device.",
+      "chainDownTitle": "We cannot check right now",
       "cta": "Stop this now",
       "description": "A recovery request was started on another device. If this wasn't you, stop it before the waiting period ends — after that it cannot be undone.",
       "fingerprintLabel": "New key ID: {fingerprint}",
       "nothingOpen": "There is no recovery request to stop right now.",
       "requestBody": "{approvals, plural, one {# family member has} other {# family members have}} agreed (needs {threshold}). When the waiting period ends, a new key takes over this wallet.",
       "requestTitle": "What was requested",
+      "retryCta": "Check again",
+      "syncing": "Some details are still catching up. What you see here comes straight from the network.",
       "title": "Someone wants to take over your wallet",
       "window": "Time left to stop it: {countdown} (until {absolute})"
     },
@@ -304,6 +308,14 @@
     "working": "Unlocking with your device…"
   },
   "recovery": {
+    "cooldown": {
+      "canDo": "You can receive money, and everything already in the wallet is safe.",
+      "cannotDo": "You cannot send money or change settings until the window ends.",
+      "notABug": "Nothing is broken. Your wallet will work normally on its own — you do not have to do anything.",
+      "remaining": "It opens again in {countdown} — that is {absolute}.",
+      "title": "Your wallet is in a protection window",
+      "why": "We hold every wallet still for a while right after it is recovered. If someone had taken over your wallet, this is what stops them from emptying it straight away."
+    },
     "countdown": {
       "backCta": "Back to progress",
       "description": "Enough approvals. The waiting period protects you from impostors.",
@@ -375,8 +387,13 @@
       "title": "We'll set this up together"
     },
     "chooseGuardians": {
-      "description": "Pick 3–5 people you trust. They can only help together — never act alone.",
-      "title": "Choose your protectors"
+      "addTitle": "Add someone",
+      "canLeaveHint": "You can leave and come back. Your wallet already works.",
+      "description": "Pick people you trust. Each one accepts on their own phone, in their own time.",
+      "manageCta": "See everyone I invited",
+      "nextCta": "Next: how many must agree",
+      "shortLabel": "People",
+      "title": "Choose who can help"
     },
     "done": {
       "addGuardiansCta": "Add family protectors",
@@ -413,19 +430,51 @@
       "title": "Invite them"
     },
     "review": {
-      "description": "Check everything before turning it on.",
-      "title": "Review your protection"
+      "description": "This is how your wallet will be protected.",
+      "doneCta": "Go to my wallet",
+      "guardiansLabel": "People ready to help",
+      "inviteMoreCta": "Invite more people",
+      "registerCta": "Turn on protection",
+      "registerFailed": "We could not turn it on. Nothing changed — please try again.",
+      "registered": "Protection is on. Your family can now help you get back in.",
+      "registering": "Turning on…",
+      "summaryTitle": "Your setup",
+      "thresholdLabel": "People who must agree",
+      "thresholdValue": "{count, plural, one {# person} other {# people}}",
+      "timelockLabel": "Time to stop a recovery",
+      "title": "Check everything"
     },
     "threshold": {
-      "description": "Choose how many of your protectors must approve a recovery.",
-      "title": "How many need to agree?"
+      "backCta": "Back",
+      "description": "If you ever lose your phone, this many people must agree before you get back in.",
+      "explain": "{count, plural, one {# person} other {# people}} must agree before your wallet reopens.",
+      "frozenHint": "Once your wallet is registered, this number is fixed and cannot be changed.",
+      "nextCta": "Next: how long to wait",
+      "pickTitle": "Number of people",
+      "saveFailed": "We could not save this. Nothing changed — please try again.",
+      "saving": "Saving…",
+      "shortLabel": "How many",
+      "title": "How many must agree"
     },
     "timelock": {
-      "description": "Recovery only completes after this delay — time for you to stop anything suspicious.",
-      "title": "Waiting period"
+      "backCta": "Back",
+      "choice": {
+        "day1": "1 day (recommended)",
+        "day3": "3 days",
+        "hour1": "1 hour"
+      },
+      "description": "If someone starts a recovery you did not ask for, this is how long you have to stop it.",
+      "nextCta": "Next: check everything",
+      "pickTitle": "Waiting time",
+      "saveFailed": "We could not save this. Nothing changed — please try again.",
+      "saving": "Saving…",
+      "shortLabel": "Waiting time",
+      "title": "How long to wait",
+      "tradeoff": "Waiting longer is safer — you get more time to notice and stop it. But if you really did lose your phone, you also wait longer to get back in."
     },
     "wizard": {
       "comingSoon": "Guided setup with protectors is coming next. For now, create your wallet — you can add protectors right afterward.",
+      "navLabel": "Setup progress",
       "useSimpleCta": "Set up my wallet"
     }
   },

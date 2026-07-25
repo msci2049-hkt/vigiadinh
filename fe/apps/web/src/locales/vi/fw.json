@@ -2,12 +2,16 @@
   "block": {
     "alert": {
       "backCta": "Về trung tâm an toàn",
+      "chainDownBody": "Chưa kết nối được tới mạng nên chưa thể nói cho bạn biết có yêu cầu khôi phục nào đang mở hay không. Bạn thử lại giúp nhé — nếu vẫn vậy, hãy kiểm tra từ một thiết bị khác.",
+      "chainDownTitle": "Hiện chưa kiểm tra được",
       "cta": "Chặn ngay",
       "description": "Một yêu cầu khôi phục vừa được mở trên thiết bị khác. Nếu không phải bạn, hãy chặn trước khi hết thời gian chờ — sau đó thì không lùi lại được nữa.",
       "fingerprintLabel": "Mã chìa khoá mới: {fingerprint}",
       "nothingOpen": "Hiện không có yêu cầu khôi phục nào để chặn.",
       "requestBody": "{approvals, plural, other {# người thân}} đã đồng ý (cần {threshold}). Hết thời gian chờ, một chìa khoá mới sẽ nắm ví này.",
       "requestTitle": "Yêu cầu này là gì",
+      "retryCta": "Kiểm tra lại",
+      "syncing": "Vài chi tiết còn đang cập nhật. Những gì bạn thấy ở đây lấy thẳng từ mạng.",
       "title": "Có người muốn chiếm ví của bạn",
       "window": "Còn {countdown} để chặn (đến {absolute})"
     },
@@ -304,6 +308,14 @@
     "working": "Đang mở khóa bằng thiết bị của bạn…"
   },
   "recovery": {
+    "cooldown": {
+      "canDo": "Bạn vẫn nhận được tiền, và tiền đang có trong ví vẫn an toàn.",
+      "cannotDo": "Bạn chưa gửi tiền hay đổi thiết lập được cho tới khi hết khoảng này.",
+      "notABug": "Không có gì hỏng cả. Ví sẽ tự hoạt động lại bình thường — bạn không phải làm gì.",
+      "remaining": "Ví mở lại sau {countdown} — tức là {absolute}.",
+      "title": "Ví của bạn đang trong thời gian bảo vệ",
+      "why": "Ngay sau khi được khôi phục, ví nào cũng được giữ yên một khoảng. Nếu có kẻ vừa chiếm được ví của bạn, chính khoảng này chặn họ rút sạch ngay lập tức."
+    },
     "countdown": {
       "backCta": "Về trang tiến độ",
       "description": "Đã đủ người đồng ý. Thời gian chờ bảo vệ bạn khỏi kẻ mạo danh.",
@@ -375,8 +387,13 @@
       "title": "Chúng ta cùng thiết lập"
     },
     "chooseGuardians": {
-      "description": "Chọn 3–5 người bạn tin. Họ chỉ giúp được khi cùng nhau — không ai tự làm một mình được.",
-      "title": "Chọn người bảo hộ"
+      "addTitle": "Thêm một người",
+      "canLeaveHint": "Bạn rời đi rồi quay lại cũng được. Ví của bạn đã dùng được rồi.",
+      "description": "Chọn những người bạn tin. Mỗi người nhận lời trên máy của họ, theo nhịp của họ.",
+      "manageCta": "Xem tất cả người đã mời",
+      "nextCta": "Tiếp: cần bao nhiêu người đồng ý",
+      "shortLabel": "Người thân",
+      "title": "Chọn người có thể giúp bạn"
     },
     "done": {
       "addGuardiansCta": "Thêm người bảo hộ",
@@ -413,19 +430,51 @@
       "title": "Mời người thân"
     },
     "review": {
-      "description": "Kiểm tra mọi thứ trước khi bật bảo vệ.",
-      "title": "Xem lại thiết lập"
+      "description": "Ví của bạn sẽ được bảo vệ như thế này.",
+      "doneCta": "Về ví của tôi",
+      "guardiansLabel": "Người đã sẵn sàng giúp",
+      "inviteMoreCta": "Mời thêm người",
+      "registerCta": "Bật bảo vệ",
+      "registerFailed": "Chưa bật được. Chưa có gì thay đổi — bạn thử lại giúp nhé.",
+      "registered": "Đã bật bảo vệ. Người nhà giờ có thể giúp bạn vào lại ví.",
+      "registering": "Đang bật…",
+      "summaryTitle": "Thiết lập của bạn",
+      "thresholdLabel": "Số người phải đồng ý",
+      "thresholdValue": "{count} người",
+      "timelockLabel": "Thời gian kịp chặn",
+      "title": "Xem lại"
     },
     "threshold": {
-      "description": "Chọn số người bảo hộ phải đồng ý thì việc khôi phục mới được thực hiện.",
-      "title": "Cần mấy người đồng ý?"
+      "backCta": "Quay lại",
+      "description": "Nếu bạn mất điện thoại, phải có đủ bấy nhiêu người đồng ý thì ví mới mở lại.",
+      "explain": "Cần {count} người đồng ý thì ví mới mở lại được.",
+      "frozenHint": "Khi ví đã bật bảo vệ, con số này cố định, không đổi được nữa.",
+      "nextCta": "Tiếp: chờ bao lâu",
+      "pickTitle": "Số người",
+      "saveFailed": "Chưa lưu được. Chưa có gì thay đổi — bạn thử lại giúp nhé.",
+      "saving": "Đang lưu…",
+      "shortLabel": "Bao nhiêu người",
+      "title": "Cần bao nhiêu người đồng ý"
     },
     "timelock": {
-      "description": "Khôi phục chỉ hoàn tất sau khoảng chờ này — đủ thời gian để bạn chặn điều bất thường.",
-      "title": "Thời gian chờ"
+      "backCta": "Quay lại",
+      "choice": {
+        "day1": "1 ngày (nên chọn)",
+        "day3": "3 ngày",
+        "hour1": "1 giờ"
+      },
+      "description": "Nếu ai đó mở khôi phục mà bạn không hề yêu cầu, đây là khoảng thời gian bạn kịp chặn lại.",
+      "nextCta": "Tiếp: xem lại",
+      "pickTitle": "Thời gian chờ",
+      "saveFailed": "Chưa lưu được. Chưa có gì thay đổi — bạn thử lại giúp nhé.",
+      "saving": "Đang lưu…",
+      "shortLabel": "Thời gian chờ",
+      "title": "Chờ bao lâu",
+      "tradeoff": "Chờ lâu thì an toàn hơn — bạn có nhiều thời gian để phát hiện và chặn. Nhưng nếu bạn mất máy thật thì cũng phải chờ lâu hơn mới vào lại được."
     },
     "wizard": {
       "comingSoon": "Thiết lập có người bảo hộ theo từng bước sẽ có ở bước kế. Hiện tại, hãy tạo ví — bạn có thể thêm người thân ngay sau đó.",
+      "navLabel": "Tiến trình thiết lập",
       "useSimpleCta": "Thiết lập ví của tôi"
     }
   },

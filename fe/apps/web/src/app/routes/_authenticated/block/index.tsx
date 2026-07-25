@@ -1,13 +1,24 @@
 // Màn CẢNH BÁO chặn khôi phục (PHA 6 — cụm GHI, luồng veto đi đầu).
 // Luật veto: MỘT hành động duy nhất, không nút phụ. Hiện fingerprint KHOÁ MỚI
-// mà yêu cầu khôi phục đề cử (mirror indexer) — người dùng thấy ĐÚNG thứ sắp
-// bị chặn, cùng lớp chống-ký-mù với màn ký (ghi chú audit P0 trong BUILD-LOG).
+// mà yêu cầu khôi phục đề cử — người dùng thấy ĐÚNG thứ sắp bị chặn, cùng lớp
+// chống-ký-mù với màn ký (ghi chú audit P0 trong BUILD-LOG).
+//
+// NGUỒN SỰ THẬT Ở MÀN NÀY LÀ CHAIN, không phải mirror (sửa 2026-07-25):
+// chủ ví chỉ chặn được nếu BIẾT có khôi phục đang mở. Nếu "biết" phụ thuộc
+// mirror, thì indexer chết trong cửa sổ timelock = không ai báo = không ai chặn
+// = khôi phục hoàn tất. Kẻ tấn công không cần phá chữ ký nào, chỉ cần indexer
+// nghỉ đúng một ngày. Mirror vẫn dùng để lấy fingerprint khoá mới (chi tiết
+// hiển thị), nhưng CÓ HAY KHÔNG một yêu cầu đang mở thì hỏi chain.
 import { timelockView } from "@repo/core";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { recoveryOptions } from "@/features/family/api/recovery";
+import {
+  chainTruthOptions,
+  openOnchainRequest,
+  recoveryOptions,
+} from "@/features/family/api/recovery";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 
@@ -16,14 +27,26 @@ export const Route = createFileRoute("/_authenticated/block/")({ component: Bloc
 function BlockAlertScreen() {
   const { t, i18n } = useTranslation("fw");
   const { wallet, isLoading: walletLoading, isError: walletError } = useActiveWallet();
-  const recovery = useQuery({
-    ...recoveryOptions(wallet?.id ?? ""),
-    enabled: wallet !== null,
-  });
 
-  const open = (recovery.data ?? []).find((r) => r.status === "pending" || r.status === "ready");
-  const loading = walletLoading || recovery.isLoading;
-  const veto = open?.vetoUntil ? timelockView(open.vetoUntil, { locale: i18n.language }) : null;
+  const chain = useQuery({ ...chainTruthOptions(wallet?.id ?? ""), enabled: wallet !== null });
+  const mirror = useQuery({ ...recoveryOptions(wallet?.id ?? ""), enabled: wallet !== null });
+
+  const open = openOnchainRequest(chain.data);
+  const mirrorOpen = (mirror.data ?? []).find(
+    (r) => r.status === "pending" || r.status === "ready",
+  );
+  const loading = walletLoading || chain.isLoading;
+
+  // Lệch = mirror chưa bắt kịp chain. Tin chain, nói cho người dùng biết là
+  // dữ liệu đang đồng bộ — đừng để họ tưởng app hỏng rồi bỏ đi.
+  const outOfSync = !loading && !chain.isError && Boolean(open) !== Boolean(mirrorOpen);
+
+  // Đếm ngược tính từ chain: mốc hết cửa sổ = bây giờ + số giây chain còn báo.
+  const veto = open
+    ? timelockView(new Date(Date.now() + open.timelockRemainingSecs * 1000).toISOString(), {
+        locale: i18n.language,
+      })
+    : null;
 
   return (
     <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
@@ -31,9 +54,35 @@ function BlockAlertScreen() {
       <p className="text-muted-foreground text-sm">{t("block.alert.description")}</p>
 
       {loading ? <LoadingRows /> : null}
-      {walletError || recovery.isError ? <ErrorState /> : null}
 
-      {!loading && !walletError && !recovery.isError && !open ? (
+      {/* Chain không đọc được = KHÔNG kết luận "không có gì đang mở". Nói thẳng
+          là đang mù, kèm lối thử lại — im lặng ở đây là nguy hiểm nhất. */}
+      {chain.isError ? (
+        <div
+          className="rounded-md border border-destructive/40 bg-destructive/10 p-3"
+          role="alert"
+          data-testid="chain-unreachable"
+        >
+          <p className="font-medium text-destructive text-sm">{t("block.alert.chainDownTitle")}</p>
+          <p className="mt-1 text-muted-foreground text-sm">{t("block.alert.chainDownBody")}</p>
+          <Button className="mt-2" size="sm" variant="outline" onClick={() => void chain.refetch()}>
+            {t("block.alert.retryCta")}
+          </Button>
+        </div>
+      ) : null}
+      {walletError ? <ErrorState /> : null}
+
+      {outOfSync ? (
+        <p
+          className="rounded-md border border-border bg-muted/40 p-3 text-muted-foreground text-sm"
+          role="status"
+          data-testid="mirror-out-of-sync"
+        >
+          {t("block.alert.syncing")}
+        </p>
+      ) : null}
+
+      {!loading && !walletError && !chain.isError && !open ? (
         <div className="flex flex-col gap-3">
           <EmptyState message={t("block.alert.nothingOpen")} />
           <Button asChild variant="outline">
@@ -43,20 +92,22 @@ function BlockAlertScreen() {
       ) : null}
 
       {open ? (
-        <Card className="border-destructive">
+        <Card className="border-destructive" data-testid="block-open-request">
           <CardHeader>
             <CardTitle className="text-lg">{t("block.alert.requestTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <p className="text-foreground text-sm">
               {t("block.alert.requestBody", {
-                approvals: open.approvals,
-                threshold: open.threshold ?? 0,
+                approvals: open.approvals.length,
+                threshold: chain.data?.config?.threshold ?? 0,
               })}
             </p>
-            <p className="break-all font-mono text-muted-foreground text-xs">
-              {t("block.alert.fingerprintLabel", { fingerprint: open.newOwner })}
-            </p>
+            {mirrorOpen?.newOwner ? (
+              <p className="break-all font-mono text-muted-foreground text-xs">
+                {t("block.alert.fingerprintLabel", { fingerprint: mirrorOpen.newOwner })}
+              </p>
+            ) : null}
             {veto && !veto.expired ? (
               <p className="text-muted-foreground text-sm">
                 {t("block.alert.window", { countdown: veto.countdown, absolute: veto.absolute })}

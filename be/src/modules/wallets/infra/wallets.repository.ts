@@ -39,3 +39,13 @@ export async function findByAddress(stellarAddress: string): Promise<Wallet | nu
     .limit(1);
   return row ?? null;
 }
+
+/** Ngưỡng + thời gian chờ (mirror cấu hình on-chain — chỉ sửa trước khi đăng ký). */
+export async function updateRecoveryConfig(
+  id: string,
+  data: { threshold: number; timelockSecs: number },
+): Promise<Wallet> {
+  const [row] = await db.update(wallets).set(data).where(eq(wallets.id, id)).returning();
+  // biome-ignore lint/style/noNonNullAssertion: caller đã assert ví tồn tại.
+  return row!;
+}

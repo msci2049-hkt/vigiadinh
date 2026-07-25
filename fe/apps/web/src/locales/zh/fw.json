@@ -2,12 +2,16 @@
   "block": {
     "alert": {
       "backCta": "返回安全中心",
+      "chainDownBody": "无法连接到网络，因此无法告诉你是否有正在进行的恢复请求。请再试一次——如果一直这样，请换一台设备查看。",
+      "chainDownTitle": "暂时无法检查",
       "cta": "立即阻止",
       "description": "另一台设备发起了恢复请求。如果不是你本人，请在等待期结束前阻止它 — 结束后将无法撤销。",
       "fingerprintLabel": "新钥匙 ID：{fingerprint}",
       "nothingOpen": "目前没有需要阻止的恢复请求。",
       "requestBody": "{approvals, plural, other {# 位家人}}已同意（需要 {threshold} 位）。等待期结束后，新的钥匙将接管此钱包。",
       "requestTitle": "请求的内容",
+      "retryCta": "再检查一次",
+      "syncing": "部分信息仍在同步。你在这里看到的内容直接来自网络。",
       "title": "有人想接管你的钱包",
       "window": "阻止的剩余时间：{countdown}（截至 {absolute}）"
     },
@@ -304,6 +308,14 @@
     "working": "正在用你的设备解锁…"
   },
   "recovery": {
+    "cooldown": {
+      "canDo": "你仍然可以收款，钱包里已有的钱是安全的。",
+      "cannotDo": "在保护期结束前，你还不能转账或修改设置。",
+      "notABug": "没有出任何问题。钱包会自行恢复正常——你不需要做任何事。",
+      "remaining": "将在 {countdown} 后重新开启——也就是 {absolute}。",
+      "title": "你的钱包正处于保护期",
+      "why": "每个钱包在恢复之后都会静置一段时间。如果有人刚刚接管了你的钱包，正是这段时间阻止他们立刻把钱转走。"
+    },
     "countdown": {
       "backCta": "返回进度",
       "description": "已获得足够同意。等待期保护你免受冒名者侵害。",
@@ -375,8 +387,13 @@
       "title": "我们一起来设置"
     },
     "chooseGuardians": {
-      "description": "选择 3–5 位你信任的人。他们只能共同协助 — 绝不能单独行动。",
-      "title": "选择你的守护人"
+      "addTitle": "添加一个人",
+      "canLeaveHint": "你可以先离开再回来。你的钱包已经能用了。",
+      "description": "选你信任的人。每个人在自己的手机上、按自己的节奏接受。",
+      "manageCta": "查看我邀请的所有人",
+      "nextCta": "下一步：需要几个人同意",
+      "shortLabel": "家人",
+      "title": "选择可以帮你的人"
     },
     "done": {
       "addGuardiansCta": "添加家庭守护人",
@@ -413,19 +430,51 @@
       "title": "邀请家人"
     },
     "review": {
-      "description": "开启前检查一遍所有内容。",
-      "title": "检查你的保护设置"
+      "description": "你的钱包将会这样受到保护。",
+      "doneCta": "前往我的钱包",
+      "guardiansLabel": "已准备好帮忙的人",
+      "inviteMoreCta": "邀请更多人",
+      "registerCta": "开启保护",
+      "registerFailed": "开启失败，没有任何改动，请再试一次。",
+      "registered": "保护已开启。家人现在可以帮你重新进入钱包。",
+      "registering": "正在开启…",
+      "summaryTitle": "你的设置",
+      "thresholdLabel": "需要同意的人数",
+      "thresholdValue": "{count} 人",
+      "timelockLabel": "可阻止的时间",
+      "title": "检查一遍"
     },
     "threshold": {
-      "description": "选择需要多少位守护人同意才能恢复。",
-      "title": "需要多少人同意？"
+      "backCta": "返回",
+      "description": "如果你丢了手机，需要这么多人同意，钱包才会重新打开。",
+      "explain": "需要 {count} 人同意，钱包才会重新打开。",
+      "frozenHint": "钱包一旦开启保护，这个数字就固定了，无法更改。",
+      "nextCta": "下一步：等待多久",
+      "pickTitle": "人数",
+      "saveFailed": "保存失败，没有任何改动，请再试一次。",
+      "saving": "正在保存…",
+      "shortLabel": "几个人",
+      "title": "需要几个人同意"
     },
     "timelock": {
-      "description": "恢复只有在此延迟之后才完成 — 给你时间阻止任何可疑情况。",
-      "title": "等待期"
+      "backCta": "返回",
+      "choice": {
+        "day1": "1 天（推荐）",
+        "day3": "3 天",
+        "hour1": "1 小时"
+      },
+      "description": "如果有人发起了你并未请求的恢复，这是你来得及阻止的时间。",
+      "nextCta": "下一步：检查一遍",
+      "pickTitle": "等待时间",
+      "saveFailed": "保存失败，没有任何改动，请再试一次。",
+      "saving": "正在保存…",
+      "shortLabel": "等待时间",
+      "title": "等待多久",
+      "tradeoff": "等待越久越安全——你有更多时间发现并阻止。但如果你真的丢了手机，也要等更久才能回来。"
     },
     "wizard": {
       "comingSoon": "带守护人的引导式设置即将推出。目前请先创建钱包——之后即可添加守护人。",
+      "navLabel": "设置进度",
       "useSimpleCta": "设置我的钱包"
     }
   },

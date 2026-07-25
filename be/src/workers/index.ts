@@ -11,6 +11,7 @@ import { createHeartbeatWorker, scheduleHeartbeatWatch } from "@/jobs/heartbeat-
 import { createIndexerWorker, scheduleIndexerPoll } from "@/jobs/indexer-poll";
 import { createIntentSweeperWorker, scheduleIntentSweeper } from "@/jobs/intent-sweeper";
 import { createPresenceWorker, schedulePresencePing } from "@/jobs/presence-ping";
+import { createRecoveryWatchWorker, scheduleRecoveryWatch } from "@/jobs/recovery-watch";
 import { createTtlKeeperWorker, scheduleTtlKeeper } from "@/jobs/ttl-keeper";
 import { logger } from "@/lib/logger";
 import { bullConnection } from "@/lib/redis";
@@ -21,6 +22,7 @@ const workers: Worker[] = [
   createIndexerWorker(),
   createHeartbeatWorker(),
   createTtlKeeperWorker(),
+  createRecoveryWatchWorker(),
 ];
 // Lịch lặp đăng ký từ worker process (jobId cố định → gọi lại vô hại).
 void scheduleIntentSweeper();
@@ -28,6 +30,7 @@ void schedulePresencePing();
 void scheduleIndexerPoll();
 void scheduleHeartbeatWatch();
 void scheduleTtlKeeper();
+void scheduleRecoveryWatch();
 
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {
