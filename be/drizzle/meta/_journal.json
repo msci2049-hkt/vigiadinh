@@ -57,6 +57,13 @@
       "when": 1784935659294,
       "tag": "0007_lowly_wolverine",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1784962463073,
+      "tag": "0008_audit_truncate_guard",
+      "breakpoints": true
     }
   ]
 }
