@@ -4,6 +4,7 @@
 // transfer trong MỘT tx (chuỗi hai-nửa, đóng rủi ro kỹ thuật lớn nhất còn lại).
 import type { xdr } from "@stellar/stellar-sdk";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
+import type { IntentState } from "@/shared-contract/intent";
 import { acceptGuardianApproval } from "../../domain/approval-flow";
 import { computeChallengeHash } from "../../domain/hashing";
 import { CURRENT_POLICY_VERSION, evaluatePolicy } from "../../domain/policy-engine";
@@ -174,7 +175,7 @@ export async function confirmSend(
     throw new SendServiceError(400, "NOT_A_TRANSFER");
   }
 
-  assertTransition("review", "owner", "confirm"); // → policy_gate (409 nếu sai state)
+  assertTransition(intent.status as IntentState, "owner", "confirm"); // → policy_gate (409 nếu sai state)
   await repo.updateIntent(intent.id, { status: "policy_gate" });
 
   const since = new Date();
@@ -376,14 +377,23 @@ export async function signAndSubmit(
   const intent = await repo.intentById(input.intentId);
   if (!intent) throw new SendServiceError(404, "INTENT_NOT_FOUND");
   const wallet = await requireOwnedWallet(intent.walletId, input.userId);
+  if (intent.recipient === null || intent.amount === null) {
+    throw new SendServiceError(400, "NOT_A_TRANSFER");
+  }
 
   const validated = validateSignedTransfer({
     sacContractId,
     walletAddress: wallet.stellarAddress,
     entriesXdr: input.signedEntriesXdr,
+    expectedRecipient: intent.recipient,
+    expectedAmount: intent.amount,
   });
 
-  assertTransition("awaiting_signature", "owner", "sign"); // → submitting (409 nếu sai)
+  // Trạng thái THẬT của intent, không phải hằng số. Bản cũ truyền literal
+  // "awaiting_signature" nên `assertTransition` tra một dòng luôn tồn tại và
+  // KHÔNG BAO GIỜ ném: ký được cả intent đang chờ người thân duyệt (vượt cổng
+  // chính sách) lẫn intent đã `settled` (gửi tiền lần hai).
+  assertTransition(intent.status as IntentState, "owner", "sign"); // → submitting (409 nếu sai)
   await repo.updateIntent(intent.id, { status: "submitting" });
 
   let result: { hash: string; status: string };

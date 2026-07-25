@@ -69,7 +69,10 @@ function fakeGateway(balance: bigint) {
   return { gateway, calls };
 }
 
-function signedEntry(walletAddress: string): string {
+// Entry phải chở ĐÚNG người nhận + số tiền của intent — bản cũ nhét địa chỉ
+// ngẫu nhiên và 100n, tức là test đã vô tình khẳng định chính lỗ hổng P0-6
+// (nộp entry khác hẳn intent vẫn qua).
+function signedEntry(walletAddress: string, to: string, amount: bigint): string {
   return new xdr.SorobanAuthorizationEntry({
     credentials: xdr.SorobanCredentials.sorobanCredentialsAddress(
       new xdr.SorobanAddressCredentials({
@@ -84,11 +87,7 @@ function signedEntry(walletAddress: string): string {
         new xdr.InvokeContractArgs({
           contractAddress: new Address(SAC).toScAddress(),
           functionName: "transfer",
-          args: transferArgs({
-            from: walletAddress,
-            to: Keypair.random().publicKey(),
-            amount: 100n,
-          }),
+          args: transferArgs({ from: walletAddress, to, amount }),
         }),
       ),
       subInvocations: [],
@@ -235,7 +234,7 @@ describe("send flow (DB thật + gateway fake)", () => {
     const result = await signAndSubmit(gateway, SAC, {
       intentId: review.intentId,
       userId: OWNER,
-      signedEntriesXdr: [signedEntry(w.address)],
+      signedEntriesXdr: [signedEntry(w.address, recipient, 5_000_000n)],
     });
     expect(result.status).toBe("settled");
     expect(result.hash.length).toBe(64);

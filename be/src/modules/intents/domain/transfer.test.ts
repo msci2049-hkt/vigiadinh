@@ -59,7 +59,13 @@ describe("transferArgs", () => {
 });
 
 describe("validateSignedTransfer — whitelist trước khi ví phí trả tiền", () => {
-  const base = { sacContractId: SAC, walletAddress: WALLET };
+  // Người nhận + số tiền của intent đã duyệt — entry phải khớp ĐÚNG (audit P0-6).
+  const base = {
+    sacContractId: SAC,
+    walletAddress: WALLET,
+    expectedRecipient: OTHER,
+    expectedAmount: 100n,
+  };
 
   it("entry hợp lệ → trả args + entries", () => {
     const r = validateSignedTransfer({ ...base, entriesXdr: [makeEntry({})] });
@@ -113,4 +119,31 @@ describe("validateSignedTransfer — whitelist trước khi ví phí trả tiề
       expect(() => validateSignedTransfer({ ...base, entriesXdr: make() })).toThrow(SendError);
     });
   }
+});
+
+describe("validateSignedTransfer — buộc entry khớp intent đã duyệt (audit P0-6)", () => {
+  const base = {
+    sacContractId: SAC,
+    walletAddress: WALLET,
+    expectedRecipient: OTHER,
+    expectedAmount: 100n,
+  };
+  const THIRD = Keypair.random().publicKey();
+
+  it("đổi NGƯỜI NHẬN sau khi intent đã duyệt → chối", () => {
+    const evil = makeEntry({ args: transferArgs({ from: WALLET, to: THIRD, amount: 100n }) });
+    expect(() => validateSignedTransfer({ ...base, entriesXdr: [evil] })).toThrow(SendError);
+  });
+
+  it("thổi SỐ TIỀN lên sau khi qua cổng chính sách → chối", () => {
+    const evil = makeEntry({
+      args: transferArgs({ from: WALLET, to: OTHER, amount: 10_000_000_000_000n }),
+    });
+    expect(() => validateSignedTransfer({ ...base, entriesXdr: [evil] })).toThrow(SendError);
+  });
+
+  it("khớp đúng cả hai → cho qua", () => {
+    const ok = makeEntry({ args: transferArgs({ from: WALLET, to: OTHER, amount: 100n }) });
+    expect(() => validateSignedTransfer({ ...base, entriesXdr: [ok] })).not.toThrow();
+  });
 });

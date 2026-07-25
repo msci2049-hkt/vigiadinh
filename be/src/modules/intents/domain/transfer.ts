@@ -2,7 +2,7 @@
 // Ví C… KHÔNG dùng payment op (docs Stellar); gửi = invoke `transfer(from,to,amount)`
 // trên SAC (RESEARCH-LOG 2026-07-24 SEND). auth `from.require_auth()` đi qua
 // __check_auth → verifier passkey — CHÍNH chuỗi đã chứng minh on-chain ở audit P0.
-import { Address, nativeToScVal, xdr } from "@stellar/stellar-sdk";
+import { Address, nativeToScVal, scValToNative, xdr } from "@stellar/stellar-sdk";
 
 export class SendError extends Error {}
 
@@ -47,6 +47,9 @@ export function validateSignedTransfer(input: {
   sacContractId: string;
   walletAddress: string;
   entriesXdr: string[];
+  /** Người nhận + số tiền của intent ĐÃ duyệt — entry phải khớp ĐÚNG. */
+  expectedRecipient: string;
+  expectedAmount: bigint;
 }): ValidatedTransfer {
   if (input.entriesXdr.length === 0) fail("NO_ENTRIES");
   if (input.entriesXdr.length > 2) fail("TOO_MANY_ENTRIES");
@@ -93,5 +96,26 @@ export function validateSignedTransfer(input: {
   if (Address.fromScAddress(fromArg.address()).toString() !== input.walletAddress) {
     fail("FROM_MISMATCH");
   }
+  // Audit 2026-07-25 (P0-6): bản cũ chỉ chốt `from`, nên `to` và `amount` là gì
+  // cũng nộp được. Cổng chính sách (vượt hạn mức → chờ người thân duyệt) và cả
+  // ràng buộc K5 của phiếu duyệt đều vô nghĩa nếu bước CUỐI không kiểm lại: cứ
+  // xin duyệt 1 XLM rồi ký entry 1.000.000 XLM cho địa chỉ khác là xong. Nhật
+  // ký kiểm toán cũng ghi sai số — nó chép theo intent, không theo thứ đã chạy.
+  const toArg = args[1];
+  if (!toArg || toArg.switch() !== xdr.ScValType.scvAddress()) fail("TO_ARG_MISSING");
+  if (Address.fromScAddress(toArg.address()).toString() !== input.expectedRecipient) {
+    fail("RECIPIENT_MISMATCH");
+  }
+  const amountArg = args[2];
+  if (!amountArg) fail("AMOUNT_ARG_MISSING");
+  if (scValToBigInt(amountArg) !== input.expectedAmount) fail("AMOUNT_MISMATCH");
   return { args: [...args], entries };
+}
+
+/** i128 ScVal → bigint. Kiểu khác = entry không phải transfer hợp lệ. */
+function scValToBigInt(value: xdr.ScVal): bigint {
+  const native = scValToNative(value);
+  if (typeof native === "bigint") return native;
+  if (typeof native === "number") return BigInt(native);
+  fail("AMOUNT_ARG_SHAPE");
 }

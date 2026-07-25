@@ -115,7 +115,7 @@ export const guardianInvitesRoute = new Hono()
    * Người được mời nộp ĐỊA CHỈ ví của họ (đã tạo passkey + deploy trên máy HỌ).
    * Cần đăng nhập: địa chỉ phải gắn với một người thật để chủ ví biết ai là ai.
    */
-  .post("/invites/:token/accept", requireAuth, zv("json", acceptBody), async (c) => {
+  .post("/invites/:token/accept", requireAuth, publicLimit, zv("json", acceptBody), async (c) => {
     const user = requireUser(c);
     const body = c.req.valid("json");
     const invite = await repo.findByToken(c.req.param("token"));
@@ -125,12 +125,16 @@ export const guardianInvitesRoute = new Hono()
     ) {
       throw new HTTPException(404, { message: "INVITE_NOT_USABLE" });
     }
-    await repo.markDeployed({
+    // Người thắng cuộc đua là người ghi ĐẦU TIÊN, quyết ở tầng DB. Kiểm trạng
+    // thái phía trên chỉ để trả lỗi đẹp — nó không chống được hai request
+    // đồng thời (cả hai cùng đọc thấy `sent`).
+    const claimed = await repo.markDeployed({
       id: invite.id,
       userId: user.id,
       guardianAddress: body.guardian_address,
       now: new Date(),
     });
+    if (!claimed) throw new HTTPException(409, { message: "INVITE_ALREADY_ACCEPTED" });
     return c.json({ data: { status: "deployed" } });
   })
 

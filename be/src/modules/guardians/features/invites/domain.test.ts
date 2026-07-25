@@ -53,9 +53,26 @@ describe("guardian invites — lời mời còn dùng được", () => {
     ).toBe(false);
   });
 
-  it("còn hạn + chưa xong → dùng được", () => {
+  it("còn hạn + chưa ai nhận → dùng được", () => {
     expect(isUsable({ status: "sent", expiresAt: new Date("2026-08-01T00:00:00Z") }, now)).toBe(
       true,
+    );
+  });
+
+  // Hồi quy audit 2026-07-25 (P0-5). Bản cũ chỉ loại `expired` + `registered`,
+  // nên link VẪN SỐNG sau khi người thân đã nhận lời. Ai có link — chuyển tiếp
+  // trong nhóm chat, xem lỏm màn hình — chỉ cần gọi lại `accept` với địa chỉ
+  // của mình là ghi đè `guardian_address`, rồi chủ ví tự tay ký cho kẻ lạ vào
+  // làm người bảo hộ trên một dòng vẫn mang tên "Mẹ".
+  it("ĐÃ có người nhận (deployed) → link CHẾT, không nhận lại được", () => {
+    expect(isUsable({ status: "deployed", expiresAt: new Date("2026-08-01T00:00:00Z") }, now)).toBe(
+      false,
+    );
+  });
+
+  it("đã mở link (accepted) → cũng không nhận lại được", () => {
+    expect(isUsable({ status: "accepted", expiresAt: new Date("2026-08-01T00:00:00Z") }, now)).toBe(
+      false,
     );
   });
 });

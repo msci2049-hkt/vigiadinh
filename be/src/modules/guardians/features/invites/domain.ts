@@ -45,8 +45,19 @@ export function recoverability(input: {
   };
 }
 
-/** Lời mời còn dùng được không (chưa hết hạn, chưa dùng xong). */
+/**
+ * Lời mời còn dùng được không — DÙNG MỘT LẦN.
+ *
+ * Audit 2026-07-25 (P0-5): bản cũ chỉ loại `expired` và `registered`, nên sau
+ * khi người thân đã nhận lời (`deployed`) thì LINK VẪN SỐNG. Bất cứ ai có link
+ * — chuyển tiếp trong nhóm chat, xem lỏm màn hình, máy dùng chung — chỉ cần
+ * đăng nhập rồi gọi lại `accept` với địa chỉ của MÌNH là ghi đè
+ * `guardian_address`. Chủ ví sau đó bấm "thêm người bảo hộ" trên một dòng vẫn
+ * mang tên "Mẹ" và tự tay ký cho kẻ lạ vào làm người bảo hộ.
+ *
+ * `accepted`/`deployed` đều là ĐÃ DÙNG. Cần mời lại thì tạo lời mời mới.
+ */
 export function isUsable(invite: { status: InviteStatus; expiresAt: Date }, now: Date): boolean {
-  if (invite.status === "expired" || invite.status === "registered") return false;
+  if (invite.status !== "sent") return false;
   return invite.expiresAt.getTime() > now.getTime();
 }

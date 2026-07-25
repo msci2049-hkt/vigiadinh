@@ -44,14 +44,21 @@ export async function findById(id: string): Promise<GuardianInvite | null> {
   return row ?? null;
 }
 
-/** Người được mời nộp ĐỊA CHỈ ví hợp đồng của họ (chỉ public key material). */
+/**
+ * Người được mời nộp ĐỊA CHỈ ví hợp đồng của họ (chỉ public key material).
+ *
+ * So-và-đặt NGUYÊN TỬ: chỉ ăn khi dòng vẫn còn ở `sent`. Kiểm ở tầng handler là
+ * chưa đủ — hai request gửi cùng lúc thì cả hai cùng thấy `sent` rồi cùng ghi,
+ * và người ghi SAU thắng. Điều kiện phải nằm trong chính câu UPDATE.
+ * Trả về false = lời mời đã có người nhận (handler map 409).
+ */
 export async function markDeployed(input: {
   id: string;
   userId: string;
   guardianAddress: string;
   now: Date;
-}): Promise<void> {
-  await db
+}): Promise<boolean> {
+  const rows = await db
     .update(guardianInvites)
     .set({
       status: "deployed",
@@ -59,7 +66,9 @@ export async function markDeployed(input: {
       guardianAddress: input.guardianAddress,
       acceptedAt: input.now,
     })
-    .where(eq(guardianInvites.id, input.id));
+    .where(and(eq(guardianInvites.id, input.id), eq(guardianInvites.status, "sent")))
+    .returning({ id: guardianInvites.id });
+  return rows.length > 0;
 }
 
 /** Sau khi chủ ví ký `add_guardian` on-chain thành công. */
