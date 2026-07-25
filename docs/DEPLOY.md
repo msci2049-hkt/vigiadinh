@@ -24,8 +24,35 @@
 | Vỏ | Origin | Nguồn |
 |---|---|---|
 | Web | `https://<domain-thật>` | domain deploy FE (chưa có → HUMAN-TODO) |
-| APK | `android:apk-key-hash:<hash>` | SHA-256 cert PHÁT HÀNH Play Console (không phải debug) |
+| APK | `android:apk-key-hash:EeIRMfosA0YknpwuGr3ULGIb9qIlUuSPV7_DS8kmx9U` | ✅ ĐÃ SINH 2026-07-25 — xem §Keystore dưới |
 | Extension | `chrome-extension://aakakeieeijeflbnblolnlhmooibddmc` | **key cố định đã chốt** (manifest, PHA 9.1) |
+
+### Keystore phát hành Android (sinh 2026-07-25)
+
+Verifier **KHÔNG có hàm cập nhật allow-list** — `allowed_origins` chỉ nhận ở constructor
+(`contracts/origin-verifier/src/lib.rs:53`). Nên fingerprint APK phải có TRƯỚC khi deploy
+verifier production, kể cả khi chưa build APK. Đã sinh sẵn:
+
+| Mục | Giá trị |
+|---|---|
+| Vị trí | `~/family-wallet-release-keys/` (NGOÀI repo, `chmod 700`) |
+| Keystore | `release.p12` (PKCS12 — Play chấp nhận; mật khẩu tạm `CHANGE_ME_BEFORE_USE`) |
+| SHA-256 (dạng `keytool -printcert`) | `11:E2:11:31:FA:2C:03:46:24:9E:9C:2E:1A:BD:D4:2C:62:1B:F6:A2:25:52:E4:8F:57:BF:C3:4B:C9:26:C7:D5` |
+| `android:apk-key-hash` | `EeIRMfosA0YknpwuGr3ULGIb9qIlUuSPV7_DS8kmx9U` |
+
+Sinh bằng `openssl` (máy build không có `keytool`/JDK). Kiểm lại bất cứ lúc nào:
+
+```bash
+openssl x509 -in ~/family-wallet-release-keys/release-cert.pem -outform DER   | openssl dgst -sha256 -binary | base64 | tr '+/' '-_' | tr -d '='
+```
+
+⚠️ **BA việc người phải làm trước khi dùng thật:**
+1. **Đổi mật khẩu keystore** (`CHANGE_ME_BEFORE_USE` là giá trị đặt chỗ) và chuyển file vào
+   nơi cất khoá thật của bạn — thư mục home của máy build không phải chỗ cất khoá phát hành.
+2. **Sao lưu.** Mất keystore sau khi deploy verifier = phải deploy verifier MỚI (fingerprint
+   đổi → allow-list cũ vô dụng) và mọi passkey đã tạo theo verifier cũ thành rác.
+3. Nếu muốn dùng khoá do máy khác sinh (HSM, Play App Signing) thì **sinh trước, lấy
+   fingerprint, thay hai dòng trên** — đừng deploy verifier rồi mới đổi khoá.
 
 ⚠️ Extension ID trên là CỐ ĐỊNH nhờ `key` trong `extension/manifest.json` — không đổi giữa
 dev/store. Private key sinh ra NẰM NGOÀI repo (scratchpad, chỉ cần để tự-host .crx; CWS + unpacked
@@ -52,6 +79,12 @@ không cần). Sinh lại nếu mất: `openssl genrsa 2048 | openssl rsa -pubou
 Bảng tx hash đầy đủ: `docs/evidence/TESTNET.md`.
 
 ## TTL / state archival (ĐÃ DỰNG 2026-07-24 — trước đó KHÔNG tồn tại ở đâu)
+
+> **Đính chính 2026-07-25 — mức độ nghiêm trọng thấp hơn ghi ban đầu.** Từ
+> Protocol 23 (CAP-0066) entry archive được TỰ ĐỘNG khôi phục khi nằm trong
+> footprint của `InvokeHostFunctionOp`, nên quên gia hạn KHÔNG làm mất ví —
+> chỉ phát sinh phí khôi phục ở lần dùng tiếp theo. Cron dưới đây là tối ưu
+> phí. Chi tiết + hướng dẫn cho người thừa kế: `docs/INHERITANCE.md`.
 
 - `extend_ttl` có ở CẢ HAI contract; registry còn gia hạn mỗi lần ĐỌC (khuôn OZ).
 - Cron `be/src/jobs/ttl-keeper.ts` — 03:00 UTC hằng ngày, ví phí trả, lỗi một ví không

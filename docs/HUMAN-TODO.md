@@ -16,7 +16,7 @@ rpId = domain — luật K1). Khi có domain `<DOMAIN>` (vd `vigiadinh.com`):
 cd contracts && stellar contract build
 RP_ID=<DOMAIN> \
 ORIGIN_WEB=https://<DOMAIN> \
-ORIGIN_APK="android:apk-key-hash:<SHA256-CERT-PHÁT-HÀNH>"  \
+ORIGIN_APK="android:apk-key-hash:EeIRMfosA0YknpwuGr3ULGIb9qIlUuSPV7_DS8kmx9U" \
 ORIGIN_EXT="chrome-extension://aakakeieeijeflbnblolnlhmooibddmc" \
 SOURCE=<alias-khoá-mainnet> NETWORK=mainnet \
 ./scripts/deploy-origin-verifier.sh
@@ -27,8 +27,10 @@ SOURCE=<alias-khoá-mainnet> NETWORK=mainnet \
 #   - public/.well-known/assetlinks.json + apple-app-site-association (khi có APK/iOS)
 ```
 
-Hai origin phụ (APK, extension) chỉ cần khi thật sự phát hành app/extension:
-- **APK**: `<SHA256-CERT-PHÁT-HÀNH>` từ Play Console (cert release, KHÔNG phải debug).
+Hai origin phụ (APK, extension) đã CÓ SẴN giá trị — không còn chờ ai:
+- **APK**: fingerprint từ keystore đã sinh 2026-07-25 (`docs/DEPLOY.md` §Keystore). Nếu bạn
+  muốn dùng khoá khác (Play App Signing / HSM) thì **thay giá trị TRƯỚC khi deploy verifier** —
+  allow-list nạp lúc deploy và không sửa được sau đó.
 - **Extension**: ID `aakakeieeijeflbnblolnlhmooibddmc` đã CỐ ĐỊNH (key trong manifest) —
   không cần đổi giữa dev/store.
 

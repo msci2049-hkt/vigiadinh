@@ -1,12 +1,18 @@
-// Cron GIA HẠN TTL (P0 §3 — 2026-07-24): Soroban ARCHIVE mọi entry hết TTL.
+// Cron GIA HẠN TTL — TỐI ƯU PHÍ, không phải điểm chết (đính chính 2026-07-25).
 //
-// Vì sao job này tồn tại, viết ra để đời sau đừng gỡ: OZ tự gia hạn entry
-// persistent của nó mỗi lần ĐỌC, nên ví đang được dùng tự lành. Nhưng sản phẩm
-// này có một loại ví được thiết kế để NẰM IM nhiều tháng — ví thừa kế. Không ai
-// đọc thì không ai gia hạn; instance storage của ví (dây nối registry, owner
-// rule id, mốc xoay khoá) thì KHÔNG có đường tự lành nào cả. Hết TTL = tiền còn
-// nguyên trên chain nhưng không ai mở được, đúng vào lúc gia đình cần nhất.
-// Đây là sự cố production kinh điển của Soroban, không phải rủi ro lý thuyết.
+// Đọc kỹ trước khi sửa hoặc gỡ: job này KHÔNG phải thứ giữ cho ví sống. Từ
+// Protocol 23 (CAP-0066), entry đã archive được TỰ ĐỘNG khôi phục khi xuất hiện
+// trong footprint của `InvokeHostFunctionOp` — danh sách khôi phục do simulation
+// qua RPC tự điền. Nghĩa là người thừa kế nhiều năm sau cứ gọi hợp đồng như bình
+// thường, dữ liệu sống lại trong chính giao dịch đó (chỉ tốn phí khôi phục).
+// Công ty giải thể KHÔNG brick ví. Xem docs/INHERITANCE.md.
+//
+// Việc job này làm: gia hạn định kỳ để dữ liệu hiếm khi rơi vào trạng thái
+// archive, nên người dùng không gặp khoản phí khôi phục bất ngờ. Đó là tiện
+// lợi và tiết kiệm, không phải sống còn.
+//
+// CẤM ghi ở bất cứ đâu rằng "cron chết thì mất ví" — sai, và làm người đọc sợ
+// nhầm chỗ.
 //
 // Chạy MỖI NGÀY 03:00 UTC. Ví phí trả — người dùng không phải biết chuyện này.
 // Lỗi MỘT ví không được làm hỏng lượt của ví khác (một ví chưa deploy/đã archive
