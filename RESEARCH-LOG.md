@@ -172,3 +172,14 @@
   ví CHƯA deploy không ký được (luồng /passkey createCta cũ là dead-end; spec
   passkey-login skip có chủ đích, createCta nên trỏ về /setup).
 - Mâu thuẫn skill? Không — fw-passkey-auth đúng; bổ sung được chi tiết kit 0.4.2.
+
+## 2026-07-25 · UI rebuild notes
+
+- Lucide hiện tại dùng tên export `FingerprintPattern`, `CircleCheck`, `CircleX`,
+  `TriangleAlert`, `LoaderCircle`; lớp `family/icon.tsx` giữ một map cố định sang tên semantic
+  của sản phẩm và ép stroke 1.5 để các màn không tự chọn icon tùy ý.
+- Repo FE khai báo pnpm 9.15.9. pnpm global 11 có thể bị Turbo gọi lại và làm honest build sai
+  phiên bản; gate tái lập bằng một shim tạm gọi `corepack pnpm`, sau đó xóa shim khỏi worktree.
+- Không dùng chuỗi dịch làm React `key`: i18next có thể render chuỗi rỗng trước khi namespace
+  sẵn sàng, tạo key trùng và làm React giữ lại hàng rỗng. Dùng enum/icon/index ổn định cho các
+  danh sách tĩnh; QA DOM sạch xác nhận 3 mục thực, không còn 5 node.

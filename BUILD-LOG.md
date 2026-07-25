@@ -985,3 +985,22 @@ của brief giữ nguyên tuyệt đối (0 optimistic, 0 persist chạm tiền)
 - QA-2 SSE: N/A (không consumer). QA-6 số dư: app CHƯA có màn số dư (không endpoint) — bảo đảm
   tương đương (không cache xuyên phiên) đã kiểm ở QA-3. QA-8 timeout: kiểm bằng 7 unit test máy
   trạng thái; e2e browser cần phiên passkey thật — để CI/thiết bị thật.
+
+## §UI-39 — 2026-07-25
+
+- Đã scan FE 220 file nguồn và BE 248 file nguồn trước khi sửa; đối chiếu route, query,
+  mutation, API client và endpoint BE. Phạm vi triển khai chỉ là UX/UI, không đổi API,
+  state machine, passkey, ký Stellar, guard chống ký mù hay đích điều hướng.
+- Hoàn tất hệ thống giao diện FamilyWallet cho đủ 39 màn trong bộ thiết kế, đồng thời đồng bộ
+  hai route vận hành thật `/guardian/accept` và `/guardian/initiate`.
+- Thêm token 3 tầng, font local Fraunces/Inter/JetBrains Mono, bộ button đầy đủ trạng thái,
+  component dùng chung, ảnh nhân vật/mascot/avatar sinh riêng và Open Graph image.
+- i18n en/vi/zh đạt **432/432/432 key**. Phát hiện và sửa lỗi React key phụ thuộc bản dịch:
+  namespace tải chậm từng làm sót hai hàng rỗng ở `/get-started` và `/recovery`.
+- QA mobile 390×844: `/welcome`, `/get-started`, `/passkey`, `/recovery` không tràn trang;
+  CTA chính y=684, CTA phụ y=752. Lỗi console còn lại đến từ Chrome extension, không thuộc app.
+- Gate FE: validate xanh 11/11 task; **108/108 test pass**; production PWA build pass
+  (3.052 module, 123 precache entry). Cảnh báo cũ: test send-machine có React `act(...)`;
+  locale common vừa static vừa dynamic import.
+- Gate BE: `bun run validate` pass. Bộ test đầy đủ vướng timeout Windows có sẵn tại
+  `deploy/backup.test.ts` (process không trả exit code trong giới hạn 5 giây), không phải lỗi UI.
