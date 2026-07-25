@@ -96,11 +96,24 @@ export function defineAppConfig({ srcDir, port = 5173, test = {}, sentryProject,
           // FUNCTION form: Vite 8 bundles with rolldown, which rejects the
           // object form ("manualChunks is not a function").
           manualChunks(id) {
+            // Helper __vitePreload là module ảo dùng bởi MỌI chunk có dynamic
+            // import. Không ghim thì rolldown có thể nhét nó vào một manual
+            // chunk lazy (đã dính: rơi vào vendor-stellar → cả 444K thành
+            // eager-preload). Ghim vào vendor-react — chunk eager sẵn.
+            if (id.includes("vite/preload-helper")) {
+              return "vendor-react";
+            }
             if (/[\\/]node_modules[\\/](?:react|react-dom|scheduler)[\\/]/.test(id)) {
               return "vendor-react";
             }
             if (/[\\/]node_modules[\\/]@tanstack[\\/]/.test(id)) {
               return "vendor-tanstack";
+            }
+            // Cục nặng nhất của ví (~115K gz) và ít đổi nhất — tách tên riêng để
+            // CDN cache sống qua các deploy đổi app-code. Vẫn LAZY: chỉ các route
+            // ký/passkey import nó; manualChunks không đổi eagerness.
+            if (/[\\/]node_modules[\\/](?:@stellar|smart-account-kit)[\\/]/.test(id)) {
+              return "vendor-stellar";
             }
             return undefined;
           },
