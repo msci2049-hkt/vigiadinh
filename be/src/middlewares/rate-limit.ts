@@ -11,6 +11,7 @@
 import type { Context, MiddlewareHandler } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { RateLimiterRedis, type RateLimiterRes } from "rate-limiter-flexible";
+import { env } from "@/env";
 import { logger } from "@/lib/logger";
 import { rateLimitConnection } from "@/lib/redis";
 
@@ -24,13 +25,20 @@ export type RateLimitOptions = {
 };
 
 function defaultKey(c: Context): string {
-  // Ưu tiên user.id (per-user quota chính xác). Fallback IP — cf-connecting-ip
-  // do Cloudflare set (trusted), x-forwarded-for có thể spoof nếu không qua
-  // proxy. Lấy IP đầu trong XFF (client gốc, không phải proxy chain).
+  // Ưu tiên user.id (per-user quota chính xác).
   const userId = c.get("user")?.id;
   if (userId) return `u:${userId}`;
-  const cf = c.req.header("cf-connecting-ip");
-  if (cf) return `ip:${cf.trim()}`;
+  // Audit 2026-07-25 (P1-1): bản cũ tin `cf-connecting-ip` TRƯỚC TIÊN. Header
+  // đó do client gửi và nginx của dự án KHÔNG ghi đè (vhost chỉ ghi đè
+  // X-Real-IP + X-Forwarded-For), nên chỉ cần đổi header mỗi lần gọi là mỗi
+  // request rơi vào một xô đếm khác — mọi giới hạn trên các cửa CHƯA đăng nhập
+  // (đăng nhập SEP-45, yêu cầu khôi phục công khai, dò token lời mời) coi như
+  // không tồn tại. Chỉ tin nó khi vận hành khẳng định đứng sau Cloudflare thật.
+  if (env.TRUST_CF_CONNECTING_IP) {
+    const cf = c.req.header("cf-connecting-ip");
+    if (cf) return `ip:${cf.trim()}`;
+  }
+  // XFF được reverse proxy của ta ghi đè bằng $remote_addr (deploy/nginx.vhost).
   const xff = c.req.header("x-forwarded-for");
   if (xff) return `ip:${xff.split(",")[0]?.trim() ?? "unknown"}`;
   return "ip:unknown";

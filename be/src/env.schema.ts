@@ -26,6 +26,13 @@ export const envShape = {
   // Số web process cluster.ts spawn (reusePort). TƯỜNG MINH — KHÔNG nproc:
   // trong container nproc = core HOST (sai khi giới hạn --cpus). Dev = 1.
   WEB_INSTANCES: z.coerce.number().int().positive().default(1),
+  // Chỉ bật khi app THỰC SỰ đứng sau Cloudflare (CF ghi đè header này ở biên).
+  // Mặc định false: header do client gửi, tin nó là mọi rate-limit theo IP trên
+  // các cửa chưa đăng nhập bị vô hiệu chỉ bằng cách đổi header (audit P1-1).
+  TRUST_CF_CONNECTING_IP: z
+    .string()
+    .optional()
+    .transform((v) => v === "true"),
   // max_connections THẬT của Postgres (compose default 100). Pool-budget refuse
   // boot nếu (WEB_INSTANCES+1)×DB_POOL_MAX > 80%×giá trị này.
   PG_MAX_CONNECTIONS: z.coerce.number().int().positive().default(100),

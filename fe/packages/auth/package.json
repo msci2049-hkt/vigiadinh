@@ -11,7 +11,7 @@
     "validate": "tsc --noEmit"
   },
   "dependencies": {
-    "better-auth": "^1.6.20"
+    "better-auth": "^1.6.22"
   },
   "peerDependencies": {
     "@tanstack/react-query": "^5.101.0",
