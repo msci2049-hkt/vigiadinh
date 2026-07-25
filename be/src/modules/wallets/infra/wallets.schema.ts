@@ -35,6 +35,12 @@ export const wallets = pgTable(
     contractId: varchar("contract_id", { length: 56 }),
     threshold: integer("threshold").notNull().default(2),
     timelockSecs: integer("timelock_secs").notNull().default(86400),
+    // Closeout 2026-07-25 §4 — SỐ HIỆU PHIÊN VÍ, để THU HỒI được JWT SEP-45.
+    // Khoá cũ mất quyền on-chain ngay khi recovery xoay khoá, nhưng JWT đã phát
+    // thì tự chứng (HS256 + exp) — không có nơi nào tra để chối nó. Tăng cột này
+    // khi recovery hoàn tất là mọi JWT phát trước đó chết tức thì, vì `ver` trong
+    // claims không còn khớp. Rẻ hơn nhiều so với danh sách đen từng token.
+    jwtVersion: integer("jwt_version").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({

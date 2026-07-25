@@ -14,6 +14,11 @@ export type Sep45Deps = {
   simulator: ChallengeSimulator;
   /** Ledger hiện tại từ RPC (getLatestLedger). */
   latestLedger(): Promise<number>;
+  /**
+   * Số hiệu phiên ví hiện tại (`wallets.jwt_version`) — nhúng vào claims để token
+   * thu hồi được khi recovery xoay khoá (closeout §4). `null` = không biết ví này.
+   */
+  walletVersion(walletAddress: string): Promise<number | null>;
   now?: () => number;
 };
 
@@ -80,6 +85,12 @@ export async function verifyChallengeAndIssueJwt(
     throw new Sep45ValidationError(`SIMULATION_FAILED:${simulationError}`);
   }
 
+  // Số hiệu phiên PHẢI có mặt trong claims, nếu không token vừa phát đã không thu
+  // hồi được. Ví không có trong DB → chối luôn: không có mốc nào để so sau này, mà
+  // phát một token vĩnh viễn-không-thu-hồi thì tệ hơn là bắt người dùng thử lại.
+  const version = await deps.walletVersion(validated.account);
+  if (version === null) throw new Sep45ValidationError("WALLET_UNKNOWN");
+
   const now = deps.now ? deps.now() : Math.floor(Date.now() / 1000);
   const claims: WalletJwtClaims = {
     iss: config.webAuthDomain,
@@ -88,6 +99,7 @@ export async function verifyChallengeAndIssueJwt(
     exp: now + config.jwtTtlSeconds,
     jti: createHash("sha256").update(validated.nonce).digest("hex"),
     home_domain: config.homeDomain,
+    ver: version,
     ...(bound.device ? { device: bound.device } : {}),
   };
   return { token: signWalletJwt(deps.jwtSecret, claims) };

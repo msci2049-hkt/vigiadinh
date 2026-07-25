@@ -45,6 +45,13 @@ export type WalletJwtClaims = {
   home_domain: string;
   /** Bind thiết bị (P1-9/checklist): device_id client khai lúc xin challenge. */
   device?: string;
+  /**
+   * SỐ HIỆU PHIÊN VÍ lúc phát (`wallets.jwt_version`) — closeout §4. Recovery hoàn
+   * tất thì cột kia tăng, `ver` này thành cũ, token chết ngay dù `exp` còn xa.
+   * Optional trong type vì token phát TRƯỚC bản này không có nó — và thiếu là bị
+   * chối, xem `verifyWalletJwtCurrent`.
+   */
+  ver?: number;
 };
 
 /** Nonce store — Redis SET NX EX thật; test tiêm bản in-memory. */

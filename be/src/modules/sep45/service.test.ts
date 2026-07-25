@@ -2,7 +2,7 @@
 // happy path đủ vòng challenge→token, replay nonce, simulate fail, account tráo.
 import { describe, expect, it } from "bun:test";
 import { Keypair, StrKey } from "@stellar/stellar-sdk";
-import { verifyWalletJwt } from "./jwt";
+import { verifyWalletJwtSignatureOnly } from "./jwt";
 import { createChallenge, type Sep45Deps, verifyChallengeAndIssueJwt } from "./service";
 import type { ChallengeSimulator, NonceStore, Sep45Config } from "./types";
 
@@ -47,6 +47,8 @@ function makeDeps(
     nonces: memoryNonceStore(),
     simulator: simulator ?? { simulate: async () => null },
     latestLedger: async () => 1000,
+    // Closeout §4: ví trong test luôn ở số hiệu phiên 0 trừ khi ca test đổi.
+    walletVersion: async () => 0,
   };
 }
 
@@ -61,7 +63,7 @@ describe("sep45 service", () => {
     const { token } = await verifyChallengeAndIssueJwt(deps, {
       entriesXdrBase64: challenge.authorization_entries,
     });
-    const claims = verifyWalletJwt(JWT_SECRET, token);
+    const claims = verifyWalletJwtSignatureOnly(JWT_SECRET, token);
     expect(claims?.sub).toBe(ACCOUNT);
     expect(claims?.device).toBe("device-abc-123");
     expect(claims?.home_domain).toBe("localhost:5173");

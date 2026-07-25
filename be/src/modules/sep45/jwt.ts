@@ -19,8 +19,17 @@ export function signWalletJwt(secret: string, claims: WalletJwtClaims): string {
   return `${body}.${hmac(secret, body).toString("base64url")}`;
 }
 
-/** Trả claims nếu token hợp lệ + chưa hết hạn; ngược lại null (route map 401). */
-export function verifyWalletJwt(secret: string, token: string): WalletJwtClaims | null {
+/**
+ * Kiểm CHỮ KÝ + HẠN, KHÔNG kiểm thu hồi. `internal` vì dùng một mình là thiếu:
+ * xem [`verifyWalletJwtCurrent`].
+ *
+ * Để `export` (không `private`) chỉ vì test đơn vị soi riêng phần crypto; mọi
+ * đường dùng thật phải đi qua bản có kiểm số hiệu phiên.
+ */
+export function verifyWalletJwtSignatureOnly(
+  secret: string,
+  token: string,
+): WalletJwtClaims | null {
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   const [header, payload, signature] = parts as [string, string, string];
@@ -41,5 +50,40 @@ export function verifyWalletJwt(secret: string, token: string): WalletJwtClaims 
   }
   if (typeof claims.sub !== "string" || typeof claims.exp !== "number") return null;
   if (claims.exp <= Math.floor(Date.now() / 1000)) return null;
+  return claims;
+}
+
+/** Tra số hiệu phiên hiện tại của ví (`sub`). `null` = không biết ví này. */
+export type WalletVersionLookup = (walletAddress: string) => Promise<number | null>;
+
+/**
+ * Cửa DUY NHẤT được phép dùng để nhận một JWT ví (closeout §4).
+ *
+ * Ngoài chữ ký + hạn, nó đòi `ver` trong claims khớp `jwt_version` hiện tại trong
+ * DB. Vì sao cần: JWT HS256 là token TỰ CHỨNG — sau khi phát, không có gì tra để
+ * chối nó cho tới lúc `exp`. Recovery xoay khoá thì thiết bị cũ mất quyền KÝ ngay
+ * (on-chain cưỡng chế), nhưng vẫn ĐỌC được bằng JWT cũ tới hết TTL. Custody chặn
+ * mất tiền; nó không chặn đọc dữ liệu phiên của gia đình.
+ *
+ * Vì sao API bắt buộc truyền `lookup` thay vì có bản "tiện" không kiểm: cửa này
+ * hiện CHƯA có route nào gọi (JWT ví được phát ở /api/sep45/token nhưng chưa
+ * middleware nào tiêu thụ). Nếu để sẵn một hàm verify không kiểm thu hồi thì người
+ * nối dây sau sẽ gọi đúng cái đó — và lỗ mở ra đúng lúc token bắt đầu có giá trị.
+ * Bắt buộc từ trong chữ ký hàm là cách duy nhất chắc chắn.
+ *
+ * Fail-closed: ví không tra được (`null`) hoặc `ver` thiếu/lệch đều trả `null`.
+ * Token phát TRƯỚC khi có cột này không có `ver` → bị chối, đúng ý: chúng thuộc
+ * thời kỳ không thu hồi được.
+ */
+export async function verifyWalletJwtCurrent(
+  secret: string,
+  token: string,
+  lookup: WalletVersionLookup,
+): Promise<WalletJwtClaims | null> {
+  const claims = verifyWalletJwtSignatureOnly(secret, token);
+  if (claims === null) return null;
+  if (typeof claims.ver !== "number") return null;
+  const current = await lookup(claims.sub);
+  if (current === null || current !== claims.ver) return null;
   return claims;
 }

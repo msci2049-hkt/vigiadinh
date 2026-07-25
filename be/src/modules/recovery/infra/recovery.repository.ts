@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNotNull, ne } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { guardians } from "../../guardians/infra/guardians.schema";
 // Ngoại lệ TẦNG SCHEMA có chủ đích (như intents.repository): audit + notify ghi cùng nơi.
@@ -63,6 +63,35 @@ export async function appendOnchainAudit(entry: {
 export async function walletByStellarAddress(address: string): Promise<Wallet | null> {
   const [row] = await db.select().from(wallets).where(eq(wallets.stellarAddress, address)).limit(1);
   return row ?? null;
+}
+
+/**
+ * THU HỒI mọi JWT ví đã phát (closeout §4): tăng số hiệu phiên một bậc.
+ *
+ * Gọi khi recovery hoàn tất. Sau `recovery_rotate`, thiết bị cũ mất quyền KÝ ngay
+ * (on-chain), nhưng JWT phát trước đó vẫn tự chứng tới hết `exp` — kẻ chiếm thiết
+ * bị cũ hết ký được nhưng chưa hết ĐỌC. Tăng bậc ở đây làm chúng chết ngay.
+ *
+ * Trả về số hiệu mới để caller ghi nhật ký; `UPDATE ... RETURNING` nên nguyên tử,
+ * không đọc-rồi-ghi (hai recovery song song vẫn không mất bậc nào).
+ */
+export async function bumpWalletJwtVersion(walletId: string): Promise<number | null> {
+  const [row] = await db
+    .update(wallets)
+    .set({ jwtVersion: sql`${wallets.jwtVersion} + 1` })
+    .where(eq(wallets.id, walletId))
+    .returning({ v: wallets.jwtVersion });
+  return row?.v ?? null;
+}
+
+/** Số hiệu phiên hiện tại theo địa chỉ ví — cửa verify JWT tra ở đây. */
+export async function jwtVersionByStellarAddress(address: string): Promise<number | null> {
+  const [row] = await db
+    .select({ v: wallets.jwtVersion })
+    .from(wallets)
+    .where(eq(wallets.stellarAddress, address))
+    .limit(1);
+  return row?.v ?? null;
 }
 
 /** Máy mới gõ cửa: MỖI ví một request mở — cái mới đè cái cũ (superseded),

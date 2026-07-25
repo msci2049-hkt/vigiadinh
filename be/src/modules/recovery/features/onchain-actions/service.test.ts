@@ -313,6 +313,51 @@ describe("recovery onchain service (DB thật + gateway fake)", () => {
     expect(calls.invoke).toHaveLength(1);
   });
 
+  // Closeout §4 — finalize THU HỒI mọi JWT ví đã phát. Đây là nửa còn thiếu của
+  // "khoá cũ mất quyền": on-chain nó mất quyền KÝ ngay, nhưng JWT tự chứng thì
+  // không ai chối được cho tới `exp` nếu số hiệu phiên không tăng.
+  testIt("finalize thành công → tăng jwt_version (thu hồi phiên cũ)", async () => {
+    const walletId = await seedWallet();
+    const before = await db
+      .select({ v: wallets.jwtVersion })
+      .from(wallets)
+      .where(eq(wallets.id, walletId));
+
+    await finalizeRecovery(fakeGateway().gateway, REGISTRY, {
+      walletId,
+      userId: OWNER_USER,
+    });
+
+    const after = await db
+      .select({ v: wallets.jwtVersion })
+      .from(wallets)
+      .where(eq(wallets.id, walletId));
+    expect(after[0]?.v).toBe((before[0]?.v ?? 0) + 1);
+  });
+
+  // Ngược lại: tx KHÔNG thành công thì KHÔNG được giết phiên. Xoay khoá thất bại mà
+  // vẫn đăng xuất cả nhà là biến một lỗi hạ tầng thành một sự cố người dùng.
+  testIt("finalize KHÔNG thành công → jwt_version giữ nguyên", async () => {
+    const walletId = await seedWallet();
+    const before = await db
+      .select({ v: wallets.jwtVersion })
+      .from(wallets)
+      .where(eq(wallets.id, walletId));
+
+    const { gateway } = fakeGateway({
+      async invoke() {
+        return { hash: "h".repeat(64), status: "FAILED" };
+      },
+    });
+    await finalizeRecovery(gateway, REGISTRY, { walletId, userId: OWNER_USER });
+
+    const after = await db
+      .select({ v: wallets.jwtVersion })
+      .from(wallets)
+      .where(eq(wallets.id, walletId));
+    expect(after[0]?.v).toBe(before[0]?.v ?? 0);
+  });
+
   // Trần phí per-tx (hàng rào 3) phải THẬT SỰ tới được ví phí, không chỉ tồn tại
   // dưới dạng hàm. Đợt 1 viết `assertFeeWithinCap` nhưng hai cửa người dùng gọi
   // truyền `undefined` → hàm return ngay, tức trần chỉ là trang trí.

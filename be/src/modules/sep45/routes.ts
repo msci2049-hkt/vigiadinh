@@ -9,7 +9,7 @@ import { rateLimit } from "@/middlewares/rate-limit";
 import { zv } from "@/middlewares/validator";
 import { challengeQuery, tokenBody } from "./dto";
 import { Sep45ValidationError } from "./entries";
-import { redisNonceStore, rpcLatestLedger, rpcSimulator } from "./infra";
+import { redisNonceStore, rpcLatestLedger, rpcSimulator, walletJwtVersion } from "./infra";
 import { createChallenge, type Sep45Deps, verifyChallengeAndIssueJwt } from "./service";
 import type { Sep45Config } from "./types";
 
@@ -37,6 +37,7 @@ function resolveDeps(): Sep45Deps {
     nonces: redisNonceStore,
     simulator: rpcSimulator(config),
     latestLedger: rpcLatestLedger(config),
+    walletVersion: walletJwtVersion,
   };
 }
 

@@ -1,10 +1,29 @@
 // Adapter THẬT cho service SEP-45: nonce store trên Dragonfly + simulator qua rpc.Server.
 // Tách khỏi service để test service hermetic (tiêm fake qua Sep45Deps).
 import { BASE_FEE, Operation, rpc, TransactionBuilder } from "@stellar/stellar-sdk";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
 import { logger } from "@/lib/logger";
 import { rateLimitConnection } from "@/lib/redis";
+// Ngoại lệ TẦNG SCHEMA có chủ đích, cùng tiền lệ recovery.repository: đọc MỘT cột
+// của bảng wallets. Không đi qua facade module wallets vì đây là truy vấn hạ tầng
+// một dòng, không phải nghiệp vụ ví — và facade đó không phơi jwt_version.
+import { wallets } from "../wallets/infra/wallets.schema";
 import { argsToScVal, decodeEntriesXdr, WEB_AUTH_FN } from "./entries";
 import type { ChallengeArgs, ChallengeSimulator, NonceStore, Sep45Config } from "./types";
+
+/**
+ * Số hiệu phiên ví hiện tại (closeout §4) — nguồn cho `ver` lúc phát JWT và cho
+ * cửa verify lúc nhận. `null` = không có ví này trong DB → không phát/không nhận.
+ */
+export async function walletJwtVersion(walletAddress: string): Promise<number | null> {
+  const [row] = await db
+    .select({ v: wallets.jwtVersion })
+    .from(wallets)
+    .where(eq(wallets.stellarAddress, walletAddress))
+    .limit(1);
+  return row?.v ?? null;
+}
 
 // Dùng rateLimitConnection (enableOfflineQueue=false, fail-fast): nonce auth cùng
 // profile với rate-limit — Dragonfly chết thì trả lỗi ngay, không treo request.

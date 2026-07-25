@@ -231,12 +231,25 @@ export async function finalizeRecovery(
     authEntries: [],
     maxFeeStroops: FEE_CAP_STROOPS,
   });
+  // THU HỒI phiên cũ (closeout §4) — finalize là đúng lúc khoá bên trong ví đổi.
+  // Sau bước này thiết bị cũ hết KÝ được (on-chain cưỡng chế), nhưng JWT ví đã phát
+  // vẫn tự chứng tới hết `exp` nếu không tăng số hiệu. Tăng TRƯỚC khi ghi nhật ký
+  // để nhật ký chở luôn số hiệu mới, và chỉ tăng khi tx đã SUCCESS — xoay khoá thất
+  // bại mà vẫn giết phiên là làm cả nhà đăng xuất vô cớ.
+  const newVersion =
+    result.status === "SUCCESS" ? await repo.bumpWalletJwtVersion(wallet.id) : null;
+
   await repo.appendOnchainAudit({
     walletId: wallet.id,
     kind: "recovery.onchain.submitted",
     actorType: role,
     actorId: input.userId,
-    payload: { method: RECOVERY_METHODS.finalize, hash: result.hash, status: result.status },
+    payload: {
+      method: RECOVERY_METHODS.finalize,
+      hash: result.hash,
+      status: result.status,
+      ...(newVersion === null ? {} : { jwtVersion: newVersion }),
+    },
   });
   return { method: RECOVERY_METHODS.finalize, ...result };
 }
