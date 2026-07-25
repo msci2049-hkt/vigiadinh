@@ -54,8 +54,8 @@ TRONG smart account** (audit P0); AI chưa nối; két di chúc ĐÃ HỦY (bấ
 | Kẻ địch | Đòn đỡ | Cưỡng chế |
 |---|---|---|
 | Chiếm BE, cố rút tiền | BE build+simulate nhưng KHÔNG ký được của user; ví phí chỉ ký ENVELOPE | Chữ ký `from` qua `__check_auth` passkey; whitelist /sign chặn source-account credentials (ví phí tự authorize) |
-| Ký mù (tráo nội dung tx sau khi người dùng đồng ý) | Challenge dẫn xuất từ tx đã simulate (K2) — kit derive digest từ entry; sửa amount/recipient = entry khác = chữ ký cũ chết | `send-flow` build tx → FE ký entry đó; `validateSignedTransfer` khớp SAC+transfer+from |
-| Vượt hạn mức lén | Policy gate → awaiting_guardian, phiếu bound challenge_hash (K5); guardian duyệt off-chain rồi owner MỚI ký | `confirmSend` + `guardianApproveIntent` (P3 re-eval); amount đổi sau duyệt → K5 binding chết |
+| Ký mù (tráo nội dung tx sau khi người dùng đồng ý) | FE **giải mã entry rồi so với thứ người dùng vừa gõ** trước khi ký (audit 2026-07-25 P0-1) | `lib/auth-entry-guard.ts` so `to`+`amount`+contract với **state cục bộ** của màn gửi, KHÔNG với giá trị backend echo; BE `validateSignedTransfer` so tiếp với intent |
+| Vượt hạn mức lén | Policy gate → awaiting_guardian, phiếu bound challenge_hash (K5); **và bước nộp cuối kiểm lại entry với intent** | `confirmSend` + `guardianApproveIntent` (P3 re-eval); `validateSignedTransfer` so `to`+`amount`; `assertTransition` dùng trạng thái THẬT của intent |
 | Người nhận lạ | Policy v1: recipient chưa từng settled → require_guardian (mặc định an toàn) | `policy-engine` unknown_recipient |
 | Double-tap / gửi 2 lần | intent idempotent (unique wallet+client_intent_id); state machine 1 chiều submitting→settled | `createIdempotent` + `assertTransition` |
 | Số dư thiếu → tạo tx rác | Kiểm số dư TRƯỚC khi tạo signable tx; thiếu → chặn ở validating, không sang review | `prepareSend` (đọc SAC.balance trước biometric) |
@@ -67,12 +67,22 @@ Chứng minh on-chain: e2e testnet gửi 1 XLM từ ví C…, người nhận nh
 - K1 origin allow-list (3 vỏ): `origin-verifier` cargo test; production pin domain thật (TODO khi có domain).
 - K2 challenge dẫn xuất từ tx: kit `signAuthEntry` + digest OZ; **chứng minh on-chain** ở e2e P0
   (ed25519) VÀ §PASSKEY-ONCHAIN (secp256r1 thật — cùng đường digest, khác verifier).
+  ⚠️ **K2 KHÔNG phải phòng tuyến chống ký mù** — audit 2026-07-25 đã tính công cho nó quá tay.
+  K2 ràng chữ ký vào *entry đã ký*; nó không nói entry đó có đúng *thứ người dùng thấy* hay
+  không. Việc đó là của `lib/auth-entry-guard.ts` (FE) + kiểm entry-vs-intent (BE).
 - K5 approval binding: `intents` `challenge_hash` (sửa amount → binding chết, test `approval-flow`).
 - Fingerprint khoá mới: **vector chéo Rust↔TS pin cứng** (`signer_fingerprint_cross_language_vector`).
 - Audit append-only: TRIGGER Postgres (migration 0002), UPDATE/DELETE chết thật (test integration).
 - Indexer là người ghi DUY NHẤT của mirror; sống sót restart giữa batch (checkpoint atomic).
 
 ## Còn hở — khai thẳng (chưa xong, không phải đã an toàn)
+
+- **Audit toàn diện 2026-07-25** (`docs/security/AUDIT-2026-07-25.md`): 7 lỗ hổng P0 đã vá kèm
+  test hồi quy, còn **5 P1 mở** — trong đó `recovery_rotate` thêm-trước-xoá và TTL keeper bỏ sót
+  `SignerData` của OZ đều dẫn tới **ví hỏng vĩnh viễn không sửa được**. Contract đã đổi shape
+  (`RecoveryRequest.expires_at`, mã lỗi 17/18/108) nên **phải deploy lại testnet + chạy lại e2e**
+  trước khi tin bất kỳ bằng chứng on-chain cũ nào.
+- **Ký mù ở `guardian/approve` và `block/confirm`** vẫn chưa chốt bằng `auth-entry-guard`.
 
 - **origin-verifier production** còn là bản DEV localhost — chưa pin 3 origin domain thật (chờ domain).
 - **Đường ký WebAuthn qua kit vào contract — ĐÃ CHỨNG MINH ON-CHAIN** (B-23-2 ĐÓNG 2026-07-24):

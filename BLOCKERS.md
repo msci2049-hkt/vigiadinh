@@ -8,6 +8,80 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
 > Chi tiết + bảng tra: `BUILD-LOG.md` đầu file. Lịch sử cũ nằm ngoài repo:
 > `../family-wallet-backup-full.bundle` (repo chỉ còn nhánh `main`).
 
+## Audit toàn diện 2026-07-25 — P1 CÒN MỞ
+
+Nguồn: `docs/security/AUDIT-2026-07-25.md`. 7 lỗ hổng P0 đã vá kèm test hồi quy.
+Năm mục dưới đây **chưa vá** và phải xong trước mainnet.
+
+### B-SEC-1 · `recovery_rotate` thêm signer TRƯỚC khi xoá → khôi phục hỏng vĩnh viễn
+
+- **Chặn:** ví đã nối đủ 15 thiết bị (trần `MAX_SIGNERS` của OZ) thì khôi phục **panic
+  `TooManySigners`** và revert cả tx. Yêu cầu đứng `Approved` mãi, `initiate_recovery`
+  bị chặn bởi `RecoveryInProgress` → ví không bao giờ cứu được nữa.
+- **Ở đâu:** `contracts/smart-account/src/lib.rs:227-230`.
+- **Cần gì:** đổi sang xoá-trước-thêm, và một test dựng đủ 15 signer rồi khôi phục.
+  Cùng lớp: OZ panic `validate_no_canonical_duplicates` nếu khoá mới trùng khoá đang có.
+
+### B-SEC-2 · TTL keeper bỏ sót `SignerData`/`SignerLookup` → đường "6 tháng sau" chết
+
+- **Chặn:** `extend_ttl` chỉ gia hạn instance + `ContextRuleData`. Passkey chủ ví nằm ở entry
+  persistent RIÊNG của OZ, chỉ được gia hạn **khi có người đọc**, và chỉ tới 30 ngày — trong khi
+  ví thừa kế sinh ra để nằm im hàng tháng. Quá 30 ngày không ai ký → `SignerData` archive →
+  `__check_auth` chết. Cron **không sửa được** sau đó (entry đã archive cần `RestoreFootprint`).
+- **Ở đâu:** `contracts/smart-account/src/lib.rs:191-199`; test `test.rs:349` chỉ kiểm gọi được,
+  không hề warp qua mốc TTL.
+- **Cần gì:** `extend_ttl` đọc rule để chạm đúng `SignerData(id)`/`SignerLookup`, + test warp
+  quá 30 ngày rồi ký lại.
+
+### B-SEC-3 · `ttl-keeper` cho ví phí trả cho contract do người dùng khai
+
+- **Chặn:** `POST /api/wallets` nhận bất kỳ chuỗi `C…` nào, không chứng minh quyền sở hữu. Cron
+  sau đó gọi `extend_ttl` lên **mọi** dòng, không `LIMIT`, và `invokeWithSignedEntries` lấy
+  resource fee thẳng từ simulation — **không trần phí**. Kẻ tấn công deploy contract
+  `extend_ttl` ngốn tài nguyên rồi đăng ký là ví phí trả dài hạn.
+- **Cần gì:** chỉ gia hạn ví đã `is_registered` trên registry, trần phí mỗi tx, phân trang.
+
+### B-SEC-4 · `audit_log` append-only KHÔNG chặn TRUNCATE
+
+- **Chặn:** trigger là `FOR EACH ROW BEFORE UPDATE OR DELETE`; trigger dòng **không bao giờ bắn
+  khi TRUNCATE**. `TRUNCATE audit_log;` xoá sạch nhật ký mà trigger vẫn nguyên. Ngoài ra app
+  connect bằng chính role sở hữu bảng nên `DROP TRIGGER` cũng chạy được.
+- **Ở đâu:** `be/drizzle/0002_audit-append-only.sql:12-14`.
+- **Cần gì:** thêm trigger `BEFORE TRUNCATE ... FOR EACH STATEMENT`, và cho app một role chỉ
+  có INSERT/SELECT trên bảng này.
+
+### B-SEC-5 · Ký mù còn mở ở `guardian/approve` và `block/confirm`
+
+- **Chặn:** hai màn này vẫn ký entry backend đưa mà không giải mã đối chiếu. `approve` nguy hơn:
+  nó hiện fingerprint lấy từ **mirror do chính backend ghi**, và `chainTruthOptions` đã có sẵn
+  nhưng không được dùng.
+- **Cần gì:** gắn `lib/auth-entry-guard.ts` + đọc `chain-truth` làm mốc đối chiếu.
+
+### B-SEC-6 · Chưa có fuzz, chưa chạy được Scout
+
+- **Chặn:** không có `fuzz/`, không target nào cho `__check_auth`/`finalize_recovery`.
+  `cargo-scout-audit` cài được nhưng `openssl-sys` cần `pkg-config` + header OpenSSL; máy chỉ có
+  `.so` runtime, không sudo. Đã thay bằng `cargo clippy` đúng nhóm lint (25 hit, phân loại từng
+  cái) — **không phải vật thay thế tương đương**.
+- **Cần gì:** máy có OpenSSL dev + `cargo-fuzz`, hoặc chạy Scout trong container.
+
+### B-SEC-7 · Contract đã đổi shape → mọi bằng chứng e2e cũ hết hiệu lực
+
+- **Chặn:** `RecoveryRequest` thêm `expires_at`; thêm mã lỗi 17 (`TimelockTooShort`),
+  18 (`RequestExpired`), 108 (`CooldownTooLong`); sàn mới `MIN_GUARDIANS=3`,
+  `MIN_THRESHOLD=2`, `MIN_TIMELOCK_SECS=86400`, `MAX_COOLDOWN_SECS=7 ngày`.
+  9 test e2e vẫn skip vì thiếu `RUN_TESTNET_E2E=1` + Postgres + `FEE_WALLET_SECRET` + contract ID.
+- **Cần gì:** deploy lại contract lên testnet, cập nhật contract ID, chạy lại e2e thu tx hash.
+  **Ví đã đăng ký bằng bản cũ không tự động đạt sàn mới** — cần rà lại.
+
+### B-SEC-8 · `pnpm audit --audit-level=high` vẫn đỏ (dev-only)
+
+- **Chặn:** gate CI `ci-fe.yml:138`. Còn 3 high: `postcss` + `brace-expansion` ×2, tất cả đều
+  **chỉ ở dependency build-time** (vite/vitest/workbox/sentry-plugin), không vào bundle trình
+  duyệt. CVE better-auth (chiếm tài khoản) đã gỡ bằng cách nâng 1.6.25.
+- **Cần gì:** chờ upstream bump, hoặc `pnpm.overrides` có chủ đích. **Không được hạ
+  `--audit-level`.**
+
 ## CI (2026-07-23, sau SHA `e2682fd`)
 
 ### B-CI-1 · Không đọc được kết quả GitHub Actions từ máy này
