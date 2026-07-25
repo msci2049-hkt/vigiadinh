@@ -57,6 +57,8 @@ def save_people() -> None:
     for name, column, row in poses:
         normalized = normalize(cell(sheet, column, row, 4, 2), (960, 1280))
         normalized.convert("RGB").save(target / name, optimize=True, quality=94)
+    portrait = normalize(cell(sheet, 0, 1, 4, 2), (1254, 1254), fill=0.96)
+    portrait.convert("RGB").save(target / "banker-portrait.png", optimize=True, quality=94)
 
 
 def save_mascot() -> None:

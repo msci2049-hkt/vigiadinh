@@ -9,7 +9,7 @@ contact sheets so the crop can be reproduced with `scripts/prepare-ui-assets.py`
 
 | Files | Dimensions | Usage | Prompt |
 |---|---:|---|---|
-| `assets/people/banker-portrait.png` | 1254×1254 | Passkey identity portrait | P1 |
+| `assets/people/banker-portrait.png` | 1254×1254 | Passkey identity portrait | P2 |
 | `assets/people/banker-open-left.png` | 960×1280 | Guardian invite acceptance | P2 |
 | `assets/people/banker-present-right.png` | 960×1280 | Wallet setup introduction | P2 |
 | `assets/people/banker-half-arms.png` | 960×1280 | Reserved editorial pose | P2 |
@@ -93,4 +93,3 @@ contact sheets so the crop can be reproduced with `scripts/prepare-ui-assets.py`
 > design, premium but human, soft natural studio light, no crypto clichés, no coins, no gradients,
 > no blue or purple, no readable text, no logos, no watermarks. Landscape composition optimized
 > for Open Graph preview, safe focal content centered within margins.
-
