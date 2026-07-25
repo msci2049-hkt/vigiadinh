@@ -15,6 +15,8 @@ import {
   RecoverySignError,
   signRecoveryEntries,
 } from "@/features/wallet/lib/sign-recovery-entries";
+import { assertCancelRecoveryEntry, BlindSignError } from "@/lib/auth-entry-guard";
+import { env } from "@/lib/env";
 
 export const Route = createFileRoute("/_authenticated/block/confirm")({
   component: BlockConfirmScreen,
@@ -63,7 +65,19 @@ function BlockConfirmScreen() {
 
   const veto = useMutation({
     mutationFn: async (walletId: string) => {
+      // Registry từ env FE, địa chỉ ví là ví hiện hoạt của chính chủ ví — không
+      // lấy gì từ phản hồi build của backend.
+      if (!env.VITE_RECOVERY_REGISTRY_ADDRESS) throw new BlindSignError("ENTRY_WRONG_CONTRACT");
+      if (!wallet) throw new BlindSignError("ENTRY_WRONG_SOURCE");
       const built = await buildRecoveryAction({ action: "veto", walletId });
+      // CHỐNG KÝ MÙ: entry PHẢI là `cancel_recovery` trên registry cho ĐÚNG ví —
+      // không cho một entry `transfer` lọt qua màn "xác nhận đóng ví".
+      for (const entryXdr of built.auth_entries_xdr) {
+        assertCancelRecoveryEntry(entryXdr, {
+          registry: env.VITE_RECOVERY_REGISTRY_ADDRESS,
+          wallet: wallet.stellarAddress,
+        });
+      }
       const signed = await signRecoveryEntries({
         entriesXdr: built.auth_entries_xdr,
         latestLedger: built.latest_ledger,

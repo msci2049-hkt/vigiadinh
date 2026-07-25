@@ -164,6 +164,42 @@ export function assertAddGuardianEntry(
 }
 
 /**
+ * `approve_recovery(wallet, guardian)` — người bảo hộ BỎ PHIẾU cho khôi phục.
+ *
+ * Lỗ hổng nếu ký mù (B-SEC-5): màn duyệt ký entry backend đưa mà chỉ lọc theo
+ * địa chỉ ví đang connect. Một backend bị chiếm chỉ cần trả entry `transfer` TỪ
+ * CHÍNH ví của người bảo hộ (cùng credentials.address) là biến nút "duyệt khôi
+ * phục" thành lệnh rút sạch ví của người bảo hộ — họ chỉ thấy prompt passkey.
+ * Chốt `registry` (từ env FE, không từ backend) + `approve_recovery` giết đường
+ * đó theo cơ chế; `wallet` chốt đúng ví đang duyệt, không phải ví khác cùng bảo hộ.
+ */
+export function assertApproveRecoveryEntry(
+  entry: string | xdr.SorobanAuthorizationEntry,
+  expected: { registry: string; wallet: string; guardian?: string },
+): void {
+  const call = assertCall(entry, { contract: expected.registry, method: "approve_recovery" });
+  if (addressAt(call.args, 0) !== expected.wallet) throw new BlindSignError("ENTRY_WRONG_SOURCE");
+  if (expected.guardian && addressAt(call.args, 1) !== expected.guardian) {
+    throw new BlindSignError("ENTRY_WRONG_GUARDIAN");
+  }
+}
+
+/**
+ * `cancel_recovery(wallet)` — chủ ví CHẶN (veto) khôi phục đang mở của ví MÌNH.
+ *
+ * Cùng lỗ ký mù như duyệt (B-SEC-5): màn "xác nhận đóng ví" không được để một
+ * entry `transfer` lọt qua. Chốt `registry` (env FE) + `cancel_recovery` + đúng
+ * địa chỉ ví của mình.
+ */
+export function assertCancelRecoveryEntry(
+  entry: string | xdr.SorobanAuthorizationEntry,
+  expected: { registry: string; wallet: string },
+): void {
+  const call = assertCall(entry, { contract: expected.registry, method: "cancel_recovery" });
+  if (addressAt(call.args, 0) !== expected.wallet) throw new BlindSignError("ENTRY_WRONG_SOURCE");
+}
+
+/**
  * `register_wallet(wallet, guardians, threshold, timelock_secs)`.
  * Đăng ký là MỘT LẦN (contract chối lần hai — `AlreadyRegistered`), nên ký nhầm
  * danh sách người bảo hộ ở đây là hỏng vĩnh viễn, không sửa lại được.

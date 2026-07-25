@@ -15,6 +15,8 @@ import {
   RecoverySignError,
   signRecoveryEntries,
 } from "@/features/wallet/lib/sign-recovery-entries";
+import { assertApproveRecoveryEntry, BlindSignError } from "@/lib/auth-entry-guard";
+import { env } from "@/lib/env";
 
 export const Route = createFileRoute("/_authenticated/guardian/approve")({
   validateSearch: z.object({ wallet: z.string().catch("") }),
@@ -58,7 +60,21 @@ function GuardianApproveScreen() {
 
   const approve = useMutation({
     mutationFn: async (id: string) => {
+      // Địa chỉ ví đang duyệt lấy từ hộp thư guardian (ví người bảo hộ đã CHỌN),
+      // registry lấy từ env FE — không lấy từ phản hồi build của backend.
+      const target = (inbox.data ?? []).find((i) => i.wallet.id === id);
+      if (!env.VITE_RECOVERY_REGISTRY_ADDRESS) throw new BlindSignError("ENTRY_WRONG_CONTRACT");
+      if (!target) throw new BlindSignError("ENTRY_WRONG_SOURCE");
       const built = await buildRecoveryAction({ action: "approve", walletId: id });
+      // CHỐNG KÝ MÙ: entry PHẢI là `approve_recovery` trên registry cho ĐÚNG ví —
+      // một entry `transfer` từ ví người bảo hộ (backend bị chiếm) bị chối ở đây,
+      // TRƯỚC khi chạm passkey.
+      for (const entryXdr of built.auth_entries_xdr) {
+        assertApproveRecoveryEntry(entryXdr, {
+          registry: env.VITE_RECOVERY_REGISTRY_ADDRESS,
+          wallet: target.wallet.stellarAddress,
+        });
+      }
       const signed = await signRecoveryEntries({
         entriesXdr: built.auth_entries_xdr,
         latestLedger: built.latest_ledger,

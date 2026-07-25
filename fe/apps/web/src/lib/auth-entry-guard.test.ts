@@ -7,6 +7,8 @@ import { Address, nativeToScVal, xdr } from "@stellar/stellar-sdk";
 import { describe, expect, it } from "vitest";
 import {
   assertAddGuardianEntry,
+  assertApproveRecoveryEntry,
+  assertCancelRecoveryEntry,
   assertMethodOnly,
   assertRegisterWalletEntry,
   assertTransferEntry,
@@ -171,5 +173,53 @@ describe("assertRegisterWalletEntry — đăng ký chỉ một lần, sai là h�
     expect(() => assertRegisterWalletEntry(registerEntry([FRIEND], 2, 0), expected)).toThrow(
       BlindSignError,
     );
+  });
+});
+
+// B-SEC-5: hai màn ghi cuối cùng còn ký mù — guardian/approve + block/confirm.
+describe("assertApproveRecoveryEntry — duyệt khôi phục không được thành lệnh rút ví", () => {
+  const expected = { registry: REGISTRY, wallet: WALLET };
+
+  it("approve_recovery đúng ví → cho ký", () => {
+    const ok = entry(REGISTRY, "approve_recovery", [addr(WALLET), addr(FRIEND)]);
+    expect(() => assertApproveRecoveryEntry(ok, expected)).not.toThrow();
+  });
+
+  it("backend tráo entry transfer TỪ ví người bảo hộ → chặn TRƯỚC passkey", () => {
+    expect(() => assertApproveRecoveryEntry(transferEntry(ATTACKER, 999_999n), expected)).toThrow(
+      BlindSignError,
+    );
+  });
+
+  it("duyệt NHẦM ví khác (backend đổi wallet arg) → chặn", () => {
+    const evil = entry(REGISTRY, "approve_recovery", [addr(OTHER), addr(FRIEND)]);
+    expect(() => assertApproveRecoveryEntry(evil, expected)).toThrow(BlindSignError);
+  });
+
+  it("kiểm guardian arg khi truyền tường minh → tráo guardian bị chặn", () => {
+    const evil = entry(REGISTRY, "approve_recovery", [addr(WALLET), addr(ATTACKER)]);
+    expect(() => assertApproveRecoveryEntry(evil, { ...expected, guardian: FRIEND })).toThrow(
+      BlindSignError,
+    );
+  });
+});
+
+describe("assertCancelRecoveryEntry — màn đóng ví không được để transfer lọt qua", () => {
+  const expected = { registry: REGISTRY, wallet: WALLET };
+
+  it("cancel_recovery đúng ví → cho ký", () => {
+    const ok = entry(REGISTRY, "cancel_recovery", [addr(WALLET)]);
+    expect(() => assertCancelRecoveryEntry(ok, expected)).not.toThrow();
+  });
+
+  it("entry transfer đội lốt veto → chặn", () => {
+    expect(() => assertCancelRecoveryEntry(transferEntry(ATTACKER, 999_999n), expected)).toThrow(
+      BlindSignError,
+    );
+  });
+
+  it("veto NHẦM ví khác → chặn", () => {
+    const evil = entry(REGISTRY, "cancel_recovery", [addr(OTHER)]);
+    expect(() => assertCancelRecoveryEntry(evil, expected)).toThrow(BlindSignError);
   });
 });
