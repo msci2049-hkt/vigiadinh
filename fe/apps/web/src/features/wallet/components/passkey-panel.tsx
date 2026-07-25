@@ -2,9 +2,13 @@
 // account → đăng nhập SEP-45 → giữ JWT Bearer. LƯU Ý PHA 2.3: createWallet mới
 // TẠO passkey + build tx deploy (chưa submit) — deploy on-chain + tài trợ phí
 // là việc PHA 5; đăng nhập với BE thật chỉ xanh khi ví đã tồn tại trên mạng.
+import { Button } from "@repo/ui";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone } from "@/components/family/screen";
 import { connectAndLogin } from "../api/sep45-login";
 import { WalletNotConfiguredError } from "../lib/kit";
 
@@ -43,28 +47,25 @@ export function PasskeyPanel() {
   const handleSignIn = () => run(connectAndLogin);
 
   return (
-    <div className="mt-4 flex w-full flex-col gap-2">
-      <button
+    <PrimaryZone>
+      <Button
         type="button"
         data-testid="passkey-signin"
         disabled={busy}
+        loading={busy}
+        loadingLabel={t("passkey.working")}
         onClick={handleSignIn}
-        className="w-full rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground text-sm disabled:opacity-50"
+        className="w-full"
       >
+        <Icon name="fingerprint" size={32} />
         {t("passkey.signInCta")}
-      </button>
-      <Link
-        to="/setup"
-        data-testid="passkey-create"
-        className="w-full rounded-md border border-border px-4 py-2 text-center font-medium text-foreground text-sm"
-      >
-        {t("passkey.createCta")}
-      </Link>
-      <p
-        data-testid="passkey-status"
-        aria-live="polite"
-        className="min-h-5 text-muted-foreground text-xs"
-      >
+      </Button>
+      <Button asChild variant="link">
+        <Link to="/recovery" data-testid="passkey-create">
+          {t("passkey.recoveryCta")}
+        </Link>
+      </Button>
+      <p data-testid="passkey-status" aria-live="polite" className="sr-only">
         {state.status === "working" ? t("passkey.working") : null}
         {state.status === "done"
           ? t("passkey.connected", { wallet: `${state.contractId.slice(0, 8)}…` })
@@ -79,6 +80,17 @@ export function PasskeyPanel() {
             )
           : null}
       </p>
-    </div>
+      {state.status === "error" ? (
+        <ErrorBanner type="warn" title={t("passkey.tryAgainTitle")}>
+          {t(
+            state.code === "notConfigured"
+              ? "passkey.errorNotConfigured"
+              : state.code === "cancelled"
+                ? "passkey.errorCancelled"
+                : "passkey.errorGeneric",
+          )}
+        </ErrorBanner>
+      ) : null}
+    </PrimaryZone>
   );
 }

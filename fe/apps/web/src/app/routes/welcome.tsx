@@ -3,37 +3,43 @@
 import { Button } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 
 export const Route = createFileRoute("/welcome")({ component: WelcomeScreen });
 
 function WelcomeScreen() {
   const { t } = useTranslation("fw");
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-6 p-6">
-      <div className="flex flex-col gap-2">
-        <h1 className="font-semibold text-3xl text-foreground">{t("welcome.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("welcome.description")}</p>
+    <ProductScreen className="pt-10">
+      <ScreenHeader
+        display
+        title={t("welcome.title")}
+        description={t("welcome.description")}
+        className="max-w-sm"
+      />
+      <div className="relative min-h-60">
+        <img
+          src="/assets/people/banker-open-left.png"
+          alt=""
+          aria-hidden
+          className="absolute -right-10 bottom-0 h-64 w-48 object-contain object-bottom"
+        />
+        <div className="absolute bottom-6 left-0 max-w-52 rounded-md border bg-card/95 p-4 shadow-sm">
+          <div className="flex items-center gap-2 font-semibold text-sm">
+            <Icon name="shieldCheck" size={20} />
+            {t("welcome.point2")}
+          </div>
+        </div>
       </div>
-
-      <ul className="flex flex-col gap-3">
-        {(["welcome.point1", "welcome.point2", "welcome.point3"] as const).map((key) => (
-          <li key={key} className="flex gap-3 text-foreground text-sm">
-            <span aria-hidden className="text-primary">
-              ●
-            </span>
-            <span>{t(key)}</span>
-          </li>
-        ))}
-      </ul>
-
-      <div className="mt-2 flex flex-col gap-2">
-        <Button asChild size="lg">
+      <PrimaryZone>
+        <Button asChild>
           <Link to="/get-started">{t("welcome.cta")}</Link>
         </Button>
-        <Button asChild variant="ghost">
+        <Button asChild variant="link">
           <Link to="/passkey">{t("welcome.haveCta")}</Link>
         </Button>
-      </div>
-    </main>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

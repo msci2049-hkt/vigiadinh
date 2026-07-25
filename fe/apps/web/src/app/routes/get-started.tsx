@@ -1,42 +1,59 @@
 // Ngã ba mở đầu (PHA 2.5) — public: tạo ví mới (cần phiên app để mirror ví →
 // /sign-up rồi /setup) HOẶC mở ví đã có trên máy này (/passkey — connect + đăng
 // nhập SEP-45, không cần email).
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
+import { Button, Card, CardContent } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { type FamilyIconName, Icon } from "@/components/family/icon";
+import { IconDisc, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 
 export const Route = createFileRoute("/get-started")({ component: GetStartedScreen });
 
 function GetStartedScreen() {
   const { t } = useTranslation("fw");
+  const benefits: { icon: FamilyIconName; title: string; body: string }[] = [
+    {
+      icon: "fingerprint",
+      title: t("getStarted.benefit1Title"),
+      body: t("getStarted.benefit1Body"),
+    },
+    {
+      icon: "users",
+      title: t("getStarted.benefit2Title"),
+      body: t("getStarted.benefit2Body"),
+    },
+    {
+      icon: "shieldCheck",
+      title: t("getStarted.benefit3Title"),
+      body: t("getStarted.benefit3Body"),
+    },
+  ];
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("getStarted.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("getStarted.description")}</p>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">{t("getStarted.createTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <p className="text-muted-foreground text-sm">{t("getStarted.createBody")}</p>
-          <Button asChild>
-            <Link to="/sign-up">{t("getStarted.createCta")}</Link>
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">{t("getStarted.haveTitle")}</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-3">
-          <p className="text-muted-foreground text-sm">{t("getStarted.haveBody")}</p>
-          <Button asChild variant="outline">
-            <Link to="/passkey">{t("getStarted.haveCta")}</Link>
-          </Button>
-        </CardContent>
-      </Card>
-    </main>
+    <ProductScreen>
+      <ScreenHeader title={t("getStarted.title")} description={t("getStarted.description")} />
+      <div className="space-y-3">
+        {benefits.map((benefit) => (
+          <Card key={benefit.icon}>
+            <CardContent className="flex items-start gap-4">
+              <IconDisc>
+                <Icon name={benefit.icon} size={20} />
+              </IconDisc>
+              <div>
+                <h2 className="font-semibold text-base">{benefit.title}</h2>
+                <p className="mt-1 text-muted-foreground text-sm leading-relaxed">{benefit.body}</p>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <PrimaryZone>
+        <Button asChild>
+          <Link to="/sign-up">{t("getStarted.createCta")}</Link>
+        </Button>
+        <Button asChild variant="link">
+          <Link to="/passkey">{t("getStarted.haveCta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

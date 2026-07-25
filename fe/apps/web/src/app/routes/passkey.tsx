@@ -2,6 +2,9 @@
 // Passkey = danh tính KÝ on-chain; Better Auth = phiên app. Hai lớp độc lập.
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { DEMO_GUARDIANS, GuardianAvatarCluster } from "@/components/family/guardian-avatar-cluster";
+import { Icon } from "@/components/family/icon";
+import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { PasskeyPanel } from "@/features/wallet/components/passkey-panel";
 
 export const Route = createFileRoute("/passkey")({ component: PasskeyScreen });
@@ -13,12 +16,26 @@ function PasskeyScreen() {
     "credentials" in navigator &&
     typeof window.PublicKeyCredential !== "undefined";
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col items-center justify-center gap-3 p-6 text-center">
-      <h1 className="font-semibold text-2xl text-foreground">{t("passkey.title")}</h1>
-      <p className="text-muted-foreground text-sm">
-        {supported ? t("passkey.description") : t("passkey.unsupported")}
-      </p>
+    <ProductScreen className="pt-10">
+      <ScreenHeader
+        display
+        title={t("passkey.walletUser")}
+        description={supported ? t("passkey.description") : t("passkey.unsupported")}
+      />
+      <p className="font-mono text-muted-foreground text-sm">CAU2…XCWL</p>
+      <div className="space-y-5 pt-2">
+        <div className="flex items-center gap-4">
+          <Icon name="lock" size={32} className="text-muted-foreground" />
+          <p className="text-muted-foreground">{t("passkey.keyDevice")}</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <Icon name="users" size={32} className="text-muted-foreground" />
+          <p className="text-muted-foreground">{t("passkey.protectedBy")}</p>
+        </div>
+        <GuardianAvatarCluster people={DEMO_GUARDIANS} size="lg" />
+        <p className="text-muted-foreground text-sm">{t("passkey.guardianNames")}</p>
+      </div>
       {supported ? <PasskeyPanel /> : null}
-    </main>
+    </ProductScreen>
   );
 }

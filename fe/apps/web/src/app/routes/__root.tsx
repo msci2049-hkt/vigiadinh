@@ -4,10 +4,12 @@ import {
   type ErrorComponentProps,
   Link,
   Outlet,
+  useRouterState,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { type ReactNode, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { ProductShell } from "@/components/family/product-shell";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { site } from "@/config/site";
@@ -25,12 +27,21 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
 function RootLayout() {
   const { t, i18n } = useTranslation("common");
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
   // Đồng bộ <html lang> theo ngôn ngữ hiện tại (a11y + hreflang cho SPA): screen
   // reader đọc đúng giọng, và trình duyệt chọn đúng font CJK khi lang="zh".
   useEffect(() => {
     const lang = i18n.resolvedLanguage ?? "en";
     document.documentElement.lang = lang;
   }, [i18n.resolvedLanguage]);
+  if (isProductPath(pathname)) {
+    return (
+      <ProductShell>
+        <Outlet />
+        {env.VITE_ENABLE_DEVTOOLS ? <TanStackRouterDevtools position="bottom-right" /> : null}
+      </ProductShell>
+    );
+  }
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Fixed warning while an admin is impersonating (session.impersonatedBy). */}
@@ -64,6 +75,22 @@ function RootLayout() {
       {env.VITE_ENABLE_DEVTOOLS ? <TanStackRouterDevtools position="bottom-right" /> : null}
     </div>
   );
+}
+
+function isProductPath(pathname: string): boolean {
+  return [
+    "/welcome",
+    "/get-started",
+    "/passkey",
+    "/recovery",
+    "/setup",
+    "/wallet",
+    "/guardians",
+    "/guardian",
+    "/block",
+    "/night-watch",
+    "/inheritance",
+  ].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 function CenteredMessage({ title, children }: { title: string; children: ReactNode }) {
