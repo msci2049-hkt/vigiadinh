@@ -1,10 +1,10 @@
-import { defaultPanelPath, panelsForRole, sessionQueryKey } from "@repo/auth";
+import { defaultPanelPath, panelsForRole } from "@repo/auth";
 import { Button } from "@repo/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { signOut } from "@/lib/auth-client";
 import { useCurrentUser } from "../hooks/use-current-user";
+import { performSignOut } from "../lib/sign-out-cleanup";
 
 export function UserMenu() {
   const { user, isPending } = useCurrentUser();
@@ -25,9 +25,9 @@ export function UserMenu() {
   }
 
   async function handleSignOut() {
-    await signOut();
-    // Session gone → guards must re-check on next navigation.
-    queryClient.removeQueries({ queryKey: sessionQueryKey });
+    // Dọn TRỌN VẸN: phiên app + phiên ví + toàn bộ query cache (logout xoá
+    // thật — không để dữ liệu ví của người này sống sang phiên người sau).
+    await performSignOut(queryClient);
     await navigate({ to: "/" });
   }
 
