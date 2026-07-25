@@ -9,6 +9,8 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { inviteKeys, invitesOptions } from "@/features/family/api/invites";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { timelockLabelKey } from "@/features/family/api/wallets";
@@ -69,33 +71,29 @@ function SetupReviewScreen() {
   });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("setup.review.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("setup.review.description")}</p>
+    <ProductScreen>
+      <ScreenHeader title={t("setup.review.title")} description={t("setup.review.description")} />
 
       {walletLoading || invites.isLoading ? <LoadingRows /> : null}
       {walletError || invites.isError ? <ErrorState /> : null}
 
       {wallet ? (
-        <Card>
+        <Card className="bg-paper-2">
           <CardHeader>
             <CardTitle className="text-base">{t("setup.review.summaryTitle")}</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-sm">
-            <div className="flex justify-between gap-3">
-              <span className="text-muted-foreground">{t("setup.review.thresholdLabel")}</span>
+          <CardContent>
+            <DetailRow label={t("setup.review.thresholdLabel")}>
               <span data-testid="review-threshold">
                 {t("setup.review.thresholdValue", { count: wallet.threshold })}
               </span>
-            </div>
-            <div className="flex justify-between gap-3">
-              <span className="text-muted-foreground">{t("setup.review.timelockLabel")}</span>
+            </DetailRow>
+            <DetailRow label={t("setup.review.timelockLabel")}>
               <span data-testid="review-timelock">{t(timelockLabelKey(wallet.timelockSecs))}</span>
-            </div>
-            <div className="flex justify-between gap-3">
-              <span className="text-muted-foreground">{t("setup.review.guardiansLabel")}</span>
+            </DetailRow>
+            <DetailRow label={t("setup.review.guardiansLabel")}>
               <span data-testid="review-guardians">{recoverability?.available ?? 0}</span>
-            </div>
+            </DetailRow>
           </CardContent>
         </Card>
       ) : null}
@@ -103,39 +101,35 @@ function SetupReviewScreen() {
       {recoverability ? <RecoverabilityBanner value={recoverability} /> : null}
 
       {register.isSuccess ? (
-        <p
-          className="rounded-md border border-border bg-muted/40 p-3 text-sm"
-          role="status"
-          data-testid="review-registered"
-        >
-          {t("setup.review.registered")}
-        </p>
+        <div data-testid="review-registered">
+          <ErrorBanner type="info" title={t("setup.review.registered")} />
+        </div>
       ) : null}
       {register.isError ? (
-        <p className="text-destructive text-sm" role="alert" data-testid="review-register-failed">
-          {t("setup.review.registerFailed")}
-        </p>
+        <div data-testid="review-register-failed">
+          <ErrorBanner type="error" title={t("setup.review.registerFailed")} />
+        </div>
       ) : null}
 
-      {canRegister && !register.isSuccess ? (
-        <Button
-          disabled={register.isPending}
-          onClick={() => register.mutate()}
-          data-testid="review-register"
-        >
-          {register.isPending ? t("setup.review.registering") : t("setup.review.registerCta")}
+      <PrimaryZone>
+        {canRegister && !register.isSuccess ? (
+          <Button
+            loading={register.isPending}
+            onClick={() => register.mutate()}
+            data-testid="review-register"
+          >
+            {register.isPending ? t("setup.review.registering") : t("setup.review.registerCta")}
+          </Button>
+        ) : null}
+        {!canRegister ? (
+          <Button asChild>
+            <Link to="/setup/invite">{t("setup.review.inviteMoreCta")}</Link>
+          </Button>
+        ) : null}
+        <Button asChild variant="ghost">
+          <Link to="/wallet">{t("setup.review.doneCta")}</Link>
         </Button>
-      ) : null}
-
-      {!canRegister ? (
-        <Button asChild variant="outline">
-          <Link to="/setup/invite">{t("setup.review.inviteMoreCta")}</Link>
-        </Button>
-      ) : null}
-
-      <Button asChild variant="ghost">
-        <Link to="/wallet">{t("setup.review.doneCta")}</Link>
-      </Button>
-    </main>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

@@ -9,6 +9,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { createInvite, inviteKeys, invitesOptions } from "@/features/family/api/invites";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
@@ -36,17 +37,19 @@ function SetupChooseGuardiansScreen() {
   });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
+    <ProductScreen>
       <WizardNav step={1} />
-      <h1 className="font-semibold text-2xl text-foreground">{t("setup.chooseGuardians.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("setup.chooseGuardians.description")}</p>
+      <ScreenHeader
+        title={t("setup.chooseGuardians.title")}
+        description={t("setup.chooseGuardians.description")}
+      />
 
       {walletLoading || invites.isLoading ? <LoadingRows /> : null}
       {walletError || invites.isError ? <ErrorState /> : null}
 
       {invites.data ? <RecoverabilityBanner value={invites.data.recoverability} /> : null}
 
-      <Card>
+      <Card className="bg-paper-2">
         <CardHeader>
           <CardTitle className="text-base">{t("setup.chooseGuardians.addTitle")}</CardTitle>
         </CardHeader>
@@ -58,6 +61,7 @@ function SetupChooseGuardiansScreen() {
             onChange={(e) => setLabel(e.target.value)}
           />
           <Button
+            variant="secondary"
             disabled={label.trim().length === 0 || create.isPending || wallet === null}
             onClick={() => create.mutate()}
           >
@@ -70,12 +74,14 @@ function SetupChooseGuardiansScreen() {
       </Card>
 
       {/* Đi tiếp được kể cả khi chưa ai nhận lời — luồng tăng dần. */}
-      <Button asChild data-testid="wizard-next-threshold">
-        <Link to="/setup/threshold">{t("setup.chooseGuardians.nextCta")}</Link>
-      </Button>
-      <p className="text-center text-muted-foreground text-xs">
-        {t("setup.chooseGuardians.canLeaveHint")}
-      </p>
-    </main>
+      <PrimaryZone>
+        <Button asChild data-testid="wizard-next-threshold">
+          <Link to="/setup/threshold">{t("setup.chooseGuardians.nextCta")}</Link>
+        </Button>
+        <p className="text-center text-muted-foreground text-xs">
+          {t("setup.chooseGuardians.canLeaveHint")}
+        </p>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

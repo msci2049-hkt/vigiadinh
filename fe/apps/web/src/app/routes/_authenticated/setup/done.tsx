@@ -3,24 +3,31 @@
 import { Button } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { DEMO_GUARDIANS, GuardianAvatarCluster } from "@/components/family/guardian-avatar-cluster";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 
 export const Route = createFileRoute("/_authenticated/setup/done")({ component: SetupDoneScreen });
 
 function SetupDoneScreen() {
   const { t } = useTranslation("fw");
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="font-semibold text-2xl text-foreground">{t("setup.done.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("setup.done.description")}</p>
-      <p className="text-muted-foreground text-sm">{t("setup.done.guardiansNote")}</p>
-      <div className="mt-2 flex w-full flex-col gap-2">
+    <ProductScreen className="items-center justify-center text-center">
+      <img src="/assets/mascot/mascot-wave.png" alt="" className="h-44 w-44 object-contain" />
+      <ScreenHeader
+        title={t("setup.done.title")}
+        description={t("setup.done.description")}
+        className="text-center"
+      />
+      <GuardianAvatarCluster people={DEMO_GUARDIANS} />
+      <p className="product-copy">{t("setup.done.guardiansNote")}</p>
+      <PrimaryZone className="w-full">
         <Button asChild>
           <Link to="/wallet">{t("setup.done.walletCta")}</Link>
         </Button>
         <Button asChild variant="ghost">
           <Link to="/guardians">{t("setup.done.addGuardiansCta")}</Link>
         </Button>
-      </div>
-    </main>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

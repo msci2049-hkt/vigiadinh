@@ -8,6 +8,8 @@
 // feature. Route ở tầng app/ ghép hai bên lại và truyền xuống `onAdd`.
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/components/family/icon";
+import { StatusPill } from "@/components/family/status-pill";
 import type { GuardianInvite } from "../api/invites";
 
 export function InviteStatusList({
@@ -34,13 +36,18 @@ export function InviteStatusList({
         {invites.map((invite) => (
           <div
             key={invite.id}
-            className="flex items-center justify-between gap-3 border-border border-b pb-2 last:border-0 last:pb-0"
+            className="flex items-center justify-between gap-3 border-border border-b py-3 first:pt-0 last:border-0 last:pb-0"
           >
-            <div className="min-w-0">
-              <p className="truncate font-medium text-sm">{invite.label}</p>
-              <p className="text-muted-foreground text-xs">
-                {t(`guardians.inviteList.status.${invite.status}`)}
-              </p>
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary">
+                <Icon name="users" />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate font-semibold">{invite.label}</p>
+                <StatusPill state={invite.status === "registered" ? "active" : "pending"}>
+                  {t(`guardians.inviteList.status.${invite.status}`)}
+                </StatusPill>
+              </div>
             </div>
             {invite.status === "deployed" ? (
               <Button

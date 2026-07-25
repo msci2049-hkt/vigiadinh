@@ -9,6 +9,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import {
   createInvite,
   type GuardianInvite,
@@ -85,16 +87,15 @@ function SetupInviteScreen() {
   const loading = walletLoading || invites.isLoading;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("setup.invite.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("setup.invite.description")}</p>
+    <ProductScreen>
+      <ScreenHeader title={t("setup.invite.title")} description={t("setup.invite.description")} />
 
       {loading ? <LoadingRows /> : null}
       {walletError || invites.isError ? <ErrorState /> : null}
 
       {invites.data ? <RecoverabilityBanner value={invites.data.recoverability} /> : null}
 
-      <Card>
+      <Card className="bg-paper-2">
         <CardHeader>
           <CardTitle className="text-base">{t("setup.invite.addTitle")}</CardTitle>
         </CardHeader>
@@ -112,12 +113,10 @@ function SetupInviteScreen() {
             {create.isPending ? t("setup.invite.creating") : t("setup.invite.createCta")}
           </Button>
           {create.isError ? (
-            <p className="text-destructive text-sm" role="alert">
-              {t("setup.invite.createFailed")}
-            </p>
+            <ErrorBanner type="error" title={t("setup.invite.createFailed")} />
           ) : null}
           {lastLink ? (
-            <div className="flex flex-col gap-2 rounded-md border border-border p-3">
+            <div className="flex flex-col gap-3 rounded-card border border-dashed bg-card p-4">
               <p className="text-muted-foreground text-xs">{t("setup.invite.linkHint")}</p>
               <code className="break-all text-xs">{lastLink}</code>
               <Button
@@ -141,9 +140,11 @@ function SetupInviteScreen() {
         />
       ) : null}
 
-      <Button asChild variant="ghost">
-        <Link to="/wallet">{t("setup.invite.doneCta")}</Link>
-      </Button>
-    </main>
+      <PrimaryZone>
+        <Button asChild variant="ghost">
+          <Link to="/wallet">{t("setup.invite.doneCta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

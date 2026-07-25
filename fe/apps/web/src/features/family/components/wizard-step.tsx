@@ -6,22 +6,26 @@
 import { Button, Card, CardContent } from "@repo/ui";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/components/family/icon";
+import { IconDisc, ProductScreen, ScreenHeader } from "@/components/family/screen";
 
 export function WizardStep({ title, description }: { title: string; description: string }) {
   const { t } = useTranslation("fw");
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{title}</h1>
-      <p className="text-muted-foreground text-sm">{description}</p>
+    <ProductScreen className="justify-center">
+      <IconDisc>
+        <Icon name="shieldCheck" />
+      </IconDisc>
+      <ScreenHeader title={title} description={description} />
 
-      <Card className="border-dashed">
-        <CardContent className="flex flex-col gap-3 p-4">
-          <p className="text-muted-foreground text-sm">{t("setup.wizard.comingSoon")}</p>
+      <Card className="border-dashed bg-paper-2">
+        <CardContent className="flex flex-col gap-4 p-5">
+          <p className="text-copy">{t("setup.wizard.comingSoon")}</p>
           <Button asChild>
             <Link to="/setup">{t("setup.wizard.useSimpleCta")}</Link>
           </Button>
         </CardContent>
       </Card>
-    </main>
+    </ProductScreen>
   );
 }

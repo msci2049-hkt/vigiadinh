@@ -11,6 +11,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { invitesOptions } from "@/features/family/api/invites";
 import { updateRecoveryConfig, walletKeys } from "@/features/family/api/wallets";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
@@ -44,15 +46,17 @@ function SetupThresholdScreen() {
   });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
+    <ProductScreen>
       <WizardNav step={2} />
-      <h1 className="font-semibold text-2xl text-foreground">{t("setup.threshold.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("setup.threshold.description")}</p>
+      <ScreenHeader
+        title={t("setup.threshold.title")}
+        description={t("setup.threshold.description")}
+      />
 
       {walletLoading || invites.isLoading ? <LoadingRows /> : null}
       {walletError || invites.isError ? <ErrorState /> : null}
 
-      <Card>
+      <Card className="bg-paper-2">
         <CardHeader>
           <CardTitle className="text-base">{t("setup.threshold.pickTitle")}</CardTitle>
         </CardHeader>
@@ -88,24 +92,25 @@ function SetupThresholdScreen() {
         }}
       />
 
-      <p className="text-muted-foreground text-xs">{t("setup.threshold.frozenHint")}</p>
+      <ErrorBanner type="info" title={t("setup.threshold.pickTitle")}>
+        {t("setup.threshold.frozenHint")}
+      </ErrorBanner>
 
-      {save.isError ? (
-        <p className="text-destructive text-sm" role="alert">
-          {t("setup.threshold.saveFailed")}
-        </p>
-      ) : null}
+      {save.isError ? <ErrorBanner type="error" title={t("setup.threshold.saveFailed")} /> : null}
 
-      <Button
-        disabled={save.isPending || wallet === null}
-        onClick={() => save.mutate()}
-        data-testid="threshold-save"
-      >
-        {save.isPending ? t("setup.threshold.saving") : t("setup.threshold.nextCta")}
-      </Button>
-      <Button asChild variant="ghost">
-        <Link to="/setup/choose-guardians">{t("setup.threshold.backCta")}</Link>
-      </Button>
-    </main>
+      <PrimaryZone>
+        <Button
+          loading={save.isPending}
+          disabled={wallet === null}
+          onClick={() => save.mutate()}
+          data-testid="threshold-save"
+        >
+          {save.isPending ? t("setup.threshold.saving") : t("setup.threshold.nextCta")}
+        </Button>
+        <Button asChild variant="ghost">
+          <Link to="/setup/choose-guardians">{t("setup.threshold.backCta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

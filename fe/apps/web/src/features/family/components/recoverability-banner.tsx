@@ -6,6 +6,7 @@
 // Đếm theo người ĐÃ LÊN CHAIN, không đếm lời mời đã gửi.
 
 import { useTranslation } from "react-i18next";
+import { ErrorBanner } from "@/components/family/error-banner";
 import type { Recoverability } from "../api/invites";
 
 export function RecoverabilityBanner({ value }: { value: Recoverability }) {
@@ -13,31 +14,24 @@ export function RecoverabilityBanner({ value }: { value: Recoverability }) {
 
   if (value.recoverable) {
     return (
-      <div
-        className="rounded-md border border-border bg-muted/40 p-3 text-sm"
-        data-testid="recoverability-ok"
-      >
-        {t("guardians.recoverability.ok", { count: value.available })}
+      <div data-testid="recoverability-ok">
+        <ErrorBanner
+          type="info"
+          title={t("guardians.recoverability.ok", { count: value.available })}
+        />
       </div>
     );
   }
 
   return (
-    <div
-      className="rounded-md border border-destructive/40 bg-destructive/10 p-3"
-      role="alert"
-      data-testid="recoverability-warning"
-    >
-      <p className="font-medium text-destructive text-sm">
-        {t("guardians.recoverability.notYetTitle")}
-      </p>
-      <p className="mt-1 text-muted-foreground text-sm">
+    <div data-testid="recoverability-warning">
+      <ErrorBanner type="warn" title={t("guardians.recoverability.notYetTitle")}>
         {t("guardians.recoverability.notYetBody", {
           available: value.available,
           threshold: value.threshold,
           missing: value.missing,
         })}
-      </p>
+      </ErrorBanner>
     </div>
   );
 }
