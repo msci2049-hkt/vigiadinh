@@ -528,6 +528,10 @@
         "title": "正在等待你的家人"
       },
       "noWallet": "你还没有钱包。",
+      "progress": {
+        "confirming": "正在准备交易…",
+        "submitting": "已确认 — 正在发送到 Stellar 网络（约 5 秒）…"
+      },
       "recipientLabel": "发送至",
       "review": {
         "amount": "金额",
@@ -538,7 +542,15 @@
         "title": "发送前请核对",
         "to": "收款方"
       },
-      "title": "发送"
+      "startOverCta": "重新开始",
+      "title": "发送",
+      "unconfirmed": {
+        "body": "发送时网络刚好中断。这笔钱可能已经发出 — 我们正在与网络核实。请不要重复发送。",
+        "checking": "正在与 Stellar 网络核实…",
+        "historyCta": "查看历史记录",
+        "stillUnknown": "仍未有结果。请几分钟后在历史记录中查看是否已发出 — 在确定之前请不要重复发送。",
+        "title": "尚未确认"
+      }
     }
   },
   "welcome": {

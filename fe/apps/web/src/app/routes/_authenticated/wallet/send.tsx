@@ -1,35 +1,36 @@
-// Gửi tiền (PHA 6 SEND) — máy state 4 bước: nhập → review → ký (cổng sinh trắc
-// học = prompt passkey) → xong. KHÔNG gọi thẳng SAC: đi qua pipeline intent BE.
-// Dùng module tiền PHA 7.1 (AmountInput RAW + parse theo locale — cấm format tự
-// chế). Vượt ngưỡng → màn "chờ người thân duyệt". Taxonomy lỗi "tiền đã đi chưa".
+// Gửi tiền (PHA 6 SEND + WP3 fe-smooth) — nhập → review → ký (passkey) → nộp.
+// KHÔNG gọi thẳng SAC: đi qua pipeline intent BE. Máy xác nhận→ký→nộp nằm ở
+// features/family/hooks/use-send-machine (timeout ≠ thất bại, chống ký mù giữ
+// nguyên fix P0). Màn review mount thì PRE-WARM kit passkey (nối phiên IndexedDB
+// im lặng, không sinh trắc học, không side effect) để bấm "Xác nhận" là hộp
+// thoại vân tay hiện không phải chờ.
 import { ApiError, formatAmount } from "@repo/core";
 import { Button, Card, CardContent, Input } from "@repo/ui";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AmountInput, useParsedAmount } from "@/components/amount-input";
-import {
-  type ConfirmResult,
-  confirmSend,
-  prepareSend,
-  type SendReview,
-  signSend,
-} from "@/features/family/api/send";
+import { prepareSend, type SendReview } from "@/features/family/api/send";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
+import { DefiniteSubmitFailure, useSendMachine } from "@/features/family/hooks/use-send-machine";
+import { ensureWalletConnected } from "@/features/wallet/lib/kit";
 import { signWalletEntries, WalletSignError } from "@/features/wallet/lib/sign-wallet-entries";
-import { assertTransferEntry, BlindSignError } from "@/lib/auth-entry-guard";
-import { env } from "@/lib/env";
-import { explorerTxUrl } from "@/lib/stellar-explorer";
+import { BlindSignError } from "@/lib/auth-entry-guard";
+import {
+  Row,
+  SendDoneScreen,
+  SendGuardianWaitScreen,
+  SendUnconfirmedScreen,
+  Shell,
+} from "./-send-screens";
 
 export const Route = createFileRoute("/_authenticated/wallet/send")({
   component: WalletSendScreen,
 });
 
 const ADDRESS_RE = /^[GC][A-Z2-7]{55}$/;
-
-type Step = "enter" | "review" | "awaiting_guardian" | "done";
 
 type SendErrorKey =
   | "wallet.send.errors.insufficient"
@@ -44,6 +45,8 @@ function sendErrorKey(err: unknown): { key: SendErrorKey; shortfall?: string | u
   // Lệnh sắp ký KHÁC thứ người dùng nhập → dừng và nói thẳng, không gộp vào
   // "gửi không thành công": đây là dấu hiệu bị can thiệp, không phải lỗi mạng.
   if (err instanceof BlindSignError) return { key: "wallet.send.errors.tampered" };
+  // BE xác nhận nộp trượt (qua audit) — tiền chưa rời ví, làm lại từ đầu an toàn.
+  if (err instanceof DefiniteSubmitFailure) return { key: "wallet.send.errors.notSent" };
   if (err instanceof WalletSignError) {
     return {
       key:
@@ -76,13 +79,27 @@ function sendErrorKey(err: unknown): { key: SendErrorKey; shortfall?: string | u
 function WalletSendScreen() {
   const { t, i18n } = useTranslation("fw");
   const { wallet, isLoading, isError } = useActiveWallet();
-  const [step, setStep] = useState<Step>("enter");
+  const [step, setStep] = useState<"enter" | "review">("enter");
   const [rawAmount, setRawAmount] = useState("");
   const [recipient, setRecipient] = useState("");
   const [review, setReview] = useState<SendReview | null>(null);
-  const [txHash, setTxHash] = useState<string | null>(null);
   const parsed = useParsedAmount(rawAmount);
   const recipientValid = ADDRESS_RE.test(recipient.trim());
+
+  const machine = useSendMachine({
+    walletId: wallet?.id ?? null,
+    walletAddress: wallet?.stellarAddress ?? null,
+    signEntries: signWalletEntries,
+  });
+
+  // PRE-WARM lúc màn review mount: nối lại phiên kit từ IndexedDB để đường ký
+  // không phải chờ bước này sau cú bấm. Im lặng tuyệt đối khi hỏng — người dùng
+  // chưa yêu cầu gì; bấm nút vẫn đi đường cũ (ensureWalletConnected tự nối lại).
+  useEffect(() => {
+    if (step === "review") {
+      void ensureWalletConnected().catch(() => {});
+    }
+  }, [step]);
 
   const prepare = useMutation({
     mutationFn: async (walletId: string) => {
@@ -100,85 +117,27 @@ function WalletSendScreen() {
     },
   });
 
-  const confirmAndSign = useMutation({
-    mutationFn: async (
-      intentId: string,
-    ): Promise<{ status: ConfirmResult["status"]; hash?: string }> => {
-      const confirmed = await confirmSend(intentId);
-      if (confirmed.status === "awaiting_guardian") return { status: "awaiting_guardian" };
-      // CHỐNG KÝ MÙ: entry do backend dựng, nhưng đối chiếu với thứ NGƯỜI DÙNG
-      // vừa gõ ở màn này (`recipient`/`parsed`), KHÔNG phải `review.*` — review
-      // là backend echo lại, so nó với entry của chính backend thì vô nghĩa.
-      // Thiếu env = không đối chiếu được → CHỐI ký, không "tạm cho qua".
-      const walletAddress = wallet?.stellarAddress;
-      if (!walletAddress) throw new BlindSignError("ENTRY_WRONG_SOURCE");
-      if (!env.VITE_SAC_NATIVE) throw new BlindSignError("ENTRY_WRONG_CONTRACT");
-      if (!parsed.ok) throw new BlindSignError("ENTRY_WRONG_AMOUNT");
-      for (const entryXdr of confirmed.authEntriesXdr) {
-        assertTransferEntry(entryXdr, {
-          sac: env.VITE_SAC_NATIVE,
-          from: walletAddress,
-          to: recipient.trim(),
-          amount: BigInt(parsed.scaled),
-        });
-      }
-      const signed = await signWalletEntries({
-        entriesXdr: confirmed.authEntriesXdr,
-        latestLedger: confirmed.latestLedger,
-      });
-      const settled = await signSend({ intentId, signedEntriesXdr: signed });
-      return { status: "awaiting_signature", hash: settled.hash };
-    },
-    onSuccess: (r) => {
-      if (r.status === "awaiting_guardian") {
-        setStep("awaiting_guardian");
-      } else {
-        setTxHash(r.hash ?? null);
-        setStep("done");
-      }
-    },
-  });
-
   if (isLoading) return <Shell>{<LoadingRows />}</Shell>;
   if (isError) return <Shell>{<ErrorState />}</Shell>;
   if (!wallet) return <Shell>{<EmptyState message={t("wallet.send.noWallet")} />}</Shell>;
 
-  if (step === "done") {
-    return (
-      <Shell>
-        <div className="flex flex-col items-center gap-4 text-center">
-          <h1 className="font-semibold text-2xl text-foreground">{t("wallet.send.done.title")}</h1>
-          <p className="text-muted-foreground text-sm">{t("wallet.send.done.description")}</p>
-          {txHash ? (
-            <a
-              href={explorerTxUrl(txHash)}
-              target="_blank"
-              rel="noreferrer"
-              className="break-all font-mono text-muted-foreground text-xs underline"
-            >
-              {t("wallet.send.done.txLabel", { hash: `${txHash.slice(0, 8)}…` })}
-            </a>
-          ) : null}
-        </div>
-      </Shell>
-    );
-  }
-
-  if (step === "awaiting_guardian") {
-    return (
-      <Shell>
-        <div className="flex flex-col items-center gap-4 text-center">
-          <h1 className="font-semibold text-2xl text-foreground">
-            {t("wallet.send.guardian.title")}
-          </h1>
-          <p className="text-muted-foreground text-sm">{t("wallet.send.guardian.description")}</p>
-        </div>
-      </Shell>
-    );
+  if (machine.phase === "settled") return <SendDoneScreen txHash={machine.txHash} />;
+  if (machine.phase === "awaiting_guardian") return <SendGuardianWaitScreen />;
+  if (machine.phase === "unconfirmed") {
+    return <SendUnconfirmedScreen pollExhausted={machine.pollExhausted} />;
   }
 
   if (step === "review" && review) {
-    const err = confirmAndSign.isError ? sendErrorKey(confirmAndSign.error) : null;
+    const err = machine.error !== null ? sendErrorKey(machine.error) : null;
+    const startOver = machine.error instanceof DefiniteSubmitFailure;
+    const progressKey =
+      machine.phase === "confirming"
+        ? "wallet.send.progress.confirming"
+        : machine.phase === "signing"
+          ? "wallet.send.review.signing"
+          : machine.phase === "submitting"
+            ? "wallet.send.progress.submitting"
+            : null;
     return (
       <Shell>
         <h1 className="font-semibold text-2xl text-foreground">{t("wallet.send.review.title")}</h1>
@@ -191,23 +150,45 @@ function WalletSendScreen() {
               <span className="break-all font-mono text-sm">{review.recipient}</span>
             </Row>
             <p className="text-muted-foreground text-xs">{t("wallet.send.review.biometricNote")}</p>
+            {progressKey ? (
+              <p className="animate-pulse text-muted-foreground text-sm" role="status">
+                {t(progressKey)}
+              </p>
+            ) : null}
             {err ? (
               <p className="text-destructive text-sm" role="alert">
                 {t(err.key, { shortfall: err.shortfall ?? "" })}
               </p>
             ) : null}
-            <Button
-              disabled={confirmAndSign.isPending}
-              onClick={() => confirmAndSign.mutate(review.intentId)}
-            >
-              {confirmAndSign.isPending
-                ? t("wallet.send.review.signing")
-                : t("wallet.send.review.cta")}
-            </Button>
+            {startOver ? (
+              <Button
+                onClick={() => {
+                  machine.reset();
+                  setStep("enter");
+                }}
+              >
+                {t("wallet.send.startOverCta")}
+              </Button>
+            ) : (
+              <Button
+                disabled={machine.busy}
+                onClick={() =>
+                  void machine.start(review, {
+                    recipient: recipient.trim(),
+                    amountStroops: parsed.ok ? parsed.scaled : "",
+                  })
+                }
+              >
+                {progressKey ? t(progressKey) : t("wallet.send.review.cta")}
+              </Button>
+            )}
             <Button
               variant="ghost"
-              disabled={confirmAndSign.isPending}
-              onClick={() => setStep("enter")}
+              disabled={machine.busy}
+              onClick={() => {
+                machine.reset();
+                setStep("enter");
+              }}
             >
               {t("wallet.send.review.backCta")}
             </Button>
@@ -258,22 +239,5 @@ function WalletSendScreen() {
         </Button>
       </form>
     </Shell>
-  );
-}
-
-function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-      {children}
-    </main>
-  );
-}
-
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-muted-foreground text-sm">{label}</span>
-      <span className="text-right font-medium text-foreground">{children}</span>
-    </div>
   );
 }

@@ -529,6 +529,10 @@
         "title": "Đang chờ người thân"
       },
       "noWallet": "Bạn chưa có ví.",
+      "progress": {
+        "confirming": "Đang chuẩn bị giao dịch…",
+        "submitting": "Đã xác nhận — đang gửi lên mạng Stellar (khoảng 5 giây)…"
+      },
       "recipientLabel": "Gửi tới",
       "review": {
         "amount": "Số tiền",
@@ -539,7 +543,15 @@
         "title": "Kiểm tra trước khi gửi",
         "to": "Tới"
       },
-      "title": "Gửi tiền"
+      "startOverCta": "Làm lại từ đầu",
+      "title": "Gửi tiền",
+      "unconfirmed": {
+        "body": "Mạng bị gián đoạn đúng lúc gửi. Tiền CÓ THỂ đã đi — chúng tôi đang kiểm tra với mạng. Đừng gửi lại.",
+        "checking": "Đang kiểm tra với mạng Stellar…",
+        "historyCta": "Mở Lịch sử",
+        "stillUnknown": "Vẫn chưa có kết quả. Mở Lịch sử sau ít phút để xem tiền đã đi chưa — đừng gửi lại cho tới khi chắc chắn.",
+        "title": "Chưa xác nhận được"
+      }
     }
   },
   "welcome": {
