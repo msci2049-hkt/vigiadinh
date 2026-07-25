@@ -5,6 +5,8 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/components/family/icon";
+import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import {
   guardianDeviceRequestsOptions,
   guardianInboxOptions,
@@ -29,9 +31,11 @@ function GuardianInboxScreen() {
   const pendingKnocks = (knocks.data ?? []).filter((k) => !openWalletIds.has(k.wallet.id));
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("guardian.inbox.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("guardian.inbox.description")}</p>
+    <ProductScreen>
+      <ScreenHeader
+        title={t("guardian.inbox.title")}
+        description={t("guardian.inbox.description")}
+      />
 
       {inbox.isLoading || knocks.isLoading ? <LoadingRows /> : null}
       {inbox.isError || knocks.isError ? <ErrorState /> : null}
@@ -40,9 +44,14 @@ function GuardianInboxScreen() {
       ) : null}
 
       {pendingKnocks.map((k) => (
-        <Card key={k.deviceRequest.id} className="border-primary">
+        <Card key={k.deviceRequest.id} className="border-primary bg-accent">
           <CardHeader>
-            <CardTitle className="text-lg">{t("guardian.inbox.knockTitle")}</CardTitle>
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <span className="grid size-10 place-items-center rounded-full bg-primary">
+                <Icon name="userPlus" />
+              </span>
+              {t("guardian.inbox.knockTitle")}
+            </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
             <p className="text-foreground text-sm">
@@ -65,12 +74,19 @@ function GuardianInboxScreen() {
       ))}
 
       {(inbox.data ?? []).map((item) => (
-        <Card key={item.request.id}>
+        <Card key={item.request.id} className="bg-paper-2">
           <CardHeader>
-            <CardTitle className="text-lg">
-              {t("guardian.inbox.walletLabel", {
-                address: shortAddress(item.wallet.stellarAddress),
-              })}
+            <CardTitle className="flex items-center gap-3 text-lg">
+              <img
+                src="/assets/avatars/brother-104.webp"
+                alt=""
+                className="size-12 rounded-full object-cover"
+              />
+              <span>
+                {t("guardian.inbox.walletLabel", {
+                  address: shortAddress(item.wallet.stellarAddress),
+                })}
+              </span>
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
@@ -94,6 +110,6 @@ function GuardianInboxScreen() {
           </CardContent>
         </Card>
       ))}
-    </main>
+    </ProductScreen>
   );
 }

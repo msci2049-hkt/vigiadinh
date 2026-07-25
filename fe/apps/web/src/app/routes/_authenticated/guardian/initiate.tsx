@@ -11,6 +11,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import {
   type GuardianDeviceRequestItem,
   guardianDeviceRequestsOptions,
@@ -101,9 +104,11 @@ function GuardianInitiateScreen() {
   });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("guardian.initiate.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("guardian.initiate.description")}</p>
+    <ProductScreen className="justify-center">
+      <ScreenHeader
+        title={t("guardian.initiate.title")}
+        description={t("guardian.initiate.description")}
+      />
 
       {requests.isLoading ? <LoadingRows /> : null}
       {requests.isError ? <ErrorState /> : null}
@@ -117,31 +122,39 @@ function GuardianInitiateScreen() {
       ) : null}
 
       {item ? (
-        <Card>
-          <CardContent className="flex flex-col gap-3 pt-6">
-            <p className="break-all font-mono text-muted-foreground text-xs">
+        <Card className="bg-paper-2">
+          <CardContent className="flex flex-col gap-4 pt-6">
+            <p className="break-all rounded-card border border-dashed bg-card p-4 font-mono text-muted-foreground text-xs">
               {t("guardian.initiate.fingerprintLabel", {
                 fingerprint: item.deviceRequest.fingerprint,
               })}
             </p>
-            <p className="text-foreground text-sm">{t("guardian.initiate.verifyNote")}</p>
-            <p className="text-muted-foreground text-xs">{t("guardian.initiate.biometricNote")}</p>
+            <ErrorBanner type="warn" title={t("guardian.initiate.title")}>
+              {t("guardian.initiate.verifyNote")}
+            </ErrorBanner>
+            <div className="flex items-center gap-3">
+              <Icon name="fingerprint" size={32} />
+              <p className="text-muted-foreground text-sm">
+                {t("guardian.initiate.biometricNote")}
+              </p>
+            </div>
 
             {initiate.isError ? (
-              <p className="text-destructive text-sm" role="alert">
-                {t(initiateErrorKey(initiate.error))}
-              </p>
+              <ErrorBanner type="error" title={t(initiateErrorKey(initiate.error))} />
             ) : null}
 
-            <Button disabled={initiate.isPending} onClick={() => initiate.mutate(item)}>
-              {initiate.isPending ? t("guardian.initiate.signing") : t("guardian.initiate.cta")}
-            </Button>
-            <Button asChild variant="ghost" disabled={initiate.isPending}>
-              <Link to="/guardian">{t("guardian.initiate.backCta")}</Link>
-            </Button>
+            <PrimaryZone>
+              <Button loading={initiate.isPending} onClick={() => initiate.mutate(item)}>
+                <Icon name="fingerprint" />
+                {initiate.isPending ? t("guardian.initiate.signing") : t("guardian.initiate.cta")}
+              </Button>
+              <Button asChild variant="ghost" disabled={initiate.isPending}>
+                <Link to="/guardian">{t("guardian.initiate.backCta")}</Link>
+              </Button>
+            </PrimaryZone>
           </CardContent>
         </Card>
       ) : null}
-    </main>
+    </ProductScreen>
   );
 }

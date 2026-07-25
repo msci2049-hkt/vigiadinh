@@ -7,6 +7,7 @@ import { Button, Card, CardContent } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { guardiansOptions } from "@/features/family/api/guardians";
 import { GuardianStatusBadge } from "@/features/family/components/guardian-status-badge";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
@@ -30,8 +31,11 @@ function GuardiansDetailScreen() {
     iso ? formatDateTime(iso, { locale: i18n.language }) : t("guardians.detail.never");
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("guardians.detail.title")}</h1>
+    <ProductScreen>
+      <ScreenHeader
+        title={t("guardians.detail.title")}
+        description={t("guardians.detail.description")}
+      />
 
       {walletLoading || guardians.isLoading ? <LoadingRows /> : null}
       {walletError || guardians.isError ? <ErrorState /> : null}
@@ -40,43 +44,40 @@ function GuardiansDetailScreen() {
       ) : null}
 
       {guardian ? (
-        <Card>
-          <CardContent className="flex flex-col gap-3 p-4">
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">
-                {t("guardians.detail.statusLabel")}
-              </span>
+        <Card className="bg-paper-2">
+          <CardContent className="p-5">
+            <div className="mb-5 flex justify-center">
+              <img
+                src="/assets/avatars/mom-160.webp"
+                alt=""
+                className="size-28 rounded-full border-[3px] border-card object-cover shadow-sm"
+              />
+            </div>
+            <DetailRow label={t("guardians.detail.statusLabel")}>
               <GuardianStatusBadge status={guardian.status} />
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">
-                {t("guardians.detail.lastSeen")}
-              </span>
+            </DetailRow>
+            <DetailRow label={t("guardians.detail.lastSeen")}>
               <span className="text-foreground text-sm">{fmt(guardian.lastSeenAt)}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-sm">
-                {t("guardians.detail.lastConfirm")}
-              </span>
+            </DetailRow>
+            <DetailRow label={t("guardians.detail.lastConfirm")}>
               <span className="text-foreground text-sm">{fmt(guardian.lastManualConfirmAt)}</span>
-            </div>
+            </DetailRow>
             {guardian.onchainKey ? (
-              <div className="flex items-center justify-between gap-2">
-                <span className="text-muted-foreground text-sm">
-                  {t("guardians.detail.keyLabel")}
+              <DetailRow label={t("guardians.detail.keyLabel")}>
+                <span className="text-right font-mono text-foreground text-xs">
+                  {`${guardian.onchainKey.slice(0, 6)}…${guardian.onchainKey.slice(-6)}`}
                 </span>
-                <span className="break-all text-right font-mono text-foreground text-xs">
-                  {guardian.onchainKey}
-                </span>
-              </div>
+              </DetailRow>
             ) : null}
           </CardContent>
         </Card>
       ) : null}
 
-      <Button asChild variant="outline">
-        <Link to="/guardians">{t("guardians.detail.backCta")}</Link>
-      </Button>
-    </main>
+      <PrimaryZone>
+        <Button asChild variant="secondary">
+          <Link to="/guardians">{t("guardians.detail.backCta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

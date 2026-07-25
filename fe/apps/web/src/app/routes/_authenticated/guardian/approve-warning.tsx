@@ -8,6 +8,9 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { guardianInboxOptions } from "@/features/family/api/guardian-inbox";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { evaluateRecoveryWarnings } from "@/features/family/lib/recovery-warnings";
@@ -26,11 +29,14 @@ function GuardianApproveWarningScreen() {
   const warnings = item ? evaluateRecoveryWarnings(item.request) : [];
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-destructive">
-        {t("guardian.approveWarning.title")}
-      </h1>
-      <p className="text-muted-foreground text-sm">{t("guardian.approveWarning.description")}</p>
+    <ProductScreen>
+      <span className="grid size-16 place-items-center rounded-full bg-destructive text-destructive-foreground">
+        <Icon name="alertTriangle" size={32} />
+      </span>
+      <ScreenHeader
+        title={t("guardian.approveWarning.title")}
+        description={t("guardian.approveWarning.description")}
+      />
 
       {inbox.isLoading ? <LoadingRows /> : null}
       {inbox.isError ? <ErrorState /> : null}
@@ -38,7 +44,7 @@ function GuardianApproveWarningScreen() {
 
       {item ? (
         <>
-          <Card className="border-destructive/50">
+          <Card className="border-destructive bg-paper-2">
             <CardContent className="flex flex-col gap-3 p-4">
               <p className="font-medium text-foreground text-sm">
                 {t("guardian.approveWarning.rulesLabel")}
@@ -46,9 +52,7 @@ function GuardianApproveWarningScreen() {
               <ul className="flex flex-col gap-2">
                 {warnings.map((key) => (
                   <li key={key} className="flex gap-2 text-foreground text-sm">
-                    <span aria-hidden className="text-destructive">
-                      •
-                    </span>
+                    <Icon name="alertTriangle" size={20} className="shrink-0" />
                     <span>{t(key)}</span>
                   </li>
                 ))}
@@ -59,19 +63,22 @@ function GuardianApproveWarningScreen() {
             </CardContent>
           </Card>
 
-          <div className="mt-2 flex flex-col gap-2">
+          <ErrorBanner type="warn" title={t("guardian.approveWarning.rulesLabel")}>
+            {t("guardian.approveWarning.rulesNote")}
+          </ErrorBanner>
+          <PrimaryZone>
             {/* Nút cẩn trọng đứng TRƯỚC (mặc định người bảo hộ nên gọi điện). */}
-            <Button asChild variant="ghost">
+            <Button asChild variant="secondary">
               <Link to="/guardian">{t("guardian.approveWarning.backCta")}</Link>
             </Button>
-            <Button asChild variant="destructive">
+            <Button asChild variant="danger">
               <Link to="/guardian/approve" search={{ wallet }}>
                 {t("guardian.approveWarning.approveCta")}
               </Link>
             </Button>
-          </div>
+          </PrimaryZone>
         </>
       ) : null}
-    </main>
+    </ProductScreen>
   );
 }

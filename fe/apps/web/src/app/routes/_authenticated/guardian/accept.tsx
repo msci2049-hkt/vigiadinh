@@ -12,6 +12,9 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { acceptInvite, inviteByTokenOptions } from "@/features/family/api/invites";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { createGuardianIdentity } from "@/features/wallet/api/guardian-identity";
@@ -37,67 +40,96 @@ function GuardianAcceptScreen() {
 
   if (token.length === 0 || invite.isError) {
     return (
-      <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-        <h1 className="font-semibold text-2xl text-foreground">{t("guardians.accept.badTitle")}</h1>
-        <p className="text-muted-foreground text-sm">{t("guardians.accept.badBody")}</p>
-        <Button asChild variant="outline">
-          <Link to="/wallet">{t("guardians.accept.homeCta")}</Link>
-        </Button>
-      </main>
+      <ProductScreen className="justify-center">
+        <ScreenHeader
+          title={t("guardians.accept.badTitle")}
+          description={t("guardians.accept.badBody")}
+        />
+        <PrimaryZone>
+          <Button asChild variant="secondary">
+            <Link to="/wallet">{t("guardians.accept.homeCta")}</Link>
+          </Button>
+        </PrimaryZone>
+      </ProductScreen>
     );
   }
 
   if (accept.isSuccess) {
     return (
-      <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-        <h1 className="font-semibold text-2xl text-foreground">
-          {t("guardians.accept.doneTitle")}
-        </h1>
-        <p className="text-muted-foreground text-sm">{t("guardians.accept.doneBody")}</p>
+      <ProductScreen className="justify-center">
+        <img
+          src="/assets/mascot/mascot-wave.png"
+          alt=""
+          className="mx-auto h-40 w-40 object-contain"
+        />
+        <ScreenHeader
+          title={t("guardians.accept.doneTitle")}
+          description={t("guardians.accept.doneBody")}
+        />
         <div
-          className="rounded-md border border-border p-3"
+          className="rounded-card border border-dashed bg-paper-2 p-4"
           data-testid="guardian-identity-address"
         >
           <p className="text-muted-foreground text-xs">{t("guardians.accept.addressLabel")}</p>
           <code className="break-all text-xs">{accept.data.address}</code>
         </div>
-        <p className="text-muted-foreground text-xs">{t("guardians.accept.waitingOwner")}</p>
-      </main>
+        <ErrorBanner type="info" title={t("guardians.accept.doneTitle")}>
+          {t("guardians.accept.waitingOwner")}
+        </ErrorBanner>
+      </ProductScreen>
     );
   }
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("guardians.accept.title")}</h1>
+    <ProductScreen className="justify-center">
+      <img
+        src="/assets/people/banker-open-left.png"
+        alt=""
+        className="mx-auto h-48 w-full max-w-xs object-contain"
+      />
+      <ScreenHeader title={t("guardians.accept.title")} />
       {invite.isLoading ? <LoadingRows /> : null}
       {invite.data ? (
-        <p className="text-muted-foreground text-sm">
+        <p className="product-copy">
           {t("guardians.accept.description", { label: invite.data.label })}
         </p>
       ) : null}
 
-      <Card>
+      <Card className="bg-paper-2">
         <CardHeader>
           <CardTitle className="text-base">{t("guardians.accept.whatTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="list-disc space-y-2 pl-5 text-muted-foreground text-sm">
-            <li>{t("guardians.accept.point1")}</li>
-            <li>{t("guardians.accept.point2")}</li>
-            <li>{t("guardians.accept.point3")}</li>
+          <ul className="space-y-3">
+            {(
+              [
+                "guardians.accept.point1",
+                "guardians.accept.point2",
+                "guardians.accept.point3",
+              ] as const
+            ).map((pointKey) => (
+              <li key={pointKey} className="flex gap-3 text-copy">
+                <Icon name="checkCircle" size={20} className="mt-0.5 shrink-0" />
+                <span>{t(pointKey)}</span>
+              </li>
+            ))}
           </ul>
         </CardContent>
       </Card>
 
       {accept.isError ? <ErrorState /> : null}
 
-      <Button
-        disabled={accept.isPending || !invite.data}
-        onClick={() => accept.mutate()}
-        data-testid="guardian-accept-cta"
-      >
-        {accept.isPending ? t("guardians.accept.creating") : t("guardians.accept.cta")}
-      </Button>
-    </main>
+      <PrimaryZone>
+        <Button
+          loading={accept.isPending}
+          disabled={!invite.data}
+          onClick={() => accept.mutate()}
+          data-testid="guardian-accept-cta"
+        >
+          <Icon name="fingerprint" />
+          {accept.isPending ? t("guardians.accept.creating") : t("guardians.accept.cta")}
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

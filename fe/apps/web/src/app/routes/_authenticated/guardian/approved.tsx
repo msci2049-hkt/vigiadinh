@@ -4,6 +4,8 @@ import { Button } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
 
 export const Route = createFileRoute("/_authenticated/guardian/approved")({
@@ -22,10 +24,16 @@ function GuardianApprovedScreen() {
   const { tx } = Route.useSearch();
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="font-semibold text-2xl text-foreground">{t("guardian.approved.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("guardian.approved.description")}</p>
-      <p className="text-muted-foreground text-sm">{t("guardian.approved.nextNote")}</p>
+    <ProductScreen className="items-center justify-center text-center">
+      <span className="grid size-20 place-items-center rounded-full bg-success text-paper">
+        <Icon name="checkCircle" size={32} />
+      </span>
+      <ScreenHeader
+        title={t("guardian.approved.title")}
+        description={t("guardian.approved.description")}
+        className="text-center"
+      />
+      <p className="product-copy">{t("guardian.approved.nextNote")}</p>
       {tx ? (
         <a
           href={explorerTxUrl(tx)}
@@ -36,9 +44,11 @@ function GuardianApprovedScreen() {
           {t("guardian.approved.txLabel", { hash: `${tx.slice(0, 8)}…` })}
         </a>
       ) : null}
-      <Button asChild className="mt-2 w-full">
-        <Link to="/guardian">{t("guardian.approved.cta")}</Link>
-      </Button>
-    </main>
+      <PrimaryZone className="w-full">
+        <Button asChild>
+          <Link to="/guardian">{t("guardian.approved.cta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }
