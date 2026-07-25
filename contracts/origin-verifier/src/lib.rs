@@ -34,6 +34,11 @@ pub enum OriginVerifierError {
     OriginNotAllowed = 4,
     /// authenticatorData ngắn hơn 37 byte.
     AuthDataTooShort = 5,
+    /// `sig_data` không giải mã được thành `WebAuthnSigData` (XDR hỏng) — thay cho
+    /// panic trần, để fuzzer/FE thấy mã lỗi thay vì "unreachable" (skill C2).
+    MalformedSigData = 6,
+    /// `key_data` không đủ 65 byte pubkey — cùng lý do C2.
+    MalformedPublicKey = 7,
 }
 
 #[contracttype]
@@ -109,10 +114,12 @@ impl Verifier for OriginWebauthnVerifier {
         key_data: Self::KeyData,
         sig_data: Self::SigData,
     ) -> bool {
-        let sig_struct =
-            WebAuthnSigData::from_xdr(e, &sig_data).expect("WebAuthnSigData with correct format");
-        let pub_key: BytesN<65> =
-            extract_from_bytes(e, &key_data, 0..65).expect("65-byte public key");
+        // Input thù địch (sig_data đến từ chữ ký nộp lên): panic_with_error! có mã,
+        // KHÔNG panic trần — fuzzer coi panic trần là bug, và FE cần mã để giải thích.
+        let sig_struct = WebAuthnSigData::from_xdr(e, &sig_data)
+            .unwrap_or_else(|_| panic_with_error!(e, OriginVerifierError::MalformedSigData));
+        let pub_key: BytesN<65> = extract_from_bytes(e, &key_data, 0..65)
+            .unwrap_or_else(|| panic_with_error!(e, OriginVerifierError::MalformedPublicKey));
 
         // (A) K1 bổ sung — rpIdHash + origin, TRƯỚC crypto để chối rẻ.
         let auth_data = &sig_struct.authenticator_data;

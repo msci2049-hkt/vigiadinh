@@ -24,6 +24,20 @@ set -euo pipefail
 : "${SOURCE:?cần SOURCE (alias khoá stellar-cli)}"
 : "${NETWORK:?cần NETWORK (testnet|mainnet)}"
 
+# Fail-closed thêm (audit §4.4): KHÔNG để origin DEV lọt lên deploy. Web origin
+# PHẢI https; không origin nào được chứa localhost / 127.0.0.1 / '*'. Thiếu domain
+# thật thì script CHẾT ở đây thay vì lặng lẽ deploy một verifier vô dụng.
+case "$ORIGIN_WEB" in
+  https://*) ;;
+  *) echo "ORIGIN_WEB phải bắt đầu bằng https:// (nhận: $ORIGIN_WEB)"; exit 1 ;;
+esac
+for o in "$ORIGIN_WEB" "$ORIGIN_APK" "$ORIGIN_EXT"; do
+  case "$o" in
+    *localhost*|*127.0.0.1*|*"*"*)
+      echo "Origin DEV/wildcard bị chặn — pin domain thật: $o"; exit 1 ;;
+  esac
+done
+
 WASM="target/wasm32v1-none/release/origin_verifier.wasm"
 [ -f "$WASM" ] || { echo "Build trước: stellar contract build"; exit 1; }
 

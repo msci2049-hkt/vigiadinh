@@ -182,6 +182,26 @@ fn wrong_rp_id_hash_rejected() {
     );
 }
 
+/// C2 (skill stellar-security): `sig_data` là input thù địch. XDR hỏng hoàn toàn
+/// bị host trap ngay khi decode; XDR decode-được-nhưng-sai-shape đi vào nhánh
+/// `MalformedSigData` (#6, `panic_with_error!` thay cho `.expect()` panic trần).
+/// Cả hai đường đều PHẢI từ chối — verify không bao giờ trả `true` với rác. Đây là
+/// bất biến fail-closed; test khoá nó (không phân biệt được new/old vì cả hai đều
+/// từ chối — thay đổi code chỉ đổi panic-trần thành panic-có-mã, xem lib.rs).
+#[test]
+fn malformed_sig_data_never_verifies() {
+    let f = setup();
+    let p = [7u8; 32];
+    let kd = Bytes::from_slice(&f.env, &[4u8; 65]);
+    let sd = Bytes::from_slice(&f.env, &[0xFFu8; 12]); // rác, không phải WebAuthnSigData
+    let r = f.client.try_verify(
+        &payload_bytes(&f, &p),
+        &kd.into_val(&f.env),
+        &sd.into_val(&f.env),
+    );
+    assert!(r.is_err(), "sig_data rác không bao giờ được xác thực");
+}
+
 #[test]
 fn config_readable() {
     let f = setup();
