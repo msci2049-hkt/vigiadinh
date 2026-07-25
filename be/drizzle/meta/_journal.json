@@ -64,6 +64,13 @@
       "when": 1784962463073,
       "tag": "0008_audit_truncate_guard",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784971403146,
+      "tag": "0009_audit_runtime_role",
+      "breakpoints": true
     }
   ]
 }
