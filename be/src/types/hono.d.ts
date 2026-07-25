@@ -7,6 +7,7 @@
 // file này.
 import type { auth } from "@/lib/auth";
 import type { Logger } from "@/lib/logger";
+import type { WalletJwtClaims } from "@/modules/sep45";
 
 type S = typeof auth.$Infer.Session;
 
@@ -26,5 +27,10 @@ declare module "hono" {
     // Child logger đã bind reqId — middleware/handler dùng c.var.log thay
     // vì import logger toàn cục để log tự có reqId.
     log: Logger;
+    // Phiên VÍ (SEP-45) đã qua kiểm thu hồi `jwt_version` — set bởi middleware
+    // walletSession. Null = request không mang JWT ví (KHÔNG phải "chưa auth":
+    // danh tính cấp quyền vẫn là c.var.user). Token ví đã thu hồi không bao giờ
+    // tới được handler — middleware ném 401 trước.
+    walletSession: WalletJwtClaims | null;
   }
 }

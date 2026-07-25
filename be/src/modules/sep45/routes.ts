@@ -50,6 +50,23 @@ function mapDomainError(err: unknown): never {
 }
 
 export const sep45Routes = new Hono()
+  // Cửa ĐỌC của phiên ví (audit 2026-07-25 §1.2). Không có route nào tiêu thụ JWT
+  // ví thì `jwt_version` không thu hồi được gì có thể quan sát — đây là chỗ điều
+  // đó thành kiểm chứng được: middleware walletSession đã ném 401
+  // WALLET_SESSION_REVOKED trước khi tới đây nếu `ver` lệch.
+  //
+  // Cố ý KHÔNG requireAuth: câu hỏi ở đây là "JWT ví này còn sống không", độc lập
+  // với việc có session app hay chưa. Không trả gì ngoài claims chính client đã cầm.
+  .get("/session", (c) => {
+    const claims = c.get("walletSession");
+    if (!claims) throw new HTTPException(401, { message: "NO_WALLET_SESSION" });
+    return c.json({
+      account: claims.sub,
+      device: claims.device ?? null,
+      version: claims.ver ?? null,
+      expires_at: claims.exp,
+    });
+  })
   .get(
     "/challenge",
     rateLimit({ points: 10, duration: 60, keyPrefix: "sep45-challenge", failOpen: false }),

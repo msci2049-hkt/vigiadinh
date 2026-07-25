@@ -87,3 +87,38 @@ export async function verifyWalletJwtCurrent(
   if (current === null || current !== claims.ver) return null;
   return claims;
 }
+
+/**
+ * Kết quả phân loại một Bearer token bất kỳ (audit 2026-07-25 §1.2).
+ *
+ * - `none`   — không phải JWT ví của ta (Better Auth session token, rác, rỗng).
+ *              Middleware PHẢI đi tiếp: cửa Bearer của Better Auth sở hữu nó.
+ * - `revoked`— ĐÚNG là JWT ví ta phát, chữ ký thật, còn hạn, NHƯNG `ver` lệch
+ *              `jwt_version` hiện tại (hoặc thiếu `ver`, hoặc ví biến mất).
+ *              Middleware PHẢI trả 401 — im lặng bỏ qua là biến "đã thu hồi"
+ *              thành "vẫn dùng được ở mọi nơi khác".
+ * - `valid`  — dùng được, kèm claims.
+ */
+export type WalletSessionState =
+  | { state: "none" }
+  | { state: "revoked" }
+  | { state: "valid"; claims: WalletJwtClaims };
+
+/**
+ * Vì sao phải là MỘT hàm chứ không phải "gọi verifySignatureOnly rồi verifyCurrent"
+ * ở tầng middleware: phân biệt `none` với `revoked` bắt buộc phải xem chữ ký
+ * TRƯỚC khi tra DB, mà bản chỉ-kiểm-chữ-ký cố ý không rời khỏi module này (xem
+ * chú thích của nó). Đưa việc phân loại vào đây giữ được cả hai: middleware có đủ
+ * thông tin để 401 đúng token, và không ai ngoài module cầm được cửa thiếu kiểm.
+ */
+export async function resolveWalletSession(
+  secret: string,
+  token: string,
+  lookup: WalletVersionLookup,
+): Promise<WalletSessionState> {
+  const shallow = verifyWalletJwtSignatureOnly(secret, token);
+  if (shallow === null) return { state: "none" };
+  const claims = await verifyWalletJwtCurrent(secret, token, lookup);
+  if (claims === null) return { state: "revoked" };
+  return { state: "valid", claims };
+}
