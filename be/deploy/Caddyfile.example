@@ -17,6 +17,11 @@
         # GHI ĐÈ IP client — chống spoof rate-limit (tương đương nginx
         # X-Real-IP $remote_addr; KHÔNG append kiểu $proxy_add_x_forwarded_for).
         header_up X-Real-IP {remote_host}
+        # BẮT BUỘC (audit 2026-07-25 §6.3): Caddy mặc định APPEND IP client vào
+        # X-Forwarded-For do client gửi, nên phần tử ĐẦU của XFF là giá trị kẻ gọi
+        # tự đặt. App đọc X-Real-IP trước, nhưng ghi đè cả XFF để không còn header
+        # nào mang dữ liệu giả — bỏ dòng này là mở lại đường vô hiệu rate-limit.
+        header_up X-Forwarded-For {remote_host}
         # Tắt buffer cho SSE (/api/events) — tương đương proxy_buffering off.
         flush_interval -1
     }

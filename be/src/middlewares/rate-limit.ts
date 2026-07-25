@@ -38,9 +38,22 @@ function defaultKey(c: Context): string {
     const cf = c.req.header("cf-connecting-ip");
     if (cf) return `ip:${cf.trim()}`;
   }
-  // XFF được reverse proxy của ta ghi đè bằng $remote_addr (deploy/nginx.vhost).
+  // Audit 2026-07-25 (§6.3): `x-real-ip` TRƯỚC `x-forwarded-for`. Đây là header
+  // DUY NHẤT mà CẢ HAI mẫu reverse proxy của repo đều ghi đè bằng IP thật:
+  //   nginx  — proxy_set_header X-Real-IP $remote_addr;        (vhost:34, :45)
+  //   Caddy  — header_up X-Real-IP {remote_host}               (Caddyfile:19)
+  // Còn XFF thì KHÔNG: nginx ghi đè nó, nhưng Caddy `reverse_proxy` mặc định
+  // APPEND IP client vào giá trị client gửi lên (không có `trusted_proxies`), nên
+  // `xff.split(",")[0]` là chuỗi do KẺ GỌI chọn. Mà Caddyfile.example tự khai là
+  // proxy "ƯU TIÊN" — tức trên đúng cấu hình khuyến nghị, mọi giới hạn theo IP ở
+  // các cửa CHƯA đăng nhập (login SEP-45, khôi phục công khai, dò token lời mời)
+  // bị vô hiệu chỉ bằng cách đổi một header mỗi request.
+  const realIp = c.req.header("x-real-ip");
+  if (realIp) return `ip:${realIp.trim()}`;
   const xff = c.req.header("x-forwarded-for");
   if (xff) return `ip:${xff.split(",")[0]?.trim() ?? "unknown"}`;
+  // Không header nào → chạy trần không proxy (dev). Gộp chung một xô là CHẶT hơn
+  // (mọi client chia nhau một hạn mức), không phải lỏng hơn — fail-closed.
   return "ip:unknown";
 }
 

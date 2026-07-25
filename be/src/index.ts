@@ -8,7 +8,7 @@ import { env } from "@/env";
 import { logger } from "@/lib/logger";
 import { assertPoolBudget } from "@/lib/pool-budget";
 import { closeRealtime } from "@/lib/realtime";
-import { bullConnection, rateLimitConnection } from "@/lib/redis";
+import { authStoreConnection, bullConnection, rateLimitConnection } from "@/lib/redis";
 
 // Cluster child bỏ qua — cluster.ts đã kiểm 1 lần cho cả N (tránh refuse/log N lần).
 // Dev/single-process: kiểm tại đây, refuse boot nếu pool vượt ngân sách.
@@ -30,7 +30,15 @@ logger.info({ port: env.PORT, env: env.NODE_ENV }, "server.listening");
 // stop(true) đóng cứng connection còn lại — client SSE tự reconnect + refetch-bù
 // (thiết kế at-most-once, xem FE useServerEvents), request thường đã có đủ
 // SHUTDOWN_DRAIN_MS để xong.
-const SHUTDOWN_DRAIN_MS = 10_000;
+//
+// Audit 2026-07-25 (§7) — NGÂN SÁCH TẮT MÁY PHẢI LỒNG NHAU: child < supervisor <
+// Docker. Trước phiên này thì ngược: child cần tới 10s drain + 5s đóng pool = 15s,
+// nhưng cluster.ts SIGKILL con ở 8s, dưới hạn Docker 15s. Nghĩa là mỗi lần drain
+// vượt 8s, request đang bay bị giết sớm ~7s và pool Postgres KHÔNG BAO GIỜ đóng
+// sạch — đúng cái 500-lúc-rolling-deploy mà chú thích trên nói là đã tránh được.
+// Nay: 7s drain + 3s đóng pool = 10s (đây) < 13s (cluster.ts) < 15s (compose).
+// Đổi bất kỳ số nào thì phải đổi cả ba, cùng lúc.
+const SHUTDOWN_DRAIN_MS = 7_000;
 
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {
@@ -48,8 +56,15 @@ async function shutdown(signal: string): Promise<void> {
       logger.warn({ signal, drainMs: SHUTDOWN_DRAIN_MS }, "server.shutdown.force-close");
       server.stop(true); // đóng cứng connection còn treo (SSE) — idempotent
     }
-    await pgClient.end({ timeout: 5 });
-    await Promise.all([bullConnection.quit(), rateLimitConnection.quit(), closeRealtime()]);
+    await pgClient.end({ timeout: 3 });
+    await Promise.all([
+      bullConnection.quit(),
+      rateLimitConnection.quit(),
+      // Connection thứ ba (secondaryStorage của Better Auth) cũng phải đóng, nếu
+      // không mỗi lần restart để lại một socket Dragonfly mồ côi.
+      authStoreConnection.quit(),
+      closeRealtime(),
+    ]);
     logger.info({ signal, drained }, "server.shutdown.done");
     process.exit(0);
   } catch (err) {

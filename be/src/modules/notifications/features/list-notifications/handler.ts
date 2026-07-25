@@ -15,7 +15,9 @@ export const listNotificationsRoute = new Hono().get(
     const user = c.get("user");
     if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
     const { status } = c.req.valid("query");
-    const items = await repo.listByUser(user.id);
-    return c.json({ data: status ? items.filter((n) => n.status === status) : items });
+    // `status` đi THẲNG vào WHERE của SQL. Lọc ở đây (sau LIMIT 100) là bug:
+    // xem chú thích ở notifications.repository.listByUser.
+    const items = await repo.listByUser(user.id, status);
+    return c.json({ data: items });
   },
 );

@@ -224,6 +224,15 @@ describe("§3 BOLA — A không chạm được object của B (ĐỌC)", () => 
     );
   });
 
+  testIt("GET /api/wallets/:id/balance — số dư ví B (§8, endpoint mới)", async () => {
+    // Endpoint đọc thêm ở phiên này phải vào ma trận NGAY, không đợi phiên sau —
+    // route mới quên ownership chính là cách lỗ BOLA sinh ra.
+    await expectNoLeak(
+      "GET /api/wallets/:id/balance",
+      await asA(`/api/wallets/${B.walletId}/balance`),
+    );
+  });
+
   testIt("GET /api/intents/send/:intentId/signable — intent của B", async () => {
     await expectNoLeak(
       "GET /api/intents/send/:intentId/signable",

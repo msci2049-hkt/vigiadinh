@@ -22,7 +22,9 @@ import { env } from "@/env";
 import { ac, roles } from "@/lib/access-control";
 import { sendEmail } from "@/lib/email";
 import { hashPassword, verifyPassword } from "@/lib/password-hash";
-import { bullConnection as redis } from "@/lib/redis";
+// Audit 2026-07-25 (§7): PHẢI là connection fail-fast, KHÔNG phải bullConnection
+// (retry vô hạn + offline queue) — lý do đầy đủ ở lib/redis.ts.
+import { authStoreConnection as redis } from "@/lib/redis";
 import { enforcePublicSignupRole } from "@/lib/signup-role-guard";
 import { VALIDATION_LIMITS } from "@/lib/validation-limits";
 
