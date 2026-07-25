@@ -88,13 +88,29 @@ Chi tiết §B-SEC-1..5 gốc giữ nguyên bên dưới để đối chiếu.
 - **Cần gì:** deploy lại contract lên testnet, cập nhật contract ID, chạy lại e2e thu tx hash.
   **Ví đã đăng ký bằng bản cũ không tự động đạt sàn mới** — cần rà lại.
 
-### B-SEC-8 · `pnpm audit --audit-level=high` vẫn đỏ (dev-only)
+### B-SEC-9 · 🟠 Lỗ test do `cargo-mutants` phát hiện (closeout 2026-07-25)
 
-- **Chặn:** gate CI `ci-fe.yml:138`. Còn 3 high: `postcss` + `brace-expansion` ×2, tất cả đều
-  **chỉ ở dependency build-time** (vite/vitest/workbox/sentry-plugin), không vào bundle trình
-  duyệt. CVE better-auth (chiếm tài khoản) đã gỡ bằng cách nâng 1.6.25.
-- **Cần gì:** chờ upstream bump, hoặc `pnpm.overrides` có chủ đích. **Không được hạ
-  `--audit-level`.**
+- `cargo mutants -p smart-account`: 46 mutant → **24 caught / 10 missed / 12 unviable**. Các fix
+  đợt này (`recovery_rotate`, `extend_ttl`) **đều bị BẮT** (nằm trong 24 caught) — test hồi quy thật.
+- **10 mutant sống là lỗ test CÓ SẴN**, không phải hồi quy đợt này:
+  - `__check_auth` (lib.rs:301 `-> Ok(())`; :312 `<`→`==`/`>`/`<=`) — **cổng cooldown #101 KHÔNG có
+    unit test ở crate smart-account** (test.rs cố ý bỏ __check_auth vì cần dựng AuthPayload/crypto;
+    cooldown chỉ được phủ gián tiếp). Đây là mutant quan trọng nhất — biên cửa sổ cooldown chưa khoá.
+  - `last_rotation` getter (lib.rs:238), `owner_rule_id -> 0` (lib.rs:84, luôn 0 trong test),
+    `registry_link` store/apply_pending biên `>`/`<` (:96, :136).
+- **Cần gì:** test __check_auth cooldown ở mức dựng được AuthPayload tối thiểu (panic #101 TRƯỚC crypto),
+  + test biên `last_rotation + cooldown`. Ưu tiên trung bình (cooldown đã phủ ở tầng e2e/đọc chain,
+  nhưng biên chưa khoá bằng unit test).
+
+### B-SEC-8 · `pnpm audit --audit-level=high` — ✅ ĐÃ GỠ (closeout 2026-07-25)
+
+- **Đã vá bằng `pnpm.overrides` có chủ đích** (không hạ `--audit-level`): `brace-expansion: 5.0.8`
+  (bản `latest` đã vá ReDoS GHSA-mh99-v99m-4gvg; `^2.0.2` resolve nhầm sang `2.1.2 =
+  maintenance-v2` vẫn dính, nên pin thẳng 5.0.8) + `postcss: ^8.5.18` (vá path-traversal source-map).
+  Sau override: `pnpm audit --audit-level=high` → **rc=0** (0 high, còn 3 moderate không gate).
+  Cả hai chỉ ở build-tooling (vite/vitest/workbox/sentry), không vào bundle. Build honest + validate
+  + test chạy lại XANH với lockfile mới.
+- **Còn 3 moderate** (không chặn gate high) — theo dõi, bump khi upstream ra bản sạch.
 
 ## CI (2026-07-23, sau SHA `e2682fd`)
 
