@@ -4,6 +4,11 @@ dist/
 target/
 .turbo/
 
+# cargo-mutants: thư mục làm việc + bản copy cây nguồn, sinh lại được từ lệnh.
+# Báo cáo đã chốt thì chép sang docs/security/mutants.txt và commit BẢN ĐÓ.
+contracts/mutants.out/
+contracts/mutants.out.old/
+
 # env — không bao giờ commit
 .env
 .env.*

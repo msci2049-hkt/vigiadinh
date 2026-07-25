@@ -202,6 +202,80 @@ fn malformed_sig_data_never_verifies() {
     assert!(r.is_err(), "sig_data rác không bao giờ được xác thực");
 }
 
+/// MUTANTS closeout — `contains` là hàm quyết định "origin có nằm trong
+/// clientDataJSON không", tức nó LÀ allow-list origin. Ba mutant sống sót ở dòng
+/// `if n == 0 || h < n` (đợt mutants toàn workspace 2026-07-25), và cả ba đều là lỗ
+/// bảo mật thật, không phải nhiễu:
+///
+///   - `||` → `&&`: needle RỖNG không còn bị chối sớm; vòng lặp so `slice(0..0)` với
+///     Bytes rỗng → `true`. Nghĩa là một origin RỖNG trong allow-list làm MỌI origin
+///     được chấp nhận. Đây đúng là ca §2.3 (config production để trống) nhưng ở tầng
+///     contract: dù build có gác, contract vẫn phải fail-closed.
+///   - `<` → `<=` và `<` → `==`: needle DÀI BẰNG haystack bị chối oan → origin khớp
+///     khít toàn bộ clientDataJSON không nhận ra được.
+///
+/// Test gọi thẳng `crate::contains` (submodule thấy item private của parent) vì qua
+/// `verify` thì ba ca biên này không dựng được bằng chữ ký thật.
+#[test]
+fn contains_boundaries_are_exact() {
+    let e = Env::default();
+    let hay = Bytes::from_slice(&e, b"abcdef");
+
+    // needle RỖNG → false. Không có dòng này, allow-list rỗng = cửa mở.
+    assert!(
+        !crate::contains(&hay, &Bytes::new(&e)),
+        "needle rỗng phải bị chối — nếu không, origin rỗng khớp mọi thứ"
+    );
+    // needle DÀI HƠN haystack → false.
+    assert!(!crate::contains(&hay, &Bytes::from_slice(&e, b"abcdefg")));
+    // needle DÀI BẰNG haystack và khớp → true (biên h == n).
+    assert!(
+        crate::contains(&hay, &Bytes::from_slice(&e, b"abcdef")),
+        "khớp khít toàn bộ vẫn phải là khớp"
+    );
+    // needle dài bằng nhưng KHÁC → false.
+    assert!(!crate::contains(&hay, &Bytes::from_slice(&e, b"abcdez")));
+    // Khớp ở giữa + ở cuối — giữ hành vi quét tuyến tính.
+    assert!(crate::contains(&hay, &Bytes::from_slice(&e, b"cd")));
+    assert!(crate::contains(&hay, &Bytes::from_slice(&e, b"ef")));
+}
+
+/// MUTANTS closeout — `auth_data.len() < 37` là cổng chặn authenticatorData cụt
+/// TRƯỚC khi slice `0..32` (rpIdHash) và đọc cờ UV ở byte 32. Mutant `<` → `>` sống
+/// vì MỌI test cũ dựng authData dài ĐÚNG 37 byte, và `37 > 37` cũng false → không
+/// test nào phân biệt được. Ca này dùng authData NGẮN và đòi ĐÚNG mã lỗi: với mutant
+/// `>`, authData 20 byte đi lọt cổng rồi chết ở chỗ khác (mã khác) → assert đỏ.
+#[test]
+fn auth_data_shorter_than_37_rejected_with_its_own_code() {
+    let f = setup();
+    let p = [9u8; 32];
+    let cdj = std::format!(
+        "{{\"type\":\"webauthn.get\",\"challenge\":\"{}\",\"origin\":\"{}\",\"crossOrigin\":false}}",
+        b64url(&p),
+        ORIGIN_WEB
+    );
+    let sig_struct = WebAuthnSigData {
+        signature: BytesN::from_array(&f.env, &[0u8; 64]),
+        // 36 byte = thiếu ĐÚNG một byte so với sàn 37 (32 rpIdHash + 1 flags + 4 counter).
+        authenticator_data: Bytes::from_slice(&f.env, &[0u8; 36]),
+        client_data: Bytes::from_slice(&f.env, cdj.as_bytes()),
+    };
+    let kd = Bytes::from_slice(&f.env, &[4u8; 65]);
+    let sd = sig_struct.to_xdr(&f.env);
+    let r = f.client.try_verify(
+        &payload_bytes(&f, &p),
+        &kd.into_val(&f.env),
+        &sd.into_val(&f.env),
+    );
+    assert_eq!(
+        r,
+        Err(Ok(soroban_sdk::Error::from_contract_error(
+            OriginVerifierError::AuthDataTooShort as u32
+        ))),
+        "authData cụt phải chối bằng chính mã của nó, không phải lỗi tình cờ ở sau"
+    );
+}
+
 #[test]
 fn config_readable() {
     let f = setup();

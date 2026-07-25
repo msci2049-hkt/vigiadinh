@@ -1,0 +1,1527 @@
+   Compiling serde_core v1.0.229
+    Checking base64ct v1.8.3
+    Checking ff v0.13.1
+    Checking base16ct v0.2.0
+    Checking dyn-clone v1.0.20
+    Checking arbitrary v1.3.2
+    Checking pem-rfc7468 v0.7.0
+   Compiling thiserror v1.0.69
+    Checking group v0.13.0
+    Checking dtor v0.1.1
+    Checking der v0.7.10
+    Checking ctor v0.5.0
+    Checking spki v0.7.3
+    Checking pkcs8 v0.10.2
+    Checking sec1 v0.7.3
+    Checking serde v1.0.229
+    Checking serde_json v1.0.151
+    Checking elliptic-curve v0.13.8
+    Checking ecdsa v0.16.9
+    Checking primeorder v0.13.6
+    Checking hex v0.4.3
+    Checking serde-json-core v0.6.0
+    Checking schemars v0.8.22
+    Checking k256 v0.13.4
+    Checking p256 v0.13.2
+   Compiling crate-git-revision v0.0.6
+   Compiling crate-git-revision v0.0.9
+   Compiling stellar-strkey v0.0.13
+   Compiling stellar-xdr v26.0.1
+   Compiling stellar-strkey v0.0.16
+   Compiling soroban-env-common v26.1.4
+   Compiling stellar-xdr v27.0.0
+   Compiling soroban-sdk v26.1.1
+   Compiling soroban-env-common v27.0.1
+   Compiling soroban-sdk v27.0.2
+    Checking serde_with v3.21.0
+   Compiling soroban-spec v27.0.2
+   Compiling soroban-spec-rust v27.0.2
+   Compiling soroban-env-macros v27.0.1
+   Compiling soroban-spec v26.1.1
+   Compiling soroban-spec-rust v26.1.1
+   Compiling soroban-env-macros v26.1.4
+   Compiling soroban-sdk-macros v27.0.2
+    Checking soroban-env-host v27.0.1
+   Compiling soroban-sdk-macros v26.1.1
+    Checking soroban-env-host v26.1.4
+    Checking soroban-ledger-snapshot v27.0.2
+    Checking soroban-ledger-snapshot v26.1.1
+    Checking verifier-webauthn v0.1.0 (/mnt/d/du-an/thi-stella/family-wallet/contracts/verifier-webauthn)
+warning: unused import: `testutils::BytesN as _`
+  --> verifier-webauthn/src/test.rs:11:19
+   |
+11 | use soroban_sdk::{testutils::BytesN as _, vec, Bytes, BytesN, Env, Vec};
+   |                   ^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: item in documentation is missing backticks
+ --> verifier-webauthn/src/lib.rs:1:14
+  |
+1 | //! Verifier WebAuthn secp256r1 — trái tim spike gate 3 (PHA 2, skill passkey §6).
+  |              ^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+  = note: `-W clippy::doc-markdown` implied by `-W clippy::pedantic`
+  = help: to override `-W clippy::pedantic` add `#[allow(clippy::doc_markdown)]`
+help: try
+  |
+1 - //! Verifier WebAuthn secp256r1 — trái tim spike gate 3 (PHA 2, skill passkey §6).
+1 + //! Verifier `WebAuthn` secp256r1 — trái tim spike gate 3 (PHA 2, skill passkey §6).
+  |
+
+warning: item in documentation is missing backticks
+  --> verifier-webauthn/src/lib.rs:11:32
+   |
+11 | //! digest = sha256(message) → env.crypto().secp256r1_verify (host panic nếu sai).
+   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+11 - //! digest = sha256(message) → env.crypto().secp256r1_verify (host panic nếu sai).
+11 + //! digest = sha256(message) → `env.crypto().secp256r1_verify` (host panic nếu sai).
+   |
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> verifier-webauthn/src/lib.rs:57:31
+   |
+57 |     pub fn __constructor(env: Env, rp_id_hash: BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                               ^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+   = note: `-W clippy::needless-pass-by-value` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+   |
+57 |     pub fn __constructor(env: &Env, rp_id_hash: BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                               +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> verifier-webauthn/src/lib.rs:57:48
+   |
+57 |     pub fn __constructor(env: Env, rp_id_hash: BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                                                ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+57 |     pub fn __constructor(env: Env, rp_id_hash: &BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                                                +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> verifier-webauthn/src/lib.rs:57:77
+   |
+57 |     pub fn __constructor(env: Env, rp_id_hash: BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                                                                             ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+57 |     pub fn __constructor(env: Env, rp_id_hash: BytesN<32>, allowed_origins: &Vec<Bytes>) {
+   |                                                                             +
+
+warning: item in documentation is missing backticks
+  --> verifier-webauthn/src/lib.rs:69:32
+   |
+69 |     /// Xác thực một assertion WebAuthn. Panic với mã lỗi cụ thể khi sai —
+   |                                ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+69 -     /// Xác thực một assertion WebAuthn. Panic với mã lỗi cụ thể khi sai —
+69 +     /// Xác thực một assertion `WebAuthn`. Panic với mã lỗi cụ thể khi sai —
+   |
+
+warning: item in documentation is missing backticks
+  --> verifier-webauthn/src/lib.rs:70:33
+   |
+70 |     /// caller (smart account __check_auth) coi panic = chữ ký không hợp lệ.
+   |                                 ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+70 -     /// caller (smart account __check_auth) coi panic = chữ ký không hợp lệ.
+70 +     /// caller (smart account __`check_auth`) coi panic = chữ ký không hợp lệ.
+   |
+
+warning: docs for function which may panic missing `# Panics` section
+   --> verifier-webauthn/src/lib.rs:77:5
+    |
+ 77 | /     pub fn verify(
+ 78 | |         env: Env,
+ 79 | |         public_key: BytesN<65>,
+ 80 | |         challenge: BytesN<32>,
+...   |
+ 83 | |         signature: BytesN<64>,
+ 84 | |     ) {
+    | |_____^
+    |
+note: first possible panic found here
+   --> verifier-webauthn/src/lib.rs:104:21
+    |
+104 |         let flags = auth_data.get(32).unwrap();
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#missing_panics_doc
+    = note: `-W clippy::missing-panics-doc` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::missing_panics_doc)]`
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> verifier-webauthn/src/lib.rs:78:14
+   |
+78 |         env: Env,
+   |              ^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+78 |         env: &Env,
+   |              +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> verifier-webauthn/src/lib.rs:79:21
+   |
+79 |         public_key: BytesN<65>,
+   |                     ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+79 |         public_key: &BytesN<65>,
+   |                     +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> verifier-webauthn/src/lib.rs:80:20
+   |
+80 |         challenge: BytesN<32>,
+   |                    ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+80 |         challenge: &BytesN<32>,
+   |                    +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> verifier-webauthn/src/lib.rs:81:20
+   |
+81 |         auth_data: Bytes,
+   |                    ^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+81 |         auth_data: &Bytes,
+   |                    +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> verifier-webauthn/src/lib.rs:82:22
+   |
+82 |         client_data: Bytes,
+   |                      ^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+82 |         client_data: &Bytes,
+   |                      +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> verifier-webauthn/src/lib.rs:83:20
+   |
+83 |         signature: BytesN<64>,
+   |                    ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+83 |         signature: &BytesN<64>,
+   |                    +
+
+warning: this method could have a `#[must_use]` attribute
+   --> verifier-webauthn/src/lib.rs:154:12
+    |
+154 |     pub fn config(env: Env) -> (BytesN<32>, Vec<Bytes>) {
+    |            ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#must_use_candidate
+    = note: `-W clippy::must-use-candidate` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::must_use_candidate)]`
+help: add the attribute
+    |
+154 ~     #[must_use]
+155 ~     pub fn config(env: Env) -> (BytesN<32>, Vec<Bytes>) {
+    |
+
+warning: this argument is passed by value, but not consumed in the function body
+   --> verifier-webauthn/src/lib.rs:154:24
+    |
+154 |     pub fn config(env: Env) -> (BytesN<32>, Vec<Bytes>) {
+    |                        ^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+154 |     pub fn config(env: &Env) -> (BytesN<32>, Vec<Bytes>) {
+    |                        +
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+   --> verifier-webauthn/src/lib.rs:176:18
+    |
+176 |         let n = ((raw[i] as u32) << 16) | ((raw[i + 1] as u32) << 8) | raw[i + 2] as u32;
+    |                  ^^^^^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+    = note: `-W clippy::cast-lossless` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::cast_lossless)]`
+help: use `u32::from` instead
+    |
+176 -         let n = ((raw[i] as u32) << 16) | ((raw[i + 1] as u32) << 8) | raw[i + 2] as u32;
+176 +         let n = (u32::from(raw[i]) << 16) | ((raw[i + 1] as u32) << 8) | raw[i + 2] as u32;
+    |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+   --> verifier-webauthn/src/lib.rs:176:44
+    |
+176 |         let n = ((raw[i] as u32) << 16) | ((raw[i + 1] as u32) << 8) | raw[i + 2] as u32;
+    |                                            ^^^^^^^^^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+    |
+176 -         let n = ((raw[i] as u32) << 16) | ((raw[i + 1] as u32) << 8) | raw[i + 2] as u32;
+176 +         let n = ((raw[i] as u32) << 16) | (u32::from(raw[i + 1]) << 8) | raw[i + 2] as u32;
+    |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+   --> verifier-webauthn/src/lib.rs:176:72
+    |
+176 |         let n = ((raw[i] as u32) << 16) | ((raw[i + 1] as u32) << 8) | raw[i + 2] as u32;
+    |                                                                        ^^^^^^^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+    |
+176 -         let n = ((raw[i] as u32) << 16) | ((raw[i + 1] as u32) << 8) | raw[i + 2] as u32;
+176 +         let n = ((raw[i] as u32) << 16) | ((raw[i + 1] as u32) << 8) | u32::from(raw[i + 2]);
+    |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+   --> verifier-webauthn/src/lib.rs:184:14
+    |
+184 |     let n = ((raw[30] as u32) << 16) | ((raw[31] as u32) << 8);
+    |              ^^^^^^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+    |
+184 -     let n = ((raw[30] as u32) << 16) | ((raw[31] as u32) << 8);
+184 +     let n = (u32::from(raw[30]) << 16) | ((raw[31] as u32) << 8);
+    |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+   --> verifier-webauthn/src/lib.rs:184:41
+    |
+184 |     let n = ((raw[30] as u32) << 16) | ((raw[31] as u32) << 8);
+    |                                         ^^^^^^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+    |
+184 -     let n = ((raw[30] as u32) << 16) | ((raw[31] as u32) << 8);
+184 +     let n = ((raw[30] as u32) << 16) | (u32::from(raw[31]) << 8);
+    |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> verifier-webauthn/src/test.rs:29:18
+   |
+29 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |                  ^^^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+   |
+29 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+29 +         let n = (u32::from(b[0]) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> verifier-webauthn/src/test.rs:29:42
+   |
+29 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |                                          ^^^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+   |
+29 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+29 +         let n = ((b[0] as u32) << 16) | (u32::from(b[1]) << 8) | b[2] as u32;
+   |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> verifier-webauthn/src/test.rs:29:64
+   |
+29 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |                                                                ^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+   |
+29 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+29 +         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | u32::from(b[2]);
+   |
+
+warning: item in documentation is missing backticks
+  --> verifier-webauthn/src/test.rs:59:28
+   |
+59 | /// Ký một assertion: trả (public_key 65B, signature 64B low-S).
+   |                            ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+59 - /// Ký một assertion: trả (public_key 65B, signature 64B low-S).
+59 + /// Ký một assertion: trả (`public_key` 65B, signature 64B low-S).
+   |
+
+warning: item in documentation is missing backticks
+   --> verifier-webauthn/src/test.rs:212:37
+    |
+212 | /// Chữ ký hỏng (đổi 1 byte) → host secp256r1_verify chối (panic ≠ contracterror).
+    |                                     ^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+    |
+212 - /// Chữ ký hỏng (đổi 1 byte) → host secp256r1_verify chối (panic ≠ contracterror).
+212 + /// Chữ ký hỏng (đổi 1 byte) → host `secp256r1_verify` chối (panic ≠ contracterror).
+    |
+
+warning: variables can be used directly in the `format!` string
+   --> verifier-webauthn/src/test.rs:228:5
+    |
+228 |     assert!(r.is_err(), "chữ ký sửa 1 byte phải bị chối, got {:?}", r);
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#uninlined_format_args
+    = note: `-W clippy::uninlined-format-args` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::uninlined_format_args)]`
+help: change this to
+    |
+228 -     assert!(r.is_err(), "chữ ký sửa 1 byte phải bị chối, got {:?}", r);
+228 +     assert!(r.is_err(), "chữ ký sửa 1 byte phải bị chối, got {r:?}");
+    |
+
+warning: `verifier-webauthn` (lib) generated 21 warnings (15 duplicates) (run `cargo clippy --fix --lib -p verifier-webauthn -- -W clippy::all -W clippy::pedantic` to apply 6 suggestions)
+warning: `verifier-webauthn` (lib test) generated 28 warnings (6 duplicates) (run `cargo clippy --fix --lib -p verifier-webauthn --tests -- -W clippy::all -W clippy::pedantic` to apply 11 suggestions)
+warning: item in documentation is missing backticks
+ --> verifier-webauthn/examples/gen-vectors.rs:2:5
+  |
+2 | //! WebAuthn cho BA origin + MỘT origin lạ. In hex để ném vào verifier trên TESTNET
+  |     ^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+  = note: `-W clippy::doc-markdown` implied by `-W clippy::pedantic`
+  = help: to override `-W clippy::pedantic` add `#[allow(clippy::doc_markdown)]`
+help: try
+  |
+2 - //! WebAuthn cho BA origin + MỘT origin lạ. In hex để ném vào verifier trên TESTNET
+2 + //! `WebAuthn` cho BA origin + MỘT origin lạ. In hex để ném vào verifier trên TESTNET
+  |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> verifier-webauthn/examples/gen-vectors.rs:19:18
+   |
+19 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |                  ^^^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+   = note: `-W clippy::cast-lossless` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::cast_lossless)]`
+help: use `u32::from` instead
+   |
+19 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+19 +         let n = (u32::from(b[0]) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> verifier-webauthn/examples/gen-vectors.rs:19:42
+   |
+19 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |                                          ^^^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+   |
+19 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+19 +         let n = ((b[0] as u32) << 16) | (u32::from(b[1]) << 8) | b[2] as u32;
+   |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> verifier-webauthn/examples/gen-vectors.rs:19:64
+   |
+19 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |                                                                ^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+   |
+19 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+19 +         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | u32::from(b[2]);
+   |
+
+warning: use of `format!` to build up a string from an iterator
+  --> verifier-webauthn/examples/gen-vectors.rs:33:5
+   |
+33 |     data.iter().map(|b| format!("{b:02x}")).collect()
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+help: call `fold` instead
+  --> verifier-webauthn/examples/gen-vectors.rs:33:17
+   |
+33 |     data.iter().map(|b| format!("{b:02x}")).collect()
+   |                 ^^^
+help: ... and use the `write!` macro here
+  --> verifier-webauthn/examples/gen-vectors.rs:33:25
+   |
+33 |     data.iter().map(|b| format!("{b:02x}")).collect()
+   |                         ^^^^^^^^^^^^^^^^^^
+   = note: this can be written more efficiently by appending to a `String` directly
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#format_collect
+   = note: `-W clippy::format-collect` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::format_collect)]`
+
+warning: `verifier-webauthn` (example "gen-vectors") generated 5 warnings (run `cargo clippy --fix --example "gen-vectors" -p verifier-webauthn -- -W clippy::all -W clippy::pedantic` to apply 4 suggestions)
+    Checking stellar-accounts v0.7.2
+    Checking web-auth v0.1.0 (/mnt/d/du-an/thi-stella/family-wallet/contracts/web-auth)
+warning: #[should_panic] attribute without a reason
+   --> web-auth/src/test.rs:121:1
+    |
+121 | #[should_panic]
+    | ^^^^^^^^^^^^^^^ help: consider specifying the expected panic: `#[should_panic(expected = /* panic message */)]`
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#should_panic_without_expect
+    = note: `-W clippy::should-panic-without-expect` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::should_panic_without_expect)]`
+
+warning: item in documentation is missing backticks
+ --> web-auth/src/lib.rs:3:34
+  |
+3 | //! Backend dựng challenge = các SorobanAuthorizationEntry mà root invocation là
+  |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+  = note: `-W clippy::doc-markdown` implied by `-W clippy::pedantic`
+  = help: to override `-W clippy::pedantic` add `#[allow(clippy::doc_markdown)]`
+help: try
+  |
+3 - //! Backend dựng challenge = các SorobanAuthorizationEntry mà root invocation là
+3 + //! Backend dựng challenge = các `SorobanAuthorizationEntry` mà root invocation là
+  |
+
+warning: item in documentation is missing backticks
+ --> web-auth/src/lib.rs:7:57
+  |
+7 | //!   2. `require_auth` trên `web_auth_domain_account` (SIGNING_KEY của server)
+  |                                                         ^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+7 - //!   2. `require_auth` trên `web_auth_domain_account` (SIGNING_KEY của server)
+7 + //!   2. `require_auth` trên `web_auth_domain_account` (`SIGNING_KEY` của server)
+  |
+
+warning: doc list item without indentation
+ --> web-auth/src/lib.rs:9:5
+  |
+9 | //! Mọi args còn lại (`home_domain`, `web_auth_domain`, `nonce`, `client_domain`)
+  |     ^
+  |
+  = help: if this is supposed to be its own paragraph, add a blank line
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_lazy_continuation
+  = note: `-W clippy::doc-lazy-continuation` implied by `-W clippy::all`
+  = help: to override `-W clippy::all` add `#[allow(clippy::doc_lazy_continuation)]`
+help: indent this line
+  |
+9 | //!      Mọi args còn lại (`home_domain`, `web_auth_domain`, `nonce`, `client_domain`)
+  |     +++++
+
+warning: doc list item without indentation
+  --> web-auth/src/lib.rs:10:5
+   |
+10 | //! contract BỎ QUA — server mới là bên validate chúng (spec: "All other arguments
+   |     ^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_lazy_continuation
+help: indent this line
+   |
+10 | //!      contract BỎ QUA — server mới là bên validate chúng (spec: "All other arguments
+   |     +++++
+
+warning: doc list item without indentation
+  --> web-auth/src/lib.rs:11:5
+   |
+11 | //! are ignored by the contract"). Nonce nằm trong args để hai entry cùng challenge
+   |     ^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_lazy_continuation
+help: indent this line
+   |
+11 | //!      are ignored by the contract"). Nonce nằm trong args để hai entry cùng challenge
+   |     +++++
+
+warning: doc list item without indentation
+  --> web-auth/src/lib.rs:12:5
+   |
+12 | //! ràng nhau và server chống replay ở tầng HTTP.
+   |     ^
+   |
+   = help: if this is supposed to be its own paragraph, add a blank line
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_lazy_continuation
+help: indent this line
+   |
+12 | //!      ràng nhau và server chống replay ở tầng HTTP.
+   |     +++++
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> web-auth/src/lib.rs:36:33
+   |
+36 |     pub fn web_auth_verify(env: Env, args: Map<Symbol, String>) {
+   |                                 ^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+   = note: `-W clippy::needless-pass-by-value` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+   |
+36 |     pub fn web_auth_verify(env: &Env, args: Map<Symbol, String>) {
+   |                                 +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> web-auth/src/lib.rs:36:44
+   |
+36 |     pub fn web_auth_verify(env: Env, args: Map<Symbol, String>) {
+   |                                            ^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+36 |     pub fn web_auth_verify(env: Env, args: &Map<Symbol, String>) {
+   |                                            +
+
+warning: item in documentation is missing backticks
+ --> web-auth/src/test.rs:1:27
+  |
+1 | //! Test contract SEP-45: require_auth đúng các address trong args, thiếu args bắt buộc
+  |                           ^^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+1 - //! Test contract SEP-45: require_auth đúng các address trong args, thiếu args bắt buộc
+1 + //! Test contract SEP-45: `require_auth` đúng các address trong args, thiếu args bắt buộc
+  |
+
+warning: item in documentation is missing backticks
+  --> web-auth/src/test.rs:40:17
+   |
+40 | /// Happy path: require_auth được gọi cho ĐÚNG account + server account.
+   |                 ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+40 - /// Happy path: require_auth được gọi cho ĐÚNG account + server account.
+40 + /// Happy path: `require_auth` được gọi cho ĐÚNG account + server account.
+   |
+
+warning: item in documentation is missing backticks
+  --> web-auth/src/test.rs:55:8
+   |
+55 | /// Có client_domain_account → require_auth THÊM địa chỉ đó (3 auth).
+   |        ^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+55 - /// Có client_domain_account → require_auth THÊM địa chỉ đó (3 auth).
+55 + /// Có `client_domain_account` → require_auth THÊM địa chỉ đó (3 auth).
+   |
+
+warning: item in documentation is missing backticks
+  --> web-auth/src/test.rs:55:32
+   |
+55 | /// Có client_domain_account → require_auth THÊM địa chỉ đó (3 auth).
+   |                                ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+55 - /// Có client_domain_account → require_auth THÊM địa chỉ đó (3 auth).
+55 + /// Có client_domain_account → `require_auth` THÊM địa chỉ đó (3 auth).
+   |
+
+warning: item in documentation is missing backticks
+  --> web-auth/src/test.rs:79:39
+   |
+79 | /// Thiếu `account` → Error #1, không require_auth ai cả.
+   |                                       ^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+79 - /// Thiếu `account` → Error #1, không require_auth ai cả.
+79 + /// Thiếu `account` → Error #1, không `require_auth` ai cả.
+   |
+
+warning: item in documentation is missing backticks
+   --> web-auth/src/test.rs:119:23
+    |
+119 | /// Không mock auth → require_auth thật → chết (chứng minh auth KHÔNG bị bỏ qua).
+    |                       ^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+    |
+119 - /// Không mock auth → require_auth thật → chết (chứng minh auth KHÔNG bị bỏ qua).
+119 + /// Không mock auth → `require_auth` thật → chết (chứng minh auth KHÔNG bị bỏ qua).
+    |
+
+warning: `web-auth` (lib) generated 8 warnings (2 duplicates) (run `cargo clippy --fix --lib -p web-auth -- -W clippy::all -W clippy::pedantic` to apply 2 suggestions)
+warning: `web-auth` (lib test) generated 15 warnings (6 duplicates) (run `cargo clippy --fix --lib -p web-auth --tests -- -W clippy::all -W clippy::pedantic` to apply 6 suggestions)
+    Checking smart-account v0.1.0 (/mnt/d/du-an/thi-stella/family-wallet/contracts/smart-account)
+    Checking origin-verifier v0.1.0 (/mnt/d/du-an/thi-stella/family-wallet/contracts/origin-verifier)
+    Checking verifier-ed25519 v0.1.0 (/mnt/d/du-an/thi-stella/family-wallet/contracts/verifier-ed25519)
+    Checking recovery-registry v0.1.0 (/mnt/d/du-an/thi-stella/family-wallet/contracts/recovery-registry)
+warning: #[should_panic] attribute without a reason
+  --> verifier-ed25519/src/test.rs:33:1
+   |
+33 | #[should_panic]
+   | ^^^^^^^^^^^^^^^ help: consider specifying the expected panic: `#[should_panic(expected = /* panic message */)]`
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#should_panic_without_expect
+   = note: `-W clippy::should-panic-without-expect` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::should_panic_without_expect)]`
+
+warning: item in documentation is missing backticks
+ --> origin-verifier/src/lib.rs:1:22
+  |
+1 | //! Origin-enforcing WebAuthn verifier — bản TÍCH HỢP OZ (PHA 2.2).
+  |                      ^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+  = note: `-W clippy::doc-markdown` implied by `-W clippy::pedantic`
+  = help: to override `-W clippy::pedantic` add `#[allow(clippy::doc_markdown)]`
+help: try
+  |
+1 - //! Origin-enforcing WebAuthn verifier — bản TÍCH HỢP OZ (PHA 2.2).
+1 + //! Origin-enforcing `WebAuthn` verifier — bản TÍCH HỢP OZ (PHA 2.2).
+  |
+
+warning: item in documentation is missing backticks
+ --> origin-verifier/src/lib.rs:8:41
+  |
+8 | //! thoả K2/K3 vì challenge dẫn xuất từ auth_digest) rồi CHÈN THÊM:
+  |                                         ^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+8 - //! thoả K2/K3 vì challenge dẫn xuất từ auth_digest) rồi CHÈN THÊM:
+8 + //! thoả K2/K3 vì challenge dẫn xuất từ `auth_digest`) rồi CHÈN THÊM:
+  |
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> origin-verifier/src/lib.rs:53:31
+   |
+53 |     pub fn __constructor(env: Env, rp_id_hash: BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                               ^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+   = note: `-W clippy::needless-pass-by-value` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+   |
+53 |     pub fn __constructor(env: &Env, rp_id_hash: BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                               +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> origin-verifier/src/lib.rs:53:48
+   |
+53 |     pub fn __constructor(env: Env, rp_id_hash: BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                                                ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+53 |     pub fn __constructor(env: Env, rp_id_hash: &BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                                                +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> origin-verifier/src/lib.rs:53:77
+   |
+53 |     pub fn __constructor(env: Env, rp_id_hash: BytesN<32>, allowed_origins: Vec<Bytes>) {
+   |                                                                             ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+53 |     pub fn __constructor(env: Env, rp_id_hash: BytesN<32>, allowed_origins: &Vec<Bytes>) {
+   |                                                                             +
+
+warning: this method could have a `#[must_use]` attribute
+  --> origin-verifier/src/lib.rs:65:12
+   |
+65 |     pub fn config(env: Env) -> (BytesN<32>, Vec<Bytes>) {
+   |            ^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#must_use_candidate
+   = note: `-W clippy::must-use-candidate` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::must_use_candidate)]`
+help: add the attribute
+   |
+65 ~     #[must_use]
+66 ~     pub fn config(env: Env) -> (BytesN<32>, Vec<Bytes>) {
+   |
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> origin-verifier/src/lib.rs:65:24
+   |
+65 |     pub fn config(env: Env) -> (BytesN<32>, Vec<Bytes>) {
+   |                        ^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+65 |     pub fn config(env: &Env) -> (BytesN<32>, Vec<Bytes>) {
+   |                        +
+
+warning: `verifier-ed25519` (lib test) generated 1 warning
+warning: item in documentation is missing backticks
+ --> origin-verifier/src/test.rs:1:81
+  |
+1 | //! Test origin-verifier (OZ Verifier trait) — MỘT key secp256r1 ký challenge = auth_digest
+  |                                                                                 ^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+1 - //! Test origin-verifier (OZ Verifier trait) — MỘT key secp256r1 ký challenge = auth_digest
+1 + //! Test origin-verifier (OZ Verifier trait) — MỘT key secp256r1 ký challenge = `auth_digest`
+  |
+
+warning: item in documentation is missing backticks
+ --> origin-verifier/src/test.rs:2:52
+  |
+2 | //! cho BA origin → verify true; origin lạ → panic OriginNotAllowed.
+  |                                                    ^^^^^^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+2 - //! cho BA origin → verify true; origin lạ → panic OriginNotAllowed.
+2 + //! cho BA origin → verify true; origin lạ → panic `OriginNotAllowed`.
+  |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> origin-verifier/src/test.rs:28:18
+   |
+28 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |                  ^^^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+   = note: `-W clippy::cast-lossless` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::cast_lossless)]`
+help: use `u32::from` instead
+   |
+28 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+28 +         let n = (u32::from(b[0]) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> origin-verifier/src/test.rs:28:42
+   |
+28 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |                                          ^^^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+   |
+28 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+28 +         let n = ((b[0] as u32) << 16) | (u32::from(b[1]) << 8) | b[2] as u32;
+   |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+  --> origin-verifier/src/test.rs:28:64
+   |
+28 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+   |                                                                ^^^^^^^^^^^
+   |
+   = help: an `as` cast can become silently lossy if the types change in the future
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+   |
+28 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+28 +         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | u32::from(b[2]);
+   |
+
+warning: item in documentation is missing backticks
+  --> origin-verifier/src/test.rs:66:10
+   |
+66 | /// Tạo (key_data 65B, sig_data XDR WebAuthnSigData) cho một payload 32B + origin.
+   |          ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+66 - /// Tạo (key_data 65B, sig_data XDR WebAuthnSigData) cho một payload 32B + origin.
+66 + /// Tạo (`key_data` 65B, sig_data XDR WebAuthnSigData) cho một payload 32B + origin.
+   |
+
+warning: item in documentation is missing backticks
+  --> origin-verifier/src/test.rs:66:24
+   |
+66 | /// Tạo (key_data 65B, sig_data XDR WebAuthnSigData) cho một payload 32B + origin.
+   |                        ^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+66 - /// Tạo (key_data 65B, sig_data XDR WebAuthnSigData) cho một payload 32B + origin.
+66 + /// Tạo (key_data 65B, `sig_data` XDR WebAuthnSigData) cho một payload 32B + origin.
+   |
+
+warning: item in documentation is missing backticks
+  --> origin-verifier/src/test.rs:66:37
+   |
+66 | /// Tạo (key_data 65B, sig_data XDR WebAuthnSigData) cho một payload 32B + origin.
+   |                                     ^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+66 - /// Tạo (key_data 65B, sig_data XDR WebAuthnSigData) cho một payload 32B + origin.
+66 + /// Tạo (key_data 65B, sig_data XDR `WebAuthnSigData`) cho một payload 32B + origin.
+   |
+
+warning: `origin-verifier` (lib) generated 7 warnings (run `cargo clippy --fix --lib -p origin-verifier -- -W clippy::all -W clippy::pedantic` to apply 3 suggestions)
+warning: `origin-verifier` (lib test) generated 15 warnings (7 duplicates) (run `cargo clippy --fix --lib -p origin-verifier --tests -- -W clippy::all -W clippy::pedantic` to apply 8 suggestions)
+warning: item in documentation is missing backticks
+ --> smart-account/src/lib.rs:1:5
+  |
+1 | //! FamilyWallet Smart Account — ví contract của MỖI người dùng (PHA 2.2).
+  |     ^^^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+  = note: `-W clippy::doc-markdown` implied by `-W clippy::pedantic`
+  = help: to override `-W clippy::pedantic` add `#[allow(clippy::doc_markdown)]`
+help: try
+  |
+1 - //! FamilyWallet Smart Account — ví contract của MỖI người dùng (PHA 2.2).
+1 + //! `FamilyWallet` Smart Account — ví contract của MỖI người dùng (PHA 2.2).
+  |
+
+warning: item in documentation is missing backticks
+  --> smart-account/src/lib.rs:38:56
+   |
+38 | /// Mã lỗi riêng của wrapper — bắt đầu 100 để không đè SmartAccountError của OZ.
+   |                                                        ^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+38 - /// Mã lỗi riêng của wrapper — bắt đầu 100 để không đè SmartAccountError của OZ.
+38 + /// Mã lỗi riêng của wrapper — bắt đầu 100 để không đè `SmartAccountError` của OZ.
+   |
+
+warning: item in documentation is missing backticks
+  --> smart-account/src/lib.rs:67:28
+   |
+67 |     /// (registry Address, cooldown_secs u64) — ai được xoay khoá + nghỉ bao lâu.
+   |                            ^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+67 -     /// (registry Address, cooldown_secs u64) — ai được xoay khoá + nghỉ bao lâu.
+67 +     /// (registry Address, `cooldown_secs` u64) — ai được xoay khoá + nghỉ bao lâu.
+   |
+
+warning: item in documentation is missing backticks
+  --> smart-account/src/lib.rs:69:64
+   |
+69 |     /// Rule chứa signer chủ ví (tạo ở constructor) — đích của recovery_rotate.
+   |                                                                ^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+69 -     /// Rule chứa signer chủ ví (tạo ở constructor) — đích của recovery_rotate.
+69 +     /// Rule chứa signer chủ ví (tạo ở constructor) — đích của `recovery_rotate`.
+   |
+
+warning: item in documentation is missing backticks
+   --> recovery-registry/src/lib.rs:208:41
+    |
+208 |     /// Ví TỰ đăng ký (passkey ký qua __check_auth). Chống lockout từ gốc:
+    |                                         ^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+    = note: `-W clippy::doc-markdown` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::doc_markdown)]`
+help: try
+    |
+208 -     /// Ví TỰ đăng ký (passkey ký qua __check_auth). Chống lockout từ gốc:
+208 +     /// Ví TỰ đăng ký (passkey ký qua __`check_auth`). Chống lockout từ gốc:
+    |
+
+warning: casting `usize` to `u32` may truncate the value on targets with 64-bit wide pointers
+   --> recovery-registry/src/lib.rs:242:49
+    |
+242 |                 if g == guardians.get_unchecked(j as u32) {
+    |                                                 ^^^^^^^^
+    |
+    = help: if this is intentional allow the lint with `#[allow(clippy::cast_possible_truncation)]` ...
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_possible_truncation
+    = note: `-W clippy::cast-possible-truncation` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::cast_possible_truncation)]`
+help: ... or use `try_from` and handle the error accordingly
+    |
+242 -                 if g == guardians.get_unchecked(j as u32) {
+242 +                 if g == guardians.get_unchecked(u32::try_from(j)) {
+    |
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> smart-account/src/lib.rs:95:44
+   |
+95 |     pub fn __constructor(e: &Env, signers: Vec<Signer>, policies: Map<Address, Val>) {
+   |                                            ^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+   = note: `-W clippy::needless-pass-by-value` implied by `-W clippy::pedantic`
+   = help: to override `-W clippy::pedantic` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+   |
+95 |     pub fn __constructor(e: &Env, signers: &Vec<Signer>, policies: Map<Address, Val>) {
+   |                                            +
+
+warning: this argument is passed by value, but not consumed in the function body
+  --> smart-account/src/lib.rs:95:67
+   |
+95 |     pub fn __constructor(e: &Env, signers: Vec<Signer>, policies: Map<Address, Val>) {
+   |                                                                   ^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+   |
+95 |     pub fn __constructor(e: &Env, signers: Vec<Signer>, policies: &Map<Address, Val>) {
+   |                                                                   +
+
+warning: this argument is passed by value, but not consumed in the function body
+   --> smart-account/src/lib.rs:114:69
+    |
+114 |     pub fn batch_add_signer(e: &Env, context_rule_id: u32, signers: Vec<Signer>) {
+    |                                                                     ^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+114 |     pub fn batch_add_signer(e: &Env, context_rule_id: u32, signers: &Vec<Signer>) {
+    |                                                                     +
+
+warning: this argument is passed by value, but not consumed in the function body
+   --> smart-account/src/lib.rs:125:53
+    |
+125 |     pub fn set_recovery_registry(e: &Env, registry: Address, cooldown_secs: u64) {
+    |                                                     ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+125 |     pub fn set_recovery_registry(e: &Env, registry: &Address, cooldown_secs: u64) {
+    |                                                     +
+
+warning: this method could have a `#[must_use]` attribute
+   --> smart-account/src/lib.rs:133:12
+    |
+133 |     pub fn get_recovery_registry(e: &Env) -> Option<(Address, u64)> {
+    |            ^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#must_use_candidate
+    = note: `-W clippy::must-use-candidate` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::must_use_candidate)]`
+help: add the attribute
+    |
+133 ~     #[must_use]
+134 ~     pub fn get_recovery_registry(e: &Env) -> Option<(Address, u64)> {
+    |
+
+warning: this argument is passed by value, but not consumed in the function body
+   --> recovery-registry/src/lib.rs:302:68
+    |
+302 |     pub fn initiate_recovery(e: &Env, wallet: Address, new_signer: Signer, initiator: Address) {
+    |                                                                    ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+    = note: `-W clippy::needless-pass-by-value` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::needless_pass_by_value)]`
+help: consider taking a reference instead
+    |
+302 |     pub fn initiate_recovery(e: &Env, wallet: Address, new_signer: &Signer, initiator: Address) {
+    |                                                                    +
+
+warning: this method could have a `#[must_use]` attribute
+   --> smart-account/src/lib.rs:178:12
+    |
+178 |     pub fn pending_recovery_registry(e: &Env) -> Option<PendingRegistry> {
+    |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#must_use_candidate
+help: add the attribute
+    |
+178 ~     #[must_use]
+179 ~     pub fn pending_recovery_registry(e: &Env) -> Option<PendingRegistry> {
+    |
+
+warning: item in documentation is missing backticks
+   --> recovery-registry/src/lib.rs:362:69
+    |
+362 |     /// VETO — chính ví ký (khoá còn sống nào cũng chặn được, qua __check_auth).
+    |                                                                     ^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+    |
+362 -     /// VETO — chính ví ký (khoá còn sống nào cũng chặn được, qua __check_auth).
+362 +     /// VETO — chính ví ký (khoá còn sống nào cũng chặn được, qua __`check_auth`).
+    |
+
+warning: this method could have a `#[must_use]` attribute
+   --> smart-account/src/lib.rs:205:12
+    |
+205 |     pub fn last_rotation(e: &Env) -> Option<u64> {
+    |            ^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#must_use_candidate
+help: add the attribute
+    |
+205 ~     #[must_use]
+206 ~     pub fn last_rotation(e: &Env) -> Option<u64> {
+    |
+
+warning: item in documentation is missing backticks
+   --> smart-account/src/lib.rs:216:65
+    |
+216 |     /// như mất — đúng ngữ nghĩa social recovery), rồi đóng dấu LastRotation để
+    |                                                                 ^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+    |
+216 -     /// như mất — đúng ngữ nghĩa social recovery), rồi đóng dấu LastRotation để
+216 +     /// như mất — đúng ngữ nghĩa social recovery), rồi đóng dấu `LastRotation` để
+    |
+
+warning: item in documentation is missing backticks
+   --> smart-account/src/lib.rs:218:9
+    |
+218 |     /// valid_until) không đụng — chúng tự hết hạn; ghi rõ trong threat model.
+    |         ^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+    |
+218 -     /// valid_until) không đụng — chúng tự hết hạn; ghi rõ trong threat model.
+218 +     /// `valid_until`) không đụng — chúng tự hết hạn; ghi rõ trong threat model.
+    |
+
+warning: this argument is passed by value, but not consumed in the function body
+   --> smart-account/src/lib.rs:219:49
+    |
+219 |     pub fn recovery_rotate(e: &Env, new_signer: Signer) {
+    |                                                 ^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+219 |     pub fn recovery_rotate(e: &Env, new_signer: &Signer) {
+    |                                                 +
+
+warning: this argument is passed by value, but not consumed in the function body
+   --> recovery-registry/src/lib.rs:438:40
+    |
+438 |     pub fn extend_ttl(e: &Env, wallet: Address) {
+    |                                        ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+438 |     pub fn extend_ttl(e: &Env, wallet: &Address) {
+    |                                        +
+
+warning: this method could have a `#[must_use]` attribute
+   --> recovery-registry/src/lib.rs:447:12
+    |
+447 |     pub fn is_registered(e: &Env, wallet: Address) -> bool {
+    |            ^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#must_use_candidate
+    = note: `-W clippy::must-use-candidate` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::must_use_candidate)]`
+help: add the attribute
+    |
+447 ~     #[must_use]
+448 ~     pub fn is_registered(e: &Env, wallet: Address) -> bool {
+    |
+
+warning: this method could have a `#[must_use]` attribute
+   --> recovery-registry/src/lib.rs:451:12
+    |
+451 |     pub fn get_wallet_config(e: &Env, wallet: Address) -> WalletConfig {
+    |            ^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#must_use_candidate
+help: add the attribute
+    |
+451 ~     #[must_use]
+452 ~     pub fn get_wallet_config(e: &Env, wallet: Address) -> WalletConfig {
+    |
+
+warning: this argument is passed by value, but not consumed in the function body
+   --> recovery-registry/src/lib.rs:451:47
+    |
+451 |     pub fn get_wallet_config(e: &Env, wallet: Address) -> WalletConfig {
+    |                                               ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+451 |     pub fn get_wallet_config(e: &Env, wallet: &Address) -> WalletConfig {
+    |                                               +
+
+warning: this method could have a `#[must_use]` attribute
+   --> recovery-registry/src/lib.rs:455:12
+    |
+455 |     pub fn get_recovery_status(e: &Env, wallet: Address) -> RecoveryRequest {
+    |            ^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#must_use_candidate
+help: add the attribute
+    |
+455 ~     #[must_use]
+456 ~     pub fn get_recovery_status(e: &Env, wallet: Address) -> RecoveryRequest {
+    |
+
+warning: this argument is passed by value, but not consumed in the function body
+   --> recovery-registry/src/lib.rs:455:49
+    |
+455 |     pub fn get_recovery_status(e: &Env, wallet: Address) -> RecoveryRequest {
+    |                                                 ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+455 |     pub fn get_recovery_status(e: &Env, wallet: &Address) -> RecoveryRequest {
+    |                                                 +
+
+warning: this method could have a `#[must_use]` attribute
+   --> recovery-registry/src/lib.rs:460:12
+    |
+460 |     pub fn timelock_remaining(e: &Env, wallet: Address) -> u64 {
+    |            ^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#must_use_candidate
+help: add the attribute
+    |
+460 ~     #[must_use]
+461 ~     pub fn timelock_remaining(e: &Env, wallet: Address) -> u64 {
+    |
+
+warning: this argument is passed by value, but not consumed in the function body
+   --> recovery-registry/src/lib.rs:460:48
+    |
+460 |     pub fn timelock_remaining(e: &Env, wallet: Address) -> u64 {
+    |                                                ^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#needless_pass_by_value
+help: consider taking a reference instead
+    |
+460 |     pub fn timelock_remaining(e: &Env, wallet: &Address) -> u64 {
+    |                                                +
+
+warning: called `map(<f>).unwrap_or(<a>)` on an `Option` value
+   --> smart-account/src/lib.rs:261:28
+    |
+261 |               let cooldown = e
+    |  ____________________________^
+262 | |                 .storage()
+263 | |                 .instance()
+264 | |                 .get::<_, (Address, u64)>(&FwDataKey::RecoveryRegistry)
+265 | |                 .map(|(_, cd)| cd)
+266 | |                 .unwrap_or(0);
+    | |_____________________________^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#map_unwrap_or
+    = note: `-W clippy::map-unwrap-or` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::map_unwrap_or)]`
+help: use `map_or(<a>, <f>)` instead
+    |
+265 -                 .map(|(_, cd)| cd)
+266 -                 .unwrap_or(0);
+265 +                 .map_or(0, |(_, cd)| cd);
+    |
+
+warning: `recovery-registry` (lib) generated 12 warnings (run `cargo clippy --fix --lib -p recovery-registry -- -W clippy::all -W clippy::pedantic` to apply 6 suggestions)
+warning: `smart-account` (lib) generated 15 warnings (run `cargo clippy --fix --lib -p smart-account -- -W clippy::all -W clippy::pedantic` to apply 10 suggestions)
+warning: item in documentation is missing backticks
+ --> smart-account/src/test.rs:4:14
+  |
+4 | //! (Luồng __check_auth crypto đầy đủ đã phủ ở origin-verifier tests — verify() account
+  |              ^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+4 - //! (Luồng __check_auth crypto đầy đủ đã phủ ở origin-verifier tests — verify() account
+4 + //! (Luồng __`check_auth` crypto đầy đủ đã phủ ở origin-verifier tests — verify() account
+  |
+
+warning: item in documentation is missing backticks
+ --> smart-account/src/test.rs:4:72
+  |
+4 | //! (Luồng __check_auth crypto đầy đủ đã phủ ở origin-verifier tests — verify() account
+  |                                                                        ^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+4 - //! (Luồng __check_auth crypto đầy đủ đã phủ ở origin-verifier tests — verify() account
+4 + //! (Luồng __check_auth crypto đầy đủ đã phủ ở origin-verifier tests — `verify()` account
+  |
+
+warning: item in documentation is missing backticks
+ --> smart-account/src/test.rs:5:18
+  |
+5 | //! gọi CHÍNH là verify() đã test ở đó.)
+  |                  ^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+5 - //! gọi CHÍNH là verify() đã test ở đó.)
+5 + //! gọi CHÍNH là `verify()` đã test ở đó.)
+  |
+
+warning: item in documentation is missing backticks
+   --> smart-account/src/test.rs:115:32
+    |
+115 | /// vd `{threshold: 2}` của OZ SimpleThreshold) KHÔNG được nuốt nhầm thành mục
+    |                                ^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+    |
+115 - /// vd `{threshold: 2}` của OZ SimpleThreshold) KHÔNG được nuốt nhầm thành mục
+115 + /// vd `{threshold: 2}` của OZ `SimpleThreshold`) KHÔNG được nuốt nhầm thành mục
+    |
+
+warning: item in documentation is missing backticks
+   --> smart-account/src/test.rs:303:67
+    |
+303 | /// VECTOR GHIM CHÉO Rust↔TS cho mục đặt chỗ constructor. FE dựng ScVal này bằng
+    |                                                                   ^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+    |
+303 - /// VECTOR GHIM CHÉO Rust↔TS cho mục đặt chỗ constructor. FE dựng ScVal này bằng
+303 + /// VECTOR GHIM CHÉO Rust↔TS cho mục đặt chỗ constructor. FE dựng `ScVal` này bằng
+    |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+   --> smart-account/src/test.rs:328:18
+    |
+328 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+    |                  ^^^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+    = note: `-W clippy::cast-lossless` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::cast_lossless)]`
+help: use `u32::from` instead
+    |
+328 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+328 +         let n = (u32::from(b[0]) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+    |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+   --> smart-account/src/test.rs:328:42
+    |
+328 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+    |                                          ^^^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+    |
+328 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+328 +         let n = ((b[0] as u32) << 16) | (u32::from(b[1]) << 8) | b[2] as u32;
+    |
+
+warning: casts from `u8` to `u32` can be expressed infallibly using `From`
+   --> smart-account/src/test.rs:328:64
+    |
+328 |         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+    |                                                                ^^^^^^^^^^^
+    |
+    = help: an `as` cast can become silently lossy if the types change in the future
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#cast_lossless
+help: use `u32::from` instead
+    |
+328 -         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | b[2] as u32;
+328 +         let n = ((b[0] as u32) << 16) | ((b[1] as u32) << 8) | u32::from(b[2]);
+    |
+
+warning: `smart-account` (lib test) generated 23 warnings (15 duplicates) (run `cargo clippy --fix --lib -p smart-account --tests -- -W clippy::all -W clippy::pedantic` to apply 8 suggestions)
+warning: item in documentation is missing backticks
+ --> recovery-registry/src/test.rs:6:32
+  |
+6 | //!   - Khoá MỚI ký được qua __check_auth thật (crypto thật, không mock);
+  |                                ^^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+6 - //!   - Khoá MỚI ký được qua __check_auth thật (crypto thật, không mock);
+6 + //!   - Khoá MỚI ký được qua __`check_auth` thật (crypto thật, không mock);
+  |
+
+warning: item in documentation is missing backticks
+ --> recovery-registry/src/test.rs:9:44
+  |
+9 | //!   - finalize chạy với ZERO auth entry (set_auths rỗng) — timelock on-chain gác,
+  |                                            ^^^^^^^^^
+  |
+  = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+  |
+9 - //!   - finalize chạy với ZERO auth entry (set_auths rỗng) — timelock on-chain gác,
+9 + //!   - finalize chạy với ZERO auth entry (`set_auths` rỗng) — timelock on-chain gác,
+  |
+
+warning: item in documentation is missing backticks
+  --> recovery-registry/src/test.rs:49:73
+   |
+49 | /// threshold 2. Auth mock cho phần setup (ký passkey thật phủ ở test __check_auth).
+   |                                                                         ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+49 - /// threshold 2. Auth mock cho phần setup (ký passkey thật phủ ở test __check_auth).
+49 + /// threshold 2. Auth mock cho phần setup (ký passkey thật phủ ở test __`check_auth`).
+   |
+
+warning: item in documentation is missing backticks
+  --> recovery-registry/src/test.rs:92:11
+   |
+92 | /// Gọi __check_auth THẬT: dựng AuthPayload, ký auth_digest đúng công thức OZ
+   |           ^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+92 - /// Gọi __check_auth THẬT: dựng AuthPayload, ký auth_digest đúng công thức OZ
+92 + /// Gọi __`check_auth` THẬT: dựng AuthPayload, ký auth_digest đúng công thức OZ
+   |
+
+warning: item in documentation is missing backticks
+  --> recovery-registry/src/test.rs:92:33
+   |
+92 | /// Gọi __check_auth THẬT: dựng AuthPayload, ký auth_digest đúng công thức OZ
+   |                                 ^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+92 - /// Gọi __check_auth THẬT: dựng AuthPayload, ký auth_digest đúng công thức OZ
+92 + /// Gọi __check_auth THẬT: dựng `AuthPayload`, ký auth_digest đúng công thức OZ
+   |
+
+warning: item in documentation is missing backticks
+  --> recovery-registry/src/test.rs:92:49
+   |
+92 | /// Gọi __check_auth THẬT: dựng AuthPayload, ký auth_digest đúng công thức OZ
+   |                                                 ^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+92 - /// Gọi __check_auth THẬT: dựng AuthPayload, ký auth_digest đúng công thức OZ
+92 + /// Gọi __check_auth THẬT: dựng AuthPayload, ký `auth_digest` đúng công thức OZ
+   |
+
+warning: item in documentation is missing backticks
+  --> recovery-registry/src/test.rs:93:24
+   |
+93 | /// (sha256(payload ++ context_rule_ids.to_xdr())) bằng khoá đưa vào.
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+   = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#doc_markdown
+help: try
+   |
+93 - /// (sha256(payload ++ context_rule_ids.to_xdr())) bằng khoá đưa vào.
+93 + /// (sha256(payload ++ `context_rule_ids.to_xdr()`)) bằng khoá đưa vào.
+   |
+
+warning: `format!(..)` appended to existing `String`
+   --> recovery-registry/src/test.rs:492:9
+    |
+492 |         hex.push_str(&std::format!("{:02x}", b));
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = note: you may need to import the `core::fmt::Write` trait
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#format_push_string
+    = note: `-W clippy::format-push-string` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::format_push_string)]`
+help: consider using `write!` to avoid the extra allocation
+    |
+492 -         hex.push_str(&std::format!("{:02x}", b));
+492 +         let _ = write!(hex, "{:02x}", b);
+    |
+
+warning: variables can be used directly in the `format!` string
+   --> recovery-registry/src/test.rs:492:23
+    |
+492 |         hex.push_str(&std::format!("{:02x}", b));
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: for further information visit https://rust-lang.github.io/rust-clippy/rust-1.97.0/index.html#uninlined_format_args
+    = note: `-W clippy::uninlined-format-args` implied by `-W clippy::pedantic`
+    = help: to override `-W clippy::pedantic` add `#[allow(clippy::uninlined_format_args)]`
+help: change this to
+    |
+492 -         hex.push_str(&std::format!("{:02x}", b));
+492 +         hex.push_str(&std::format!("{b:02x}"));
+    |
+
+warning: `recovery-registry` (lib test) generated 21 warnings (12 duplicates) (run `cargo clippy --fix --lib -p recovery-registry --tests -- -W clippy::all -W clippy::pedantic` to apply 8 suggestions)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 2m 27s

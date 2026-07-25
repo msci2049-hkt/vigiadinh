@@ -14,7 +14,9 @@ use soroban_sdk::{
 };
 use stellar_accounts::smart_account::{Signer, SmartAccountStorageKey};
 
-use crate::{FamilyWalletAccount, FamilyWalletAccountClient, FwConstructorEntry};
+use crate::{
+    FamilyWalletAccount, FamilyWalletAccountClient, FamilyWalletError, FwConstructorEntry,
+};
 use origin_verifier::{OriginWebauthnVerifier, OriginWebauthnVerifierClient};
 
 const RP_ID: &str = "vigiadinh.com";
@@ -244,6 +246,82 @@ fn registry_change_rejects_early_apply() {
     client.propose_recovery_registry(&Address::generate(&e), &1u64);
     warp(&e, crate::registry_link::REGISTRY_CHANGE_DELAY_SECS - 1);
     client.apply_recovery_registry();
+}
+
+/// MUTANTS closeout 2026-07-25 — biên `apply_pending`.
+/// Giết `registry_link.rs:136:31` (`<`→`<=`): test cũ chỉ soi "sớm một giây thì
+/// chối", không ai soi "ĐÚNG hạn thì cho". Đổi sang `<=` là đơn đổi registry đứng
+/// treo thêm một giây và không có cửa nào giải thích tại sao.
+#[test]
+fn registry_change_applies_exactly_at_the_due_second() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let (account, _) = wallet_with_registry(&e);
+    let client = FamilyWalletAccountClient::new(&e, &account);
+    let new_registry = Address::generate(&e);
+
+    client.propose_recovery_registry(&new_registry, &1u64);
+    let apply_at = client
+        .pending_recovery_registry()
+        .expect("đơn phải đang chờ")
+        .apply_at;
+
+    // ĐÚNG mốc `apply_at` — `timestamp < apply_at` là false → cho áp.
+    e.ledger().set_timestamp(apply_at);
+    client.apply_recovery_registry();
+
+    assert_eq!(client.get_recovery_registry(), Some((new_registry, 1u64)));
+    assert!(client.pending_recovery_registry().is_none());
+}
+
+/// MUTANTS closeout — biên TRẦN cooldown.
+/// Giết `registry_link.rs:96:22` (`>`→`>=`): hai test cũ chỉ chứng minh "vượt trần
+/// thì chối" (dùng `u64::MAX`), nên chối luôn ĐÚNG trần cũng không ai thấy. Trần là
+/// 7 ngày và 7 ngày là lựa chọn hợp lệ — chối nó là chặn oan cấu hình an toàn nhất.
+#[test]
+fn cooldown_exactly_at_the_cap_is_accepted() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let verifier = register_verifier(&e);
+    let pubkey = Bytes::from_array(&e, &[4u8; 65]);
+    let signers = vec![&e, Signer::External(verifier, pubkey)];
+    let registry = Address::generate(&e);
+    let cap = crate::registry_link::MAX_COOLDOWN_SECS;
+
+    // Qua constructor: ĐÚNG trần phải cắm được.
+    let policies: Map<Address, Val> = map![
+        &e,
+        (
+            registry.clone(),
+            FwConstructorEntry::RecoveryRegistry(cap).into_val(&e)
+        )
+    ];
+    let account = e.register(FamilyWalletAccount, (signers, policies));
+    let client = FamilyWalletAccountClient::new(&e, &account);
+    assert_eq!(client.get_recovery_registry(), Some((registry, cap)));
+
+    // Và vượt trần MỘT giây thì vẫn chối — nhưng chối MUỘN, ở `apply`, không ở
+    // `propose`. Ghi lại đúng như thế thay vì mong nó chối sớm:
+    //
+    // `propose` chỉ ghi đơn chờ, KHÔNG gọi `store` nên không qua kiểm trần; chỉ
+    // `apply_pending` mới gọi `store`. Quả bom cooldown vẫn KHÔNG hạ cánh được
+    // (store fail-closed), nên đây không phải lỗ bảo mật — nhưng nó là bẫy dùng:
+    // người dùng chờ đủ 7 ngày mới biết đơn không áp được, và trong lúc đó
+    // `RegistryChangePending` chặn mọi đơn mới. Phải `cancel` mới thoát.
+    // Ghi vào BLOCKERS là phát hiện nhỏ "kiểm trần cooldown fail-late ở propose".
+    let (account2, _) = wallet_with_registry(&e);
+    let client2 = FamilyWalletAccountClient::new(&e, &account2);
+    client2.propose_recovery_registry(&Address::generate(&e), &(cap + 1));
+    warp(&e, crate::registry_link::REGISTRY_CHANGE_DELAY_SECS);
+    assert_eq!(
+        client2
+            .try_apply_recovery_registry()
+            .err()
+            .unwrap()
+            .unwrap(),
+        FamilyWalletError::CooldownTooLong.into(),
+        "vượt trần phải chết ở apply — store là cửa duy nhất ghi cooldown"
+    );
 }
 
 /// VETO: registry hiện tại huỷ được đơn đổi (đây là đường người thân chặn —
