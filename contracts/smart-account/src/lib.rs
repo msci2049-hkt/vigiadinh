@@ -25,7 +25,9 @@ use soroban_sdk::{
     auth::{Context, CustomAccountInterface},
     contract, contracterror, contractimpl, contracttype,
     crypto::Hash,
-    panic_with_error, symbol_short, Address, Env, Map, String, Symbol, Val, Vec,
+    panic_with_error, symbol_short,
+    xdr::ToXdr,
+    Address, Env, Map, String, Symbol, Val, Vec,
 };
 use stellar_accounts::smart_account::{
     self, AuthPayload, ContextRule, ContextRuleType, ExecutionEntryPoint, Signer, SmartAccount,
@@ -185,12 +187,24 @@ impl FamilyWalletAccount {
     /// LẦN ĐỌC (`storage.rs::get_persistent_entry`), nên ví đang được dùng tự
     /// lành. Nhưng ví thừa kế được thiết kế để nằm im nhiều tháng — không có lần
     /// đọc nào, và instance storage (dây nối registry, owner rule id, mốc xoay
-    /// khoá) thì KHÔNG ai gia hạn cả. Hết TTL = tiền còn đó nhưng không ai mở
-    /// được, đúng lúc gia đình cần nhất.
+    /// khoá) thì KHÔNG ai gia hạn cả.
+    ///
+    /// QUAN TRỌNG (B-SEC-2): passkey chủ ví KHÔNG nằm trong `ContextRuleData` —
+    /// OZ tách nó ra hai entry persistent RIÊNG, `SignerData(id)` (khoá thật) và
+    /// `SignerLookup(hash)` (bảng tra để dedup/gỡ). Gia hạn mỗi `ContextRuleData`
+    /// thì rule còn sống nhưng chữ ký chết: `__check_auth` đọc signer qua
+    /// `get_signers` → `SignerData` đã archive → panic. Vì contract này KHÔNG gọi
+    /// `get_context_rule` ở đường extend (chỉ chạm `ContextRuleData` trực tiếp),
+    /// side-effect gia hạn-khi-đọc của OZ KHÔNG chạm tới `SignerData`. Nên phải
+    /// gia hạn TỪNG key signer TƯỜNG MINH, theo GIÁ TRỊ signer trong rule (skill C5).
+    ///
+    /// Durability: cả ba key đều PERSISTENT (không temporary) → hết TTL là
+    /// *archive*, cứu được bằng `RestoreFootprint` (Protocol 23+ auto-restore từ
+    /// simulation). Mất ví là TẠM THỜI, không vĩnh viễn — nhưng cron này tồn tại
+    /// để không bao giờ chạm tới lằn ranh archive đó.
     ///
     /// Không đòi auth: gia hạn TTL không đổi được gì, ai trả phí cũng tốt (cron
-    /// ví phí của app gọi — xem `be/src/jobs/ttl-keeper.ts`). Tự nó cũng là một
-    /// lần đọc rule nên OZ gia hạn luôn phần persistent của rule chủ ví.
+    /// ví phí của app gọi — xem `be/src/jobs/ttl-keeper.ts`).
     pub fn extend_ttl(e: &Env, threshold: u32, extend_to: u32) {
         e.storage().instance().extend_ttl(threshold, extend_to);
         let rule_id = owner_rule_id(e);
@@ -199,6 +213,24 @@ impl FamilyWalletAccount {
             threshold,
             extend_to,
         );
+        // Chạm đúng SignerData(id) + SignerLookup(hash) của TỪNG signer chủ ví.
+        let rule = smart_account::get_context_rule(e, rule_id);
+        for id in rule.signer_ids.iter() {
+            e.storage().persistent().extend_ttl(
+                &SmartAccountStorageKey::SignerData(id),
+                threshold,
+                extend_to,
+            );
+        }
+        for signer in rule.signers.iter() {
+            // Cùng công thức OZ dùng để đặt key (storage.rs: sha256(XDR(signer))).
+            let hash = e.crypto().sha256(&signer.to_xdr(e)).to_bytes();
+            e.storage().persistent().extend_ttl(
+                &SmartAccountStorageKey::SignerLookup(hash),
+                threshold,
+                extend_to,
+            );
+        }
     }
 
     /// Timestamp lần xoay khoá gần nhất (None = chưa từng xoay).

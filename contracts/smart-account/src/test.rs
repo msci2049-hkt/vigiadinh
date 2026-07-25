@@ -9,10 +9,10 @@ extern crate std;
 use sha2::{Digest, Sha256};
 use soroban_sdk::{
     map,
-    testutils::{Address as _, Ledger as _},
+    testutils::{storage::Persistent as _, Address as _, Ledger as _},
     vec, Address, Bytes, BytesN, Env, IntoVal, Map, Val, Vec,
 };
-use stellar_accounts::smart_account::Signer;
+use stellar_accounts::smart_account::{Signer, SmartAccountStorageKey};
 
 use crate::{FamilyWalletAccount, FamilyWalletAccountClient, FwConstructorEntry};
 use origin_verifier::{OriginWebauthnVerifier, OriginWebauthnVerifierClient};
@@ -477,4 +477,50 @@ fn recovery_rotate_leaves_exactly_the_new_key_on_a_normal_wallet() {
     assert_eq!(rule.signers.get(0), Some(new_signer));
 }
 
-// (B-SEC-2 extend_ttl test được thêm ở commit kế tiếp.)
+/// B-SEC-2: `extend_ttl` phải gia hạn `SignerData` (khoá passkey thật của OZ),
+/// không chỉ `ContextRuleData`. OZ tách khoá ra entry persistent RIÊNG, chỉ gia hạn
+/// KHI CÓ NGƯỜI ĐỌC RULE (`__check_auth`). Ví thừa kế nằm im = không ai đọc =
+/// `SignerData` archive dù cron gia hạn `ContextRuleData` đều đặn → chữ ký chết.
+///
+/// Ép gia hạn: Soroban `extend_ttl(threshold, extend_to)` chỉ nhảy khi remaining <
+/// threshold. OZ đã cộng sẵn 30 ngày (~518_400 ledger) khi đọc, nên phải đặt
+/// threshold = extend_to = 700_000 (> 518_400) để lệnh gia hạn TƯỜNG MINH của ta
+/// thực sự chạy, rồi so live_until của `SignerData` với `ContextRuleData` — phải
+/// BẰNG NHAU. Bản cũ không đọc/không chạm signer nên `SignerData` giữ mốc OZ
+/// (518_400, thấp hơn 700_000) → assert_eq ĐỎ (chứng minh test bắt được lỗi).
+#[test]
+fn extend_ttl_reaches_the_owner_passkey_signer_entry() {
+    let e = Env::default();
+    let (account, _) = wallet_with_registry(&e);
+    let client = FamilyWalletAccountClient::new(&e, &account);
+
+    // threshold == extend_to buộc lệnh gia hạn chạy dù OZ đã cộng sẵn 518_400.
+    let extend_to = 700_000u32;
+    client.extend_ttl(&extend_to, &extend_to);
+
+    let owner_rule = client.get_context_rule(&0);
+    let signer_id = owner_rule
+        .signer_ids
+        .get(0)
+        .expect("owner rule has a signer");
+
+    let (rule_ttl, signer_ttl) = e.as_contract(&account, || {
+        (
+            e.storage()
+                .persistent()
+                .get_ttl(&SmartAccountStorageKey::ContextRuleData(0)),
+            e.storage()
+                .persistent()
+                .get_ttl(&SmartAccountStorageKey::SignerData(signer_id)),
+        )
+    });
+    // Cả hai được gia hạn tới cùng mốc extend_to → SignerData không còn bị bỏ lại.
+    assert_eq!(
+        signer_ttl, rule_ttl,
+        "SignerData phải gia hạn NGANG ContextRuleData; lệch = passkey vẫn archive sớm"
+    );
+    assert!(
+        signer_ttl >= extend_to - 1,
+        "SignerData live_until phải đạt mốc extend_to tường minh"
+    );
+}
