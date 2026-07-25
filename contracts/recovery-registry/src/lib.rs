@@ -180,7 +180,8 @@ fn active_request(e: &Env, wallet: &Address) -> Option<RecoveryRequest> {
         .get(&DataKey::Request(wallet.clone()));
     let now = e.ledger().timestamp();
     req.filter(|r| {
-        matches!(r.status, RecoveryStatus::Pending | RecoveryStatus::Approved) && now <= r.expires_at
+        matches!(r.status, RecoveryStatus::Pending | RecoveryStatus::Approved)
+            && now <= r.expires_at
     })
 }
 
