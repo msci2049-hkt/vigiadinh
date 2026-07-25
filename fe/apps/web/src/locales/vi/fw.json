@@ -38,6 +38,12 @@
     }
   },
   "getStarted": {
+    "benefit1Body": "Khuôn mặt hoặc vân tay thay cho một cụm từ có thể bị thất lạc.",
+    "benefit1Title": "Không có 12 từ khóa",
+    "benefit2Body": "Người bạn tin có thể giúp lấy lại ví trên điện thoại mới.",
+    "benefit2Title": "Gia đình là bản sao lưu",
+    "benefit3Body": "Khóa ký được tạo và giữ lại trên chính thiết bị này.",
+    "benefit3Title": "Khóa ở lại trên thiết bị",
     "createBody": "Lập một ví mới, mở bằng vân tay hoặc khuôn mặt của bạn.",
     "createCta": "Tạo ví",
     "createTitle": "Tạo ví mới",
@@ -301,7 +307,12 @@
     "errorCancelled": "Bạn đã đóng hộp thoại xác nhận. Khi sẵn sàng, bấm nút để thử lại.",
     "errorGeneric": "Chưa mở được ví. Thiết bị chưa xác nhận khuôn mặt / vân tay — bạn thử lại nhé.",
     "errorNotConfigured": "Ứng dụng chưa được nối với mạng ví. Đây là việc của đội kỹ thuật — bạn không cần làm gì.",
+    "guardianNames": "Mẹ  ·  Anh trai  ·  Dì",
+    "keyDevice": "Khóa của bạn ở lại trên thiết bị",
+    "protectedBy": "Được 3 người thân bảo vệ",
+    "recoveryCta": "Mất điện thoại? Khôi phục ví",
     "signInCta": "Tôi đã có ví — mở khóa",
+    "tryAgainTitle": "Chưa nhận được. Bạn thử lại nhé?",
     "title": "Mở khóa bằng thiết bị của bạn",
     "unsupported": "Thiết bị này chưa hỗ trợ mở khóa bằng khuôn mặt hay vân tay. Bạn vẫn có thể tiếp tục trên điện thoại khác, hoặc trình duyệt mới hơn.",
     "walletUser": "Ví gia đình",
@@ -321,7 +332,9 @@
       "description": "Đã đủ người đồng ý. Thời gian chờ bảo vệ bạn khỏi kẻ mạo danh.",
       "doneCta": "Hoàn tất trên máy này",
       "note": "Khoảng chờ này tồn tại để chủ ví kịp chặn khôi phục mà họ không yêu cầu. Nếu đó chính là bạn — không cần làm gì, chỉ cần chờ.",
+      "protectionTitle": "Vì sao cần khoảng chờ",
       "title": "Sắp xong",
+      "windowLabel": "Khoảng bảo vệ",
       "window": "Còn {countdown} (đến {absolute})"
     },
     "done": {
@@ -331,7 +344,10 @@
       "errors": {
         "noDraft": "Máy này chưa lưu chìa khoá khôi phục nào. Hãy bắt đầu lại từ đầu trên máy này."
       },
+      "cooldownTitle": "Sau đó có một khoảng nghỉ an toàn ngắn",
+      "errorTitle": "Thiết bị này chưa sẵn sàng",
       "openWalletCta": "Đến trang đăng nhập ví",
+      "sameAddress": "Vẫn địa chỉ ví cũ. Tiền của bạn chưa từng di chuyển.",
       "title": "Chào mừng trở lại"
     },
     "findWallet": {
@@ -342,6 +358,7 @@
         "notConfigured": "Ứng dụng chưa kết nối mạng. Thử lại sau hoặc liên hệ hỗ trợ.",
         "notSent": "Chưa kết nối được mạng. Chưa có gì được gửi — bạn có thể thử lại."
       },
+      "errorTitle": "Chưa thể bắt đầu khôi phục",
       "invalid": "Đây chưa phải địa chỉ ví. Địa chỉ bắt đầu bằng C và dài 56 ký tự.",
       "label": "Địa chỉ ví của bạn",
       "passkeyNote": "Tiếp theo, máy sẽ hỏi vân tay hoặc khuôn mặt để tạo chìa khoá mới.",
@@ -353,6 +370,7 @@
       "countdownCta": "Xem khoảng chờ",
       "description": "Xem những ai đã xác nhận.",
       "doneCta": "Hoàn tất trên máy này",
+      "missingTitle": "Trước hết, hãy cho biết ví nào",
       "missingAddressCta": "Nhập địa chỉ ví trước đã",
       "state": {
         "executed": "Xong — ví của bạn giờ nghe theo chìa khoá mới.",
@@ -362,11 +380,14 @@
         "vetoed": "Khôi phục này đã bị chặn. Nếu đúng là bạn yêu cầu, hãy liên hệ người thân."
       },
       "title": "Đang chờ xác nhận",
+      "waitingCta": "Đang chờ người thân",
       "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có"
     },
     "sent": {
       "description": "Người bảo hộ của bạn đã được đề nghị xác nhận đúng là bạn.",
       "fingerprintLabel": "Mã chìa khoá mới của bạn",
+      "notified": "Người thân của bạn đã được báo",
+      "ownerNoticeTitle": "Hãy giữ màn hình này ở gần",
       "progressCta": "Xem tiến độ",
       "readNote": "Gọi cho người thân và đọc mã này cho họ. Họ phải thấy ĐÚNG mã này rồi mới đồng ý.",
       "title": "Đã gửi yêu cầu"
@@ -375,6 +396,7 @@
       "cta": "Bắt đầu — tôi mất thiết bị",
       "description": "Mất điện thoại? Gia đình có thể giúp bạn khôi phục mọi thứ.",
       "progressCta": "Tôi đã gửi rồi — xem tiến độ",
+      "signInCta": "Tôi vẫn mở được ví này",
       "step1": "Trên thiết bị mới này, bạn tạo một chìa khoá mới. Chìa khoá không bao giờ rời máy.",
       "step2": "Người thân xác minh đúng là bạn — qua điện thoại, không qua ứng dụng này.",
       "step3": "Khi đủ người đồng ý và hết khoảng chờ, ví của bạn nghe theo chìa khoá mới. Địa chỉ giữ nguyên, tiền không di chuyển.",
@@ -556,11 +578,11 @@
   },
   "welcome": {
     "cta": "Bắt đầu",
-    "description": "Ví mà gia đình có thể giúp bạn lấy lại — không phải nhớ gì, không sợ mất gì.",
+    "description": "Vân tay là chìa khóa. Gia đình là bản sao lưu.",
     "haveCta": "Tôi đã có ví",
     "point1": "Mở bằng khuôn mặt hoặc vân tay — không có seed phrase để ghi hay để mất.",
     "point2": "Chẳng may mất điện thoại, những người bạn tin sẽ giúp bạn lấy lại.",
     "point3": "Chọn ai thừa kế, để không có gì kẹt lại nếu bạn gặp chuyện.",
-    "title": "Chào mừng đến FamilyWallet"
+    "title": "Tiền gia đình,\nđược giữ an toàn."
   }
 }

@@ -7,6 +7,9 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { TimelockCountdown } from "@/components/family/timelock-countdown";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { publicProgressOptions } from "@/features/wallet/api/device-recovery";
 
@@ -29,33 +32,41 @@ function RecoveryCountdownScreen() {
     : null;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="font-semibold text-2xl text-foreground">{t("recovery.countdown.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("recovery.countdown.description")}</p>
-
+    <ProductScreen>
+      <ScreenHeader
+        title={t("recovery.countdown.title")}
+        description={t("recovery.countdown.description")}
+      />
       {progress.isLoading ? <LoadingRows /> : null}
       {progress.isError ? <ErrorState /> : null}
 
       {veto && !veto.expired ? (
-        <p className="rounded-md bg-muted p-3 text-foreground text-sm">
-          {t("recovery.countdown.window", { countdown: veto.countdown, absolute: veto.absolute })}
-        </p>
+        <TimelockCountdown
+          countdown={veto.countdown}
+          absolute={veto.absolute}
+          label={t("recovery.countdown.windowLabel")}
+          large
+        />
       ) : null}
-      <p className="text-muted-foreground text-xs">{t("recovery.countdown.note")}</p>
-
-      {progress.data?.status === "executed" ? (
-        <Button asChild className="w-full">
-          <Link to="/recovery/done" search={{ address }}>
-            {t("recovery.countdown.doneCta")}
-          </Link>
-        </Button>
-      ) : (
-        <Button asChild variant="outline" className="w-full">
+      <ErrorBanner type="info" title={t("recovery.countdown.protectionTitle")}>
+        {t("recovery.countdown.note")}
+      </ErrorBanner>
+      <PrimaryZone>
+        {progress.data?.status === "executed" ? (
+          <Button asChild className="w-full">
+            <Link to="/recovery/done" search={{ address }}>
+              {t("recovery.countdown.doneCta")}
+            </Link>
+          </Button>
+        ) : (
+          <Button disabled>{t("recovery.countdown.doneCta")}</Button>
+        )}
+        <Button asChild variant="link" className="w-full">
           <Link to="/recovery/progress" search={{ address }}>
             {t("recovery.countdown.backCta")}
           </Link>
         </Button>
-      )}
-    </main>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

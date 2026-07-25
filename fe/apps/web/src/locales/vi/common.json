@@ -8,6 +8,10 @@
   "language": {
     "label": "Ngôn ngữ"
   },
+  "network": {
+    "testnet": "Mạng thử",
+    "mainnet": "Mạng chính"
+  },
   "userMenu": {
     "login": "Đăng nhập",
     "logout": "Đăng xuất",

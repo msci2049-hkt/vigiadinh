@@ -38,6 +38,12 @@
     }
   },
   "getStarted": {
+    "benefit1Body": "面容或指纹取代容易遗失的恢复短语。",
+    "benefit1Title": "没有 12 个助记词",
+    "benefit2Body": "你信任的家人能帮你在新手机上恢复钱包。",
+    "benefit2Title": "家人就是你的备份",
+    "benefit3Body": "签名密钥在此设备上生成并保留。",
+    "benefit3Title": "密钥留在设备上",
     "createBody": "建立一个用指纹或面容保护的新钱包。",
     "createCta": "创建钱包",
     "createTitle": "创建新钱包",
@@ -301,7 +307,12 @@
     "errorCancelled": "你关闭了确认对话框。准备好后随时按按钮重试。",
     "errorGeneric": "无法打开你的钱包。设备未确认面容 / 指纹 — 请重试。",
     "errorNotConfigured": "应用尚未连接到钱包网络。这是我们团队的事 — 你无需操作。",
+    "guardianNames": "妈妈  ·  哥哥  ·  姨妈",
+    "keyDevice": "你的密钥留在设备上",
+    "protectedBy": "由 3 位家人守护",
+    "recoveryCta": "手机丢了？恢复钱包",
     "signInCta": "我已有钱包 — 解锁",
+    "tryAgainTitle": "没有识别到。再试一次？",
     "title": "用你的设备解锁",
     "unsupported": "此设备太旧，无法用面容或指纹解锁。你仍可在另一部手机或更新的浏览器上继续。",
     "walletUser": "家庭钱包",
@@ -321,7 +332,9 @@
       "description": "已获得足够同意。等待期保护你免受冒名者侵害。",
       "doneCta": "在此设备上完成",
       "note": "设立这段等待期，是为了让钱包主人能阻止他们并未发起的恢复。如果那正是你 — 什么都不用做，等待即可。",
+      "protectionTitle": "为什么需要等待期",
       "title": "就快好了",
+      "windowLabel": "保护时间",
       "window": "剩余时间：{countdown}（截至 {absolute}）"
     },
     "done": {
@@ -331,7 +344,10 @@
       "errors": {
         "noDraft": "此设备未保存任何恢复钥匙。请在此设备上从头开始恢复。"
       },
+      "cooldownTitle": "之后会有一段短暂的安全暂停",
+      "errorTitle": "此设备尚未准备好",
       "openWalletCta": "前往钱包登录",
+      "sameAddress": "仍是同一个钱包地址，资金从未移动。",
       "title": "欢迎回来"
     },
     "findWallet": {
@@ -342,6 +358,7 @@
         "notConfigured": "应用尚未连接到网络。请稍后重试或联系支持。",
         "notSent": "无法连接网络。没有发送任何内容 — 你可以重试。"
       },
+      "errorTitle": "暂时无法开始恢复",
       "invalid": "这看起来不像钱包地址。它以 C 开头，共 56 个字符。",
       "label": "你的钱包地址",
       "passkeyNote": "接下来，此设备会请求你的指纹或面容以创建新钥匙。",
@@ -353,6 +370,7 @@
       "countdownCta": "查看等待期",
       "description": "查看目前有谁已确认。",
       "doneCta": "在此设备上完成",
+      "missingTitle": "请先告诉我们要恢复哪个钱包",
       "missingAddressCta": "请先输入你的钱包地址",
       "state": {
         "executed": "完成 — 你的钱包现在听从你的新钥匙。",
@@ -362,11 +380,14 @@
         "vetoed": "此次恢复已被阻止。如果确实是你发起的，请联系你的家人。"
       },
       "title": "等待同意",
+      "waitingCta": "正在等待家人",
       "votes": "需要 {approvals, plural, other {# 票}}，共 {threshold} 票"
     },
     "sent": {
       "description": "已请求你的守护人确认确实是你本人。",
       "fingerprintLabel": "你的新钥匙 ID",
+      "notified": "你的家人已收到通知",
+      "ownerNoticeTitle": "请将此页面留在手边",
       "progressCta": "查看进度",
       "readNote": "给家人打电话，把这串代码读给他们听。他们必须看到完全相同的代码后才能同意。",
       "title": "请求已发送"
@@ -375,6 +396,7 @@
       "cta": "开始 — 我丢失了设备",
       "description": "手机丢了？你的家人可以帮你把一切找回来。",
       "progressCta": "我已请求 — 查看进度",
+      "signInCta": "我仍然可以解锁此钱包",
       "step1": "在这台新设备上，你会创建一把全新的钥匙。它永远不会离开这台设备。",
       "step2": "你的家人核实确实是你 — 通过电话，而不是通过此应用。",
       "step3": "当足够多的人同意且等待期结束后，你的钱包便听从新钥匙。地址不变，资产不动。",
@@ -521,6 +543,7 @@
         "insufficient": "余额不足。你还需要 {shortfall}（含手续费）。",
         "network": "无法连接网络。请稍后重试。",
         "notSent": "没有发送任何内容。你可以安全地重试。",
+        "tampered": "我们已停止这笔付款。即将确认的指令与你刚输入的金额和收款人不一致，因此没有签名，也没有发送任何内容。请不要在此设备上重试——请检查连接并联系支持。",
         "walletLocked": "钱包在此设备上已锁定。请先打开钱包再重试。"
       },
       "guardian": {
@@ -555,11 +578,11 @@
   },
   "welcome": {
     "cta": "开始",
-    "description": "一个家人能帮你恢复的钱包 — 无需记忆，也不会丢失。",
+    "description": "指纹是钥匙，家人是备份。",
     "haveCta": "我已经有钱包了",
     "point1": "用面容或指纹打开——没有助记词需要抄写或丢失。",
     "point2": "万一丢了手机，你信任的人会帮你找回。",
     "point3": "决定由谁继承，万一你发生意外，也不会有东西被搁置。",
-    "title": "欢迎使用家庭钱包"
+    "title": "家人的钱，\n安心保管。"
   }
 }

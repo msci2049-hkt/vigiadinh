@@ -2,12 +2,15 @@
 // rời máy) → gửi vật liệu public cho người thân qua cửa public của server.
 // Form RHF + Zod (một field — vẫn đi đúng đường validate chuẩn repo).
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Button, Input } from "@repo/ui";
+import { Button, Card, CardContent, Input } from "@repo/ui";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { knockWithNewPasskey } from "@/features/wallet/api/device-recovery";
 import { WalletNotConfiguredError } from "@/features/wallet/lib/kit";
 
@@ -37,41 +40,62 @@ function RecoveryFindWalletScreen() {
   });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("recovery.findWallet.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("recovery.findWallet.description")}</p>
-
+    <ProductScreen>
+      <ScreenHeader
+        title={t("recovery.findWallet.title")}
+        description={t("recovery.findWallet.description")}
+      />
       <form
-        className="flex flex-col gap-3"
+        className="flex flex-1 flex-col"
         onSubmit={form.handleSubmit((values) => knock.mutate(values.address.trim()))}
       >
-        <label htmlFor="recovery-address" className="flex flex-col gap-1 text-left">
-          <span className="text-foreground text-sm">{t("recovery.findWallet.label")}</span>
-          <Input
-            id="recovery-address"
-            {...form.register("address")}
-            placeholder={t("recovery.findWallet.placeholder")}
-            autoComplete="off"
-            spellCheck={false}
-          />
-        </label>
-        {form.formState.errors.address ? (
-          <p className="text-destructive text-sm" role="alert">
-            {t("recovery.findWallet.invalid")}
-          </p>
-        ) : null}
+        <Card>
+          <CardContent className="space-y-3">
+            <label htmlFor="recovery-address" className="flex flex-col gap-2 text-left">
+              <span className="font-medium text-foreground text-sm">
+                {t("recovery.findWallet.label")}
+              </span>
+              <div className="relative">
+                <Icon
+                  name="lock"
+                  size={20}
+                  className="absolute top-1/2 left-4 -translate-y-1/2 text-muted-foreground"
+                />
+                <Input
+                  id="recovery-address"
+                  {...form.register("address")}
+                  placeholder={t("recovery.findWallet.placeholder")}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="h-14 pl-11 font-mono"
+                />
+              </div>
+            </label>
+            {form.formState.errors.address ? (
+              <p className="text-error text-sm" role="alert">
+                {t("recovery.findWallet.invalid")}
+              </p>
+            ) : null}
+            <p className="text-muted-foreground text-sm">{t("recovery.findWallet.passkeyNote")}</p>
+          </CardContent>
+        </Card>
         {knock.isError ? (
-          <p className="text-destructive text-sm" role="alert">
+          <ErrorBanner type="error" title={t("recovery.findWallet.errorTitle")}>
             {knock.error instanceof WalletNotConfiguredError
               ? t("recovery.findWallet.errors.notConfigured")
               : t("recovery.findWallet.errors.notSent")}
-          </p>
+          </ErrorBanner>
         ) : null}
-        <p className="text-muted-foreground text-xs">{t("recovery.findWallet.passkeyNote")}</p>
-        <Button type="submit" disabled={knock.isPending}>
-          {knock.isPending ? t("recovery.findWallet.creating") : t("recovery.findWallet.cta")}
-        </Button>
+        <PrimaryZone>
+          <Button
+            type="submit"
+            loading={knock.isPending}
+            loadingLabel={t("recovery.findWallet.creating")}
+          >
+            {t("recovery.findWallet.cta")}
+          </Button>
+        </PrimaryZone>
       </form>
-    </main>
+    </ProductScreen>
   );
 }

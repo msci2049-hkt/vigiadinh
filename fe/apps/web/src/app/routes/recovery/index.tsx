@@ -4,6 +4,8 @@
 import { Button } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { type FamilyIconName, Icon } from "@/components/family/icon";
+import { IconDisc, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { loadRecoveryDraft } from "@/features/wallet/api/device-recovery";
 
 export const Route = createFileRoute("/recovery/")({ component: RecoveryStartScreen });
@@ -11,28 +13,49 @@ export const Route = createFileRoute("/recovery/")({ component: RecoveryStartScr
 function RecoveryStartScreen() {
   const { t } = useTranslation("fw");
   const draft = loadRecoveryDraft();
+  const steps: { icon: FamilyIconName; copy: string }[] = [
+    { icon: "fingerprint", copy: t("recovery.start.step1") },
+    { icon: "users", copy: t("recovery.start.step2") },
+    { icon: "shieldCheck", copy: t("recovery.start.step3") },
+  ];
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("recovery.start.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("recovery.start.description")}</p>
-      <ol className="list-decimal space-y-2 pl-5 text-muted-foreground text-sm">
-        <li>{t("recovery.start.step1")}</li>
-        <li>{t("recovery.start.step2")}</li>
-        <li>{t("recovery.start.step3")}</li>
+    <ProductScreen>
+      <ScreenHeader
+        title={t("recovery.start.title")}
+        description={t("recovery.start.description")}
+      />
+      <ol className="space-y-3">
+        {steps.map((step, index) => (
+          <li
+            key={step.icon}
+            className="flex items-center gap-4 rounded-md border bg-card p-4 shadow-sm"
+          >
+            <IconDisc>
+              <Icon name={step.icon} size={20} />
+            </IconDisc>
+            <span className="text-sm leading-relaxed">
+              <span className="mr-2 font-mono text-muted-foreground">{index + 1}</span>
+              {step.copy}
+            </span>
+          </li>
+        ))}
       </ol>
-      <div className="mt-2 flex flex-col gap-2">
+      <PrimaryZone>
         <Button asChild>
           <Link to="/recovery/find-wallet">{t("recovery.start.cta")}</Link>
         </Button>
         {draft ? (
-          <Button asChild variant="outline">
+          <Button asChild variant="secondary">
             <Link to="/recovery/progress" search={{ address: draft.address }}>
               {t("recovery.start.progressCta")}
             </Link>
           </Button>
         ) : null}
-      </div>
-    </main>
+        <Button asChild variant="link">
+          <Link to="/passkey">{t("recovery.start.signInCta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

@@ -8,6 +8,10 @@
   "language": {
     "label": "Language"
   },
+  "network": {
+    "testnet": "Testnet",
+    "mainnet": "Mainnet"
+  },
   "userMenu": {
     "login": "Sign in",
     "logout": "Sign out",
