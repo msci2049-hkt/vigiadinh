@@ -197,3 +197,20 @@ Hai P0 tìm được đã VÁ trong phiên (`set_recovery_registry` → construc
 - **Vì sao chưa làm:** BUILD-LOG PHA 6 có ghi TODO này, chưa dựng.
 - **Cần để gỡ:** `/recovery/done` + `/wallet` đọc 2 giá trị từ ví, hiện đếm ngược (timelockView
   đã có sẵn từ PHA 7.1).
+
+### B-E2E-MULTI · E2e đa thiết bị CHẠY ĐƯỢC nhưng FAIL ở bước cuối (2026-07-25)
+
+- **Đã chứng minh** (spec chạy tới dòng 279 nghĩa là mọi assert trước đó PASS):
+  4 BrowserContext, mỗi context một authenticator ảo ĐỘC LẬP · chủ ví deploy ví thật qua
+  `/setup` · HAI người thân mỗi người deploy hợp đồng của họ thật qua `/guardian/accept`
+  trên "máy" riêng · ba địa chỉ KHÁC NHAU (`new Set(...).size === 3`) · ví chủ đã nối
+  registry (`get_recovery_registry` khớp). **Đây chính là claim "mỗi người một máy".**
+- **FAIL:** `expect(getByRole("status")).toBeVisible()` sau khi bấm `review-register` —
+  locator sai hoặc mutation đăng ký chưa chạy tới nơi. 10.7 phút/lần chạy.
+- **CHƯA verify trong lần chạy này** (nằm SAU điểm fail): `get_wallet_config` = 2 guardian +
+  threshold 2, và **cổng chống hồi quy `get_context_rule(0)` ví chủ = 1 signer**.
+  Cổng đó hiện được chứng minh bằng unit test contract + đọc on-chain ví `CAU26NTA…XCWL`,
+  KHÔNG phải qua đường UI nhiều thiết bị.
+- **Cần để gỡ:** sửa locator (dùng `getByTestId` cho thông báo đăng-ký-xong thay vì role
+  status), chạy lại. Preview :4174 + `RUN_TESTNET_E2E=1 pnpm exec playwright test
+  e2e/multi-device --project=chromium`, `LD_LIBRARY_PATH=~/chrome-libs/...`.
