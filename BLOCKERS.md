@@ -13,6 +13,20 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
 Nguồn: `docs/security/AUDIT-2026-07-25.md`. 7 lỗ hổng P0 đã vá kèm test hồi quy.
 Năm mục dưới đây **chưa vá** và phải xong trước mainnet.
 
+### CẬP NHẬT closeout 2026-07-25 (đợt 2) — trạng thái sau phiên đóng
+
+| Mục | Trạng thái | Commit | Test hồi quy |
+|---|---|---|---|
+| **B-SEC-1** `recovery_rotate` thêm-trước-xoá | ✅ **ĐÓNG** — xoay neo nguyên tử | `fix(contracts)!: rotate recovery keys atomically` | `recovery_rotate_survives_a_wallet_full_of_15_signers` (đỏ trên bản cũ: panic #3010 TooManySigners) |
+| **B-SEC-2** TTL bỏ sót `SignerData` | ✅ **ĐÓNG** — extend đúng `SignerData(id)`+`SignerLookup(hash)`; durability = **persistent** (archive **cứu được**, mất ví TẠM THỜI → mức 🟠, không 🔴) | `fix(contracts): extend TTL of the owner passkey` | `extend_ttl_reaches_the_owner_passkey_signer_entry` (đỏ trên bản cũ: SignerData 518400 ≠ rule 700000) |
+| **B-SEC-3** ttl-keeper phí ví không trần | ⚠️ **VÁ MỘT PHẦN** — thêm trần phí per-tx `FEE_CAP_EXCEEDED` + `LIMIT` mỗi tick. **CÒN**: chỉ nên gia hạn ví `is_registered` (chưa lọc theo registry) | `fix(be): cap the fee wallet's per-tx spend` | `assertFeeWithinCap` (4 ca) |
+| **B-SEC-4** audit_log không chặn TRUNCATE | ⚠️ **VÁ MỘT PHẦN** — trigger `BEFORE TRUNCATE FOR EACH STATEMENT` (0008). **CÒN**: app chạy bằng role sở hữu bảng → `DROP TRIGGER` được; cần tách role INSERT/SELECT (hạ tầng deploy) | `fix(be): block TRUNCATE on the append-only audit log` | `audit-append-only.integration.test.ts` ca TRUNCATE (đỏ khi drop trigger 0008) |
+| **B-SEC-5** ký mù `guardian/approve` + `block/confirm` | ✅ **ĐÓNG** — `assertApproveRecoveryEntry`/`assertCancelRecoveryEntry`, mốc = state cục bộ (registry env + ví từ inbox/active) | `fix(fe): stop blind-signing on guardian approve and block confirm` | `auth-entry-guard.test.ts` +7 ca (transfer đội lốt approve/veto bị chặn) |
+| §4.4 origin-verifier DEV localhost | ⚠️ **VÁ MỘT PHẦN** — deploy script fail-closed chặn localhost/non-https/wildcard + đổi `.expect()`→`panic_with_error!` (C2). **CÒN**: instance testnet đang chạy vẫn là DEV; production chạy `deploy-origin-verifier.sh` với domain thật (HUMAN-TODO) | `fix(contracts): coded errors on the verifier hot path` | `malformed_sig_data_never_verifies` + guard script (empty→rc1, localhost→chặn) |
+| CI đỏ `cargo fmt --check` (do vá P0 `ae7c855`) | ✅ **ĐÓNG** | `ci(contracts): rustfmt the recovery expiry guard` | `cargo fmt --check` xanh |
+
+Chi tiết §B-SEC-1..5 gốc giữ nguyên bên dưới để đối chiếu.
+
 ### B-SEC-1 · `recovery_rotate` thêm signer TRƯỚC khi xoá → khôi phục hỏng vĩnh viễn
 
 - **Chặn:** ví đã nối đủ 15 thiết bị (trần `MAX_SIGNERS` của OZ) thì khôi phục **panic

@@ -2,7 +2,7 @@
 
 > Một trang, khớp CODE THẬT (không phải nguyện vọng). Cập nhật khi thêm tính năng chạm
 > custody/khoá/di chúc (luật security §on-chain). Chưng cất theo skill `stellar-security`.
-> Cập nhật gần nhất: 2026-07-24, sau AUDIT P0 (khôi phục xoay khoá trong smart account).
+> Cập nhật gần nhất: 2026-07-25 (closeout đợt 2 — đóng B-SEC-1/2/5, vá một phần B-SEC-3/4).
 
 ## Câu hỏi thử vàng
 
@@ -72,19 +72,26 @@ Chứng minh on-chain: e2e testnet gửi 1 XLM từ ví C…, người nhận nh
   không. Việc đó là của `lib/auth-entry-guard.ts` (FE) + kiểm entry-vs-intent (BE).
 - K5 approval binding: `intents` `challenge_hash` (sửa amount → binding chết, test `approval-flow`).
 - Fingerprint khoá mới: **vector chéo Rust↔TS pin cứng** (`signer_fingerprint_cross_language_vector`).
-- Audit append-only: TRIGGER Postgres (migration 0002), UPDATE/DELETE chết thật (test integration).
+- Audit append-only: TRIGGER Postgres — UPDATE/DELETE (0002) **và TRUNCATE** (0008, statement-level)
+  chết thật (test integration). Còn hở: app chạy bằng role sở hữu bảng → `DROP TRIGGER` được (B-SEC-4).
 - Indexer là người ghi DUY NHẤT của mirror; sống sót restart giữa batch (checkpoint atomic).
 
 ## Còn hở — khai thẳng (chưa xong, không phải đã an toàn)
 
-- **Audit toàn diện 2026-07-25** (`docs/security/AUDIT-2026-07-25.md`): 7 lỗ hổng P0 đã vá kèm
-  test hồi quy, còn **5 P1 mở** — trong đó `recovery_rotate` thêm-trước-xoá và TTL keeper bỏ sót
-  `SignerData` của OZ đều dẫn tới **ví hỏng vĩnh viễn không sửa được**. Contract đã đổi shape
-  (`RecoveryRequest.expires_at`, mã lỗi 17/18/108) nên **phải deploy lại testnet + chạy lại e2e**
-  trước khi tin bất kỳ bằng chứng on-chain cũ nào.
-- **Ký mù ở `guardian/approve` và `block/confirm`** vẫn chưa chốt bằng `auth-entry-guard`.
-
-- **origin-verifier production** còn là bản DEV localhost — chưa pin 3 origin domain thật (chờ domain).
+- **Audit toàn diện 2026-07-25** (`docs/security/AUDIT-2026-07-25.md` §7 closeout): 7 P0 đã vá.
+  Closeout đợt 2 đóng thêm: **B-SEC-1** `recovery_rotate` (xoay neo nguyên tử), **B-SEC-2** TTL
+  `SignerData`, **B-SEC-5** ký mù approve/veto. **Đính chính overclaim cũ:** TTL keeper bỏ sót
+  `SignerData` KHÔNG phải "ví hỏng vĩnh viễn" — cả ba key OZ là **persistent** (archive **cứu được**
+  bằng `RestoreFootprint`, Protocol 23+), mất ví TẠM THỜI → mức 🟠. Còn hở một phần: B-SEC-3 (lọc
+  `is_registered`), B-SEC-4 (tách role DB). Contract đã đổi shape LẦN NỮA → **phải deploy lại testnet
+  + chạy lại e2e** trước khi tin bằng chứng on-chain cũ (B-SEC-7).
+- **Ký mù ở `guardian/approve` và `block/confirm`** — ĐÃ CHỐT bằng `assertApproveRecoveryEntry`/
+  `assertCancelRecoveryEntry` (so state cục bộ, entry `transfer` đội lốt bị chặn TRƯỚC passkey).
+- **SEP-45 token** bind ví+device, chống replay bằng nonce, nhưng **chưa thu hồi khi khôi phục**
+  (TTL 24h). Mức 🟠 nhờ custody on-chain: khoá cũ bị gỡ + cooldown → JWT cũ không ký được tiền.
+- **origin-verifier production**: deploy script fail-closed chặn localhost/non-https/wildcard; hot-path
+  đổi `.expect()`→`panic_with_error!`. Instance testnet đang chạy VẪN là DEV — production chạy
+  `deploy-origin-verifier.sh` với domain thật (HUMAN-TODO, chờ domain).
 - **Đường ký WebAuthn qua kit vào contract — ĐÃ CHỨNG MINH ON-CHAIN** (B-23-2 ĐÓNG 2026-07-24):
   passkey secp256r1 (virtual authenticator, ceremony `navigator.credentials` thật) ký SAC transfer
   qua `__check_auth → origin-verifier` trong MỘT tx settled testnet (`docs/evidence §PASSKEY-ONCHAIN`,
