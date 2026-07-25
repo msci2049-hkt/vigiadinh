@@ -11,6 +11,9 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AmountInput, useParsedAmount } from "@/components/amount-input";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ScreenHeader } from "@/components/family/screen";
 import { prepareSend, type SendReview } from "@/features/family/api/send";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
@@ -140,58 +143,67 @@ function WalletSendScreen() {
             : null;
     return (
       <Shell>
-        <h1 className="font-semibold text-2xl text-foreground">{t("wallet.send.review.title")}</h1>
-        <Card>
-          <CardContent className="flex flex-col gap-3 pt-6">
-            <Row label={t("wallet.send.review.amount")}>
-              {formatAmount(review.amount, { locale: i18n.language, code: "XLM" })}
-            </Row>
+        <ScreenHeader title={t("wallet.send.review.title")} />
+        <Card className="bg-paper-2">
+          <CardContent className="flex flex-col gap-4 pt-6">
+            <div className="border-b pb-5 text-center">
+              <p className="mb-2 font-medium text-muted-foreground text-xs uppercase tracking-[0.06em]">
+                {t("wallet.send.review.amount")}
+              </p>
+              <p className="product-money">
+                {formatAmount(review.amount, { locale: i18n.language, code: "XLM" })}
+              </p>
+            </div>
             <Row label={t("wallet.send.review.to")}>
-              <span className="break-all font-mono text-sm">{review.recipient}</span>
+              <span className="font-mono text-sm">
+                {`${review.recipient.slice(0, 6)}…${review.recipient.slice(-6)}`}
+              </span>
             </Row>
-            <p className="text-muted-foreground text-xs">{t("wallet.send.review.biometricNote")}</p>
-            {progressKey ? (
-              <p className="animate-pulse text-muted-foreground text-sm" role="status">
-                {t(progressKey)}
+            <div className="flex items-center gap-3 rounded-card border border-dashed bg-card p-4">
+              <Icon name="fingerprint" size={32} />
+              <p className="text-muted-foreground text-sm">
+                {t("wallet.send.review.biometricNote")}
               </p>
-            ) : null}
+            </div>
+            {progressKey ? <ErrorBanner type="pending" title={t(progressKey)} /> : null}
             {err ? (
-              <p className="text-destructive text-sm" role="alert">
-                {t(err.key, { shortfall: err.shortfall ?? "" })}
-              </p>
+              <ErrorBanner type="error" title={t(err.key, { shortfall: err.shortfall ?? "" })} />
             ) : null}
-            {startOver ? (
+            <PrimaryZone>
+              {startOver ? (
+                <Button
+                  onClick={() => {
+                    machine.reset();
+                    setStep("enter");
+                  }}
+                >
+                  {t("wallet.send.startOverCta")}
+                </Button>
+              ) : (
+                <Button
+                  loading={machine.busy}
+                  onClick={() =>
+                    void machine.start(review, {
+                      recipient: recipient.trim(),
+                      amountStroops: parsed.ok ? parsed.scaled : "",
+                    })
+                  }
+                >
+                  <Icon name="fingerprint" />
+                  {progressKey ? t(progressKey) : t("wallet.send.review.cta")}
+                </Button>
+              )}
               <Button
+                variant="ghost"
+                disabled={machine.busy}
                 onClick={() => {
                   machine.reset();
                   setStep("enter");
                 }}
               >
-                {t("wallet.send.startOverCta")}
+                {t("wallet.send.review.backCta")}
               </Button>
-            ) : (
-              <Button
-                disabled={machine.busy}
-                onClick={() =>
-                  void machine.start(review, {
-                    recipient: recipient.trim(),
-                    amountStroops: parsed.ok ? parsed.scaled : "",
-                  })
-                }
-              >
-                {progressKey ? t(progressKey) : t("wallet.send.review.cta")}
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              disabled={machine.busy}
-              onClick={() => {
-                machine.reset();
-                setStep("enter");
-              }}
-            >
-              {t("wallet.send.review.backCta")}
-            </Button>
+            </PrimaryZone>
           </CardContent>
         </Card>
       </Shell>
@@ -201,8 +213,7 @@ function WalletSendScreen() {
   const err = prepare.isError ? sendErrorKey(prepare.error) : null;
   return (
     <Shell>
-      <h1 className="font-semibold text-2xl text-foreground">{t("wallet.send.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("wallet.send.description")}</p>
+      <ScreenHeader title={t("wallet.send.title")} description={t("wallet.send.description")} />
       <form
         className="flex flex-col gap-4"
         onSubmit={(e) => {
@@ -220,7 +231,7 @@ function WalletSendScreen() {
             id="send-recipient"
             value={recipient}
             onChange={(e) => setRecipient(e.target.value)}
-            placeholder="G… / C…"
+            placeholder="C…"
             autoComplete="off"
             spellCheck={false}
             aria-invalid={recipient.length > 0 && !recipientValid}
@@ -230,11 +241,9 @@ function WalletSendScreen() {
           ) : null}
         </label>
         {err ? (
-          <p className="text-destructive text-sm" role="alert">
-            {t(err.key, { shortfall: err.shortfall ?? "" })}
-          </p>
+          <ErrorBanner type="error" title={t(err.key, { shortfall: err.shortfall ?? "" })} />
         ) : null}
-        <Button type="submit" disabled={!parsed.ok || !recipientValid || prepare.isPending}>
+        <Button type="submit" loading={prepare.isPending} disabled={!parsed.ok || !recipientValid}>
           {prepare.isPending ? t("wallet.send.checking") : t("wallet.send.cta")}
         </Button>
       </form>

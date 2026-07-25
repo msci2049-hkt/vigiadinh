@@ -5,6 +5,8 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { type FamilyIconName, Icon } from "@/components/family/icon";
+import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { invitesOptions } from "@/features/family/api/invites";
 import { chainTruthOptions } from "@/features/family/api/recovery";
 import { CooldownNotice } from "@/features/family/components/cooldown-notice";
@@ -13,6 +15,32 @@ import { EmptyState, ErrorState, LoadingRows } from "@/features/family/component
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 
 export const Route = createFileRoute("/_authenticated/wallet/")({ component: WalletHomeScreen });
+
+function WalletLink({
+  to,
+  icon,
+  children,
+  primary = false,
+}: {
+  to: "/wallet/send" | "/wallet/receive" | "/wallet/history" | "/night-watch";
+  icon: FamilyIconName;
+  children: React.ReactNode;
+  primary?: boolean;
+}) {
+  return (
+    <Link
+      to={to}
+      className={
+        primary
+          ? "flex min-h-16 items-center gap-3 rounded-card bg-primary px-5 font-bold text-primary-foreground shadow-[var(--shadow-button)] transition-transform hover:-translate-y-px"
+          : "flex min-h-16 items-center gap-3 rounded-card border bg-card px-5 font-semibold text-foreground shadow-sm transition-transform hover:-translate-y-px"
+      }
+    >
+      <Icon name={icon} />
+      <span>{children}</span>
+    </Link>
+  );
+}
 
 function WalletHomeScreen() {
   const { t } = useTranslation("fw");
@@ -24,9 +52,12 @@ function WalletHomeScreen() {
   const invites = useQuery({ ...invitesOptions(wallet?.id ?? ""), enabled: wallet !== null });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("wallet.home.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("wallet.home.description")}</p>
+    <ProductScreen>
+      <ScreenHeader
+        title={t("wallet.home.title")}
+        description={t("wallet.home.description")}
+        display
+      />
 
       {isLoading ? <LoadingRows /> : null}
       {isError ? <ErrorState /> : null}
@@ -49,26 +80,28 @@ function WalletHomeScreen() {
               <CardTitle className="text-sm">{t("wallet.home.addressLabel")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="break-all font-mono text-foreground text-sm">{wallet.stellarAddress}</p>
+              <p className="break-all font-mono text-foreground text-sm leading-relaxed">
+                {`${wallet.stellarAddress.slice(0, 6)}…${wallet.stellarAddress.slice(-6)}`}
+              </p>
             </CardContent>
           </Card>
 
           <div className="grid grid-cols-2 gap-3">
-            <Button asChild variant="outline">
-              <Link to="/wallet/send">{t("wallet.home.sendCta")}</Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to="/wallet/receive">{t("wallet.home.receiveCta")}</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link to="/wallet/history">{t("wallet.home.historyCta")}</Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link to="/night-watch">{t("wallet.home.nightWatchCta")}</Link>
-            </Button>
+            <WalletLink to="/wallet/send" icon="send" primary>
+              {t("wallet.home.sendCta")}
+            </WalletLink>
+            <WalletLink to="/wallet/receive" icon="qrCode">
+              {t("wallet.home.receiveCta")}
+            </WalletLink>
+            <WalletLink to="/wallet/history" icon="history">
+              {t("wallet.home.historyCta")}
+            </WalletLink>
+            <WalletLink to="/night-watch" icon="moon">
+              {t("wallet.home.nightWatchCta")}
+            </WalletLink>
           </div>
         </>
       ) : null}
-    </main>
+    </ProductScreen>
   );
 }

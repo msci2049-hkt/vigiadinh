@@ -4,23 +4,17 @@
 import { Button } from "@repo/ui";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
 
 export function Shell({ children }: { children: React.ReactNode }) {
-  return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-      {children}
-    </main>
-  );
+  return <ProductScreen className="justify-center">{children}</ProductScreen>;
 }
 
 export function Row({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span className="text-muted-foreground text-sm">{label}</span>
-      <span className="text-right font-medium text-foreground">{children}</span>
-    </div>
-  );
+  return <DetailRow label={label}>{children}</DetailRow>;
 }
 
 export function SendDoneScreen({ txHash }: { txHash: string | null }) {
@@ -28,8 +22,14 @@ export function SendDoneScreen({ txHash }: { txHash: string | null }) {
   return (
     <Shell>
       <div className="flex flex-col items-center gap-4 text-center">
-        <h1 className="font-semibold text-2xl text-foreground">{t("wallet.send.done.title")}</h1>
-        <p className="text-muted-foreground text-sm">{t("wallet.send.done.description")}</p>
+        <span className="grid size-20 place-items-center rounded-full bg-success text-paper">
+          <Icon name="checkCircle" size={32} />
+        </span>
+        <ScreenHeader
+          title={t("wallet.send.done.title")}
+          description={t("wallet.send.done.description")}
+          className="text-center"
+        />
         {txHash ? (
           <a
             href={explorerTxUrl(txHash)}
@@ -50,10 +50,12 @@ export function SendGuardianWaitScreen() {
   return (
     <Shell>
       <div className="flex flex-col items-center gap-4 text-center">
-        <h1 className="font-semibold text-2xl text-foreground">
-          {t("wallet.send.guardian.title")}
-        </h1>
-        <p className="text-muted-foreground text-sm">{t("wallet.send.guardian.description")}</p>
+        <img src="/assets/mascot/mascot-wait.png" alt="" className="h-44 w-44 object-contain" />
+        <ScreenHeader
+          title={t("wallet.send.guardian.title")}
+          description={t("wallet.send.guardian.description")}
+          className="text-center"
+        />
       </div>
     </Shell>
   );
@@ -67,24 +69,22 @@ export function SendUnconfirmedScreen({ pollExhausted }: { pollExhausted: boolea
   const { t } = useTranslation("fw");
   return (
     <Shell>
-      <div className="flex flex-col gap-4" role="alert">
-        <h1 className="font-semibold text-2xl text-foreground">
-          {t("wallet.send.unconfirmed.title")}
-        </h1>
-        <p className="text-foreground text-sm">{t("wallet.send.unconfirmed.body")}</p>
+      <div className="flex flex-col gap-5" role="alert">
+        <ScreenHeader title={t("wallet.send.unconfirmed.title")} />
+        <ErrorBanner type="warn" title={t("wallet.send.unconfirmed.title")}>
+          {t("wallet.send.unconfirmed.body")}
+        </ErrorBanner>
         {pollExhausted ? (
           <>
-            <p className="text-muted-foreground text-sm">
-              {t("wallet.send.unconfirmed.stillUnknown")}
-            </p>
-            <Button asChild variant="outline">
-              <Link to="/wallet/history">{t("wallet.send.unconfirmed.historyCta")}</Link>
-            </Button>
+            <p className="product-copy">{t("wallet.send.unconfirmed.stillUnknown")}</p>
+            <PrimaryZone>
+              <Button asChild>
+                <Link to="/wallet/history">{t("wallet.send.unconfirmed.historyCta")}</Link>
+              </Button>
+            </PrimaryZone>
           </>
         ) : (
-          <p className="animate-pulse text-muted-foreground text-sm" data-testid="send-checking">
-            {t("wallet.send.unconfirmed.checking")}
-          </p>
+          <ErrorBanner type="pending" title={t("wallet.send.unconfirmed.checking")} />
         )}
       </div>
     </Shell>

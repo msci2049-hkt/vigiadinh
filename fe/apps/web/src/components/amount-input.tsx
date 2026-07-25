@@ -43,7 +43,7 @@ export function AmountInput({ value, onChange, assetCode, disabled, ...rest }: A
   const { decimal } = localeSeparators(locale);
 
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-2">
       <Input
         {...rest}
         value={value}
@@ -54,11 +54,12 @@ export function AmountInput({ value, onChange, assetCode, disabled, ...rest }: A
         disabled={disabled}
         placeholder={`0${decimal}00`}
         aria-invalid={value.length > 0 && !parsed.ok}
+        className="money-amount h-16 rounded-md border-border bg-card px-4 font-semibold text-2xl shadow-sm focus-visible:ring-primary/40"
       />
       {preview !== null && value.length > 0 ? (
         <p
           aria-live="polite"
-          className="text-muted-foreground text-sm"
+          className="money-amount font-mono text-muted-foreground text-sm"
           data-testid="amount-preview"
         >
           {preview}
