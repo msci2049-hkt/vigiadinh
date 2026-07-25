@@ -521,6 +521,7 @@
         "insufficient": "Not enough balance. You need {shortfall} more (including fees).",
         "network": "Could not reach the network. Try again shortly.",
         "notSent": "Nothing was sent. You can try again safely.",
+        "tampered": "We stopped this payment. The order we were about to approve did not match the amount and recipient you entered, so nothing was signed and nothing was sent. Do not retry on this device — check your connection and contact support.",
         "walletLocked": "Your wallet is locked on this device. Open it first, then try again."
       },
       "guardian": {

@@ -22,6 +22,8 @@ import { RecoverabilityBanner } from "@/features/family/components/recoverabilit
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { signRecoveryEntries } from "@/features/wallet/lib/sign-recovery-entries";
+import { assertAddGuardianEntry, BlindSignError } from "@/lib/auth-entry-guard";
+import { env } from "@/lib/env";
 
 export const Route = createFileRoute("/_authenticated/setup/invite")({
   component: SetupInviteScreen,
@@ -50,11 +52,24 @@ function SetupInviteScreen() {
   const addGuardian = useMutation({
     mutationFn: async (invite: GuardianInvite) => {
       const walletId = wallet?.id ?? "";
+      const guardianAddress = invite.guardian_address ?? "";
       const built = await buildRecoveryAction({
         action: "addGuardian",
         walletId,
-        guardianAddress: invite.guardian_address ?? "",
+        guardianAddress,
       });
+      // CHỐNG KÝ MÙ: entry phải thêm ĐÚNG địa chỉ vừa gửi đi. Không chốt thì
+      // backend tráo một địa chỉ khác là chủ ví tự tay ký cho người lạ vào làm
+      // người bảo hộ — trong khi màn hình vẫn chỉ hiện tên gọi thân mật.
+      if (!env.VITE_RECOVERY_REGISTRY_ADDRESS) throw new BlindSignError("ENTRY_WRONG_CONTRACT");
+      if (!wallet) throw new BlindSignError("ENTRY_WRONG_SOURCE");
+      for (const entryXdr of built.auth_entries_xdr) {
+        assertAddGuardianEntry(entryXdr, {
+          registry: env.VITE_RECOVERY_REGISTRY_ADDRESS,
+          wallet: wallet.stellarAddress,
+          guardian: guardianAddress,
+        });
+      }
       const signed = await signRecoveryEntries({
         entriesXdr: built.auth_entries_xdr,
         latestLedger: built.latest_ledger,

@@ -16,6 +16,8 @@ import { RecoverabilityBanner } from "@/features/family/components/recoverabilit
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { signRecoveryEntries } from "@/features/wallet/lib/sign-recovery-entries";
+import { assertRegisterWalletEntry, BlindSignError } from "@/lib/auth-entry-guard";
+import { env } from "@/lib/env";
 
 export const Route = createFileRoute("/_authenticated/setup/review")({
   component: SetupReviewScreen,
@@ -29,12 +31,32 @@ function SetupReviewScreen() {
 
   const recoverability = invites.data?.recoverability;
   const canRegister = recoverability?.recoverable === true;
+  // Địa chỉ người bảo hộ chủ ví ĐÃ THẤY (từ chính danh sách lời mời của mình) —
+  // mốc đối chiếu cho entry `register_wallet` trước khi ký.
+  const guardianAddresses = (invites.data?.invites ?? [])
+    .map((i) => i.guardian_address)
+    .filter((a): a is string => typeof a === "string" && a.length > 0);
 
   // Đăng ký lên registry: build → ký bằng passkey chủ ví → submit.
   const register = useMutation({
     mutationFn: async () => {
       const walletId = wallet?.id ?? "";
       const built = await buildRecoveryAction({ action: "register", walletId });
+      // CHỐNG KÝ MÙ — nặng nhất trong cả app: `register_wallet` chỉ chạy MỘT
+      // lần (lần hai contract chối `AlreadyRegistered`), nên ký nhầm ngưỡng hay
+      // nhầm danh sách người bảo hộ là hỏng VĨNH VIỄN, không có đường sửa.
+      // Registry lấy từ env của FE, không lấy từ phản hồi backend.
+      if (!env.VITE_RECOVERY_REGISTRY_ADDRESS) throw new BlindSignError("ENTRY_WRONG_CONTRACT");
+      if (!wallet) throw new BlindSignError("ENTRY_WRONG_SOURCE");
+      for (const entryXdr of built.auth_entries_xdr) {
+        assertRegisterWalletEntry(entryXdr, {
+          registry: env.VITE_RECOVERY_REGISTRY_ADDRESS,
+          wallet: wallet.stellarAddress,
+          allowedGuardians: guardianAddresses,
+          threshold: wallet.threshold,
+          timelockSecs: wallet.timelockSecs,
+        });
+      }
       const signed = await signRecoveryEntries({
         entriesXdr: built.auth_entries_xdr,
         latestLedger: built.latest_ledger,

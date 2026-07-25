@@ -2,6 +2,7 @@
 // passkey (challenge = P27 auth digest, K2 — kit lo) → đổi JWT → lưu Bearer.
 // Mọi HTTP qua apiClient (luật data-fetching); mọi lỗi ném ra cho UI xử lý.
 import { apiClient } from "@/lib/api-client";
+import { assertMethodOnly } from "@/lib/auth-entry-guard";
 import { getDeviceId } from "../lib/device-id";
 import { getWalletKit } from "../lib/kit";
 import {
@@ -17,6 +18,9 @@ type ChallengeResponse = { authorization_entries: string; network_passphrase: st
 type TokenResponse = { token: string };
 
 export class Sep45LoginError extends Error {}
+
+/** Hàm DUY NHẤT một challenge đăng nhập được phép gọi (đối xứng be `WEB_AUTH_FN`). */
+const SEP45_CHALLENGE_METHOD = "web_auth_verify";
 
 /**
  * Đăng nhập bằng ví đã kết nối (kit đang giữ contractId + credentialId), hoặc
@@ -41,6 +45,12 @@ export async function sep45Login(override?: {
   const index = findEntryIndexForAccount(entries, contractId);
   const entry = entries[index];
   if (index < 0 || !entry) throw new Sep45LoginError("CHALLENGE_MISSING_WALLET_ENTRY");
+
+  // CHỐNG KÝ MÙ: "đăng nhập" chỉ được phép là `web_auth_verify`. Không chốt chỗ
+  // này thì bất cứ ai trả lời được /challenge đều biến prompt đăng nhập thành
+  // máy ký thuê — nhét vào entry một lệnh `transfer` là người dùng tự tay ký
+  // lệnh rút sạch ví trong khi màn hình chỉ nói "đăng nhập bằng passkey".
+  assertMethodOnly(entry, SEP45_CHALLENGE_METHOD);
 
   // contextRuleIds tường minh: placeholder BE là scvVoid nên kit không tự đọc
   // được rule ids từ entry (cùng lý do với sign-wallet-entries).

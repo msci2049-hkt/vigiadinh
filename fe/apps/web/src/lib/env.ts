@@ -49,6 +49,15 @@ const EnvSchema = z.object({
   // Cooldown (giây) sau khi khôi phục xoay khoá: ví chối MỌI chữ ký trong cửa
   // sổ này để kẻ chiếm được đợt khôi phục không rút ngay. Mặc định 24h.
   VITE_RECOVERY_COOLDOWN_SECS: z.coerce.number().int().positive().default(86400),
+  // SAC của tài sản gốc (XLM). FE PHẢI tự biết địa chỉ này để đối chiếu entry
+  // TRƯỚC khi ký (lib/auth-entry-guard.ts): nếu lấy từ phản hồi backend thì
+  // backend bị chiếm chỉ việc trả contract khác — so bản sao với bản gốc của
+  // chính kẻ tấn công thì luôn khớp.
+  VITE_SAC_NATIVE: z
+    .string()
+    .regex(/^C[A-Z2-7]{55}$/, "phải là contract ID (C...)")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

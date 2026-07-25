@@ -19,6 +19,8 @@ import {
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { signWalletEntries, WalletSignError } from "@/features/wallet/lib/sign-wallet-entries";
+import { assertTransferEntry, BlindSignError } from "@/lib/auth-entry-guard";
+import { env } from "@/lib/env";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
 
 export const Route = createFileRoute("/_authenticated/wallet/send")({
@@ -35,9 +37,13 @@ type SendErrorKey =
   | "wallet.send.errors.delayed"
   | "wallet.send.errors.walletLocked"
   | "wallet.send.errors.network"
+  | "wallet.send.errors.tampered"
   | "wallet.send.errors.notSent";
 
 function sendErrorKey(err: unknown): { key: SendErrorKey; shortfall?: string | undefined } {
+  // Lệnh sắp ký KHÁC thứ người dùng nhập → dừng và nói thẳng, không gộp vào
+  // "gửi không thành công": đây là dấu hiệu bị can thiệp, không phải lỗi mạng.
+  if (err instanceof BlindSignError) return { key: "wallet.send.errors.tampered" };
   if (err instanceof WalletSignError) {
     return {
       key:
@@ -100,6 +106,22 @@ function WalletSendScreen() {
     ): Promise<{ status: ConfirmResult["status"]; hash?: string }> => {
       const confirmed = await confirmSend(intentId);
       if (confirmed.status === "awaiting_guardian") return { status: "awaiting_guardian" };
+      // CHỐNG KÝ MÙ: entry do backend dựng, nhưng đối chiếu với thứ NGƯỜI DÙNG
+      // vừa gõ ở màn này (`recipient`/`parsed`), KHÔNG phải `review.*` — review
+      // là backend echo lại, so nó với entry của chính backend thì vô nghĩa.
+      // Thiếu env = không đối chiếu được → CHỐI ký, không "tạm cho qua".
+      const walletAddress = wallet?.stellarAddress;
+      if (!walletAddress) throw new BlindSignError("ENTRY_WRONG_SOURCE");
+      if (!env.VITE_SAC_NATIVE) throw new BlindSignError("ENTRY_WRONG_CONTRACT");
+      if (!parsed.ok) throw new BlindSignError("ENTRY_WRONG_AMOUNT");
+      for (const entryXdr of confirmed.authEntriesXdr) {
+        assertTransferEntry(entryXdr, {
+          sac: env.VITE_SAC_NATIVE,
+          from: walletAddress,
+          to: recipient.trim(),
+          amount: BigInt(parsed.scaled),
+        });
+      }
       const signed = await signWalletEntries({
         entriesXdr: confirmed.authEntriesXdr,
         latestLedger: confirmed.latestLedger,

@@ -521,6 +521,7 @@
         "insufficient": "Không đủ số dư. Bạn cần thêm {shortfall} (đã tính phí).",
         "network": "Chưa kết nối được mạng. Thử lại sau chút.",
         "notSent": "Chưa có gì được gửi đi. Bạn có thể thử lại an toàn.",
+        "tampered": "Chúng tôi đã dừng giao dịch này. Lệnh sắp được duyệt không khớp số tiền và người nhận bạn vừa nhập, nên không có gì được ký và không có gì được gửi đi. Đừng thử lại trên máy này — hãy kiểm tra kết nối và liên hệ hỗ trợ.",
         "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại."
       },
       "guardian": {
