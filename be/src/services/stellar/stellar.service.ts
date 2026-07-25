@@ -132,11 +132,27 @@ export async function simulateRead(input: {
  * → submit + poll. entries RỖNG hợp lệ cho method không đòi auth người dùng
  * (vd finalize_recovery — ai crank cũng được sau timelock).
  */
+/**
+ * Trần phí per-tx cho ví phí. `assembleTransaction` nướng resource fee từ
+ * SIMULATION vào tx — không trần thì một contract do người dùng khai (B-SEC-3)
+ * có thể để `extend_ttl` ngốn tài nguyên tối đa và ví phí ký + trả sạch. Chặn
+ * TRƯỚC khi ký: quá trần → ném, ví phí không mất gì.
+ */
+export function assertFeeWithinCap(feeStroops: string, maxFeeStroops: number | undefined): void {
+  if (maxFeeStroops === undefined) return;
+  const fee = Number(feeStroops);
+  if (!Number.isFinite(fee) || fee > maxFeeStroops) {
+    throw new StellarServiceError(`FEE_CAP_EXCEEDED:${feeStroops}>${maxFeeStroops}`);
+  }
+}
+
 export async function invokeWithSignedEntries(input: {
   contractId: string;
   method: string;
   args: xdr.ScVal[];
   authEntries: xdr.SorobanAuthorizationEntry[];
+  /** Trần phí tổng (stroops) — vượt là ném trước khi ví phí ký (B-SEC-3). */
+  maxFeeStroops?: number;
 }): Promise<{ hash: string; status: string }> {
   return withRpc(async (server) => {
     const wallet = feeWallet();
@@ -160,6 +176,8 @@ export async function invokeWithSignedEntries(input: {
       throw new StellarServiceError(`SIMULATION_FAILED:${sim.error}`);
     }
     const assembled = rpc.assembleTransaction(tx, sim).build();
+    // Trần phí SAU khi assemble (đã có resource fee thật), TRƯỚC khi ký.
+    assertFeeWithinCap(assembled.fee, input.maxFeeStroops);
     assembled.sign(wallet);
     const sent = await server.sendTransaction(assembled);
     if (sent.status === "ERROR") {

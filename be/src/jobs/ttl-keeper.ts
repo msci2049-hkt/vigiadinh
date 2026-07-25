@@ -34,6 +34,14 @@ export const TTL_KEEPER_QUEUE = "{ttl-keeper}";
 const TTL_THRESHOLD = 300_000;
 const TTL_EXTEND_TO = 3_110_400;
 
+// Trần phí per-tx (stroops). `extend_ttl` rất rẻ (~vài chục nghìn stroops); đặt
+// 5_000_000 (0.5 XLM) là dư xa cho tx thật nhưng chặn cost-attack B-SEC-3: một
+// contract do kẻ tấn công khai (POST /api/wallets nhận C… bất kỳ) để extend_ttl
+// ngốn tài nguyên tối đa sẽ vượt trần → bị bỏ qua, ví phí không mất gì.
+const TTL_MAX_FEE_STROOPS = 5_000_000;
+// Trần số ví mỗi lượt — bó việc một tick, chống bơm bảng wallets thành DoS.
+const TTL_MAX_WALLETS_PER_TICK = 1_000;
+
 export const ttlKeeperQueue = new Queue(TTL_KEEPER_QUEUE, {
   connection: bullConnection,
   defaultJobOptions: {
@@ -62,18 +70,22 @@ export async function runTtlKeeperTick(): Promise<TtlResult> {
     // Chưa cấu hình chain → không có gì để gia hạn, app vẫn sống.
     return { extended: 0, failed: 0, skipped: true };
   }
-  const rows = await db.select({ address: wallets.stellarAddress }).from(wallets);
+  const rows = await db
+    .select({ address: wallets.stellarAddress })
+    .from(wallets)
+    .limit(TTL_MAX_WALLETS_PER_TICK);
   let extended = 0;
   let failed = 0;
   for (const row of rows) {
     if (!row.address?.startsWith("C")) continue; // chỉ ví hợp đồng
     try {
-      // 1) instance + context rule của CHÍNH ví.
+      // 1) instance + context rule của CHÍNH ví. Trần phí chặn contract độc.
       await invokeWithSignedEntries({
         contractId: row.address,
         method: "extend_ttl",
         args: [xdr.ScVal.scvU32(TTL_THRESHOLD), xdr.ScVal.scvU32(TTL_EXTEND_TO)],
         authEntries: [],
+        maxFeeStroops: TTL_MAX_FEE_STROOPS,
       });
       // 2) cấu hình guardian của ví trong registry (archive cái này = mất
       //    danh sách người cứu, dù ví còn sống).
@@ -82,6 +94,7 @@ export async function runTtlKeeperTick(): Promise<TtlResult> {
         method: "extend_ttl",
         args: [new Address(row.address).toScVal()],
         authEntries: [],
+        maxFeeStroops: TTL_MAX_FEE_STROOPS,
       });
       extended += 1;
     } catch (err) {

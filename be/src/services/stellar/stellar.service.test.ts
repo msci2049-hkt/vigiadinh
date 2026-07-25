@@ -11,7 +11,12 @@ import {
   TransactionBuilder,
 } from "@stellar/stellar-sdk";
 import { env } from "@/env";
-import { buildFeeBumpXdr, feeWallet, StellarServiceError } from "./stellar.service";
+import {
+  assertFeeWithinCap,
+  buildFeeBumpXdr,
+  feeWallet,
+  StellarServiceError,
+} from "./stellar.service";
 
 const userKey = Keypair.random();
 const bumper = Keypair.random();
@@ -55,5 +60,25 @@ describe("stellar service (thuần)", () => {
     } else {
       expect(() => feeWallet()).toThrow("FEE_WALLET_NOT_CONFIGURED");
     }
+  });
+
+  // B-SEC-3: trần phí chặn cost-attack qua contract do người dùng khai.
+  describe("assertFeeWithinCap", () => {
+    it("phí trong trần → cho qua", () => {
+      expect(() => assertFeeWithinCap("100000", 5_000_000)).not.toThrow();
+    });
+
+    it("phí vượt trần → FEE_CAP_EXCEEDED (chặn TRƯỚC khi ví phí ký)", () => {
+      expect(() => assertFeeWithinCap("9000000", 5_000_000)).toThrow(StellarServiceError);
+      expect(() => assertFeeWithinCap("9000000", 5_000_000)).toThrow("FEE_CAP_EXCEEDED");
+    });
+
+    it("không truyền trần → không chặn (đường khác giữ nguyên hành vi)", () => {
+      expect(() => assertFeeWithinCap("999999999", undefined)).not.toThrow();
+    });
+
+    it("fee không phải số hữu hạn → chặn (fail-closed)", () => {
+      expect(() => assertFeeWithinCap("not-a-number", 5_000_000)).toThrow(StellarServiceError);
+    });
   });
 });
