@@ -5,7 +5,7 @@
 // bằng một câu UPDATE. Nên test khẳng định cổng hỏi ĐÚNG registry on-chain, đúng
 // method, đúng địa chỉ ví — và không có đường DB nào trong hàm.
 import { describe, expect, it } from "bun:test";
-import { Address, scValToNative, StrKey, type xdr } from "@stellar/stellar-sdk";
+import { Address, StrKey, scValToNative, type xdr } from "@stellar/stellar-sdk";
 import {
   assertSponsorshipAllowed,
   FEE_BOOTSTRAP_METHODS,

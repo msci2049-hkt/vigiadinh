@@ -66,7 +66,18 @@ thẳng RPC (người dùng tự trả phí), không đi qua BE. Kèm hướng d
   `ledger_key_nonce` của Client/Server/Client-Domain; entry `delegated` phải chối).
 - **§5.2 fuzz/proptest:** chưa có. Máy build không có nightly → `cargo-fuzz` không dựng; đường
   `proptest` trên stable chưa làm. Nợ 3 target: `__check_auth`, `finalize_recovery`, `recovery_rotate`.
-- **verifier-webauthn:** 12 mutant còn sống (crate SPIKE, không nằm trên đường tiền đi).
+- **verifier-webauthn:** 12 mutant còn sống (crate SPIKE, không nằm trên đường tiền đi). Kèm một
+  cặp đáng vá: `.unwrap()` TRẦN ở `lib.rs:104` (`auth_data.get(32).unwrap()` — dữ liệu kẻ tấn công
+  điều khiển) chỉ an toàn nhờ cổng `auth_data.len() < 37` ở dòng 97, mà **mutant ở đúng cổng đó
+  đang còn sống** (`97:28 < → >`). Cổng sai ⇒ panic TRẦN trên input thù địch. Mức 🟠 vì crate là
+  spike (bản tích hợp `origin-verifier` đã chốt cổng này bằng test trong closeout đợt 3), nhưng phải
+  vá trước khi spike được dùng ở đường thật. Chi tiết: `docs/security/TOOLS-2026-07-25.md`.
+- **Hai scanner vẫn không dùng được** (dòng lỗi chính xác trong `docs/security/TOOLS-2026-07-25.md`):
+  `cargo-scout-audit` chết ở **libnghttp2-sys** biên dịch C (`nghttp2/lib/sfparse.c`), không phải
+  openssl như đợt trước ghi — cần cài dev package hệ thống (sudo). OZ `soroban-scanner` build được
+  từ commit mới `f3888e0` (crate đổi tên thành `soroban-security-detectors-runner`) nhưng **vẫn panic
+  UTF-8** ở `sdk/src/ast_types_builder.rs:254` — bug offset của chính tool. Hệ quả: **không có
+  detector chuyên Soroban nào chạy**; mutants/clippy/proptest KHÔNG thay thế được lớp đó.
 - **B-SEC-4 wiring:** `DATABASE_URL` runtime còn trỏ role owner → quyền đã dựng nhưng CHƯA có hiệu lực.
 - **JWT ví chưa có người tiêu thụ:** nối guard phải dùng `verifyWalletJwtCurrent` (facade chỉ export
   bản đó, cố ý).
