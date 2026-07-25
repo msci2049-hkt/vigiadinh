@@ -1,5 +1,14 @@
-// Cổng nghiệm thu 3.4 (A7): "thử UPDATE audit → bị chặn" — trên Postgres THẬT,
-// trigger audit_log_no_update (migration 0002) chặn CẢ UPDATE lẫn DELETE.
+// Cổng nghiệm thu 3.4 (A7): "thử UPDATE audit → bị chặn" — trên Postgres THẬT.
+//
+// HAI phòng tuyến, xếp chồng, và test này chấp nhận BẤT KỲ cái nào chặn trước:
+//   1. REVOKE ở tầng role (0009) — bắn khi app nối bằng role RUNTIME. Chặn TRƯỚC
+//      khi câu lệnh chạy, nên không có `DROP TRIGGER` nào gỡ được.
+//   2. Trigger `audit_log_no_update`/`no_truncate` (0002 + 0008) — bắn khi app nối
+//      bằng role OWNER (owner bypass mọi GRANT nhưng KHÔNG bypass trigger).
+// Trước audit 2026-07-25 §1.1, DATABASE_URL là owner nên chỉ (2) sống; file này
+// khi đó hard-code chờ chữ "append-only" của trigger. Sau khi đổi sang role runtime,
+// (1) bắn trước và message là "permission denied" — khoá cứng vào một message là
+// biến việc SIẾT bảo mật thành test đỏ. Điều bất biến thật là: dòng phải sống sót.
 import { describe, expect, it } from "bun:test";
 import { eq, sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -21,6 +30,12 @@ const deepMessage = (err: unknown): string => {
   return out;
 };
 
+/** Bị chặn bởi MỘT trong hai tầng — trigger (append-only) hoặc REVOKE (42501). */
+const blockedByEitherLayer = (err: unknown): boolean => {
+  const msg = deepMessage(err);
+  return msg.includes("append-only") || msg.includes("permission denied");
+};
+
 describe("audit_log append-only (Postgres thật)", () => {
   testIt("INSERT được; UPDATE và DELETE bị trigger chặn", async () => {
     const [row] = await db
@@ -37,9 +52,9 @@ describe("audit_log append-only (Postgres thật)", () => {
     const expectAppendOnly = async (op: Promise<unknown>) => {
       try {
         await op;
-        throw new Error("PHẢI bị trigger chặn nhưng đã chạy qua");
+        throw new Error("PHẢI bị chặn nhưng đã chạy qua");
       } catch (err) {
-        expect(deepMessage(err)).toContain("append-only");
+        expect(blockedByEitherLayer(err)).toBe(true);
       }
     };
 
@@ -74,7 +89,7 @@ describe("audit_log append-only (Postgres thật)", () => {
     try {
       await db.execute(sql`TRUNCATE audit_log`);
     } catch (err) {
-      blocked = deepMessage(err).includes("append-only");
+      blocked = blockedByEitherLayer(err);
     }
     expect(blocked).toBe(true);
 

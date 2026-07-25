@@ -13,6 +13,10 @@ import { envShape } from "../src/env.schema";
  * docker-compose / entrypoint.sh / deploy script / MCP tooling. Thêm biến infra
  * mới → thêm vào đây (có chủ đích, không phải tiện tay). */
 export const INFRA_KEYS: ReadonlySet<string> = new Set([
+  // Role OWNER — CHỈ scripts/migrate.ts + scripts/provision-runtime-role.ts đọc
+  // (qua process.env, không qua src/env.ts). App runtime KHÔNG được thấy biến này:
+  // nó chính là quyền mà tầng REVOKE của migration 0009 sinh ra để tước.
+  "DATABASE_URL_OWNER",
   // docker-compose bootstrap
   "COMPOSE_PROJECT_NAME",
   "POSTGRES_USER",

@@ -53,6 +53,12 @@ echo "==> [5/7] GATE migrate: dry-run liệt kê pending rồi apply (fail = D�
 compose run --rm app bun ./dist/migrate.js --dry-run
 compose run --rm app bun ./dist/migrate.js
 
+# Role runtime PHẢI sẵn sàng trước khi app up: `DATABASE_URL` trỏ vào role đăng
+# nhập mà migration 0009 KHÔNG tạo được (migration nằm trong git → không chứa mật
+# khẩu). Script này idempotent và tự FAIL nếu role vẫn xoá được audit_log.
+echo "==> [5.5/7] GATE provision role runtime (fail = DỪNG, KHÔNG up app)"
+compose run --rm app bun ./dist/provision-runtime-role.js
+
 echo "==> [6/7] docker compose up -d"
 compose up -d
 

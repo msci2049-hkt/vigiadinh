@@ -19,9 +19,22 @@ done
 log "Postgres is reachable"
 
 if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
+  # Migration cần DDL → chạy bằng DATABASE_URL_OWNER (scripts/migrate.ts tự ưu
+  # tiên biến đó). Provision role runtime NGAY SAU migration: 0009 chỉ tạo role
+  # NHÓM `app_runtime` (NOLOGIN), còn role ĐĂNG NHẬP mà DATABASE_URL trỏ tới phải
+  # do bước này tạo — thiếu nó thì app không kết nối được sau lần deploy đầu.
   log "Running migrations..."
   bun run ./dist/migrate.js
   log "Migrations done"
+
+  if [ -n "${DATABASE_URL_OWNER:-}" ]; then
+    log "Provisioning runtime role..."
+    bun run ./dist/provision-runtime-role.js
+    log "Runtime role ready"
+  else
+    log "WARNING: DATABASE_URL_OWNER chưa đặt — app đang chạy bằng role OWNER."
+    log "WARNING: Tầng REVOKE audit_log (migration 0009) KHÔNG có hiệu lực."
+  fi
 fi
 
 log "Starting: $*"

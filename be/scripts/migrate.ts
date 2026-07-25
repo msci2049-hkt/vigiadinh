@@ -82,11 +82,18 @@ async function lastApplied(sql: postgres.Sql): Promise<number | null> {
 }
 
 async function main(): Promise<void> {
-  const DATABASE_URL = process.env.DATABASE_URL;
+  // Migration cần DDL → phải chạy bằng role OWNER. App chạy bằng role runtime
+  // (thành viên `app_runtime`, không DDL — xem 0009 + provision-runtime-role.ts),
+  // và role đó KHÔNG migrate được. Fallback về DATABASE_URL để môi trường chưa
+  // tách role vẫn migrate được như cũ.
+  const DATABASE_URL = process.env.DATABASE_URL_OWNER ?? process.env.DATABASE_URL;
   if (!DATABASE_URL) {
-    console.error("[migrate] ❌ DATABASE_URL is required");
+    console.error("[migrate] ❌ DATABASE_URL_OWNER hoặc DATABASE_URL is required");
     process.exit(1);
   }
+  console.log(
+    `[migrate] role: ${process.env.DATABASE_URL_OWNER ? "DATABASE_URL_OWNER (owner)" : "DATABASE_URL (chưa tách role owner/runtime)"}`,
+  );
   const dryRun = process.argv.includes("--dry-run");
   // onnotice: nuốt NOTICE "already exists, skipping" (drizzle tạo schema tracking
   // idempotent) — giữ output gate sạch, chỉ còn dòng PENDING/OK/FAILED.

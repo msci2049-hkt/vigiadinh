@@ -28,6 +28,9 @@ RUN bun build ./src/workers/index.ts --target=bun --outdir ./dist/workers --mini
 # FIX: migrate script ở scripts/migrate.ts (KHÔNG phải src/migrate.ts) — path cũ
 # `./src/migrate.ts` làm `docker build` fail (file không tồn tại). Cần COPY scripts.
 RUN bun build ./scripts/migrate.ts --target=bun --outdir ./dist --minify --sourcemap
+# Role runtime (thành viên app_runtime) phải tồn tại TRƯỚC khi app connect —
+# entrypoint.sh gọi ngay sau migrate. Thiếu bundle này thì deploy đầu tiên chết.
+RUN bun build ./scripts/provision-runtime-role.ts --target=bun --outdir ./dist --minify --sourcemap
 
 FROM oven/bun:1.3.8-alpine AS runtime
 RUN apk add --no-cache tini tzdata ca-certificates \
