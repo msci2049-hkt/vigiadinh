@@ -68,7 +68,7 @@ function SetupThresholdScreen() {
                 key={n}
                 role="radio"
                 aria-checked={threshold === n}
-                variant={threshold === n ? "default" : "outline"}
+                variant={threshold === n ? "secondary" : "ghost"}
                 className="flex-1"
                 onClick={() => setPicked(n)}
                 data-testid={`threshold-${n}`}

@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { MoreHorizontalIcon } from "@/components/family/icons";
 import {
   Button,
   DropdownMenu,
@@ -6,10 +9,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@repo/ui";
-import { MoreHorizontalIcon } from "lucide-react";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
+} from "@/components/family/ui";
 import { useSession } from "@/lib/auth-client";
 import type { AdminUser } from "../api/admin-users-api";
 import { useUserMutations } from "../hooks/use-user-mutations";

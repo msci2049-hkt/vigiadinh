@@ -524,6 +524,7 @@
       "copyCta": "Sao chép địa chỉ",
       "description": "Đưa mã của bạn cho người gửi, hoặc chia sẻ địa chỉ ví.",
       "noWallet": "Bạn chưa có ví.",
+      "qrLabel": "Mã QR địa chỉ ví",
       "stableNote": "Địa chỉ này không bao giờ đổi — kể cả sau khi khôi phục. Chia sẻ một lần rồi dùng mãi.",
       "title": "Nhận tiền"
     },

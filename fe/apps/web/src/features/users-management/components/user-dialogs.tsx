@@ -1,3 +1,5 @@
+import { useId, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Button,
   Dialog,
@@ -13,9 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@repo/ui";
-import { useId, useState } from "react";
-import { useTranslation } from "react-i18next";
+} from "@/components/family/ui";
 import type { AdminUser } from "../api/admin-users-api";
 import type { UserMutations } from "../hooks/use-user-mutations";
 

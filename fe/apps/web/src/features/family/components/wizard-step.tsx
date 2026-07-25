@@ -5,7 +5,7 @@
 // chạy, KHÔNG có nút giả vờ hoạt động. Custody không bị đụng.
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { IconDisc, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 

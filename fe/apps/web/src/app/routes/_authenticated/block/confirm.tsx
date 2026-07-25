@@ -7,7 +7,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
 import { recoveryKeys } from "@/features/family/api/recovery";

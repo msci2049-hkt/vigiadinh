@@ -5,7 +5,8 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
+import { ProductImage } from "@/components/family/product-image";
 import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
@@ -51,7 +52,15 @@ export function SendGuardianWaitScreen() {
   return (
     <Shell>
       <div className="flex flex-col items-center gap-4 text-center">
-        <img src="/assets/mascot/mascot-wait.png" alt="" className="h-44 w-44 object-contain" />
+        <ProductImage
+          src="/assets/mascot/mascot-wait.png"
+          webpSrc="/assets/mascot/mascot-wait.webp"
+          avifSrc="/assets/mascot/mascot-wait.avif"
+          alt=""
+          width={640}
+          height={640}
+          className="h-44 w-44 object-contain"
+        />
         <ScreenHeader
           title={t("wallet.send.guardian.title")}
           description={t("wallet.send.guardian.description")}

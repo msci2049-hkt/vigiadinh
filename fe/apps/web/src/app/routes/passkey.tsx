@@ -3,7 +3,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { DEMO_GUARDIANS, GuardianAvatarCluster } from "@/components/family/guardian-avatar-cluster";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { PasskeyPanel } from "@/features/wallet/components/passkey-panel";
 

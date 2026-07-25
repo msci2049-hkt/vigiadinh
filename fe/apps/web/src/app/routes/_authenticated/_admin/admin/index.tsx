@@ -1,7 +1,14 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, Skeleton } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Skeleton,
+} from "@/components/family/ui";
 import { adminUsersQueryOptions } from "@/features/users-management";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/")({

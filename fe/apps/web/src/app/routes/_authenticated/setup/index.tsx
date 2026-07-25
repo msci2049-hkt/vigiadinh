@@ -7,7 +7,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
+import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
 import { walletKeys } from "@/features/family/api/wallets";
@@ -31,9 +32,14 @@ function SetupIntroScreen() {
 
   return (
     <ProductScreen className="justify-center">
-      <img
+      <ProductImage
         src="/assets/people/banker-present-right.png"
+        webpSrc="/assets/people/banker-present-right.webp"
+        avifSrc="/assets/people/banker-present-right.avif"
         alt=""
+        width={960}
+        height={1280}
+        priority
         className="mx-auto h-52 w-full max-w-xs object-contain object-bottom"
       />
       <ScreenHeader

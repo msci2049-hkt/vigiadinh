@@ -1,8 +1,8 @@
 import { defaultPanelPath, panelsForRole } from "@repo/auth";
-import { Button } from "@repo/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/family/ui";
 import { useCurrentUser } from "../hooks/use-current-user";
 import { performSignOut } from "../lib/sign-out-cleanup";
 

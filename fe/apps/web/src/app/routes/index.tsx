@@ -1,6 +1,6 @@
-import { Button, Card, CardDescription, CardHeader, CardTitle } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Button, Card, CardDescription, CardHeader, CardTitle } from "@/components/family/ui";
 import { site } from "@/config/site";
 
 export const Route = createFileRoute("/")({

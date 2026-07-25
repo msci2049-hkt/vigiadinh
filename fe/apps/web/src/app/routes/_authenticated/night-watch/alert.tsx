@@ -6,7 +6,9 @@ import { formatDateTime } from "@repo/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { guardianAvatarForIndex } from "@/components/family/guardian-assets";
+import { Icon } from "@/components/family/icons";
+import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { type Guardian, guardiansOptions } from "@/features/family/api/guardians";
@@ -33,7 +35,7 @@ function NightWatchAlertScreen() {
   });
 
   const outOfReach = (guardians.data ?? [])
-    .map((g, i) => ({ g, ref: contactRef(g, i) }))
+    .map((g, i) => ({ avatar: guardianAvatarForIndex(i), g, ref: contactRef(g, i) }))
     .filter(({ g }) => g.status === "slow" || g.status === "offline");
   const loading = walletLoading || guardians.isLoading;
 
@@ -51,13 +53,15 @@ function NightWatchAlertScreen() {
       ) : null}
 
       <ul className="flex flex-col gap-2">
-        {outOfReach.map(({ g, ref }, index) => (
+        {outOfReach.map(({ avatar, g, ref }) => (
           <li key={g.id}>
             <Card className="border-border bg-paper-2">
               <CardContent className="flex gap-3 p-4">
-                <img
-                  src={`/assets/avatars/${index % 2 === 0 ? "aunt" : "uncle"}-104.webp`}
+                <ProductImage
+                  {...avatar}
                   alt=""
+                  width={104}
+                  height={104}
                   className="size-14 shrink-0 rounded-full object-cover grayscale"
                 />
                 <div className="min-w-0 flex-1 space-y-2">
@@ -84,7 +88,7 @@ function NightWatchAlertScreen() {
 
       {outOfReach.length > 0 ? (
         <PrimaryZone>
-          <Button asChild variant="danger">
+          <Button asChild variant="secondary">
             <Link to="/night-watch/resolve">
               <Icon name="refresh" />
               {t("nightWatch.alert.resolveCta")}

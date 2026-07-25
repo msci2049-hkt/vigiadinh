@@ -3,9 +3,7 @@
 @import "@fontsource-variable/fraunces/wght.css";
 @import "@fontsource-variable/inter/wght.css";
 @import "@fontsource-variable/jetbrains-mono/wght.css";
-@import "@repo/ui/theme.css";
+@import "./components/family/theme.css";
 @import "./components/family/family.css";
 
-/* Auth/admin still use the generic workspace package. FamilyWallet product
- * screens use the app-local system in components/family. */
-@source "../../../packages/ui/src";
+/* Product, auth and admin all use the app-local family system. */

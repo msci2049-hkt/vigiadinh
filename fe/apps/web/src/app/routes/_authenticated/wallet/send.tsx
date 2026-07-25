@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AmountInput, useParsedAmount } from "@/components/amount-input";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, Input } from "@/components/family/ui";
 import { prepareSend, type SendReview } from "@/features/family/api/send";

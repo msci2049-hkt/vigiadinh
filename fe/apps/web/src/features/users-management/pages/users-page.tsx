@@ -1,5 +1,12 @@
-import { Input, Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@repo/ui";
 import { useTranslation } from "react-i18next";
+import {
+  Input,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/family/ui";
 import { CreateUserDialog } from "../components/create-user-dialog";
 import { UsersTable, UsersTablePagination } from "../components/users-table";
 import type { RoleFilter } from "../hooks/use-users-table";

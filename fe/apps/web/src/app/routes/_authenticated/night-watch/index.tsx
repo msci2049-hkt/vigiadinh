@@ -8,7 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { TimelockCountdown } from "@/components/family/timelock-countdown";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
@@ -101,7 +101,7 @@ function NightWatchCenterScreen() {
               {t("nightWatch.contacts.summary", { reachable, quiet, unreachable })}
             </p>
             {quiet + unreachable > 0 ? (
-              <Button asChild variant="danger">
+              <Button asChild variant="secondary">
                 <Link to="/night-watch/alert">{t("nightWatch.alert.resolveCta")}</Link>
               </Button>
             ) : null}

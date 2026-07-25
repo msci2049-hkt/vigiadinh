@@ -1,5 +1,5 @@
 import type { ComponentProps, ReactNode } from "react";
-import { Icon } from "./icon";
+import { Icon } from "./icons";
 import { Sheet } from "./sheet";
 import { Button } from "./ui";
 

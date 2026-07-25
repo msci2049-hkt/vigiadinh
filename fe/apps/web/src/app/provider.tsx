@@ -1,9 +1,9 @@
 import { sessionQueryKey } from "@repo/auth";
-import { Toaster, useThemeInit } from "@repo/ui";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { RouterProvider } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { Toaster, useThemeInit } from "@/components/family/ui";
 import { UpdateToast } from "@/components/update-toast";
 import { attachSentryRouterTracing } from "@/instrument";
 import { setUnauthorizedHandler } from "@/lib/api-client";

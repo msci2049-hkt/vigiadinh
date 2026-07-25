@@ -1,4 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Button,
   Card,
@@ -16,12 +21,7 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@repo/ui";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+} from "@/components/family/ui";
 import { emailOtp } from "@/lib/auth-client";
 import { useValidationLimits } from "@/lib/validation-limits";
 import { makeResetSchema, type ResetInput } from "../schemas/otp-schema";

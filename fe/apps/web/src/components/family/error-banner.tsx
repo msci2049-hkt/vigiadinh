@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Icon } from "./icon";
+import { Icon } from "./icons";
 
 export function ErrorBanner({
   type,

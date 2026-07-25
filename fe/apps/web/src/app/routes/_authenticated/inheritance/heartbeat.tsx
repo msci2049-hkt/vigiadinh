@@ -6,7 +6,7 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
 import { sendHeartbeat } from "@/features/family/api/inheritance";

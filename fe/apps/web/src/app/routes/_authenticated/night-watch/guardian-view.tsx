@@ -5,6 +5,7 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { StatusPill } from "@/components/family/status-pill";
 import { Button, Card, CardContent } from "@/components/family/ui";
@@ -17,9 +18,14 @@ function NightWatchGuardianViewScreen() {
   const { t } = useTranslation("fw");
   return (
     <ProductScreen className="justify-center">
-      <img
+      <ProductImage
         src="/assets/people/banker-tablet.png"
+        webpSrc="/assets/people/banker-tablet.webp"
+        avifSrc="/assets/people/banker-tablet.avif"
         alt=""
+        width={960}
+        height={1280}
+        priority
         className="mx-auto h-48 w-full max-w-xs object-contain"
       />
       <ScreenHeader

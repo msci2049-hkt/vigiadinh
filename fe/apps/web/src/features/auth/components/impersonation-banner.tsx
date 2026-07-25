@@ -1,10 +1,10 @@
 import { sessionQueryKey } from "@repo/auth";
-import { Button } from "@repo/ui";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Button } from "@/components/family/ui";
 import { authClient, useSession } from "@/lib/auth-client";
 
 /**

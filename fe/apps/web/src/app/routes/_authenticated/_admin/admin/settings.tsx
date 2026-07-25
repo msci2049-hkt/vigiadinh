@@ -1,7 +1,14 @@
 import { PANELS } from "@repo/auth";
-import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import {
+  Badge,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/family/ui";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
 

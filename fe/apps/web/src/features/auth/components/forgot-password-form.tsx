@@ -1,4 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Button,
   Card,
@@ -13,12 +18,7 @@ import {
   FormLabel,
   FormMessage,
   Input,
-} from "@repo/ui";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+} from "@/components/family/ui";
 import { emailOtp } from "@/lib/auth-client";
 import { type ForgotInput, makeForgotSchema } from "../schemas/otp-schema";
 

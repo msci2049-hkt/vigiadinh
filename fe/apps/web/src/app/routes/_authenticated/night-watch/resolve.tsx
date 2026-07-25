@@ -5,7 +5,7 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 

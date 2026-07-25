@@ -1,0 +1,174 @@
+/*
+ * VíGiaĐình design system — primitive → semantic → component.
+ * Values live in :root so the semantic Tailwind utilities remain stable.
+ */
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Primitive */
+  --paper: #fdfcf7;
+  --paper-2: #f7f5ee;
+  --white: #ffffff;
+  --ink: #0a0a0a;
+  --ink-70: #4a4a4a;
+  --grey: #6b6b6b;
+  --grey-2: #e5e3dc;
+  --yellow: #fdda24;
+  --yellow-dark: #e0bc00;
+  --yellow-10: #fef7d6;
+  --green: #1b7f4c;
+  --red: #b3261e;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --gutter: var(--space-6);
+
+  --radius-sm-value: 0.5rem;
+  --radius-md-value: 0.875rem;
+  --radius-lg-value: 1.25rem;
+  --radius-full-value: 999px;
+
+  --shadow-1: 0 1px 2px rgb(10 10 10 / 5%);
+  --shadow-2: 0 4px 12px rgb(10 10 10 / 7%);
+  --shadow-sheet: 0 -8px 32px rgb(10 10 10 / 10%);
+
+  --duration-fast: 150ms;
+  --duration-base: 240ms;
+  --duration-slow: 400ms;
+  --ease-brand: cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* Semantic */
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--white);
+  --card-foreground: var(--ink);
+  --popover: var(--white);
+  --popover-foreground: var(--ink);
+  --primary: var(--yellow);
+  --primary-foreground: var(--ink);
+  --secondary: var(--white);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-2);
+  --muted-foreground: var(--grey);
+  --accent: var(--yellow-10);
+  --accent-foreground: var(--ink);
+  --destructive: var(--ink);
+  --destructive-foreground: var(--white);
+  --border: var(--grey-2);
+  --input: var(--white);
+  --ring: var(--yellow-dark);
+  --success: var(--green);
+  --warning: var(--yellow);
+  --error: var(--red);
+
+  /* Component */
+  --button-primary-bg: var(--primary);
+  --button-primary-fg: var(--primary-foreground);
+  --button-danger-bg: var(--ink);
+  --button-danger-fg: var(--white);
+  --button-height: 3.5rem;
+  --button-radius: var(--radius-md-value);
+  --card-radius: var(--radius-md-value);
+  --card-padding: var(--space-5);
+  --sheet-radius: var(--radius-lg-value);
+}
+
+/* Product screens stay paper-like even if the account area uses dark mode. */
+.dark {
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--white);
+  --card-foreground: var(--ink);
+  --popover: var(--white);
+  --popover-foreground: var(--ink);
+  --primary: var(--yellow);
+  --primary-foreground: var(--ink);
+  --secondary: var(--white);
+  --secondary-foreground: var(--ink);
+  --muted: var(--paper-2);
+  --muted-foreground: var(--grey);
+  --accent: var(--yellow-10);
+  --accent-foreground: var(--ink);
+  --destructive: var(--ink);
+  --destructive-foreground: var(--white);
+  --border: var(--grey-2);
+  --input: var(--white);
+  --ring: var(--yellow-dark);
+}
+
+@theme inline {
+  --font-sans:
+    "Inter Variable", "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", ui-sans-serif,
+    system-ui, sans-serif;
+  --font-serif: "Fraunces Variable", ui-serif, Georgia, serif;
+  --font-mono: "JetBrains Mono Variable", ui-monospace, monospace;
+
+  --radius-sm: var(--radius-sm-value);
+  --radius-md: var(--radius-md-value);
+  --radius-lg: var(--radius-lg-value);
+  --radius-xl: var(--radius-lg-value);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    background: var(--background);
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    line-height: 1.5;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
+}

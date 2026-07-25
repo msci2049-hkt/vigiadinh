@@ -6,7 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { PrimaryZone } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
 import { connectAndLogin } from "../api/sep45-login";

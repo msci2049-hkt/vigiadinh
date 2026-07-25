@@ -1,5 +1,5 @@
-import { Button } from "@repo/ui";
 import { useTranslation } from "react-i18next";
+import { Button } from "@/components/family/ui";
 
 // Vòng ngôn ngữ en → vi → zh → en. Lựa chọn được language detector lưu localStorage.
 // Nhãn nút = ngôn ngữ KẾ TIẾP (bấm để đổi sang nó).

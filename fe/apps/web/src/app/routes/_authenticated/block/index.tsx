@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { TimelockCountdown } from "@/components/family/timelock-countdown";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
@@ -68,7 +68,13 @@ function BlockAlertScreen() {
           <ErrorBanner type="error" title={t("block.alert.chainDownTitle")}>
             {t("block.alert.chainDownBody")}
           </ErrorBanner>
-          <Button className="mt-2" size="sm" variant="outline" onClick={() => void chain.refetch()}>
+          <Button
+            className="mt-2"
+            size="sm"
+            variant="outline"
+            loading={chain.isFetching}
+            onClick={() => void chain.refetch()}
+          >
             {t("block.alert.retryCta")}
           </Button>
         </div>

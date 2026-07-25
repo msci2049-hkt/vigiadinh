@@ -7,7 +7,7 @@
 // Việc KÝ không nằm ở đây: nó thuộc feature `wallet`, và feature không import
 // feature. Route ở tầng app/ ghép hai bên lại và truyền xuống `onAdd`.
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { StatusPill } from "@/components/family/status-pill";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import type { GuardianInvite } from "../api/invites";
@@ -52,7 +52,8 @@ export function InviteStatusList({
             {invite.status === "deployed" ? (
               <Button
                 size="sm"
-                disabled={pending}
+                variant="secondary"
+                loading={pending}
                 onClick={() => onAdd(invite)}
                 data-testid={`add-guardian-${invite.id}`}
               >

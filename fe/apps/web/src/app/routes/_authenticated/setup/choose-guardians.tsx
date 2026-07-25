@@ -63,7 +63,8 @@ function SetupChooseGuardiansScreen() {
           />
           <Button
             variant="secondary"
-            disabled={label.trim().length === 0 || create.isPending || wallet === null}
+            loading={create.isPending}
+            disabled={label.trim().length === 0 || wallet === null}
             onClick={() => create.mutate()}
           >
             {create.isPending ? t("setup.invite.creating") : t("setup.invite.createCta")}

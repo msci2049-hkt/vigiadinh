@@ -1,4 +1,5 @@
-import { Icon } from "./icon";
+import { Icon } from "./icons";
+import { ProductImage } from "./product-image";
 import { cn } from "./utils";
 
 export type GuardianFace = {
@@ -55,9 +56,12 @@ export function GuardianAvatarCluster({
           title={person.name}
         >
           {person.src ? (
-            <img
+            <ProductImage
               src={person.src}
+              avifSrc={person.src.replace(/\.webp$/, ".avif")}
               alt={person.name}
+              width={160}
+              height={160}
               className={cn(
                 dimensions,
                 "rounded-full object-cover",

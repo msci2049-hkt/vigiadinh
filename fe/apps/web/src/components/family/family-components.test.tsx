@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { BiometricGate } from "./biometric-gate";
 import { ErrorBanner } from "./error-banner";
 import { DEMO_GUARDIANS, GuardianAvatarCluster } from "./guardian-avatar-cluster";
-import { Icon } from "./icon";
+import { Icon } from "./icons";
 import { DetailRow, IconDisc, PrimaryZone, ProductScreen, ScreenHeader } from "./screen";
 import { Sheet } from "./sheet";
 import { StatusPill } from "./status-pill";

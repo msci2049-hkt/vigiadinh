@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { ArrowDownIcon, ArrowUpIcon } from "@/components/family/icons";
 import {
   Badge,
   Button,
@@ -8,9 +10,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@repo/ui";
-import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
-import { useTranslation } from "react-i18next";
+} from "@/components/family/ui";
 import type { AdminUser } from "../api/admin-users-api";
 import type { useUsersTable } from "../hooks/use-users-table";
 import { UserRowActions } from "./user-row-actions";

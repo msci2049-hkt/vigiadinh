@@ -1,8 +1,15 @@
 import { panelByKey, panelsForRole } from "@repo/auth";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, Separator } from "@repo/ui";
 import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { CommandMenu } from "@/components/command-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+  Separator,
+} from "@/components/family/ui";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 
 /**

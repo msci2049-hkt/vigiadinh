@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, Input } from "@/components/family/ui";
 import { knockWithNewPasskey } from "@/features/wallet/api/device-recovery";

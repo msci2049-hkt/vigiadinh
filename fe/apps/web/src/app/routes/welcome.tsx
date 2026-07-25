@@ -3,7 +3,8 @@
 
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
+import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
 
@@ -20,9 +21,14 @@ function WelcomeScreen() {
         className="max-w-sm"
       />
       <div className="welcome-hero">
-        <img
+        <ProductImage
           src="/assets/people/banker-open-left.png"
+          webpSrc="/assets/people/banker-open-left.webp"
+          avifSrc="/assets/people/banker-open-left.avif"
           alt=""
+          width={960}
+          height={1280}
+          priority
           aria-hidden
           className="welcome-banker"
         />

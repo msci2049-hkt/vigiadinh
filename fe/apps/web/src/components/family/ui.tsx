@@ -1,6 +1,6 @@
-import { LoaderCircle } from "lucide-react";
 import { Slot } from "radix-ui";
 import type { ComponentProps, ReactNode } from "react";
+import { LoaderIcon } from "./icons";
 import { cn } from "./utils";
 
 export type FamilyButtonVariant =
@@ -78,7 +78,7 @@ export function Button({
     >
       {loading && !asChild ? (
         <>
-          <LoaderCircle aria-hidden className="fw-button__spinner" />
+          <LoaderIcon size={20} className="fw-button__spinner" />
           <span>{loadingLabel ?? children}</span>
         </>
       ) : (
@@ -136,3 +136,70 @@ export function Skeleton({ className, ...props }: ComponentProps<"div">) {
     />
   );
 }
+
+export { Badge } from "./badge";
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+} from "./dialog";
+export {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuTrigger,
+} from "./dropdown-menu";
+export {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  useFormField,
+} from "./form";
+export { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "./input-otp";
+export { Label } from "./label";
+export {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectScrollDownButton,
+  SelectScrollUpButton,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "./select";
+export { Separator } from "./separator";
+export {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./table";
+export { THEME_KEY, type Theme, useThemeInit, useThemeStore } from "./theme-store";
+export { Toaster } from "./toaster";

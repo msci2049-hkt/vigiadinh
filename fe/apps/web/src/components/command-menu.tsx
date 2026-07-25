@@ -1,8 +1,15 @@
 import type { PanelDef } from "@repo/auth";
-import { Button, Dialog, DialogContent, DialogHeader, DialogTitle, Input } from "@repo/ui";
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  Button,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  Input,
+} from "@/components/family/ui";
 
 /**
  * Minimal Cmd+K palette over the panel's nav (no extra dependency — a filtered

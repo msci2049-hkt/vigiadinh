@@ -2,7 +2,7 @@
 // mọi chuỗi qua i18n key do màn truyền vào.
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { Skeleton } from "@/components/family/ui";
 
 export function LoadingRows() {

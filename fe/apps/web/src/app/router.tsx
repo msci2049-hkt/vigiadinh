@@ -1,6 +1,6 @@
-import { Skeleton } from "@repo/ui";
 import type { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
+import { Skeleton } from "@/components/family/ui";
 import { routeTree } from "./routeTree.gen";
 
 /** Context every route can read (loaders/beforeLoad). `session` is added by

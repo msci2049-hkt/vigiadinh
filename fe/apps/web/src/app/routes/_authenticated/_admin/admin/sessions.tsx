@@ -1,9 +1,17 @@
 import { formatDateTime } from "@repo/core";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Skeleton } from "@repo/ui";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Skeleton,
+} from "@/components/family/ui";
 import { authClient, useSession } from "@/lib/auth-client";
 
 export const Route = createFileRoute("/_authenticated/_admin/admin/sessions")({

@@ -72,7 +72,7 @@ function SetupTimelockScreen() {
                 key={secs}
                 role="radio"
                 aria-checked={timelockSecs === secs}
-                variant={timelockSecs === secs ? "default" : "outline"}
+                variant={timelockSecs === secs ? "secondary" : "ghost"}
                 className="justify-start"
                 onClick={() => setPicked(secs)}
                 data-testid={`timelock-${secs}`}

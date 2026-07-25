@@ -4,6 +4,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { guardianAvatarForIndex } from "@/components/family/guardian-assets";
+import { ProductImage } from "@/components/family/product-image";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Card, CardContent } from "@/components/family/ui";
 import { guardiansOptions } from "@/features/family/api/guardians";
@@ -52,9 +54,11 @@ function GuardiansManageScreen() {
               <Card className="transition-colors hover:bg-accent">
                 <CardContent className="flex items-center justify-between gap-3 p-4">
                   <div className="flex min-w-0 items-center gap-3">
-                    <img
-                      src={`/assets/avatars/${["mom", "brother", "aunt", "uncle", "sister", "grandfather"][index % 6]}-104.webp`}
+                    <ProductImage
+                      {...guardianAvatarForIndex(index)}
                       alt=""
+                      width={104}
+                      height={104}
                       className="size-14 rounded-full object-cover"
                     />
                     <div className="flex min-w-0 flex-col">

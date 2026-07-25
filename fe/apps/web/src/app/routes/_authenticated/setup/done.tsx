@@ -4,6 +4,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { DEMO_GUARDIANS, GuardianAvatarCluster } from "@/components/family/guardian-avatar-cluster";
+import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
 
@@ -13,7 +14,16 @@ function SetupDoneScreen() {
   const { t } = useTranslation("fw");
   return (
     <ProductScreen className="items-center justify-center text-center">
-      <img src="/assets/mascot/mascot-wave.png" alt="" className="h-44 w-44 object-contain" />
+      <ProductImage
+        src="/assets/mascot/mascot-wave.png"
+        webpSrc="/assets/mascot/mascot-wave.webp"
+        avifSrc="/assets/mascot/mascot-wave.avif"
+        alt=""
+        width={640}
+        height={640}
+        priority
+        className="h-44 w-44 object-contain"
+      />
       <ScreenHeader
         title={t("setup.done.title")}
         description={t("setup.done.description")}

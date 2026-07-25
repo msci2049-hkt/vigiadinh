@@ -1,7 +1,7 @@
-import { Button } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { Button } from "@/components/family/ui";
 
 // 403 — signed in but the role doesn't grant this panel (see requireRoles).
 // `redirect` keeps the attempted URL for display/debug; `reason` is a code.

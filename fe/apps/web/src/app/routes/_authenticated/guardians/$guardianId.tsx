@@ -6,6 +6,8 @@ import { formatDateTime } from "@repo/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { guardianAvatarForIndex } from "@/components/family/guardian-assets";
+import { ProductImage } from "@/components/family/product-image";
 import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { guardiansOptions } from "@/features/family/api/guardians";
@@ -27,6 +29,10 @@ function GuardiansDetailScreen() {
   });
 
   const guardian = guardians.data?.find((g) => g.id === guardianId) ?? null;
+  const guardianIndex = Math.max(
+    0,
+    guardians.data?.findIndex((candidate) => candidate.id === guardianId) ?? 0,
+  );
   const fmt = (iso: string | null) =>
     iso ? formatDateTime(iso, { locale: i18n.language }) : t("guardians.detail.never");
 
@@ -47,9 +53,12 @@ function GuardiansDetailScreen() {
         <Card className="bg-paper-2">
           <CardContent className="p-5">
             <div className="mb-5 flex justify-center">
-              <img
-                src="/assets/avatars/mom-160.webp"
+              <ProductImage
+                {...guardianAvatarForIndex(guardianIndex)}
                 alt=""
+                width={104}
+                height={104}
+                priority
                 className="size-28 rounded-full border-[3px] border-card object-cover shadow-sm"
               />
             </div>

@@ -5,7 +5,7 @@ import { formatDateTime } from "@repo/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Card, CardContent } from "@/components/family/ui";
 import { auditOptions } from "@/features/family/api/audit";

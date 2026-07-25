@@ -5,7 +5,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { type FamilyIconName, Icon } from "@/components/family/icon";
+import { type FamilyIconName, Icon } from "@/components/family/icons";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { invitesOptions } from "@/features/family/api/invites";

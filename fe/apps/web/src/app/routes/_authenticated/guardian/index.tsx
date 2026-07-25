@@ -4,7 +4,9 @@ import { formatDateTime } from "@repo/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { guardianAvatarForIndex } from "@/components/family/guardian-assets";
+import { Icon } from "@/components/family/icons";
+import { ProductImage } from "@/components/family/product-image";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import {
@@ -64,7 +66,7 @@ function GuardianInboxScreen() {
                 when: formatDateTime(k.deviceRequest.createdAt, { locale: i18n.language }),
               })}
             </p>
-            <Button asChild>
+            <Button asChild variant="secondary">
               <Link to="/guardian/initiate" search={{ wallet: k.wallet.id }}>
                 {t("guardian.inbox.knockCta")}
               </Link>
@@ -73,13 +75,15 @@ function GuardianInboxScreen() {
         </Card>
       ))}
 
-      {(inbox.data ?? []).map((item) => (
+      {(inbox.data ?? []).map((item, index) => (
         <Card key={item.request.id} className="bg-paper-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-lg">
-              <img
-                src="/assets/avatars/brother-104.webp"
+              <ProductImage
+                {...guardianAvatarForIndex(index)}
                 alt=""
+                width={104}
+                height={104}
                 className="size-12 rounded-full object-cover"
               />
               <span>
@@ -102,7 +106,7 @@ function GuardianInboxScreen() {
               })}
             </p>
             {/* Qua màn cảnh báo theo quy tắc TRƯỚC (speed-bump chống social-engineering). */}
-            <Button asChild>
+            <Button asChild variant="secondary">
               <Link to="/guardian/approve-warning" search={{ wallet: item.wallet.id }}>
                 {t("guardian.inbox.reviewCta")}
               </Link>

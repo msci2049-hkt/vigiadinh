@@ -5,7 +5,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
+import { WalletQrCode } from "@/components/family/illustrations";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
@@ -46,9 +47,9 @@ function WalletReceiveScreen() {
       {wallet ? (
         <Card className="bg-paper-2">
           <CardContent className="flex flex-col items-center gap-5 pt-6">
-            <span className="grid size-32 place-items-center rounded-card border bg-card">
-              <Icon name="qrCode" size={32} />
-            </span>
+            <div className="rounded-card border bg-white p-3 shadow-sm">
+              <WalletQrCode value={wallet.stellarAddress} label={t("wallet.receive.qrLabel")} />
+            </div>
             <p className="break-all rounded-card bg-card p-4 font-mono text-foreground text-sm leading-relaxed">
               {`${wallet.stellarAddress.slice(0, 6)}…${wallet.stellarAddress.slice(-6)}`}
             </p>

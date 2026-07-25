@@ -5,7 +5,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
+import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { heirsOptions } from "@/features/family/api/inheritance";
@@ -37,9 +38,14 @@ function InheritanceSetupScreen() {
 
   return (
     <ProductScreen>
-      <img
+      <ProductImage
         src="/assets/people/banker-seated.png"
+        webpSrc="/assets/people/banker-seated.webp"
+        avifSrc="/assets/people/banker-seated.avif"
         alt=""
+        width={960}
+        height={1280}
+        priority
         className="mx-auto h-48 w-full max-w-xs object-contain"
       />
       <ScreenHeader
@@ -62,9 +68,12 @@ function InheritanceSetupScreen() {
             <Card className="bg-paper-2">
               <CardContent className="flex items-center justify-between gap-3 p-4">
                 <div className="flex items-center gap-3">
-                  <img
+                  <ProductImage
                     src={`/assets/avatars/${index % 2 === 0 ? "sister" : "brother"}-104.webp`}
+                    avifSrc={`/assets/avatars/${index % 2 === 0 ? "sister" : "brother"}-104.avif`}
                     alt=""
+                    width={104}
+                    height={104}
                     className="size-12 rounded-full object-cover"
                   />
                   <span className="font-mono text-foreground text-sm">

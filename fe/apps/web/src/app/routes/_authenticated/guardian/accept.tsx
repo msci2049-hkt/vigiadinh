@@ -13,7 +13,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
+import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { acceptInvite, inviteByTokenOptions } from "@/features/family/api/invites";
@@ -58,9 +59,14 @@ function GuardianAcceptScreen() {
   if (accept.isSuccess) {
     return (
       <ProductScreen className="justify-center">
-        <img
+        <ProductImage
           src="/assets/mascot/mascot-wave.png"
+          webpSrc="/assets/mascot/mascot-wave.webp"
+          avifSrc="/assets/mascot/mascot-wave.avif"
           alt=""
+          width={640}
+          height={640}
+          priority
           className="mx-auto h-40 w-40 object-contain"
         />
         <ScreenHeader
@@ -77,15 +83,25 @@ function GuardianAcceptScreen() {
         <ErrorBanner type="info" title={t("guardians.accept.doneTitle")}>
           {t("guardians.accept.waitingOwner")}
         </ErrorBanner>
+        <PrimaryZone>
+          <Button asChild>
+            <Link to="/wallet">{t("guardians.accept.homeCta")}</Link>
+          </Button>
+        </PrimaryZone>
       </ProductScreen>
     );
   }
 
   return (
     <ProductScreen className="justify-center">
-      <img
+      <ProductImage
         src="/assets/people/banker-open-left.png"
+        webpSrc="/assets/people/banker-open-left.webp"
+        avifSrc="/assets/people/banker-open-left.avif"
         alt=""
+        width={960}
+        height={1280}
+        priority
         className="mx-auto h-48 w-full max-w-xs object-contain"
       />
       <ScreenHeader title={t("guardians.accept.title")} />

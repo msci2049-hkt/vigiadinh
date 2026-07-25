@@ -6,7 +6,8 @@ import { formatDateTime } from "@repo/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { Icon } from "@/components/family/icon";
+import { Icon } from "@/components/family/icons";
+import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { type Guardian, guardiansOptions } from "@/features/family/api/guardians";
@@ -37,9 +38,14 @@ function NightWatchWaitingScreen() {
 
   return (
     <ProductScreen>
-      <img
+      <ProductImage
         src="/assets/mascot/mascot-wait.png"
+        webpSrc="/assets/mascot/mascot-wait.webp"
+        avifSrc="/assets/mascot/mascot-wait.avif"
         alt=""
+        width={640}
+        height={640}
+        priority
         className="mx-auto h-40 w-40 object-contain"
       />
       <ScreenHeader

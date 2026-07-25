@@ -524,6 +524,7 @@
       "copyCta": "Copy address",
       "description": "Show your code, or share your wallet address.",
       "noWallet": "You do not have a wallet yet.",
+      "qrLabel": "Wallet address QR code",
       "stableNote": "This address never changes — even after a recovery. Share it once and reuse it.",
       "title": "Receive"
     },

@@ -1,5 +1,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { defaultPanelPath, sessionQueryKey } from "@repo/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import {
   Button,
   Card,
@@ -15,13 +21,7 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
-} from "@repo/ui";
-import { useQueryClient } from "@tanstack/react-query";
-import { Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { toast } from "sonner";
+} from "@/components/family/ui";
 import { emailOtp, getSession } from "@/lib/auth-client";
 import { useValidationLimits } from "@/lib/validation-limits";
 import { makeVerifyOtpSchema, type VerifyOtpInput } from "../schemas/otp-schema";
