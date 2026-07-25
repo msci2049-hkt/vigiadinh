@@ -930,3 +930,58 @@ xanh 36.8s. Lockfile `lockfileVersion 9.0` cả hai bản đều đọc được
 - FE honest build xanh (cả trên `/mnt/d` lẫn clone sạch bằng pnpm 9 của CI).
 - e2e đa thiết bị **1 passed**, tx verify độc lập qua Horizon.
 - gitleaks 8.30.1 **no leaks found**.
+
+## §FE-SMOOTH — 2026-07-25 (từ đỉnh `f597eff`, skill smooth-tiktok-ux)
+
+Phiên "làm FE mượt như TikTok" theo brief riêng — SCAN → FIX → VERIFY, lằn ranh tiền §2
+của brief giữ nguyên tuyệt đối (0 optimistic, 0 persist chạm tiền).
+
+### Số đo (prod build, chromium headless, BE mock 150ms)
+
+| Chỉ số | Trước | Sau |
+|---|---|---|
+| Tab ghé LẦN ĐẦU (history) | 122ms | **19ms** (idle preload chunk + i18n fw) |
+| Tab đã ghé lại | 21–23ms | 9–12ms |
+| Cold open FCP | ~1.5s | ~0.7s (đo lại cùng máy; PWA precache giúp thêm ở lần mở lại thật) |
+| Initial JS | 316K gz | 316K gz (không phình; stellar-sdk 115K gz vẫn LAZY, giờ có tên `vendor-stellar` ổn định) |
+| Bấm Xác nhận → đường ký (FE overhead) | ~18ms | ~14ms + kit pre-warm ở mount |
+
+### WP đã làm (7 commit trên `feat/fe-smooth`)
+
+1. Router: `defaultPendingComponent` skeleton (150ms/minMs 300) + idle-preload CHUNK 9 đích
+   chính sau cổng session — chỉ code, KHÔNG data.
+2. Bundle: chunk `vendor-stellar` tách tên riêng, vẫn lazy. **Bẫy thật đã dính:** rolldown nhét
+   helper `__vitePreload` vào manual chunk đầu tiên → cả 444K thành eager-preload; fix ghim
+   helper vào `vendor-react`. `/sw.js` thêm `Cache-Control: no-cache`.
+3. Luồng gửi: máy trạng thái `use-send-machine` (7 unit test) — pre-warm KIT (im lặng, 0 side
+   effect) lúc mount review; progress mốc thật (chuẩn bị → chờ sinh trắc → ~5s ledger);
+   **timeout ≠ thất bại**: mạng đứt sau nộp → `unconfirmed`, CẤM gửi lại, tự đối chiếu audit
+   (`intent.settled`/`intent.submit_failed`) 5s×24. KHÔNG pre-warm `confirmSend` — nó là state
+   transition tạo phiếu guardian (bằng chứng: `send-flow/service.ts` confirm → policy_gate →
+   awaiting_guardian + createGuardianApprovals) → pre-warm là ping người thân cho lệnh chưa bấm.
+4. Veto-watch: `chainTruthOptions` + `publicProgressOptions` thêm `refetchOnWindowFocus` +
+   `refetchIntervalInBackground` — tab ẩn lâu quay lại là hỏi chain NGAY (kịch bản #3).
+5. Logout xoá thật: registry `session-cleanup` (wallet đăng ký `clearWalletToken`, auth gọi —
+   không import chéo feature) + `queryClient.clear()` — trước đây JWT ví + cache ví SỐNG QUA
+   logout trên máy dùng chung (3 unit test).
+
+### WP BỎ — có bằng chứng
+- **Virtual list**: audit list bounded LIMIT 100 (BE `indexer.repository.ts:6`), không pagination;
+  đo scroll 4× CPU throttle = 60fps. Ảo hoá là tối ưu thứ không giật.
+- **`<Activity>` keep-alive**: revisit đã 9–12ms; app không có tab-bar; 2 màn hưởng lợi tiềm năng
+  (block/, wallet/) đều mang interval canh chain — hidden là tắt mắt canh, đúng thứ §2.2 cấm.
+- **SSE hardening**: FE có hook đầy đủ nhưng **0 consumer** — không có gì để harden; veto đi
+  polling chain-truth, đúng yêu cầu "không phụ thuộc SSE".
+- **Persist**: phân loại 13 query → money/security gần hết; allowlist thực tế RỖNG → không thêm
+  persister, ghi lằn ranh vào `packages/core/src/query-client.ts`.
+
+### Gate + QA
+- `pnpm validate` xanh (11 task) · honest build Node 22 no-strip xanh · **65/65 test pass**.
+- Grep: 0 optimistic · 0 persist · secret trong dist chỉ là tên API `secretKey` của stellar-sdk ·
+  CSP không nới · asset immutable + sw.js no-cache.
+- QA tự động hoá (chromium + mock): QA-1 (0 refetch khi quay tab) ✓ · QA-3 (reload fetch tươi —
+  không persist) ✓ · QA-5 (60fps scroll 4× throttle) ✓ · QA-7 (veto thấy request NGAY từ chain +
+  refetch khi refocus, chain calls 1→2) ✓ · QA-9 (logout: localStorage sạch `fw.*`) ✓.
+- QA-2 SSE: N/A (không consumer). QA-6 số dư: app CHƯA có màn số dư (không endpoint) — bảo đảm
+  tương đương (không cache xuyên phiên) đã kiểm ở QA-3. QA-8 timeout: kiểm bằng 7 unit test máy
+  trạng thái; e2e browser cần phiên passkey thật — để CI/thiết bị thật.

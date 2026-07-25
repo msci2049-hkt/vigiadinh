@@ -1,6 +1,11 @@
 import { QueryClient } from "@tanstack/react-query";
 import { ApiError } from "./api-client";
 
+// LẰN RANH TIỀN: KHÔNG thêm persistQueryClient/persister vào client này. Mọi
+// query của ví (số dư, recovery/veto, guardian, di chúc) đọc từ mạng mỗi phiên;
+// ghi chúng xuống disk browser là hiển thị trạng thái an ninh cũ — kịch bản #3
+// của audit (veto mù). Cần persist thứ gì cosmetic thì mở allowlist tường minh
+// `meta.persist === true` kèm review, không nới mặc định ở đây.
 export function createQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {

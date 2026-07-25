@@ -80,6 +80,12 @@ export const chainTruthOptions = (walletId: string) =>
     // nguồn quyết định việc người dùng có kịp chặn hay không.
     refetchInterval: 20_000,
     staleTime: 0,
+    // Mặc định app tắt refetch-on-focus và interval NGỪNG khi tab ẩn — với màn
+    // veto thì tab ẩn 2 giờ quay lại là 20s nhìn dữ liệu 2 giờ tuổi nói "không
+    // có gì đang mở". Query này là mắt canh chain: quay lại tab phải hỏi lại
+    // NGAY, và còn ẩn vẫn poll (browser có throttle nhưng tốt hơn im hẳn).
+    refetchOnWindowFocus: true,
+    refetchIntervalInBackground: true,
   });
 
 /** Yêu cầu đang MỞ theo chain (pending/approved) — thứ duy nhất veto được. */

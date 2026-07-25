@@ -107,6 +107,10 @@ export const publicProgressOptions = (address: string) =>
       return res.data;
     },
     refetchInterval: 30_000,
+    // Người mất máy để tab này mở chờ người thân duyệt — tab ẩn/quay lại phải
+    // thấy tiến độ MỚI ngay, không đợi hết tick 30s kế tiếp (mirror WP4 veto).
+    refetchOnWindowFocus: true,
+    refetchIntervalInBackground: true,
   });
 
 /**

@@ -3,6 +3,7 @@
 // deploy (nginx.conf) + token CHỈ mở được API ví (BE re-check mọi call), không
 // đụng custody — custody nằm trên chuỗi, ký bằng passkey.
 import { apiClient } from "@/lib/api-client";
+import { registerSessionCleanup } from "@/lib/session-cleanup";
 
 const STORAGE_KEY = "fw.wallet-jwt";
 
@@ -48,3 +49,8 @@ export function restoreWalletSession(): void {
   const session = loadWalletToken();
   if (session) apiClient.setAuthHeader(`Bearer ${session.token}`);
 }
+
+// Đăng xuất phiên app thì phiên ví CŨNG phải chết — máy dùng chung mà JWT ví
+// còn nằm trong localStorage là người sau gọi được API ví của người trước.
+// (Module này được main.tsx nạp lúc boot nên đăng ký luôn luôn chạy.)
+registerSessionCleanup(clearWalletToken);

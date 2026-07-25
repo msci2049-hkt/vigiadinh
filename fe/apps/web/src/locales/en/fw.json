@@ -529,6 +529,10 @@
         "title": "Waiting for your family"
       },
       "noWallet": "You do not have a wallet yet.",
+      "progress": {
+        "confirming": "Preparing your transfer…",
+        "submitting": "Confirmed — sending on the Stellar network (about 5 seconds)…"
+      },
       "recipientLabel": "Send to",
       "review": {
         "amount": "Amount",
@@ -539,7 +543,15 @@
         "title": "Check before you send",
         "to": "To"
       },
-      "title": "Send"
+      "startOverCta": "Start over",
+      "title": "Send",
+      "unconfirmed": {
+        "body": "The connection dropped right as we were sending. Your money MAY have gone through — we are checking with the network now. Do not send again.",
+        "checking": "Checking with the Stellar network…",
+        "historyCta": "Open History",
+        "stillUnknown": "Still no answer. Check History in a few minutes to see whether it went through — do not send again until you are sure.",
+        "title": "Not confirmed yet"
+      }
     }
   },
   "welcome": {

@@ -21,3 +21,8 @@
 # Asset có hash trong tên → cache vĩnh viễn, an toàn.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Service worker: KHÔNG để cache trung gian giữ bản cũ — update-toast (D-052)
+# dựa vào việc browser thấy sw.js mới ngay ở lần kiểm tra kế tiếp.
+/sw.js
+  Cache-Control: no-cache
