@@ -56,6 +56,9 @@ pub enum FamilyWalletError {
     RegistryChangePending = 106,
     /// Huỷ đơn đổi registry bởi người không phải chủ ví lẫn registry hiện tại.
     NotAuthorizedToCancel = 107,
+    /// Cooldown vượt trần `MAX_COOLDOWN_SECS` — chặn quả bom khoá-ví-vĩnh-viễn
+    /// (audit P0-4).
+    CooldownTooLong = 108,
 }
 
 #[contracttype]

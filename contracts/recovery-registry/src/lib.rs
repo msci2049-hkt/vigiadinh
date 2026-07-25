@@ -47,9 +47,41 @@ pub enum RegistryError {
     GuardianExists = 14,
     GuardianNotFound = 15,
     DuplicateGuardian = 16,
+    /// Thời gian chờ ngắn hơn sàn `MIN_TIMELOCK_SECS` (audit P0-2).
+    TimelockTooShort = 17,
+    /// Yêu cầu đã quá `expires_at` — không finalize được nữa (audit P0-3).
+    RequestExpired = 18,
 }
 
 const MAX_GUARDIANS: u32 = 10;
+
+/// SÀN an toàn — cưỡng chế TẠI ĐÂY, không phải ở TypeScript.
+///
+/// Audit 2026-07-25 (P0-2): trước bản vá, `register_wallet` nhận
+/// `guardians=[kẻ_tấn_công], threshold=1, timelock_secs=0`. Chuỗi khai thác gọn
+/// đúng ba bước và xong TRONG MỘT LEDGER: initiate (threshold ≤ 1 → Approved
+/// ngay) → finalize (elapsed 0 ≥ timelock 0) → `recovery_rotate` cài khoá của
+/// kẻ tấn công, xoá khoá chủ ví. Chủ ví không có một giây nào để phủ quyết.
+///
+/// Ràng buộc ở tầng TS (`recovery-config/domain.ts`) KHÔNG cứu được: đường tấn
+/// công đi qua DB (backend bị chiếm ghi thẳng `wallets.threshold`), nên sàn phải
+/// nằm ở chỗ mà kẻ chiếm backend không với tới — chính là contract này.
+const MIN_GUARDIANS: u32 = 3;
+/// Ngưỡng tối thiểu 2: một người bảo hộ đơn lẻ không bao giờ tự quyết được.
+const MIN_THRESHOLD: u32 = 2;
+/// Cửa sổ phủ quyết tối thiểu 24h — thời gian chờ là thứ DUY NHẤT cho chủ ví
+/// biết và chặn kịp một đợt khôi phục mà họ không hề yêu cầu.
+const MIN_TIMELOCK_SECS: u64 = 86_400;
+
+/// Thời gian sống thêm của một yêu cầu SAU khi hết timelock: 7 ngày.
+///
+/// Audit 2026-07-25 (P0-3): trước bản vá, `RecoveryRequest` không có hạn dùng
+/// nào. Một người bảo hộ xấu mở yêu cầu rồi để đó là ví ĐÓNG BĂNG VĨNH VIỄN —
+/// những người bảo hộ còn lại không mở được yêu cầu mới (`RecoveryInProgress`),
+/// `add_guardian`/`remove_guardian` cũng bị chặn, và `cancel_recovery` thì cần
+/// khoá của chủ ví — thứ đã mất, vì đó chính là lý do phải khôi phục.
+/// Có hạn dùng thì yêu cầu treo tự chết và cả nhà làm lại được.
+const REQUEST_GRACE_SECS: u64 = 7 * 86_400;
 
 /// Cửa registry được gọi trên smart account. ĐÚNG HAI việc, không hơn: xoay
 /// khoá khi khôi phục, và huỷ đơn xin đổi registry (veto của người thân — ví
@@ -87,6 +119,9 @@ pub struct RecoveryRequest {
     /// Khoá mới sẽ được cài vào ví khi finalize — guardian phê duyệt ĐÚNG nó.
     pub new_signer: Signer,
     pub started_at: u64,
+    /// Hết hạn (unix giây). Quá mốc này request coi như CHẾT: không finalize
+    /// được nữa, và không còn chặn request mới. Xem `REQUEST_GRACE_SECS`.
+    pub expires_at: u64,
     pub status: RecoveryStatus,
 }
 
@@ -136,12 +171,17 @@ fn request(e: &Env, wallet: &Address) -> RecoveryRequest {
 }
 
 /// Request đang SỐNG (Pending/Approved) — chặn đổi cấu hình + initiate chồng.
+/// Yêu cầu ĐANG chặn: chưa kết thúc VÀ chưa hết hạn. Yêu cầu hết hạn không còn
+/// chặn gì cả — đó chính là chỗ gỡ thế treo vĩnh viễn (audit P0-3).
 fn active_request(e: &Env, wallet: &Address) -> Option<RecoveryRequest> {
     let req: Option<RecoveryRequest> = e
         .storage()
         .persistent()
         .get(&DataKey::Request(wallet.clone()));
-    req.filter(|r| matches!(r.status, RecoveryStatus::Pending | RecoveryStatus::Approved))
+    let now = e.ledger().timestamp();
+    req.filter(|r| {
+        matches!(r.status, RecoveryStatus::Pending | RecoveryStatus::Approved) && now <= r.expires_at
+    })
 }
 
 fn save_config(e: &Env, wallet: &Address, cfg: &WalletConfig) {
@@ -180,14 +220,17 @@ impl RecoveryRegistry {
         {
             panic_with_error!(e, RegistryError::AlreadyRegistered);
         }
-        if guardians.is_empty() {
+        if guardians.len() < MIN_GUARDIANS {
             panic_with_error!(e, RegistryError::TooFewGuardians);
         }
         if guardians.len() > MAX_GUARDIANS {
             panic_with_error!(e, RegistryError::TooManyGuardians);
         }
-        if threshold == 0 || threshold > guardians.len() {
+        if threshold < MIN_THRESHOLD || threshold > guardians.len() {
             panic_with_error!(e, RegistryError::InvalidThreshold);
+        }
+        if timelock_secs < MIN_TIMELOCK_SECS {
+            panic_with_error!(e, RegistryError::TimelockTooShort);
         }
         for (i, g) in guardians.iter().enumerate() {
             if g == wallet {
@@ -266,10 +309,16 @@ impl RecoveryRegistry {
         }
         let mut approvals = Vec::new(e);
         approvals.push_back(initiator.clone());
+        let started_at = e.ledger().timestamp();
         let req = RecoveryRequest {
             approvals,
             new_signer: new_signer.clone(),
-            started_at: e.ledger().timestamp(),
+            started_at,
+            // Đủ trọn timelock để phủ quyết, cộng 7 ngày để hoàn tất. Hết mốc
+            // này yêu cầu tự chết, không treo ví của người khác nữa.
+            expires_at: started_at
+                .saturating_add(cfg.timelock_secs)
+                .saturating_add(REQUEST_GRACE_SECS),
             status: if cfg.threshold <= 1 {
                 RecoveryStatus::Approved
             } else {
@@ -336,9 +385,15 @@ impl RecoveryRegistry {
         if req.approvals.len() < cfg.threshold {
             panic_with_error!(e, RegistryError::ThresholdNotMet);
         }
-        let elapsed = e.ledger().timestamp().saturating_sub(req.started_at);
+        let now = e.ledger().timestamp();
+        let elapsed = now.saturating_sub(req.started_at);
         if elapsed < cfg.timelock_secs {
             panic_with_error!(e, RegistryError::TimelockNotElapsed);
+        }
+        // Chặn TRÊN, không chỉ chặn dưới: một yêu cầu ngủ quên nhiều tháng rồi
+        // bật dậy xoay khoá là kịch bản kẻ tấn công chờ đúng lúc nhà vắng.
+        if now > req.expires_at {
+            panic_with_error!(e, RegistryError::RequestExpired);
         }
 
         // Trái tim của v2: khoá đổi BÊN TRONG ví. Registry là direct invoker nên

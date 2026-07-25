@@ -355,3 +355,42 @@ fn extend_ttl_runs_without_auth() {
     // Ví vẫn đọc được sau khi gia hạn (không phá state).
     assert_eq!(client.get_context_rule(&0).signers.len(), 1);
 }
+
+// ---------- Hồi quy audit 2026-07-25 ----------
+
+/// P0-4: `cooldown_secs` không có trần là quả bom hẹn giờ. Ví chạy bình thường,
+/// người dùng nạp tiền; tới khi cả nhà khôi phục thật thì `__check_auth` tính
+/// `last_rotation + cooldown` và từ đó CHỐI MỌI chữ ký — kể cả khoá vừa khôi
+/// phục. Không có đường thoát: mọi cửa sửa lại đều đòi chữ ký của chính ví vừa
+/// bị khoá. Trần chặn ngay từ lúc cắm, ở cả hai cửa vào.
+#[test]
+#[should_panic(expected = "Error(Contract, #108)")]
+fn constructor_rejects_unbounded_cooldown() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let verifier = register_verifier(&e);
+    let pubkey = Bytes::from_array(&e, &[4u8; 65]);
+    let signers = vec![&e, Signer::External(verifier, pubkey)];
+    let policies: Map<Address, Val> = map![
+        &e,
+        (
+            Address::generate(&e),
+            FwConstructorEntry::RecoveryRegistry(u64::MAX).into_val(&e)
+        )
+    ];
+    let _ = e.register(FamilyWalletAccount, (signers, policies));
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #108)")]
+fn set_recovery_registry_rejects_unbounded_cooldown() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let verifier = register_verifier(&e);
+    let pubkey = Bytes::from_array(&e, &[4u8; 65]);
+    let signers = vec![&e, Signer::External(verifier, pubkey)];
+    let policies: Map<Address, Val> = map![&e];
+    let addr = e.register(FamilyWalletAccount, (signers, policies));
+    FamilyWalletAccountClient::new(&e, &addr)
+        .set_recovery_registry(&Address::generate(&e), &u64::MAX);
+}

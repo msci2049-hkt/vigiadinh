@@ -22,7 +22,9 @@ use verifier_ed25519::Ed25519Verifier;
 
 use crate::{RecoveryRegistry, RecoveryRegistryClient, RecoveryStatus, RegistryError};
 
-const TIMELOCK: u64 = 3600;
+// Sàn on-chain sau audit 2026-07-25: MIN_TIMELOCK_SECS = 86_400. Test dùng
+// đúng sàn — ngắn hơn là contract chối (#17), như thiết kế.
+const TIMELOCK: u64 = 86_400;
 const COOLDOWN: u64 = 86400;
 
 struct World<'a> {
@@ -127,36 +129,36 @@ fn register_rejects_bad_inputs() {
     let e = Env::default();
     let w = setup(&e);
     let other = Address::generate(&e);
+    let trio = vec![&e, w.g1.clone(), w.g2.clone(), w.g3.clone()];
     // Đăng ký trùng
     assert_eq!(
         w.registry
-            .try_register_wallet(&w.account_addr, &vec![&e, w.g1.clone()], &1, &TIMELOCK)
+            .try_register_wallet(&w.account_addr, &trio, &2, &TIMELOCK)
             .err()
             .unwrap()
             .unwrap(),
         RegistryError::AlreadyRegistered.into()
     );
-    // threshold 0 / vượt số guardian
-    assert_eq!(
-        w.registry
-            .try_register_wallet(&other, &vec![&e, w.g1.clone()], &0, &TIMELOCK)
-            .err()
-            .unwrap()
-            .unwrap(),
-        RegistryError::InvalidThreshold.into()
-    );
-    assert_eq!(
-        w.registry
-            .try_register_wallet(&other, &vec![&e, w.g1.clone()], &2, &TIMELOCK)
-            .err()
-            .unwrap()
-            .unwrap(),
-        RegistryError::InvalidThreshold.into()
-    );
+    // threshold 0 / dưới sàn 2 / vượt số guardian
+    for bad in [0u32, 1u32, 4u32] {
+        assert_eq!(
+            w.registry
+                .try_register_wallet(&other, &trio, &bad, &TIMELOCK)
+                .err()
+                .unwrap()
+                .unwrap(),
+            RegistryError::InvalidThreshold.into()
+        );
+    }
     // guardian trùng nhau / guardian = chính ví
     assert_eq!(
         w.registry
-            .try_register_wallet(&other, &vec![&e, w.g1.clone(), w.g1.clone()], &1, &TIMELOCK)
+            .try_register_wallet(
+                &other,
+                &vec![&e, w.g1.clone(), w.g1.clone(), w.g2.clone()],
+                &2,
+                &TIMELOCK
+            )
             .err()
             .unwrap()
             .unwrap(),
@@ -164,16 +166,29 @@ fn register_rejects_bad_inputs() {
     );
     assert_eq!(
         w.registry
-            .try_register_wallet(&other, &vec![&e, other.clone()], &1, &TIMELOCK)
+            .try_register_wallet(
+                &other,
+                &vec![&e, other.clone(), w.g1.clone(), w.g2.clone()],
+                &2,
+                &TIMELOCK
+            )
             .err()
             .unwrap()
             .unwrap(),
         RegistryError::DuplicateGuardian.into()
     );
-    // rỗng
+    // rỗng / dưới sàn MIN_GUARDIANS = 3
     assert_eq!(
         w.registry
-            .try_register_wallet(&other, &Vec::new(&e), &1, &TIMELOCK)
+            .try_register_wallet(&other, &Vec::new(&e), &2, &TIMELOCK)
+            .err()
+            .unwrap()
+            .unwrap(),
+        RegistryError::TooFewGuardians.into()
+    );
+    assert_eq!(
+        w.registry
+            .try_register_wallet(&other, &vec![&e, w.g1.clone(), w.g2.clone()], &2, &TIMELOCK)
             .err()
             .unwrap()
             .unwrap(),
@@ -532,4 +547,100 @@ fn extend_ttl_runs_without_auth() {
     let w = setup(&e);
     w.registry.extend_ttl(&w.account_addr);
     assert!(w.registry.is_registered(&w.account_addr));
+}
+
+// ---------- Hồi quy audit 2026-07-25 ----------
+
+/// P0-2: trước bản vá, `register_wallet([kẻ_tấn_công], 1, 0)` được nhận, và
+/// chuỗi initiate → finalize chạy xong TRONG MỘT LEDGER (threshold ≤ 1 → Approved
+/// ngay; elapsed 0 ≥ timelock 0). Chủ ví không có một giây nào để phủ quyết.
+/// Bây giờ cả ba sàn đều chặn từ cửa đăng ký.
+#[test]
+fn register_rejects_single_guardian_takeover_shape() {
+    let e = Env::default();
+    let w = setup(&e);
+    let attacker = Address::generate(&e);
+    let victim = Address::generate(&e);
+
+    // Đúng hình dạng khai thác cũ: một guardian, threshold 1, không thời gian chờ.
+    assert_eq!(
+        w.registry
+            .try_register_wallet(&victim, &vec![&e, attacker.clone()], &1, &0)
+            .err()
+            .unwrap()
+            .unwrap(),
+        RegistryError::TooFewGuardians.into()
+    );
+    // Đủ người nhưng xoá thời gian chờ → vẫn chối (không còn cửa sổ phủ quyết).
+    assert_eq!(
+        w.registry
+            .try_register_wallet(
+                &victim,
+                &vec![&e, w.g1.clone(), w.g2.clone(), w.g3.clone()],
+                &2,
+                &0
+            )
+            .err()
+            .unwrap()
+            .unwrap(),
+        RegistryError::TimelockTooShort.into()
+    );
+    // Ngắn hơn sàn 24h cũng chối.
+    assert_eq!(
+        w.registry
+            .try_register_wallet(
+                &victim,
+                &vec![&e, w.g1.clone(), w.g2.clone(), w.g3.clone()],
+                &2,
+                &(TIMELOCK - 1)
+            )
+            .err()
+            .unwrap()
+            .unwrap(),
+        RegistryError::TimelockTooShort.into()
+    );
+}
+
+/// P0-3: một người bảo hộ xấu mở yêu cầu rồi bỏ đó. Trước bản vá ví ĐÓNG BĂNG
+/// VĨNH VIỄN: không ai mở được yêu cầu mới, không sửa được danh sách người bảo
+/// hộ, và `cancel_recovery` thì cần khoá chủ ví — thứ đã mất, vì đó chính là lý
+/// do phải khôi phục. Bây giờ yêu cầu treo hết hạn rồi cả nhà làm lại được.
+#[test]
+fn hung_request_expires_and_frees_the_wallet() {
+    let e = Env::default();
+    let w = setup(&e);
+    let sk_new = SigningKey::from_bytes(&[9u8; 32]);
+    let new_signer = ext_signer(&e, &w.verifier, &sk_new);
+
+    // g1 mở yêu cầu rồi im lặng; g2/g3 không duyệt.
+    w.registry
+        .initiate_recovery(&w.account_addr, &new_signer, &w.g1);
+
+    // Còn trong hạn: đúng là đang chặn (đây là hành vi mong muốn).
+    assert_eq!(
+        w.registry
+            .try_initiate_recovery(&w.account_addr, &new_signer, &w.g2)
+            .err()
+            .unwrap()
+            .unwrap(),
+        RegistryError::RecoveryInProgress.into()
+    );
+
+    // Quá timelock + 7 ngày ân hạn → yêu cầu chết.
+    warp(&e, TIMELOCK + 7 * 86_400 + 1);
+
+    // Không finalize được nữa, dù đã đủ thời gian chờ.
+    w.registry.approve_recovery(&w.account_addr, &w.g2);
+    assert_eq!(
+        w.registry
+            .try_finalize_recovery(&w.account_addr)
+            .err()
+            .unwrap()
+            .unwrap(),
+        RegistryError::RequestExpired.into()
+    );
+
+    // Và quan trọng nhất: ví KHÔNG còn bị treo — g2 mở được yêu cầu mới.
+    w.registry
+        .initiate_recovery(&w.account_addr, &new_signer, &w.g2);
 }

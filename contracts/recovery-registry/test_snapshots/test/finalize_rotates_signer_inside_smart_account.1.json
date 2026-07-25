@@ -59,7 +59,7 @@
                   "u32": 2
                 },
                 {
-                  "u64": "3600"
+                  "u64": "86400"
                 }
               ]
             }
@@ -134,7 +134,7 @@
   "ledger": {
     "protocol_version": 26,
     "sequence_number": 0,
-    "timestamp": 3601,
+    "timestamp": 86401,
     "network_id": "0000000000000000000000000000000000000000000000000000000000000000",
     "base_reserve": 0,
     "min_persistent_entry_ttl": 4096,
@@ -355,7 +355,7 @@
                         ]
                       },
                       "val": {
-                        "u64": "3601"
+                        "u64": "86401"
                       }
                     },
                     {
@@ -521,7 +521,7 @@
                       "symbol": "timelock_secs"
                     },
                     "val": {
-                      "u64": "3600"
+                      "u64": "86400"
                     }
                   }
                 ]
@@ -565,6 +565,14 @@
                           "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAK3IM"
                         }
                       ]
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "expires_at"
+                    },
+                    "val": {
+                      "u64": "691200"
                     }
                   },
                   {

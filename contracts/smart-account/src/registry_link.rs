@@ -80,7 +80,22 @@ pub(crate) fn require_link(e: &Env) -> (Address, u64) {
     link(e).unwrap_or_else(|| panic_with_error!(e, FamilyWalletError::RecoveryNotConfigured))
 }
 
+/// TRẦN cooldown sau khi xoay khoá: 7 ngày.
+///
+/// Audit 2026-07-25 (P0-4): trước bản vá `cooldown_secs` không có trần nào. Đặt
+/// `u64::MAX` — qua constructor, `set_recovery_registry`, hay đơn đổi registry —
+/// là quả bom hẹn giờ: ví chạy bình thường, người dùng nạp tiền, tới khi cả nhà
+/// khôi phục thật thì `__check_auth` tính `last_rotation + cooldown` và từ đó
+/// CHỐI MỌI chữ ký, kể cả khoá vừa khôi phục. Không có đường thoát: mọi cửa sửa
+/// lại đều đòi chữ ký của chính ví vừa bị khoá. Tiền nằm đó vĩnh viễn.
+pub(crate) const MAX_COOLDOWN_SECS: u64 = 604_800;
+
 pub(crate) fn store(e: &Env, registry: &Address, cooldown_secs: u64) {
+    // Chốt ở ĐÂY vì đây là cửa DUY NHẤT ghi cooldown (constructor,
+    // set_recovery_registry, apply_pending đều đi qua).
+    if cooldown_secs > MAX_COOLDOWN_SECS {
+        panic_with_error!(e, FamilyWalletError::CooldownTooLong);
+    }
     e.storage().instance().set(
         &FwDataKey::RecoveryRegistry,
         &(registry.clone(), cooldown_secs),

@@ -59,7 +59,7 @@
                   "u32": 2
                 },
                 {
-                  "u64": "3600"
+                  "u64": "86400"
                 }
               ]
             }
@@ -509,7 +509,7 @@
                       "symbol": "timelock_secs"
                     },
                     "val": {
-                      "u64": "3600"
+                      "u64": "86400"
                     }
                   }
                 ]
@@ -553,6 +553,14 @@
                           "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAK3IM"
                         }
                       ]
+                    }
+                  },
+                  {
+                    "key": {
+                      "symbol": "expires_at"
+                    },
+                    "val": {
+                      "u64": "691200"
                     }
                   },
                   {
