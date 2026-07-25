@@ -39,8 +39,8 @@
   --ring: var(--fw-yellow);
   position: relative;
   isolation: isolate;
-  min-height: 100svh;
-  overflow: hidden;
+  min-height: -webkit-fill-available;
+  overflow-x: clip;
   color: var(--fw-ink);
   background: var(--fw-paper);
   font-family: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
@@ -92,8 +92,8 @@
 }
 
 .product-shell__language {
-  min-width: 2.75rem;
-  min-height: 2.75rem;
+  min-width: 3rem;
+  min-height: 3rem;
   padding-inline: 0.5rem;
   border: 0;
   border-radius: 999px;
@@ -134,7 +134,7 @@
 .product-screen {
   display: flex;
   width: 100%;
-  min-height: calc(100svh - 4.75rem);
+  min-height: -webkit-fill-available;
   flex-direction: column;
   gap: 1.5rem;
   padding: 1rem 1.5rem max(1.5rem, env(safe-area-inset-bottom));
@@ -309,7 +309,7 @@
 }
 
 .fw-button--link {
-  min-height: 2.75rem;
+  min-height: 3rem;
   padding: 0.5rem;
   border: 0;
   border-radius: 0.75rem;
@@ -358,7 +358,7 @@
 
 .fw-button--sm,
 .fw-button--xs {
-  min-height: 2.875rem;
+  min-height: 3rem;
   padding: 0.65rem 1rem;
   border-radius: 1rem;
   font-size: 0.875rem;
@@ -372,8 +372,8 @@
 
 .fw-button--icon-xs,
 .fw-button--icon-sm {
-  width: 2.875rem;
-  min-height: 2.875rem;
+  width: 3rem;
+  min-height: 3rem;
   padding: 0;
 }
 
@@ -557,6 +557,26 @@
   }
 }
 
+@supports (height: 100svh) {
+  .product-shell {
+    min-height: 100svh;
+  }
+
+  .product-screen {
+    min-height: calc(100svh - 4.75rem);
+  }
+}
+
+@supports (height: 100dvh) {
+  .product-shell {
+    min-height: 100dvh;
+  }
+
+  .product-screen {
+    min-height: calc(100dvh - 4.75rem);
+  }
+}
+
 @media (min-width: 48rem) {
   .product-shell__chrome,
   .product-shell__content {
@@ -599,6 +619,22 @@
 
   .product-display {
     font-size: 2.75rem;
+  }
+}
+
+@media (display-mode: standalone) {
+  .product-shell__chrome {
+    padding-top: max(1rem, env(safe-area-inset-top));
+  }
+
+  .product-screen {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-height: 40rem) and (pointer: coarse) {
+  .product-screen:focus-within .primary-zone {
+    margin-top: 0;
   }
 }
 

@@ -7,7 +7,7 @@
 import { ApiError, formatAmount } from "@repo/core";
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AmountInput, useParsedAmount } from "@/components/amount-input";
 import { ErrorBanner } from "@/components/family/error-banner";
@@ -34,6 +34,7 @@ export const Route = createFileRoute("/_authenticated/wallet/send")({
 });
 
 const ADDRESS_RE = /^[GC][A-Z2-7]{55}$/;
+const SEND_REVIEW_HISTORY_KEY = "__familyWalletSendReview";
 
 type SendErrorKey =
   | "wallet.send.errors.insufficient"
@@ -95,6 +96,38 @@ function WalletSendScreen() {
     signEntries: signWalletEntries,
   });
 
+  const returnToEntry = useCallback(() => {
+    machine.reset();
+    setReview(null);
+    setStep("enter");
+  }, [machine.reset]);
+
+  useEffect(() => {
+    const onPopState = () => {
+      if (step !== "review") return;
+      if (machine.busy) {
+        window.history.pushState(
+          { ...window.history.state, [SEND_REVIEW_HISTORY_KEY]: true },
+          "",
+          window.location.href,
+        );
+        return;
+      }
+      returnToEntry();
+    };
+
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [machine.busy, returnToEntry, step]);
+
+  const leaveReview = useCallback(() => {
+    if (window.history.state?.[SEND_REVIEW_HISTORY_KEY]) {
+      window.history.back();
+      return;
+    }
+    returnToEntry();
+  }, [returnToEntry]);
+
   // PRE-WARM lúc màn review mount: nối lại phiên kit từ IndexedDB để đường ký
   // không phải chờ bước này sau cú bấm. Im lặng tuyệt đối khi hỏng — người dùng
   // chưa yêu cầu gì; bấm nút vẫn đi đường cũ (ensureWalletConnected tự nối lại).
@@ -117,6 +150,11 @@ function WalletSendScreen() {
     onSuccess: (r) => {
       setReview(r);
       setStep("review");
+      window.history.pushState(
+        { ...window.history.state, [SEND_REVIEW_HISTORY_KEY]: true },
+        "",
+        window.location.href,
+      );
     },
   });
 
@@ -171,14 +209,7 @@ function WalletSendScreen() {
             ) : null}
             <PrimaryZone>
               {startOver ? (
-                <Button
-                  onClick={() => {
-                    machine.reset();
-                    setStep("enter");
-                  }}
-                >
-                  {t("wallet.send.startOverCta")}
-                </Button>
+                <Button onClick={leaveReview}>{t("wallet.send.startOverCta")}</Button>
               ) : (
                 <Button
                   loading={machine.busy}
@@ -193,14 +224,7 @@ function WalletSendScreen() {
                   {progressKey ? t(progressKey) : t("wallet.send.review.cta")}
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                disabled={machine.busy}
-                onClick={() => {
-                  machine.reset();
-                  setStep("enter");
-                }}
-              >
+              <Button variant="ghost" disabled={machine.busy} onClick={leaveReview}>
                 {t("wallet.send.review.backCta")}
               </Button>
             </PrimaryZone>

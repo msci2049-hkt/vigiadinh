@@ -42,7 +42,7 @@ function BlockDoneScreen() {
           href={explorerTxUrl(tx)}
           target="_blank"
           rel="noreferrer"
-          className="break-all font-mono text-muted-foreground text-xs underline"
+          className="inline-flex min-h-12 items-center break-all font-mono text-muted-foreground text-xs underline"
         >
           {t("block.done.txLabel", { hash: `${tx.slice(0, 8)}…` })}
         </a>

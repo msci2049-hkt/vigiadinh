@@ -307,6 +307,22 @@ async function mockBackend(page: Page): Promise<void> {
       await route.fulfill(json({ data: [] }));
       return;
     }
+    if (pathname === "/api/intents/send/prepare") {
+      const recipient = `G${"A".repeat(55)}`;
+      await route.fulfill(
+        json({
+          data: {
+            intentId: "intent-layout-audit",
+            status: "prepared",
+            from: CONTRACT_ADDRESS,
+            recipient,
+            amount: "10000000",
+            balance: "1000000000",
+          },
+        }),
+      );
+      return;
+    }
 
     await route.fulfill({
       body: JSON.stringify({ error: { code: "UNMOCKED_ASSET_AUDIT_API", pathname } }),
@@ -513,4 +529,271 @@ test("41 product routes have healthy runtime assets", async ({ page }) => {
     rowIssues(result).map((detail) => `${result.route}: ${detail}`),
   );
   expect(issues, issues.join("\n")).toEqual([]);
+});
+
+const VIEWPORTS = [
+  { name: "small-android", width: 320, height: 568 },
+  { name: "iphone", width: 390, height: 844 },
+  { name: "iphone-pro-max", width: 430, height: 932 },
+  { name: "extension-popup", width: 400, height: 560 },
+  { name: "tablet", width: 1024, height: 900 },
+] as const;
+
+type LayoutResult = {
+  route: string;
+  viewport: (typeof VIEWPORTS)[number]["name"];
+  issues: string[];
+};
+
+function layoutReportMarkdown(results: LayoutResult[]): string {
+  const failures = results.filter((result) => result.issues.length > 0);
+  const byViewport = VIEWPORTS.map((viewport) => {
+    const rows = results.filter((result) => result.viewport === viewport.name);
+    return `| ${viewport.name} (${viewport.width}×${viewport.height}) | ${rows.length} | ${rows.filter((row) => row.issues.length === 0).length} | ${rows.filter((row) => row.issues.length > 0).length} |`;
+  }).join("\n");
+  const details =
+    failures.length === 0
+      ? "Không còn ca lỗi."
+      : failures
+          .map(
+            (failure) =>
+              `| \`${failure.route}\` | ${failure.viewport} | ${failure.issues.join("<br>")} |`,
+          )
+          .join("\n");
+
+  return `# UI Layout Matrix Report — VíGiaĐình
+
+Ngày chạy: 2026-07-25
+
+Lệnh chuẩn: \`corepack pnpm test:layout\`
+
+Phạm vi: 41 route × 5 viewport = ${results.length} ca trên Chromium production build, locale VI.
+
+## Tổng hợp
+
+- PASS: ${results.length - failures.length}/${results.length}
+- FAIL: ${failures.length}/${results.length}
+- Mỗi ca kiểm: scroll ngang, container cắt dọc, text bị clip, tap target dưới 48 px,
+  ảnh có nguy cơ méo tỉ lệ và khả năng đưa nút submit vào vùng thấy được khi viewport bàn phím co.
+
+| Viewport | Ca | PASS | FAIL |
+|---|---:|---:|---:|
+${byViewport}
+
+## Chi tiết lỗi
+
+| Route | Viewport | Lỗi |
+|---|---|---|
+${details}
+`;
+}
+
+test("41 routes fit all five target viewports", async ({ page }) => {
+  test.setTimeout(300_000);
+  expect(ROUTES).toHaveLength(41);
+  expect(VIEWPORTS).toHaveLength(5);
+  await mockBackend(page);
+
+  const results: LayoutResult[] = [];
+
+  for (const viewport of VIEWPORTS) {
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+
+    for (const route of ROUTES) {
+      const issues: string[] = [];
+      await page.goto(route, { waitUntil: "domcontentloaded" });
+      await page.locator(".product-screen").waitFor({ state: "visible", timeout: 8_000 });
+      await page.waitForTimeout(50);
+
+      const audit = await page.evaluate(() => {
+        const root = document.documentElement;
+        const body = document.body;
+        const shell = document.querySelector<HTMLElement>(".product-shell");
+        const visible = (element: Element) => {
+          const style = getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
+          return (
+            style.display !== "none" &&
+            style.visibility !== "hidden" &&
+            rect.width > 0 &&
+            rect.height > 0
+          );
+        };
+        const label = (element: Element) => {
+          const text = element.textContent?.trim().replace(/\s+/g, " ");
+          return `${element.tagName.toLowerCase()}${text ? ` "${text.slice(0, 48)}"` : ""}`;
+        };
+
+        const clippedText = Array.from(document.querySelectorAll<HTMLElement>("main *"))
+          .filter(visible)
+          .filter((element) =>
+            Array.from(element.childNodes).some(
+              (node) => node.nodeType === Node.TEXT_NODE && Boolean(node.textContent?.trim()),
+            ),
+          )
+          .filter((element) => {
+            const style = getComputedStyle(element);
+            const clipsX = style.overflowX === "hidden" || style.overflowX === "clip";
+            const clipsY = style.overflowY === "hidden" || style.overflowY === "clip";
+            return (
+              (clipsX && element.scrollWidth > element.clientWidth + 1) ||
+              (clipsY && element.scrollHeight > element.clientHeight + 1)
+            );
+          })
+          .map(label);
+
+        const smallTargets = Array.from(
+          document.querySelectorAll<HTMLElement>(
+            "main button, main a[href], main input, .product-shell__language",
+          ),
+        )
+          .filter(visible)
+          .filter((element) => {
+            const rect = element.getBoundingClientRect();
+            return rect.width < 48 || rect.height < 48;
+          })
+          .map((element) => {
+            const rect = element.getBoundingClientRect();
+            return `${label(element)} ${Math.round(rect.width)}×${Math.round(rect.height)}`;
+          });
+
+        const distortedImages = Array.from(document.images)
+          .filter(visible)
+          .filter((image) => image.naturalWidth > 0 && image.naturalHeight > 0)
+          .filter((image) => {
+            const rect = image.getBoundingClientRect();
+            const naturalRatio = image.naturalWidth / image.naturalHeight;
+            const renderedRatio = rect.width / rect.height;
+            const fit = getComputedStyle(image).objectFit;
+            return fit === "fill" && Math.abs(naturalRatio - renderedRatio) / naturalRatio > 0.02;
+          })
+          .map((image) => image.currentSrc || image.src);
+
+        const shellStyle = shell ? getComputedStyle(shell) : null;
+        const shellClipsVertical =
+          shell !== null &&
+          shell.scrollHeight > shell.clientHeight + 1 &&
+          (shellStyle?.overflowY === "hidden" || shellStyle?.overflowY === "clip");
+
+        return {
+          clippedText,
+          distortedImages,
+          hasInput: Boolean(document.querySelector("main input, main textarea")),
+          horizontalOverflow: Math.max(root.scrollWidth, body.scrollWidth) > window.innerWidth + 1,
+          shellClipsVertical,
+          smallTargets,
+        };
+      });
+
+      if (audit.horizontalOverflow) issues.push("scroll ngang");
+      if (audit.shellClipsVertical) issues.push("product shell cắt nội dung dọc");
+      if (audit.clippedText.length > 0) {
+        issues.push(`text bị clip: ${audit.clippedText.join(", ")}`);
+      }
+      if (audit.smallTargets.length > 0) {
+        issues.push(`tap target <48px: ${audit.smallTargets.join(", ")}`);
+      }
+      if (audit.distortedImages.length > 0) {
+        issues.push(`ảnh có nguy cơ méo: ${audit.distortedImages.join(", ")}`);
+      }
+
+      if (viewport.name === "extension-popup" && audit.hasInput) {
+        const input = page.locator("main input, main textarea").last();
+        await input.focus();
+        await page.setViewportSize({ width: viewport.width, height: 320 });
+        const submit = page
+          .locator('main button[type="submit"], main [data-slot="family-button"]')
+          .last();
+        if ((await submit.count()) > 0) {
+          await submit.scrollIntoViewIfNeeded();
+          const box = await submit.boundingBox();
+          if (!box || box.y < -1 || box.y + box.height > 321) {
+            issues.push("nút submit không đưa được vào viewport bàn phím");
+          }
+        }
+        await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      }
+
+      results.push({ route, viewport: viewport.name, issues });
+    }
+  }
+
+  const currentFile = fileURLToPath(import.meta.url);
+  const reportPath = path.resolve(
+    path.dirname(currentFile),
+    "../../../../docs/UI-LAYOUT-REPORT.md",
+  );
+  await writeFile(reportPath, layoutReportMarkdown(results), "utf8");
+
+  const failures = results
+    .filter((result) => result.issues.length > 0)
+    .map((result) => `${result.viewport} ${result.route}: ${result.issues.join("; ")}`);
+  expect(results).toHaveLength(205);
+  expect(failures, failures.join("\n")).toEqual([]);
+});
+
+test("Android Back returns send review to the intact entry form", async ({ page }) => {
+  await mockBackend(page);
+  await page.goto("/wallet/send");
+  await page.locator("#send-amount").fill("1,00");
+  const recipient = CONTRACT_ADDRESS;
+  await page.locator("#send-recipient").fill(recipient);
+  await expect(page.locator('button[type="submit"]')).toBeEnabled();
+  const prepareResponse = page.waitForResponse((response) =>
+    response.url().includes("/api/intents/send/prepare"),
+  );
+  await page.locator('button[type="submit"]').click();
+  expect((await prepareResponse).status()).toBe(200);
+  await expect(page.getByRole("heading", { name: "Kiểm tra trước khi gửi" })).toBeVisible();
+
+  await page.goBack();
+
+  await expect(page.locator("#send-amount")).toHaveValue("1,00");
+  await expect(page.locator("#send-recipient")).toHaveValue(recipient);
+  await expect(page.getByRole("heading", { name: "Kiểm tra trước khi gửi" })).toHaveCount(0);
+});
+
+test("safe-area viewport shell honors simulated device insets", async ({ page }) => {
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setSafeAreaInsetsOverride", {
+    insets: {
+      top: 47,
+      topMax: 47,
+      right: 0,
+      rightMax: 0,
+      bottom: 34,
+      bottomMax: 34,
+      left: 0,
+      leftMax: 0,
+    },
+  });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await mockBackend(page);
+  await page.goto("/wallet/send");
+  await page.locator(".product-screen").waitFor({ state: "visible" });
+
+  const platform = await page.evaluate(() => {
+    const shell = document.querySelector<HTMLElement>(".product-shell");
+    const chrome = document.querySelector<HTMLElement>(".product-shell__chrome");
+    const screen = document.querySelector<HTMLElement>(".product-screen");
+    const viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
+    return {
+      hasStandaloneRule: Array.from(document.styleSheets).some((sheet) =>
+        Array.from(sheet.cssRules).some((rule) =>
+          rule.cssText.includes("(display-mode: standalone)"),
+        ),
+      ),
+      viewport: viewport?.content ?? "",
+      shellMinHeight: shell ? Number.parseFloat(getComputedStyle(shell).minHeight) : 0,
+      topPadding: chrome ? Number.parseFloat(getComputedStyle(chrome).paddingTop) : 0,
+      bottomPadding: screen ? Number.parseFloat(getComputedStyle(screen).paddingBottom) : 0,
+    };
+  });
+
+  expect(platform.hasStandaloneRule).toBe(true);
+  expect(platform.viewport).toContain("viewport-fit=cover");
+  expect(platform.viewport).toContain("interactive-widget=resizes-content");
+  expect(platform.shellMinHeight).toBeGreaterThanOrEqual(843);
+  expect(platform.topPadding).toBeGreaterThanOrEqual(47);
+  expect(platform.bottomPadding).toBeGreaterThanOrEqual(34);
 });

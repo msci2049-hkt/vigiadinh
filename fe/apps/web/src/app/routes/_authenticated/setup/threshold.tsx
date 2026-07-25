@@ -62,14 +62,18 @@ function SetupThresholdScreen() {
           <CardTitle className="text-base">{t("setup.threshold.pickTitle")}</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-3">
-          <div className="flex gap-2" role="radiogroup" aria-label={t("setup.threshold.pickTitle")}>
+          <div
+            className="grid grid-cols-3 gap-2"
+            role="radiogroup"
+            aria-label={t("setup.threshold.pickTitle")}
+          >
             {CHOICES.map((n) => (
               <Button
                 key={n}
                 role="radio"
                 aria-checked={threshold === n}
                 variant={threshold === n ? "secondary" : "ghost"}
-                className="flex-1"
+                className="w-full"
                 onClick={() => setPicked(n)}
                 data-testid={`threshold-${n}`}
               >

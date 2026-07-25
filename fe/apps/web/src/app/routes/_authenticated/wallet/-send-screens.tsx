@@ -37,7 +37,7 @@ export function SendDoneScreen({ txHash }: { txHash: string | null }) {
             href={explorerTxUrl(txHash)}
             target="_blank"
             rel="noreferrer"
-            className="break-all font-mono text-muted-foreground text-xs underline"
+            className="inline-flex min-h-12 items-center break-all font-mono text-muted-foreground text-xs underline"
           >
             {t("wallet.send.done.txLabel", { hash: `${txHash.slice(0, 8)}…` })}
           </a>

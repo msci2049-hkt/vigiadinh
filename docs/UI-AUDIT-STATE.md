@@ -1,51 +1,51 @@
 # UI Audit State — VíGiaĐình
 
-## Pha hiện tại: 4/6
+## Pha hiện tại: 5/6
 ## Màn đã đọc: 41/41
 
 | # | Route | File | Đọc xong | Thiếu gì | Đã vá | Commit |
 |---:|---|---|:---:|---|---|---|
-| 1 | `/welcome` | `fe/apps/web/src/app/routes/welcome.tsx:12` | Có | Hero PNG 427.647 B có thật nhưng thiếu `width`/`height`, chưa có WebP/AVIF; icon còn dựa Lucide | `ProductImage` 960×1280 + AVIF/WebP/fallback; icon family nội bộ | P3 |
-| 2 | `/get-started` | `fe/apps/web/src/app/routes/get-started.tsx:13` | Có | Không thiếu asset; icon family còn dựa Lucide | Icon family nội bộ | P3 |
-| 3 | `/passkey` | `fe/apps/web/src/app/routes/passkey.tsx:12` | Có | 3 avatar có thật nhưng `<img>` chung thiếu `width`/`height`; icon còn dựa Lucide | Ảnh 160×160 + AVIF/WebP; icon family nội bộ | P3 |
-| 4 | `/recovery` | `fe/apps/web/src/app/routes/recovery/index.tsx:14` | Có | `loadRecoveryDraft()` dùng persisted wallet draft cần xử lý ở Pha 5B; icon còn dựa Lucide | Icon family nội bộ; draft còn theo Pha 5B | P3 |
-| 5 | `/recovery/find-wallet` | `fe/apps/web/src/app/routes/recovery/find-wallet.tsx:27` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 6 | `/recovery/sent` | `fe/apps/web/src/app/routes/recovery/sent.tsx:20` | Có | Avatar thiếu kích thước nội tại; icon còn dựa Lucide | Ảnh 160×160 + AVIF/WebP; icon family nội bộ | P3 |
-| 7 | `/recovery/progress` | `fe/apps/web/src/app/routes/recovery/progress.tsx:26` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 8 | `/recovery/countdown` | `fe/apps/web/src/app/routes/recovery/countdown.tsx:26` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 9 | `/recovery/done` | `fe/apps/web/src/app/routes/recovery/done.tsx:21` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 10 | `/setup` | `fe/apps/web/src/app/routes/_authenticated/setup/index.tsx:19` | Có | PNG 434.740 B thiếu kích thước nội tại/WebP; icon còn dựa Lucide | `ProductImage` 960×1280 + AVIF/WebP/fallback; icon nội bộ | P3 |
-| 11 | `/setup/assistant` | `fe/apps/web/src/app/routes/_authenticated/setup/assistant.tsx:11` | Có | Không thiếu asset/button; đây là stub công khai “coming soon”; icon còn dựa Lucide | Icon family nội bộ; stub giữ đúng phạm vi công khai | P3 |
-| 12 | `/setup/choose-guardians` | `fe/apps/web/src/app/routes/_authenticated/setup/choose-guardians.tsx:24` | Có | Nút tạo lời mời gọi mạng chỉ đổi chữ+disabled, thiếu `loading`; icon trạng thái còn dựa Lucide | Thêm spinner + khóa double-submit; icon nội bộ | P3 |
-| 13 | `/setup/invite` | `fe/apps/web/src/app/routes/_authenticated/setup/invite.tsx:35` | Có | Nút tạo/add guardian gọi mạng thiếu `loading`; có thể có 2+ primary khi nhiều invite deployed | Create/add có loading; add dùng secondary, còn đúng 1 primary | P3 |
-| 14 | `/setup/threshold` | `fe/apps/web/src/app/routes/_authenticated/setup/threshold.tsx:30` | Có | Nút radio đang chọn và nút lưu đều primary (2 primary); icon trạng thái còn dựa Lucide | Radio secondary/ghost; chỉ save là primary; icon nội bộ | P3 |
-| 15 | `/setup/timelock` | `fe/apps/web/src/app/routes/_authenticated/setup/timelock.tsx:32` | Có | Nút radio đang chọn và nút lưu đều primary (2 primary); icon trạng thái còn dựa Lucide | Radio secondary/ghost; chỉ save là primary; icon nội bộ | P3 |
-| 16 | `/setup/review` | `fe/apps/web/src/app/routes/_authenticated/setup/review.tsx:29` | Có | Không thiếu asset/button; icon trạng thái còn dựa Lucide | Icon family nội bộ | P3 |
-| 17 | `/setup/done` | `fe/apps/web/src/app/routes/_authenticated/setup/done.tsx:12` | Có | Mascot PNG 183.685 B + avatar thiếu kích thước nội tại; PNG chưa có WebP/AVIF | Mascot 640×640 + AVIF/WebP/fallback; avatar 160×160 + AVIF | P3 |
-| 18 | `/wallet` | `fe/apps/web/src/app/routes/_authenticated/wallet/index.tsx:46` | Có | Copy hứa balance/recent activity nhưng UI chưa có; icon còn dựa Lucide | Icon family nội bộ; nội dung ví theo Pha 5B | P3 |
-| 19 | `/wallet/send` | `fe/apps/web/src/app/routes/_authenticated/wallet/send.tsx:82` | Có | Mascot wait PNG có thật nhưng thiếu kích thước nội tại/WebP; Android Back sẽ mất state route-local | Mascot 640×640 + AVIF/WebP/fallback; Back theo Pha 4 | P3 |
-| 20 | `/wallet/receive` | `fe/apps/web/src/app/routes/_authenticated/wallet/receive.tsx:18` | Có | Ô QR chỉ là icon placeholder, chưa sinh QR thật | QR SVG thật từ địa chỉ Stellar + nhãn trợ năng | P3 |
-| 21 | `/wallet/history` | `fe/apps/web/src/app/routes/_authenticated/wallet/history.tsx:36` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 22 | `/guardians` | `fe/apps/web/src/app/routes/_authenticated/guardians/index.tsx:22` | Có | 6 avatar có thật nhưng `<img>` thiếu kích thước nội tại | Avatar 104×104 + AVIF/WebP | P3 |
-| 23 | `/guardians/$guardianId` | `fe/apps/web/src/app/routes/_authenticated/guardians/$guardianId.tsx:20` | Có | Luôn hardcode ảnh mẹ cho mọi guardian; ảnh thiếu kích thước nội tại | Mapping theo index guardian, ảnh 104×104 + AVIF/WebP | P3 |
-| 24 | `/night-watch` | `fe/apps/web/src/app/routes/_authenticated/night-watch/index.tsx:24` | Có | Nút xử lý người mất kết nối dùng `danger` dù không phá hoại; icon còn dựa Lucide | Reconnect dùng secondary; block thật vẫn danger; icon nội bộ | P3 |
-| 25 | `/night-watch/log` | `fe/apps/web/src/app/routes/_authenticated/night-watch/log.tsx:36` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 26 | `/night-watch/alert` | `fe/apps/web/src/app/routes/_authenticated/night-watch/alert.tsx:27` | Có | Avatar thiếu kích thước nội tại; action reconnect dùng `danger` sai ngữ nghĩa | Avatar 104×104 + AVIF; reconnect dùng secondary | P3 |
-| 27 | `/night-watch/resolve` | `fe/apps/web/src/app/routes/_authenticated/night-watch/resolve.tsx:16` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 28 | `/night-watch/waiting` | `fe/apps/web/src/app/routes/_authenticated/night-watch/waiting.tsx:25` | Có | Mascot PNG 189.380 B thiếu kích thước nội tại/WebP | Mascot 640×640 + AVIF/WebP/fallback | P3 |
-| 29 | `/night-watch/guardian-view` | `fe/apps/web/src/app/routes/_authenticated/night-watch/guardian-view.tsx:16` | Có | Banker PNG 528.191 B thiếu kích thước nội tại/WebP | `ProductImage` 960×1280 + AVIF/WebP/fallback | P3 |
-| 30 | `/guardian` | `fe/apps/web/src/app/routes/_authenticated/guardian/index.tsx:24` | Có | Mỗi card có primary nên dữ liệu nhiều tạo 2+ primary; avatar thiếu kích thước nội tại | Card action secondary; avatar 104×104 + AVIF | P3 |
-| 31 | `/guardian/approve` | `fe/apps/web/src/app/routes/_authenticated/guardian/approve.tsx:56` | Có | Avatar hardcode/thiếu kích thước nội tại; icon còn dựa Lucide | Avatar mapping ổn định 104×104 + AVIF; icon nội bộ | P3 |
-| 32 | `/guardian/approve-warning` | `fe/apps/web/src/app/routes/_authenticated/guardian/approve-warning.tsx:24` | Có | Không thiếu asset/button; action nguy hiểm dùng danger đúng | Giữ danger đúng nghĩa; icon family nội bộ | P3 |
-| 33 | `/guardian/approved` | `fe/apps/web/src/app/routes/_authenticated/guardian/approved.tsx:23` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 34 | `/guardian/accept` | `fe/apps/web/src/app/routes/_authenticated/guardian/accept.tsx:28` | Có | Hai PNG thiếu kích thước nội tại/WebP; trạng thái success không có CTA thoát | Hai ảnh có AVIF/WebP/kích thước; success có CTA về ví | P3 |
-| 35 | `/guardian/initiate` | `fe/apps/web/src/app/routes/_authenticated/guardian/initiate.tsx:89` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 36 | `/block` | `fe/apps/web/src/app/routes/_authenticated/block/index.tsx:31` | Có | Nút retry gọi mạng thiếu loading+disable; icon còn dựa Lucide | Retry có loading + khóa double-submit; icon nội bộ | P3 |
-| 37 | `/block/confirm` | `fe/apps/web/src/app/routes/_authenticated/block/confirm.tsx:63` | Có | Không thiếu asset/button; destructive dùng danger + loading đúng | Giữ danger + loading đúng; icon family nội bộ | P3 |
-| 38 | `/block/done` | `fe/apps/web/src/app/routes/_authenticated/block/done.tsx:25` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3 |
-| 39 | `/inheritance` | `fe/apps/web/src/app/routes/_authenticated/inheritance/index.tsx:30` | Có | Banker PNG 540.966 B + avatar thiếu kích thước nội tại/WebP | Xóa artefact ảnh, thêm AVIF/WebP/kích thước; avatar AVIF | P3 |
-| 40 | `/inheritance/heartbeat` | `fe/apps/web/src/app/routes/_authenticated/inheritance/heartbeat.tsx:20` | Có | Không thiếu asset/button; action mạng có loading | Giữ loading đúng; icon family nội bộ | P3 |
-| 41 | `/inheritance/claim` | `fe/apps/web/src/app/routes/_authenticated/inheritance/claim.tsx:41` | Có | Không thiếu asset/button; action mạng có loading | Giữ loading đúng; icon family nội bộ | P3 |
+| 1 | `/welcome` | `fe/apps/web/src/app/routes/welcome.tsx:12` | Có | Hero PNG 427.647 B có thật nhưng thiếu `width`/`height`, chưa có WebP/AVIF; icon còn dựa Lucide | `ProductImage` 960×1280 + AVIF/WebP/fallback; icon family nội bộ | P3, P4 |
+| 2 | `/get-started` | `fe/apps/web/src/app/routes/get-started.tsx:13` | Có | Không thiếu asset; icon family còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 3 | `/passkey` | `fe/apps/web/src/app/routes/passkey.tsx:12` | Có | 3 avatar có thật nhưng `<img>` chung thiếu `width`/`height`; icon còn dựa Lucide | Ảnh 160×160 + AVIF/WebP; icon family nội bộ | P3, P4 |
+| 4 | `/recovery` | `fe/apps/web/src/app/routes/recovery/index.tsx:14` | Có | `loadRecoveryDraft()` dùng persisted wallet draft cần xử lý ở Pha 5B; icon còn dựa Lucide | Icon family nội bộ; draft còn theo Pha 5B | P3, P4 |
+| 5 | `/recovery/find-wallet` | `fe/apps/web/src/app/routes/recovery/find-wallet.tsx:27` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 6 | `/recovery/sent` | `fe/apps/web/src/app/routes/recovery/sent.tsx:20` | Có | Avatar thiếu kích thước nội tại; icon còn dựa Lucide | Ảnh 160×160 + AVIF/WebP; icon family nội bộ | P3, P4 |
+| 7 | `/recovery/progress` | `fe/apps/web/src/app/routes/recovery/progress.tsx:26` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 8 | `/recovery/countdown` | `fe/apps/web/src/app/routes/recovery/countdown.tsx:26` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 9 | `/recovery/done` | `fe/apps/web/src/app/routes/recovery/done.tsx:21` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 10 | `/setup` | `fe/apps/web/src/app/routes/_authenticated/setup/index.tsx:19` | Có | PNG 434.740 B thiếu kích thước nội tại/WebP; icon còn dựa Lucide | `ProductImage` 960×1280 + AVIF/WebP/fallback; icon nội bộ | P3, P4 |
+| 11 | `/setup/assistant` | `fe/apps/web/src/app/routes/_authenticated/setup/assistant.tsx:11` | Có | Không thiếu asset/button; đây là stub công khai “coming soon”; icon còn dựa Lucide | Icon family nội bộ; stub giữ đúng phạm vi công khai | P3, P4 |
+| 12 | `/setup/choose-guardians` | `fe/apps/web/src/app/routes/_authenticated/setup/choose-guardians.tsx:24` | Có | Nút tạo lời mời gọi mạng chỉ đổi chữ+disabled, thiếu `loading`; icon trạng thái còn dựa Lucide | Thêm spinner + khóa double-submit; icon nội bộ | P3, P4 |
+| 13 | `/setup/invite` | `fe/apps/web/src/app/routes/_authenticated/setup/invite.tsx:35` | Có | Nút tạo/add guardian gọi mạng thiếu `loading`; có thể có 2+ primary khi nhiều invite deployed | Create/add có loading; add dùng secondary, còn đúng 1 primary | P3, P4 |
+| 14 | `/setup/threshold` | `fe/apps/web/src/app/routes/_authenticated/setup/threshold.tsx:30` | Có | Nút radio đang chọn và nút lưu đều primary (2 primary); icon trạng thái còn dựa Lucide | Radio secondary/ghost; chỉ save là primary; icon nội bộ | P3, P4 |
+| 15 | `/setup/timelock` | `fe/apps/web/src/app/routes/_authenticated/setup/timelock.tsx:32` | Có | Nút radio đang chọn và nút lưu đều primary (2 primary); icon trạng thái còn dựa Lucide | Radio secondary/ghost; chỉ save là primary; icon nội bộ | P3, P4 |
+| 16 | `/setup/review` | `fe/apps/web/src/app/routes/_authenticated/setup/review.tsx:29` | Có | Không thiếu asset/button; icon trạng thái còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 17 | `/setup/done` | `fe/apps/web/src/app/routes/_authenticated/setup/done.tsx:12` | Có | Mascot PNG 183.685 B + avatar thiếu kích thước nội tại; PNG chưa có WebP/AVIF | Mascot 640×640 + AVIF/WebP/fallback; avatar 160×160 + AVIF | P3, P4 |
+| 18 | `/wallet` | `fe/apps/web/src/app/routes/_authenticated/wallet/index.tsx:46` | Có | Copy hứa balance/recent activity nhưng UI chưa có; icon còn dựa Lucide | Icon family nội bộ; nội dung ví theo Pha 5B | P3, P4 |
+| 19 | `/wallet/send` | `fe/apps/web/src/app/routes/_authenticated/wallet/send.tsx:82` | Có | Mascot wait PNG có thật nhưng thiếu kích thước nội tại/WebP; Android Back sẽ mất state route-local | Mascot 640×640 + AVIF/WebP/fallback; Back theo Pha 4 | P3, P4 |
+| 20 | `/wallet/receive` | `fe/apps/web/src/app/routes/_authenticated/wallet/receive.tsx:18` | Có | Ô QR chỉ là icon placeholder, chưa sinh QR thật | QR SVG thật từ địa chỉ Stellar + nhãn trợ năng | P3, P4 |
+| 21 | `/wallet/history` | `fe/apps/web/src/app/routes/_authenticated/wallet/history.tsx:36` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 22 | `/guardians` | `fe/apps/web/src/app/routes/_authenticated/guardians/index.tsx:22` | Có | 6 avatar có thật nhưng `<img>` thiếu kích thước nội tại | Avatar 104×104 + AVIF/WebP | P3, P4 |
+| 23 | `/guardians/$guardianId` | `fe/apps/web/src/app/routes/_authenticated/guardians/$guardianId.tsx:20` | Có | Luôn hardcode ảnh mẹ cho mọi guardian; ảnh thiếu kích thước nội tại | Mapping theo index guardian, ảnh 104×104 + AVIF/WebP | P3, P4 |
+| 24 | `/night-watch` | `fe/apps/web/src/app/routes/_authenticated/night-watch/index.tsx:24` | Có | Nút xử lý người mất kết nối dùng `danger` dù không phá hoại; icon còn dựa Lucide | Reconnect dùng secondary; block thật vẫn danger; icon nội bộ | P3, P4 |
+| 25 | `/night-watch/log` | `fe/apps/web/src/app/routes/_authenticated/night-watch/log.tsx:36` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 26 | `/night-watch/alert` | `fe/apps/web/src/app/routes/_authenticated/night-watch/alert.tsx:27` | Có | Avatar thiếu kích thước nội tại; action reconnect dùng `danger` sai ngữ nghĩa | Avatar 104×104 + AVIF; reconnect dùng secondary | P3, P4 |
+| 27 | `/night-watch/resolve` | `fe/apps/web/src/app/routes/_authenticated/night-watch/resolve.tsx:16` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 28 | `/night-watch/waiting` | `fe/apps/web/src/app/routes/_authenticated/night-watch/waiting.tsx:25` | Có | Mascot PNG 189.380 B thiếu kích thước nội tại/WebP | Mascot 640×640 + AVIF/WebP/fallback | P3, P4 |
+| 29 | `/night-watch/guardian-view` | `fe/apps/web/src/app/routes/_authenticated/night-watch/guardian-view.tsx:16` | Có | Banker PNG 528.191 B thiếu kích thước nội tại/WebP | `ProductImage` 960×1280 + AVIF/WebP/fallback | P3, P4 |
+| 30 | `/guardian` | `fe/apps/web/src/app/routes/_authenticated/guardian/index.tsx:24` | Có | Mỗi card có primary nên dữ liệu nhiều tạo 2+ primary; avatar thiếu kích thước nội tại | Card action secondary; avatar 104×104 + AVIF | P3, P4 |
+| 31 | `/guardian/approve` | `fe/apps/web/src/app/routes/_authenticated/guardian/approve.tsx:56` | Có | Avatar hardcode/thiếu kích thước nội tại; icon còn dựa Lucide | Avatar mapping ổn định 104×104 + AVIF; icon nội bộ | P3, P4 |
+| 32 | `/guardian/approve-warning` | `fe/apps/web/src/app/routes/_authenticated/guardian/approve-warning.tsx:24` | Có | Không thiếu asset/button; action nguy hiểm dùng danger đúng | Giữ danger đúng nghĩa; icon family nội bộ | P3, P4 |
+| 33 | `/guardian/approved` | `fe/apps/web/src/app/routes/_authenticated/guardian/approved.tsx:23` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 34 | `/guardian/accept` | `fe/apps/web/src/app/routes/_authenticated/guardian/accept.tsx:28` | Có | Hai PNG thiếu kích thước nội tại/WebP; trạng thái success không có CTA thoát | Hai ảnh có AVIF/WebP/kích thước; success có CTA về ví | P3, P4 |
+| 35 | `/guardian/initiate` | `fe/apps/web/src/app/routes/_authenticated/guardian/initiate.tsx:89` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 36 | `/block` | `fe/apps/web/src/app/routes/_authenticated/block/index.tsx:31` | Có | Nút retry gọi mạng thiếu loading+disable; icon còn dựa Lucide | Retry có loading + khóa double-submit; icon nội bộ | P3, P4 |
+| 37 | `/block/confirm` | `fe/apps/web/src/app/routes/_authenticated/block/confirm.tsx:63` | Có | Không thiếu asset/button; destructive dùng danger + loading đúng | Giữ danger + loading đúng; icon family nội bộ | P3, P4 |
+| 38 | `/block/done` | `fe/apps/web/src/app/routes/_authenticated/block/done.tsx:25` | Có | Không thiếu asset/button; icon còn dựa Lucide | Icon family nội bộ | P3, P4 |
+| 39 | `/inheritance` | `fe/apps/web/src/app/routes/_authenticated/inheritance/index.tsx:30` | Có | Banker PNG 540.966 B + avatar thiếu kích thước nội tại/WebP | Xóa artefact ảnh, thêm AVIF/WebP/kích thước; avatar AVIF | P3, P4 |
+| 40 | `/inheritance/heartbeat` | `fe/apps/web/src/app/routes/_authenticated/inheritance/heartbeat.tsx:20` | Có | Không thiếu asset/button; action mạng có loading | Giữ loading đúng; icon family nội bộ | P3, P4 |
+| 41 | `/inheritance/claim` | `fe/apps/web/src/app/routes/_authenticated/inheritance/claim.tsx:41` | Có | Không thiếu asset/button; action mạng có loading | Giữ loading đúng; icon family nội bộ | P3, P4 |
 
 ### Inventory chi tiết — màn 1–9
 
@@ -185,10 +185,26 @@
 
 ## Việc tiếp theo chính xác
 
-1. Pha 4: bổ sung safe-area/standalone/keyboard layout và meta `viewport-fit=cover`.
-2. Tự động hóa ma trận 41 route × 5 viewport, gồm overflow 320 px và popup 400×560.
-3. Chốt hành vi Android Back, đặc biệt state review của `/wallet/send` và recovery.
-4. Chạy Browser/Chrome visual QA cho các trạng thái và ảnh nhân vật sau khi ma trận xanh.
+1. Pha 5A: tạo baseline visual regression cho 41 route × 5 viewport và review ảnh sai biệt.
+2. Pha 5B: xử locale chunk warning, bundle warning, persisted draft và nháy/loading còn nợ.
+3. Chạy gate đầy đủ `validate`, `test`, build Node, gitleaks full-history và web perf.
+4. QA Chrome MV3 thật; ghi trung thực iOS/Android máy thật chưa chạy được trên Windows.
+
+## Chốt Pha 4 — bố cục ba nền tảng
+
+- Tạo `docs/UI-LAYOUT-REPORT.md` và gate `corepack pnpm test:layout`.
+- Baseline tự động: 0/205 PASS do chip ngôn ngữ 44 px trên mọi ca; thêm link phụ
+  44–46 px, proof-link 16 px và radio threshold bị ép hẹp.
+- Sau vá: 205/205 PASS ở 320×568, 390×844, 430×932, 400×560 và 1024×900.
+- Shell có `-webkit-fill-available` fallback + `svh` + `dvh`, không còn khóa
+  overflow dọc; có safe-area top/bottom, `viewport-fit=cover`,
+  `interactive-widget=resizes-content` và nhánh standalone.
+- CDP safe-area test với inset top 47/bottom 34 PASS; các route có input ở popup
+  được co viewport xuống 400×320 và nút submit vẫn đưa vào vùng thấy được.
+- 41/41 hành vi Back được ghi ở `docs/UI-PLATFORM-REPORT.md`.
+- `/wallet/send` dùng history entry nội bộ: Back ở review giữ nguyên input và
+  không submit; đang signing/submitting thì Back không làm mất state. Test PASS.
+- Gate layout canonical: 3/3 test PASS (205-case matrix + Android Back + safe-area).
 
 ## Quyết định đã chốt (đừng quyết lại)
 
@@ -214,6 +230,8 @@
 - `qrcode@1.5.4` chỉ nằm trong chunk lazy của `/wallet/receive`; không đi vào initial JS.
 - Baseline bundle Pha 3 được đo trên cùng production build bằng
   `fe/scripts/measure-web-bundle.mjs`, không dùng con số ước lượng của banner Vite.
+- Ma trận Pha 4 dùng production build và mock API cục bộ, không coi desktop
+  resize là bằng chứng máy iOS/Android thật.
 
 ## Chỗ đang nghi ngờ
 
@@ -243,3 +261,5 @@
   `.git/tools/` để Turbo gọi đúng pnpm 9.15.9 thay vì fallback pnpm 11 của runtime.
 - 2026-07-25: Pha 3 hoàn tất; icon/primitive/ảnh/QR/button đã vá trong hệ family, 18 asset
   rác đã xóa, initial JS gzip giảm 9.972 B, asset audit 41/41 và validate 11/11 đều xanh.
+- 2026-07-25: Pha 4 hoàn tất; baseline 0/205 được sửa thành 205/205, safe-area inset và
+  Android Back đều có test xanh; các gate máy iOS/Android thật được ghi chưa chạy.
