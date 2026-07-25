@@ -6,6 +6,8 @@ import { Card, CardContent } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/components/family/icon";
+import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { auditOptions } from "@/features/family/api/audit";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
@@ -45,9 +47,11 @@ function NightWatchLogScreen() {
   });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("nightWatch.log.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("nightWatch.log.description")}</p>
+    <ProductScreen>
+      <ScreenHeader
+        title={t("nightWatch.log.title")}
+        description={t("nightWatch.log.description")}
+      />
 
       {walletLoading || audit.isLoading ? <LoadingRows /> : null}
       {walletError || audit.isError ? <ErrorState /> : null}
@@ -55,12 +59,17 @@ function NightWatchLogScreen() {
         <EmptyState message={t("nightWatch.logEmpty")} />
       ) : null}
 
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col gap-3">
         {entries.map(({ entry, labelKey }) => (
           <li key={entry.id}>
             <Card>
-              <CardContent className="flex items-center justify-between gap-3 p-3">
-                <span className="text-foreground text-sm">{t(labelKey)}</span>
+              <CardContent className="flex items-center justify-between gap-3 p-4">
+                <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary">
+                  <Icon name="shieldCheck" size={20} />
+                </span>
+                <span className="min-w-0 flex-1 font-medium text-foreground text-sm">
+                  {t(labelKey)}
+                </span>
                 <time dateTime={entry.at} className="shrink-0 text-muted-foreground text-xs">
                   {formatDateTime(entry.at, { locale: i18n.language })}
                 </time>
@@ -69,6 +78,6 @@ function NightWatchLogScreen() {
           </li>
         ))}
       </ul>
-    </main>
+    </ProductScreen>
   );
 }

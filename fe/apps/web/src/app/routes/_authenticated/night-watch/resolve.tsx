@@ -5,6 +5,8 @@
 import { Button, Card, CardContent } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 
 export const Route = createFileRoute("/_authenticated/night-watch/resolve")({
   component: NightWatchResolveScreen,
@@ -13,24 +15,30 @@ export const Route = createFileRoute("/_authenticated/night-watch/resolve")({
 function NightWatchResolveScreen() {
   const { t } = useTranslation("fw");
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("nightWatch.resolve.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("nightWatch.resolve.description")}</p>
+    <ProductScreen>
+      <ScreenHeader
+        title={t("nightWatch.resolve.title")}
+        description={t("nightWatch.resolve.description")}
+      />
 
-      <Card>
+      <Card className="bg-paper-2">
         <CardContent className="flex flex-col gap-4 p-4">
           <div className="flex gap-3">
-            <span className="font-semibold text-muted-foreground text-sm">1</span>
-            <p className="text-foreground text-sm">{t("nightWatch.resolve.step1")}</p>
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary">
+              <Icon name="refresh" size={20} />
+            </span>
+            <p className="text-copy">{t("nightWatch.resolve.step1")}</p>
           </div>
           <div className="flex gap-3">
-            <span className="font-semibold text-muted-foreground text-sm">2</span>
-            <p className="text-foreground text-sm">{t("nightWatch.resolve.step2")}</p>
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary">
+              <Icon name="userPlus" size={20} />
+            </span>
+            <p className="text-copy">{t("nightWatch.resolve.step2")}</p>
           </div>
         </CardContent>
       </Card>
 
-      <div className="mt-2 flex flex-col gap-2">
+      <PrimaryZone>
         <Button asChild>
           <Link to="/night-watch/waiting">{t("nightWatch.resolve.waitingCta")}</Link>
         </Button>
@@ -40,7 +48,7 @@ function NightWatchResolveScreen() {
         <Button asChild variant="ghost">
           <Link to="/night-watch">{t("nightWatch.resolve.backCta")}</Link>
         </Button>
-      </div>
-    </main>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

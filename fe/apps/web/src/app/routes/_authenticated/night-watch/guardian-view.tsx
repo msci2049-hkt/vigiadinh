@@ -5,6 +5,8 @@
 import { Button, Card, CardContent } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { StatusPill } from "@/components/family/status-pill";
 
 export const Route = createFileRoute("/_authenticated/night-watch/guardian-view")({
   component: NightWatchGuardianViewScreen,
@@ -13,22 +15,24 @@ export const Route = createFileRoute("/_authenticated/night-watch/guardian-view"
 function NightWatchGuardianViewScreen() {
   const { t } = useTranslation("fw");
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">
-        {t("nightWatch.guardianView.title")}
-      </h1>
-      <p className="text-muted-foreground text-sm">{t("nightWatch.guardianView.description")}</p>
+    <ProductScreen className="justify-center">
+      <img
+        src="/assets/people/banker-tablet.png"
+        alt=""
+        className="mx-auto h-48 w-full max-w-xs object-contain"
+      />
+      <ScreenHeader
+        title={t("nightWatch.guardianView.title")}
+        description={t("nightWatch.guardianView.description")}
+      />
 
-      <Card>
+      <Card className="bg-paper-2">
         <CardContent className="flex flex-col gap-3 p-4">
           <div className="flex items-center justify-between gap-2">
             <span className="text-muted-foreground text-sm">
               {t("nightWatch.guardianView.statusLabel")}
             </span>
-            <span className="inline-flex items-center gap-2 font-medium text-foreground text-sm">
-              <span className="size-2 rounded-full bg-emerald-500" aria-hidden />
-              {t("nightWatch.guardianView.active")}
-            </span>
+            <StatusPill state="active">{t("nightWatch.guardianView.active")}</StatusPill>
           </div>
           <p className="text-muted-foreground text-xs">{t("nightWatch.guardianView.lastCheck")}</p>
         </CardContent>
@@ -36,9 +40,11 @@ function NightWatchGuardianViewScreen() {
 
       <p className="text-muted-foreground text-xs">{t("nightWatch.guardianView.privacyNote")}</p>
 
-      <Button asChild variant="outline">
-        <Link to="/guardian">{t("nightWatch.guardianView.inboxCta")}</Link>
-      </Button>
-    </main>
+      <PrimaryZone>
+        <Button asChild>
+          <Link to="/guardian">{t("nightWatch.guardianView.inboxCta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

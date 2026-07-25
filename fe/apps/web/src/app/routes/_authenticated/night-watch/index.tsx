@@ -8,6 +8,10 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { TimelockCountdown } from "@/components/family/timelock-countdown";
 import { guardiansOptions } from "@/features/family/api/guardians";
 import { recoveryOptions } from "@/features/family/api/recovery";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
@@ -39,9 +43,14 @@ function NightWatchCenterScreen() {
   const loading = walletLoading || recovery.isLoading || guardians.isLoading;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("nightWatch.center.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("nightWatch.center.description")}</p>
+    <ProductScreen>
+      <span className="grid size-14 place-items-center rounded-full bg-primary">
+        <Icon name="moon" size={32} />
+      </span>
+      <ScreenHeader
+        title={t("nightWatch.center.title")}
+        description={t("nightWatch.center.description")}
+      />
 
       {loading ? <LoadingRows /> : null}
       {walletError || recovery.isError || guardians.isError ? <ErrorState /> : null}
@@ -52,7 +61,7 @@ function NightWatchCenterScreen() {
       {openRequests.map((req) => {
         const veto = req.vetoUntil ? timelockView(req.vetoUntil, { locale: i18n.language }) : null;
         return (
-          <Card key={req.id} className="border-destructive">
+          <Card key={req.id} className="border-destructive bg-paper-2">
             <CardHeader>
               <CardTitle className="text-destructive text-lg">
                 {t("nightWatch.openRecovery.title")}
@@ -66,31 +75,24 @@ function NightWatchCenterScreen() {
                 })}
               </p>
               {veto && !veto.expired ? (
-                <p className="text-muted-foreground text-sm">
-                  {t("nightWatch.openRecovery.window", {
-                    countdown: veto.countdown,
-                    absolute: veto.absolute,
-                  })}
-                </p>
+                <TimelockCountdown countdown={veto.countdown} absolute={veto.absolute} />
               ) : null}
-              <Button asChild variant="destructive">
-                <Link to="/block">{t("nightWatch.openRecovery.cta")}</Link>
-              </Button>
+              <PrimaryZone>
+                <Button asChild variant="danger">
+                  <Link to="/block">{t("nightWatch.openRecovery.cta")}</Link>
+                </Button>
+              </PrimaryZone>
             </CardContent>
           </Card>
         );
       })}
 
       {recovery.isSuccess && openRequests.length === 0 && wallet !== null ? (
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-foreground text-sm">{t("nightWatch.allQuiet")}</p>
-          </CardContent>
-        </Card>
+        <ErrorBanner type="info" title={t("nightWatch.allQuiet")} />
       ) : null}
 
       {guardians.isSuccess && wallet !== null ? (
-        <Card>
+        <Card className="bg-paper-2">
           <CardHeader>
             <CardTitle className="text-lg">{t("nightWatch.contacts.title")}</CardTitle>
           </CardHeader>
@@ -99,7 +101,7 @@ function NightWatchCenterScreen() {
               {t("nightWatch.contacts.summary", { reachable, quiet, unreachable })}
             </p>
             {quiet + unreachable > 0 ? (
-              <Button asChild variant="destructive">
+              <Button asChild variant="danger">
                 <Link to="/night-watch/alert">{t("nightWatch.alert.resolveCta")}</Link>
               </Button>
             ) : null}
@@ -109,6 +111,6 @@ function NightWatchCenterScreen() {
           </CardContent>
         </Card>
       ) : null}
-    </main>
+    </ProductScreen>
   );
 }

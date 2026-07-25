@@ -7,6 +7,8 @@ import { Button, Card, CardContent } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { type Guardian, guardiansOptions } from "@/features/family/api/guardians";
 import { GuardianStatusBadge } from "@/features/family/components/guardian-status-badge";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
@@ -36,9 +38,11 @@ function NightWatchAlertScreen() {
   const loading = walletLoading || guardians.isLoading;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("nightWatch.alert.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("nightWatch.alert.subtitle")}</p>
+    <ProductScreen>
+      <ScreenHeader
+        title={t("nightWatch.alert.title")}
+        description={t("nightWatch.alert.subtitle")}
+      />
 
       {loading ? <LoadingRows /> : null}
       {walletError || guardians.isError ? <ErrorState /> : null}
@@ -47,23 +51,30 @@ function NightWatchAlertScreen() {
       ) : null}
 
       <ul className="flex flex-col gap-2">
-        {outOfReach.map(({ g, ref }) => (
+        {outOfReach.map(({ g, ref }, index) => (
           <li key={g.id}>
-            <Card className="border-destructive/50">
-              <CardContent className="flex flex-col gap-2 p-4">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-mono text-foreground text-sm">{ref}</span>
-                  <GuardianStatusBadge status={g.status} />
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-muted-foreground text-xs">
-                    {t("nightWatch.alert.lastSeen")}
-                  </span>
-                  <span className="text-foreground text-xs">
-                    {g.lastSeenAt
-                      ? formatDateTime(g.lastSeenAt, { locale: i18n.language })
-                      : t("guardians.detail.never")}
-                  </span>
+            <Card className="border-border bg-paper-2">
+              <CardContent className="flex gap-3 p-4">
+                <img
+                  src={`/assets/avatars/${index % 2 === 0 ? "aunt" : "uncle"}-104.webp`}
+                  alt=""
+                  className="size-14 shrink-0 rounded-full object-cover grayscale"
+                />
+                <div className="min-w-0 flex-1 space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono text-foreground text-sm">{ref}</span>
+                    <GuardianStatusBadge status={g.status} />
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground text-xs">
+                      {t("nightWatch.alert.lastSeen")}
+                    </span>
+                    <span className="text-foreground text-xs">
+                      {g.lastSeenAt
+                        ? formatDateTime(g.lastSeenAt, { locale: i18n.language })
+                        : t("guardians.detail.never")}
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -72,10 +83,15 @@ function NightWatchAlertScreen() {
       </ul>
 
       {outOfReach.length > 0 ? (
-        <Button asChild variant="destructive">
-          <Link to="/night-watch/resolve">{t("nightWatch.alert.resolveCta")}</Link>
-        </Button>
+        <PrimaryZone>
+          <Button asChild variant="danger">
+            <Link to="/night-watch/resolve">
+              <Icon name="refresh" />
+              {t("nightWatch.alert.resolveCta")}
+            </Link>
+          </Button>
+        </PrimaryZone>
       ) : null}
-    </main>
+    </ProductScreen>
   );
 }

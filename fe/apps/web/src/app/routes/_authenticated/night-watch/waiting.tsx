@@ -7,6 +7,8 @@ import { Button, Card, CardContent } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { type Guardian, guardiansOptions } from "@/features/family/api/guardians";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
@@ -34,9 +36,16 @@ function NightWatchWaitingScreen() {
   const loading = walletLoading || guardians.isLoading;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("nightWatch.waiting.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("nightWatch.waiting.description")}</p>
+    <ProductScreen>
+      <img
+        src="/assets/mascot/mascot-wait.png"
+        alt=""
+        className="mx-auto h-40 w-40 object-contain"
+      />
+      <ScreenHeader
+        title={t("nightWatch.waiting.title")}
+        description={t("nightWatch.waiting.description")}
+      />
 
       {loading ? <LoadingRows /> : null}
       {walletError || guardians.isError ? <ErrorState /> : null}
@@ -47,9 +56,12 @@ function NightWatchWaitingScreen() {
       <ul className="flex flex-col gap-2">
         {waiting.map(({ g, ref }) => (
           <li key={g.id}>
-            <Card>
+            <Card className="bg-paper-2">
               <CardContent className="flex items-center justify-between gap-3 p-4">
-                <span className="font-mono text-foreground text-sm">{ref}</span>
+                <span className="grid size-10 shrink-0 place-items-center rounded-full border border-dashed">
+                  <Icon name="loader" size={20} />
+                </span>
+                <span className="min-w-0 flex-1 font-mono text-foreground text-sm">{ref}</span>
                 <span className="text-muted-foreground text-xs">
                   {t("nightWatch.waiting.item", {
                     when: g.lastSeenAt
@@ -67,9 +79,11 @@ function NightWatchWaitingScreen() {
         <p className="text-muted-foreground text-sm">{t("nightWatch.waiting.hint")}</p>
       ) : null}
 
-      <Button asChild variant="ghost">
-        <Link to="/night-watch">{t("nightWatch.waiting.backCta")}</Link>
-      </Button>
-    </main>
+      <PrimaryZone>
+        <Button asChild variant="secondary">
+          <Link to="/night-watch">{t("nightWatch.waiting.backCta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }
