@@ -394,3 +394,87 @@ fn set_recovery_registry_rejects_unbounded_cooldown() {
     FamilyWalletAccountClient::new(&e, &addr)
         .set_recovery_registry(&Address::generate(&e), &u64::MAX);
 }
+
+// ---------- Hồi quy audit 2026-07-25 (đợt 2, closeout) ----------
+
+/// B-SEC-1: `recovery_rotate` ở ví ĐÃ NỐI ĐỦ 15 thiết bị — đúng trần `MAX_SIGNERS`
+/// của OZ. Bản thêm-trước-xoá cũ gọi `add_signer` khi rule đã có 15 signer →
+/// `validate_signers_and_policies` panic `TooManySigners` → cả tx revert → đơn khôi
+/// phục kẹt `Approved` vĩnh viễn, ví KHÔNG BAO GIỜ cứu được. Đây là kịch bản
+/// "mất ví", tệ hơn "mất tiền". Bản xoay-neo-nguyên-tử phải xoay xong còn ĐÚNG một
+/// signer: khoá mới. Test này ĐỎ trên bản thêm-trước-xoá (panic #... TooManySigners).
+#[test]
+fn recovery_rotate_survives_a_wallet_full_of_15_signers() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let verifier = register_verifier(&e);
+    let registry = Address::generate(&e);
+    let pubkey = Bytes::from_array(&e, &[4u8; 65]);
+    let signers = vec![&e, Signer::External(verifier.clone(), pubkey)];
+    let policies: Map<Address, Val> = map![
+        &e,
+        (
+            registry.clone(),
+            FwConstructorEntry::RecoveryRegistry(86400u64).into_val(&e)
+        )
+    ];
+    let account = e.register(FamilyWalletAccount, (signers, policies));
+    let client = FamilyWalletAccountClient::new(&e, &account);
+
+    // Nối thêm 14 vỏ (mỗi vỏ một khoá khác nhau) → chạm đúng trần 15 signer.
+    for i in 5u8..19u8 {
+        let extra = vec![
+            &e,
+            Signer::External(verifier.clone(), Bytes::from_array(&e, &[i; 65])),
+        ];
+        client.batch_add_signer(&0, &extra);
+    }
+    assert_eq!(client.get_context_rule(&0).signers.len(), 15);
+
+    // Xoay khoá khôi phục: bản cũ chết ở add_signer thứ 16. Bản neo sống.
+    let new_signer = Signer::External(verifier, Bytes::from_array(&e, &[99u8; 65]));
+    client.recovery_rotate(&new_signer);
+
+    let rule = client.get_context_rule(&0);
+    assert_eq!(rule.signers.len(), 1);
+    // Và đúng là khoá MỚI — mọi khoá cũ (kể cả neo) đã biến mất.
+    assert_eq!(rule.signers.get(0), Some(new_signer));
+}
+
+/// B-SEC-1 phụ: rotate ở ví đang có RecoveryRequest mở vẫn xoay đúng (không kẹt
+/// trạng thái trung gian rỗng-signer giữa remove và add).
+#[test]
+fn recovery_rotate_leaves_exactly_the_new_key_on_a_normal_wallet() {
+    let e = Env::default();
+    e.mock_all_auths();
+    let verifier = register_verifier(&e);
+    let registry = Address::generate(&e);
+    let pubkey = Bytes::from_array(&e, &[4u8; 65]);
+    let signers = vec![&e, Signer::External(verifier.clone(), pubkey)];
+    let policies: Map<Address, Val> = map![
+        &e,
+        (
+            registry.clone(),
+            FwConstructorEntry::RecoveryRegistry(86400u64).into_val(&e)
+        )
+    ];
+    let account = e.register(FamilyWalletAccount, (signers, policies));
+    let client = FamilyWalletAccountClient::new(&e, &account);
+    // Ví 3 signer (1 gốc + 2 vỏ) — đường "gỡ hết trừ neo" chạy nhiều vòng.
+    for i in 5u8..7u8 {
+        let extra = vec![
+            &e,
+            Signer::External(verifier.clone(), Bytes::from_array(&e, &[i; 65])),
+        ];
+        client.batch_add_signer(&0, &extra);
+    }
+    assert_eq!(client.get_context_rule(&0).signers.len(), 3);
+
+    let new_signer = Signer::External(verifier, Bytes::from_array(&e, &[42u8; 65]));
+    client.recovery_rotate(&new_signer);
+    let rule = client.get_context_rule(&0);
+    assert_eq!(rule.signers.len(), 1);
+    assert_eq!(rule.signers.get(0), Some(new_signer));
+}
+
+// (B-SEC-2 extend_ttl test được thêm ở commit kế tiếp.)

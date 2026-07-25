@@ -225,11 +225,24 @@ impl FamilyWalletAccount {
         registry.require_auth();
 
         let rule_id = owner_rule_id(e);
-        let old = smart_account::get_context_rule(e, rule_id);
-        // Thêm mới TRƯỚC, gỡ cũ SAU — rule không bao giờ rỗng signer (OZ chặn).
+        let old_ids = smart_account::get_context_rule(e, rule_id).signer_ids;
+        // XOAY NGUYÊN TỬ giữ-một-neo — KHÔNG thêm-trước-xoá. Ví đã nối đủ 15 thiết bị
+        // (trần MAX_SIGNERS của OZ) mà thêm trước thì `add_signer` panic `TooManySigners`
+        // → rotate revert → đơn kẹt `Approved`, `initiate_recovery` bị `RecoveryInProgress`
+        // chặn → ví KHÔNG BAO GIỜ cứu được nữa (B-SEC-1, hỏng vĩnh viễn). Thay bằng:
+        // gỡ mọi signer cũ TRỪ một neo (rule không bao giờ rỗng, số signer tụt xuống 1),
+        // rồi thêm signer mới (tối đa 2 — luôn dưới trần), rồi gỡ nốt neo. Không bước nào
+        // đi qua trạng thái rỗng hay vượt trần.
+        let mut anchor: Option<u32> = None;
+        for old_signer_id in old_ids.iter() {
+            match anchor {
+                None => anchor = Some(old_signer_id),
+                Some(_) => smart_account::remove_signer(e, rule_id, old_signer_id),
+            }
+        }
         smart_account::add_signer(e, rule_id, &new_signer);
-        for old_signer_id in old.signer_ids.iter() {
-            smart_account::remove_signer(e, rule_id, old_signer_id);
+        if let Some(anchor_id) = anchor {
+            smart_account::remove_signer(e, rule_id, anchor_id);
         }
 
         let now = e.ledger().timestamp();
