@@ -76,6 +76,52 @@ Chứng minh on-chain: e2e testnet gửi 1 XLM từ ví C…, người nhận nh
   chết thật (test integration). Còn hở: app chạy bằng role sở hữu bảng → `DROP TRIGGER` được (B-SEC-4).
 - Indexer là người ghi DUY NHẤT của mirror; sống sót restart giữa batch (checkpoint atomic).
 
+## Closeout đợt 2 (2026-07-25) — đóng gì, và phát hiện MỚI
+
+- **🔴 MỚI · Backend sập là BẤT ĐỐI XỨNG (kịch bản #3).** Đợt trước ghi "caveat"; sai.
+  `finalize_recovery` chạy với **zero auth entry** → sau timelock, kẻ tấn công tự nộp tx lên RPC
+  công cộng, KHÔNG cần backend của mình sống. Còn veto (`cancel_recovery`) đòi chữ ký ví, và trong
+  sản phẩm đường DUY NHẤT để dựng + nộp tx veto là hai lời gọi backend (`POST /api/recovery/veto`
+  → `POST /api/recovery/submit`). Backend sập ⇒ **mất phòng tuyến của người phòng thủ, giữ nguyên
+  đường tấn công**. Test khoá kết luận:
+  `contracts/recovery-registry/src/test.rs::veto_needs_the_owner_key_while_finalize_needs_nobody`.
+  Lỗ nằm ở **client/hạ tầng, KHÔNG ở contract** (contract không đòi khoá nào của backend cho veto)
+  → vá bằng đường nộp trực tiếp phía client, không cần đổi contract. **Chưa vá.**
+- **Lời mời người bảo hộ LÀ `link-is-auth`** (câu hỏi §3.3, giờ trả dứt). `POST /invites/:token/accept`
+  chỉ đòi `requireAuth` — bất kỳ tài khoản app nào — và tra lời mời **thuần theo token**: không khớp
+  email, không khớp danh tính người được mời. Ai giữ link mà có tài khoản là nhận được; ai nhận
+  trước thắng (`markDeployed` so-và-đặt nguyên tử trên `status='sent'`).
+  **Đòn đỡ:** nhận lời mời KHÔNG tự thành người bảo hộ on-chain — chủ ví phải tự ký `add_guardian`,
+  cửa build chốt `NOT_OWNER`. Test #8:
+  `be/src/modules/recovery/features/onchain-actions/service.test.ts::"kẻ lạ nhận link của người khác
+  KHÔNG tự lên chain làm người bảo hộ"`.
+  **Còn yếu (chưa vá):** bước chủ ví duyệt là duyệt **một cái nhãn do chính họ đặt** ("Mẹ").
+  `accepted_by_user_id` CÓ ghi nhưng chưa hiện tên/email người nhận thật lên màn duyệt → link rò
+  vẫn dẫn tới việc chủ ví ký cho người lạ mà không biết. Việc cần làm: hiện danh tính người nhận.
+- **Ví phí (B-SEC-3) — ĐÓNG.** Ba hàng rào đủ: `is_registered` đọc **từ chain** (không phải cột DB,
+  nên kẻ ghi DB tuỳ ý không bật được công tắc này) · rate-limit failOpen:false · trần phí per-tx.
+  Đợt 1 chỉ có hàm trần phí và chỉ cắm ttl-keeper; hai cửa người dùng gọi truyền `undefined`.
+  `be/src/services/stellar/fee-policy.ts`.
+- **Nhật ký audit (B-SEC-4) — ĐÓNG ở tầng quyền.** Migration 0009: role `app_runtime` chỉ
+  SELECT/INSERT trên `audit_log`, REVOKE UPDATE/DELETE/TRUNCATE khỏi cả role lẫn PUBLIC, không sở
+  hữu schema nên không có `DROP TRIGGER`. Test chạy **bằng role runtime** và tự kiểm không-owner +
+  không-superuser trước khi assert. **Chưa ACTIVE:** `DATABASE_URL` còn trỏ owner (việc deploy).
+- **Instance storage của ví — KHÔNG cần vá TTL** (câu hỏi §3.1, trả bằng test). Bốn khoá instance
+  (`RecoveryRegistry`, `OwnerRuleId`, `LastRotation`, `PendingRegistry`) sống qua ~6 tháng bỏ không:
+  Protocol 23 auto-restore khi có ai đọc tới. Giá là rent trên tx đánh thức, không phải mất dữ liệu.
+  Bằng chứng **hermetic** (test env mô phỏng), CHƯA đo on-chain.
+  `recovery-registry/src/test.rs::wallet_instance_storage_survives_months_of_disuse`.
+- **JWT ví thu hồi được (§4) — ĐÓNG phần quyết định.** `jwt_version` + `ver` trong claims +
+  `verifyWalletJwtCurrent` (bắt buộc truyền lookup, facade chỉ export bản này). **Đính chính premise:**
+  JWT ví hiện được PHÁT nhưng **không route/middleware nào tiêu thụ** → rủi ro "đọc được 24h" là
+  TIỀM ẨN, chưa sống. Vì thế test "JWT cũ → 401 trên /session" chưa viết được: chưa có endpoint đó.
+- **Phát hiện nhỏ:** trần cooldown kiểm **fail-late** — `propose_recovery_registry` nhận cooldown
+  vượt trần, chỉ `apply` (7 ngày sau) mới chối. Bom không hạ cánh được (`store` fail-closed) nhưng
+  người dùng tự kẹt đường đổi registry tới khi `cancel`.
+- **Phát hiện nhỏ:** `lefthook.yml` ở root là **file ví dụ, comment sạch 100%** — nên "pre-commit
+  quét secret / pre-push build thật" mà `.claude/rules/` khẳng định **KHÔNG tồn tại**. gitleaks chỉ
+  chạy trong CI + tay.
+
 ## Còn hở — khai thẳng (chưa xong, không phải đã an toàn)
 
 - **Audit toàn diện 2026-07-25** (`docs/security/AUDIT-2026-07-25.md` §7 closeout): 7 P0 đã vá.
@@ -87,8 +133,13 @@ Chứng minh on-chain: e2e testnet gửi 1 XLM từ ví C…, người nhận nh
   + chạy lại e2e** trước khi tin bằng chứng on-chain cũ (B-SEC-7).
 - **Ký mù ở `guardian/approve` và `block/confirm`** — ĐÃ CHỐT bằng `assertApproveRecoveryEntry`/
   `assertCancelRecoveryEntry` (so state cục bộ, entry `transfer` đội lốt bị chặn TRƯỚC passkey).
-- **SEP-45 token** bind ví+device, chống replay bằng nonce, nhưng **chưa thu hồi khi khôi phục**
-  (TTL 24h). Mức 🟠 nhờ custody on-chain: khoá cũ bị gỡ + cooldown → JWT cũ không ký được tiền.
+- **SEP-45 token** bind ví+device, chống replay bằng nonce, và **ĐÃ có đường thu hồi** khi khôi phục
+  (`jwt_version`, closeout §4 — thay cho dòng "chưa thu hồi" cũ). Còn hở phần khác: **check footprint
+  theo spec SEP-0045 chưa cài** — spec đòi client simulate rồi verify `read_write` CHỈ chứa
+  `contract_data` với key `ledger_key_nonce` của Client/Server/(Client Domain) Account, và từ chối
+  entry `delegated`. Hiện dựa vào `assertApproveRecoveryEntry`/`assertCancelRecoveryEntry` (chặn theo
+  hình dạng đã biết) + custody on-chain, KHÔNG phải cơ chế footprint của spec → biến thể ký mù chưa
+  bị chặn *theo cơ chế*. Mức 🟠, chưa vá.
 - **origin-verifier production**: deploy script fail-closed chặn localhost/non-https/wildcard; hot-path
   đổi `.expect()`→`panic_with_error!`. Instance testnet đang chạy VẪN là DEV — production chạy
   `deploy-origin-verifier.sh` với domain thật (HUMAN-TODO, chờ domain).
@@ -100,4 +151,16 @@ Chứng minh on-chain: e2e testnet gửi 1 XLM từ ví C…, người nhận nh
   đã phủ đường crypto, phần còn lại là UX phần cứng.
 - **AI người gác đêm** chưa nối — risk banner/explainer là PHA sau; kill-switch là thiết kế sẵn.
 - **Mainnet** chưa lên (PARK 9.2): TTL extend cron, Audit Bank, pin crate OZ — checklist go-live chưa chạy.
-- **CI thật** chưa đọc được từ máy build (B-CI-1) — gate tái hiện local, chờ người mở tab Actions.
+- **CI thật** VẪN chưa xác minh được (B-CI-1 còn MỞ). Closeout đợt 2 đã thử hết đường từ máy build:
+  không có `gh`, không có `~/.config/gh`, không có `GH_TOKEN`/`GITHUB_TOKEN` trong env
+  (`be/.mcp.json` chỉ chứa placeholder `${GITHUB_PERSONAL_ACCESS_TOKEN}`); API không token trả
+  **404** vì repo private; SSH key `github-msci` xác thực được (`git ls-remote` chạy) nhưng GitHub
+  **không phục vụ Actions API qua SSH**. → **KHÔNG kết luận màu CI.** Cần PAT fine-grained
+  (Actions:read + Contents:read) mới đóng được mục này.
+- **Mutants:** 226 mutant toàn workspace — 181 caught, 13 missed (xem `docs/security/mutants.txt`).
+  `__check_auth`/cooldown: **0 mutant sống** (điều kiện đóng B-SEC-9). Còn sống: 12 trong
+  `verifier-webauthn` (crate SPIKE, không phải verifier tích hợp) + 1 mutant **tương đương** trong
+  `smart-account` (`owner_rule_id -> 0`, vì rule chủ ví đúng là id 0 — không giết được trung thực).
+- **Fuzz/proptest** chưa có: máy build không có nightly nên `cargo-fuzz` không dựng được; đường
+  `proptest` trên stable CHƯA làm. Ba target còn nợ: `__check_auth`, `finalize_recovery`,
+  `recovery_rotate`.

@@ -25,6 +25,58 @@ Năm mục dưới đây **chưa vá** và phải xong trước mainnet.
 | §4.4 origin-verifier DEV localhost | ⚠️ **VÁ MỘT PHẦN** — deploy script fail-closed chặn localhost/non-https/wildcard + đổi `.expect()`→`panic_with_error!` (C2). **CÒN**: instance testnet đang chạy vẫn là DEV; production chạy `deploy-origin-verifier.sh` với domain thật (HUMAN-TODO) | `fix(contracts): coded errors on the verifier hot path` | `malformed_sig_data_never_verifies` + guard script (empty→rc1, localhost→chặn) |
 | CI đỏ `cargo fmt --check` (do vá P0 `ae7c855`) | ✅ **ĐÓNG** | `ci(contracts): rustfmt the recovery expiry guard` | `cargo fmt --check` xanh |
 
+### CẬP NHẬT closeout 2026-07-25 (đợt 3) — bảng trên ĐÃ LẠC HẬU, đọc bảng này
+
+| Mục | Trạng thái mới | Commit | Test hồi quy (dòng đỏ trên bản cũ) |
+|---|---|---|---|
+| **B-SEC-3** ví phí | ✅ **ĐÓNG** — thêm hàng rào 1 `is_registered` đọc **từ chain**, và cắm trần phí vào CẢ hai cửa người dùng gọi (đợt 2 chỉ cắm ttl-keeper) | `33e738e` | `send flow > sign của ví CHƯA đăng ký → 403` (bản cũ: intent **settled**, ví phí đã trả) · `submit truyền trần phí xuống gateway` (bản cũ: `[undefined]`) |
+| **B-SEC-4** audit_log | ✅ **ĐÓNG ở tầng quyền** — migration 0009 role `app_runtime`. **CÒN (deploy):** `DATABASE_URL` runtime phải trỏ user thuộc `app_runtime` | `39f89ba` | `audit-runtime-role.integration.test.ts` 7 ca, chạy **bằng role runtime** (grant lại quyền → 4 ca đỏ) |
+| **B-SEC-9** cooldown `#101` | ✅ **ĐÓNG** — biên nửa mở `[rot, rot+cooldown)`, chốt 4 mốc bằng mã lỗi; **0 mutant sống** trên `__check_auth` | `a4041aa` | `cooldown_boundary_is_exact_at_three_points` (bản cũ `<`→`<=`: test CŨ vẫn xanh, test này đỏ `left: Err(Ok(CooldownActive)) right: Ok(())`) |
+| **§3.1** instance TTL của ví | ✅ **KHÔNG CẦN VÁ** — Protocol 23 auto-restore; bằng chứng **hermetic**, chưa đo on-chain | `aee30ec` | `wallet_instance_storage_survives_months_of_disuse` |
+| **§3.3** link-is-auth | ✅ **TRẢ DỨT: (a) link-is-auth**, có bước chủ ví ký `add_guardian` chắn. **CÒN:** chưa hiện danh tính người nhận lên màn duyệt | `aee30ec`/BE | `kẻ lạ nhận link của người khác KHÔNG tự lên chain làm người bảo hộ` |
+| **§4** thu hồi JWT | ✅ **ĐÓNG phần quyết định** — `jwt_version`. **Đính chính:** JWT ví chưa route nào tiêu thụ → rủi ro TIỀM ẨN | `ed79032` | 3 ca thu hồi (bản cũ: đều xanh vì không kiểm `ver`) |
+| **Mutants 3 crate** | ✅ **ĐÓNG cho 3 crate sản phẩm** — origin-verifier 4→0, recovery-registry 11→0, smart-account 3→1(tương đương) | `aee30ec` | `docs/security/mutants.txt` |
+| **Kịch bản #3** backend chết | 🔴 **LÀ 🔴, KHÔNG phải caveat** — xem mục mới bên dưới | — | `veto_needs_the_owner_key_while_finalize_needs_nobody` |
+
+### 🔴 MỚI · Veto phụ thuộc backend, finalize thì không (kịch bản #3)
+
+**Chặn:** coi backend là "không ảnh hưởng custody". Sai ở đúng một chiều.
+
+`finalize_recovery` chạy với **zero auth entry** → sau timelock, kẻ tấn công tự nộp tx lên bất kỳ RPC
+công cộng, không cần backend mình sống. Veto (`cancel_recovery`) đòi chữ ký ví, mà đường DUY NHẤT để
+dựng + nộp tx veto trong sản phẩm là `POST /api/recovery/veto` (build) rồi `POST /api/recovery/submit`
+(ví phí nộp). Backend sập ⇒ chủ ví **không veto được**, kẻ tấn công **vẫn finalize được**.
+
+**Vì sao KHÔNG phải lỗi contract:** contract không đòi khoá nào của backend cho veto. Test
+`veto_needs_the_owner_key_while_finalize_needs_nobody` khoá cả hai nửa.
+
+**Cần để gỡ:** đường veto tự-chủ phía client — FE dựng invoke `cancel_recovery` + ký passkey + nộp
+thẳng RPC (người dùng tự trả phí), không đi qua BE. Kèm hướng dẫn "thẻ cứu hộ" offline.
+**Điều kiện mainnet: BẮT BUỘC có.** Timelock dài chỉ có giá trị nếu người phòng thủ nộp được lệnh chặn.
+
+### CÒN MỞ sau closeout đợt 3 — danh sách rút gọn
+
+- **B-CI-1 · CI thật:** vẫn KHÔNG xác minh được. Không `gh`, không `GH_TOKEN` (`be/.mcp.json` chỉ có
+  placeholder), API không token → **404** (repo private), SSH xác thực được nhưng GitHub không phục vụ
+  Actions API qua SSH. **Cần:** PAT fine-grained (Actions:read + Contents:read).
+- **§7 e2e testnet:** CHƯA chạy trên shape mới. Có `FEE_WALLET_SECRET` nhưng **không có deployer key
+  riêng**, và `RUN_TESTNET_E2E` chưa bật. Không có byte on-chain nào cho shape hiện tại.
+  **Mainnet off the table** tới khi có.
+- **§3.2 SEP-45 footprint:** chưa cài check `read_write` theo spec (chỉ `contract_data` +
+  `ledger_key_nonce` của Client/Server/Client-Domain; entry `delegated` phải chối).
+- **§5.2 fuzz/proptest:** chưa có. Máy build không có nightly → `cargo-fuzz` không dựng; đường
+  `proptest` trên stable chưa làm. Nợ 3 target: `__check_auth`, `finalize_recovery`, `recovery_rotate`.
+- **verifier-webauthn:** 12 mutant còn sống (crate SPIKE, không nằm trên đường tiền đi).
+- **B-SEC-4 wiring:** `DATABASE_URL` runtime còn trỏ role owner → quyền đã dựng nhưng CHƯA có hiệu lực.
+- **JWT ví chưa có người tiêu thụ:** nối guard phải dùng `verifyWalletJwtCurrent` (facade chỉ export
+  bản đó, cố ý).
+- **e2e send cần bước register:** cổng ví phí mới đòi `is_registered`, ví e2e sinh mới thì chưa đăng ký.
+- **`lefthook.yml` là file ví dụ rỗng** — "pre-commit quét secret / pre-push build thật" mà
+  `.claude/rules/` khẳng định **không tồn tại**. gitleaks chỉ chạy CI + tay.
+- **Trần cooldown fail-late:** `propose_recovery_registry` nhận cooldown vượt trần, chỉ `apply` mới
+  chối (bom không hạ cánh được, nhưng người dùng tự kẹt tới khi `cancel`).
+- **Màn duyệt người bảo hộ chưa hiện danh tính người nhận** (`accepted_by_user_id` có ghi, chưa hiện).
+
 Chi tiết §B-SEC-1..5 gốc giữ nguyên bên dưới để đối chiếu.
 
 ### B-SEC-1 · `recovery_rotate` thêm signer TRƯỚC khi xoá → khôi phục hỏng vĩnh viễn

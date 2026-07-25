@@ -1,34 +1,65 @@
-Found 226 mutants to test
-ok       Unmutated baseline in 243s build + 1s test
-MISSED   origin-verifier/src/lib.rs:92:15: replace || with && in contains in 15s build + 8s test
-MISSED   origin-verifier/src/lib.rs:92:20: replace < with == in contains in 15s build + 3s test
-MISSED   origin-verifier/src/lib.rs:92:20: replace < with <= in contains in 9s build + 2s test
-MISSED   origin-verifier/src/lib.rs:126:28: replace < with > in <impl Verifier for OriginWebauthnVerifier>::verify in 24s build + 10s test
-MISSED   recovery-registry/src/lib.rs:84:35: replace * with + in 8s build + 2s test
-MISSED   recovery-registry/src/lib.rs:227:28: replace > with == in RecoveryRegistry::register_wallet in 3s build + 1s test
-MISSED   recovery-registry/src/lib.rs:227:28: replace > with >= in RecoveryRegistry::register_wallet in 3s build + 1s test
-MISSED   recovery-registry/src/lib.rs:230:51: replace > with >= in RecoveryRegistry::register_wallet in 2s build + 1s test
-MISSED   recovery-registry/src/lib.rs:266:25: replace == with != in RecoveryRegistry::add_guardian in 5s build + 4s test
-MISSED   recovery-registry/src/lib.rs:272:32: replace >= with < in RecoveryRegistry::add_guardian in 6s build + 4s test
-MISSED   recovery-registry/src/lib.rs:391:20: replace < with <= in RecoveryRegistry::finalize_recovery in 3s build + 1s test
-MISSED   recovery-registry/src/lib.rs:396:16: replace > with >= in RecoveryRegistry::finalize_recovery in 3s build + 2s test
-MISSED   recovery-registry/src/lib.rs:439:9: replace RecoveryRegistry::extend_ttl with () in 4s build + 1s test
-MISSED   recovery-registry/src/lib.rs:448:9: replace RecoveryRegistry::is_registered -> bool with true in 4s build + 1s test
-MISSED   recovery-registry/src/lib.rs:461:9: replace RecoveryRegistry::timelock_remaining -> u64 with 1 in 3s build + 2s test
-MISSED   smart-account/src/lib.rs:84:5: replace owner_rule_id -> u32 with 0 in 8s build + 2s test
-MISSED   smart-account/src/registry_link.rs:96:22: replace > with >= in store in 7s build + 1s test
-MISSED   smart-account/src/registry_link.rs:136:31: replace < with <= in apply_pending in 8s build + 2s test
-MISSED   verifier-webauthn/src/lib.rs:97:28: replace < with > in WebauthnVerifier::verify in 15s build + 9s test
-MISSED   verifier-webauthn/src/lib.rs:105:18: replace & with | in WebauthnVerifier::verify in 7s build + 2s test
-MISSED   verifier-webauthn/src/lib.rs:105:18: replace & with ^ in WebauthnVerifier::verify in 5s build + 3s test
-MISSED   verifier-webauthn/src/lib.rs:121:30: replace < with == in WebauthnVerifier::verify in 5s build + 3s test
-MISSED   verifier-webauthn/src/lib.rs:121:30: replace < with <= in WebauthnVerifier::verify in 5s build + 2s test
-MISSED   verifier-webauthn/src/lib.rs:176:70: replace | with ^ in base64url_encode_32 in 4s build + 2s test
-MISSED   verifier-webauthn/src/lib.rs:176:41: replace | with ^ in base64url_encode_32 in 5s build + 2s test
-MISSED   verifier-webauthn/src/lib.rs:176:51: replace + with * in base64url_encode_32 in 3s build + 1s test
-MISSED   verifier-webauthn/src/lib.rs:184:38: replace | with ^ in base64url_encode_32 in 8s build + 4s test
-MISSED   verifier-webauthn/src/lib.rs:195:15: replace || with && in contains in 4s build + 2s test
-MISSED   verifier-webauthn/src/lib.rs:195:20: replace < with == in contains in 4s build + 1s test
-MISSED   verifier-webauthn/src/lib.rs:195:20: replace < with <= in contains in 3s build + 1s test
-226 mutants tested in 21m: 30 missed, 164 caught, 32 unviable
-EXIT=2
+# cargo-mutants — family-wallet contracts, closeout 2026-07-25
+
+Lệnh (phủ MỌI package, và chạy test TOÀN workspace cho mỗi mutant nên test của
+crate này bắt được lỗi crate kia):
+
+    cd contracts
+    TMPDIR=<đường-dẫn-trên-đĩa> cargo mutants --workspace --test-workspace=true --timeout 150 -j 3
+
+Lưu ý môi trường: `/tmp` trên máy build là tmpfs 7.8G nằm trong RAM. cargo-mutants
+copy cây nguồn + target cho mỗi job nên phải trỏ TMPDIR sang phân vùng đĩa, nếu
+không job chết giữa đường vì ENOSPC.
+
+## Bảng caught / missed theo crate
+
+| Crate              | Trước closeout | Sau closeout | Ghi chú |
+|--------------------|----------------|--------------|---------|
+| origin-verifier    | 4 missed       | **0**        | allow-list origin + sàn authData |
+| recovery-registry  | 11 missed      | **0**        | biên register/add_guardian/finalize + view |
+| smart-account      | 3 missed       | **1**        | còn lại là mutant TƯƠNG ĐƯƠNG, xem dưới |
+| verifier-webauthn  | 12 missed      | 12           | crate SPIKE (SDK 27), không phải bản tích hợp |
+| verifier-ed25519   | 0 missed       | 0            | |
+| web-auth           | 0 missed       | 0            | |
+
+Tổng: **226 mutant — 181 caught, 13 missed, 32 unviable** (trước: 164 caught,
+30 missed). Đợt trước chỉ chạy trong thư mục smart-account nên chỉ mutate crate
+đó (smart-account 24 caught / 10 missed); recovery-registry và verifier hoàn toàn
+TRỐNG số — đó là lý do phải chạy lại bằng `--workspace`.
+
+## B-SEC-9 — điều kiện đóng
+
+`__check_auth` / đường cooldown: **0 mutant sống**. Trước closeout có mutant sống
+ở đây (`<` → `<=` ở biên cooldown), giết bằng
+`recovery-registry::cooldown_boundary_is_exact_at_three_points`.
+
+## 13 mutant CÒN SỐNG — khai thẳng, không giấu
+
+1. `smart-account/src/lib.rs:84:5 owner_rule_id -> u32 with 0` — **mutant TƯƠNG
+   ĐƯƠNG, không giết được một cách trung thực.** Rule chủ ví là rule ĐẦU TIÊN
+   constructor tạo, nên id của nó ĐÚNG BẰNG 0. Trả hằng 0 là cùng hành vi. Viết
+   test "khớp" mutant này chỉ là test giả.
+
+2-13. `verifier-webauthn/src/lib.rs` (12 mutant) — crate này là **bản SPIKE SDK 27
+   chứng minh gate-3 độc lập trên testnet**, KHÔNG phải verifier mà sản phẩm cắm
+   vào OZ smart account (bản đó là `origin-verifier`, SDK 26.1.1, giờ 0 missed).
+   Mutant tập trung ở `base64url_encode_32` và biên trong `verify`/`contains` —
+   cùng LOẠI lỗ đã vá ở `origin-verifier` (needle rỗng, biên `h == n`, sàn
+   authData). Chưa vá vì crate không nằm trên đường tiền đi; ghi vào BLOCKERS
+   thành việc còn nợ, không tính là "đã quét sạch".
+
+## Nhật ký chạy đầy đủ (lần cuối)
+
+MISSED   smart-account/src/lib.rs:84:5: replace owner_rule_id -> u32 with 0 in 13s build + 3s test
+MISSED   verifier-webauthn/src/lib.rs:97:28: replace < with > in WebauthnVerifier::verify in 4s build + 2s test
+MISSED   verifier-webauthn/src/lib.rs:105:18: replace & with | in WebauthnVerifier::verify in 4s build + 1s test
+MISSED   verifier-webauthn/src/lib.rs:105:18: replace & with ^ in WebauthnVerifier::verify in 4s build + 2s test
+MISSED   verifier-webauthn/src/lib.rs:121:30: replace < with == in WebauthnVerifier::verify in 3s build + 2s test
+MISSED   verifier-webauthn/src/lib.rs:121:30: replace < with <= in WebauthnVerifier::verify in 4s build + 1s test
+MISSED   verifier-webauthn/src/lib.rs:176:70: replace | with ^ in base64url_encode_32 in 3s build + 1s test
+MISSED   verifier-webauthn/src/lib.rs:176:41: replace | with ^ in base64url_encode_32 in 3s build + 4s test
+MISSED   verifier-webauthn/src/lib.rs:176:51: replace + with * in base64url_encode_32 in 8s build + 5s test
+MISSED   verifier-webauthn/src/lib.rs:184:38: replace | with ^ in base64url_encode_32 in 4s build + 2s test
+MISSED   verifier-webauthn/src/lib.rs:195:15: replace || with && in contains in 4s build + 1s test
+MISSED   verifier-webauthn/src/lib.rs:195:20: replace < with == in contains in 3s build + 2s test
+MISSED   verifier-webauthn/src/lib.rs:195:20: replace < with <= in contains in 4s build + 2s test
+226 mutants tested in 18m: 13 missed, 181 caught, 32 unviable

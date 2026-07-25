@@ -569,6 +569,55 @@ fn cooldown_boundary_is_exact_at_three_points() {
     );
 }
 
+/// KỊCH BẢN ĐỎ #3 (closeout §6) — BACKEND CHẾT thì cửa nào còn mở?
+///
+/// Đợt trước ghi mục này là "caveat". Nó KHÔNG phải caveat, và test này chốt lý do
+/// bằng hành vi contract, không bằng lời:
+///
+///   - `finalize_recovery` chạy được với ZERO auth entry (`set_auths(&[])`). Nghĩa
+///     là sau timelock, BẤT KỲ AI cũng crank được — kể cả kẻ tấn công, tự nộp tx
+///     lên RPC công cộng, KHÔNG cần backend của mình sống.
+///   - `cancel_recovery` (veto) ĐÒI chữ ký của chính ví. Chủ ví có khoá đó, nhưng
+///     trong sản phẩm hiện tại đường duy nhất để DỰNG và NỘP tx veto là hai lời gọi
+///     backend (`POST /api/recovery/veto` build → `POST /api/recovery/submit`).
+///
+/// Cộng hai điều đó lại: backend sập là CHỈ phòng tuyến của người phòng thủ mất,
+/// còn đường tấn công vẫn nguyên. Bất đối xứng đó là 🔴, không phải caveat —
+/// "fail-closed" ở đây đóng cửa nhà mình chứ không đóng cửa kẻ trộm.
+///
+/// Điều test này CŨNG chứng minh: lỗ nằm ở CLIENT/hạ tầng, KHÔNG ở contract.
+/// Contract không đòi khoá nào của backend cho veto — chỉ đòi khoá ví. Nên vá được
+/// bằng đường nộp trực tiếp phía client, không cần đổi contract.
+#[test]
+fn veto_needs_the_owner_key_while_finalize_needs_nobody() {
+    let e = Env::default();
+    let w = setup(&e);
+    let sk_new = SigningKey::from_bytes(&[8u8; 32]);
+    let new_signer = ext_signer(&e, &w.verifier, &sk_new);
+
+    w.registry
+        .initiate_recovery(&w.account_addr, &new_signer, &w.g1);
+    w.registry.approve_recovery(&w.account_addr, &w.g2);
+    warp(&e, TIMELOCK + 1);
+
+    // (1) VETO không có chữ ký ví → CHẾT. Đây là điều tốt (không ai veto hộ), nhưng
+    //     nó cũng là lý do backend sập thì chủ ví mất đường chặn trong sản phẩm.
+    e.set_auths(&[]);
+    assert!(
+        w.registry.try_cancel_recovery(&w.account_addr).is_err(),
+        "veto phải đòi chữ ký ví — không thì ai cũng huỷ recovery của người khác"
+    );
+
+    // (2) FINALIZE với ZERO auth entry → CHẠY. Kẻ tấn công không cần gì của mình.
+    e.set_auths(&[]);
+    w.registry.finalize_recovery(&w.account_addr);
+    assert_eq!(
+        w.registry.get_recovery_status(&w.account_addr).status,
+        RecoveryStatus::Finalized,
+        "finalize không đòi auth → đường tấn công KHÔNG phụ thuộc backend"
+    );
+}
+
 /// §3.1 closeout — INSTANCE STORAGE của chính ví, sau nhiều tháng KHÔNG dùng.
 ///
 /// Câu hỏi bị bỏ lửng hai đợt: OZ nói rõ nó quản TTL cho temporary + persistent

@@ -313,6 +313,34 @@ describe("recovery onchain service (DB thật + gateway fake)", () => {
     expect(calls.invoke).toHaveLength(1);
   });
 
+  // KỊCH BẢN ĐỎ #8 (closeout §3.3) — LINK-IS-AUTH, và tại sao nó vẫn chưa sập.
+  //
+  // Trả lời dứt câu hỏi thiết kế bị bỏ lửng: lời mời người bảo hộ LÀ link-is-auth.
+  // `POST /invites/:token/accept` chỉ đòi `requireAuth` (bất kỳ tài khoản app nào)
+  // và tra lời mời THUẦN theo token — không có bước nào kiểm người nhận có đúng là
+  // người được mời (không khớp email, không khớp danh tính). Ai giữ link mà có tài
+  // khoản là nhận được, ai nhận trước thắng.
+  //
+  // Cái CHẶN thiệt hại là bước này: nhận lời mời KHÔNG tự biến ai thành người bảo
+  // hộ on-chain. Phải chủ ví tự ký `add_guardian`, và cửa build chốt `NOT_OWNER`.
+  // Kẻ lạ đã "nhận" link vẫn không tự đẩy mình lên chain được.
+  testIt("kẻ lạ nhận link của người khác KHÔNG tự lên chain làm người bảo hộ", async () => {
+    const walletId = await seedWallet();
+    const { gateway, calls } = fakeGateway();
+
+    const err = await buildRecoveryAction(gateway, REGISTRY, {
+      action: "addGuardian",
+      walletId,
+      userId: STRANGER,
+      guardianAddress: walletKey,
+    }).catch((e) => e);
+
+    expect((err as RecoveryActionError).status).toBe(403);
+    expect((err as RecoveryActionError).message).toBe("NOT_OWNER");
+    // Và không có tx nào được dựng — kẻ lạ không lấy được cả bản nháp để đi ký.
+    expect(calls.build).toHaveLength(0);
+  });
+
   // Closeout §4 — finalize THU HỒI mọi JWT ví đã phát. Đây là nửa còn thiếu của
   // "khoá cũ mất quyền": on-chain nó mất quyền KÝ ngay, nhưng JWT tự chứng thì
   // không ai chối được cho tới `exp` nếu số hiệu phiên không tăng.
