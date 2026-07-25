@@ -1,7 +1,7 @@
 // Test service SEP-45 hermetic — nonce store in-memory + simulator fake. Phủ:
 // happy path đủ vòng challenge→token, replay nonce, simulate fail, account tráo.
 import { describe, expect, it } from "bun:test";
-import { Keypair, StrKey } from "@stellar/stellar-sdk";
+import { Address, Keypair, StrKey, xdr } from "@stellar/stellar-sdk";
 import { verifyWalletJwtSignatureOnly } from "./jwt";
 import { createChallenge, type Sep45Deps, verifyChallengeAndIssueJwt } from "./service";
 import type { ChallengeSimulator, NonceStore, Sep45Config } from "./types";
@@ -45,7 +45,8 @@ function makeDeps(
     signingKey,
     jwtSecret: JWT_SECRET,
     nonces: memoryNonceStore(),
-    simulator: simulator ?? { simulate: async () => null },
+    // Simulate thành công + footprint RỖNG = ca sạch nhất (không ghi gì).
+    simulator: simulator ?? { simulate: async () => ({ ok: true, readWrite: [] }) },
     latestLedger: async () => 1000,
     // Closeout §4: ví trong test luôn ở số hiệu phiên 0 trừ khi ca test đổi.
     walletVersion: async () => 0,
@@ -79,7 +80,7 @@ describe("sep45 service", () => {
   });
 
   it("simulate fail (chữ ký sai / __check_auth chối) → SIMULATION_FAILED, KHÔNG phát JWT", async () => {
-    const deps = makeDeps({ simulate: async () => "auth failed" });
+    const deps = makeDeps({ simulate: async () => ({ ok: false, error: "auth failed" }) });
     const challenge = await createChallenge(deps, { account: ACCOUNT });
     expect(
       verifyChallengeAndIssueJwt(deps, { entriesXdrBase64: challenge.authorization_entries }),
@@ -110,5 +111,43 @@ describe("sep45 service", () => {
     expect(
       createChallenge(deps, { account: ACCOUNT, homeDomain: "evil.example.com" }),
     ).rejects.toThrow("HOME_DOMAIN_NOT_SERVED");
+  });
+});
+
+// Closeout §4 — cổng footprint phải chặn TRƯỚC KHI phát JWT.
+// entries.test.ts đã phủ hàm `assertNonceOnlyFootprint` thuần; ở đây kiểm ĐƯỜNG
+// ĐI: simulate thành công + footprint bẩn ⇒ không có token nào ra khỏi service.
+describe("sep45 service — footprint gate (closeout §4)", () => {
+  /** LedgerKey ghi balance — dấu vết của một lệnh `transfer` lén vào challenge. */
+  const balanceKey = (owner: string) =>
+    xdr.LedgerKey.contractData(
+      new xdr.LedgerKeyContractData({
+        contract: new Address(owner).toScAddress(),
+        key: xdr.ScVal.scvVec([xdr.ScVal.scvSymbol("Balance")]),
+        durability: xdr.ContractDataDurability.persistent(),
+      }),
+    );
+
+  it("simulate THÀNH CÔNG nhưng footprint ghi balance → KHÔNG phát JWT", async () => {
+    const deps = makeDeps({
+      // Điểm mấu chốt: `ok: true`. Kẻ tấn công dựng được entry mà host chạy trót
+      // lọt; nếu service chỉ nhìn `ok` thì đúng lúc này ta ký hộ lệnh rút tiền.
+      simulate: async () => ({
+        ok: true,
+        readWrite: [balanceKey(StrKey.encodeContract(Buffer.alloc(32, 9)))],
+      }),
+    });
+    const challenge = await createChallenge(deps, { account: ACCOUNT });
+    expect(
+      verifyChallengeAndIssueJwt(deps, { entriesXdrBase64: challenge.authorization_entries }),
+    ).rejects.toThrow("FOOTPRINT_NOT_NONCE");
+  });
+
+  it("không đọc được footprint → chối, KHÔNG coi là rỗng", async () => {
+    const deps = makeDeps({ simulate: async () => ({ ok: false, error: "NO_TRANSACTION_DATA" }) });
+    const challenge = await createChallenge(deps, { account: ACCOUNT });
+    expect(
+      verifyChallengeAndIssueJwt(deps, { entriesXdrBase64: challenge.authorization_entries }),
+    ).rejects.toThrow("SIMULATION_FAILED:NO_TRANSACTION_DATA");
   });
 });

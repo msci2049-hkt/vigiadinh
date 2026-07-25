@@ -69,9 +69,17 @@ export function rpcSimulator(config: Sep45Config): ChallengeSimulator {
       const sim = await server.simulateTransaction(tx);
       if (rpc.Api.isSimulationError(sim)) {
         logger.warn({ account: args.account, error: sim.error }, "sep45.simulation.failed");
-        return sim.error;
+        return { ok: false, error: sim.error };
       }
-      return null;
+      // Footprint do HOST tính, không do ta suy luận — đây là input cho cổng cơ chế
+      // `assertNonceOnlyFootprint`. Không có transactionData thì KHÔNG đoán "chắc
+      // rỗng": không đọc được footprint nghĩa là không kiểm được, phải chối.
+      const data = sim.transactionData?.build();
+      if (!data) {
+        logger.warn({ account: args.account }, "sep45.simulation.no-footprint");
+        return { ok: false, error: "NO_TRANSACTION_DATA" };
+      }
+      return { ok: true, readWrite: data.resources().footprint().readWrite() };
     },
   };
 }
