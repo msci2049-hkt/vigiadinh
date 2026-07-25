@@ -7,6 +7,9 @@ import { Button } from "@repo/ui";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { recoveryKeys } from "@/features/family/api/recovery";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
@@ -93,32 +96,39 @@ function BlockConfirmScreen() {
   });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="font-semibold text-2xl text-foreground">{t("block.confirm.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("block.confirm.description")}</p>
-      <p className="text-muted-foreground text-xs">{t("block.confirm.biometricNote")}</p>
+    <ProductScreen className="items-center justify-center text-center">
+      <span className="grid size-20 place-items-center rounded-full bg-destructive text-destructive-foreground">
+        <Icon name="ban" size={32} />
+      </span>
+      <ScreenHeader
+        title={t("block.confirm.title")}
+        description={t("block.confirm.description")}
+        className="text-center"
+      />
+      <div className="flex items-center gap-3 rounded-card border border-dashed bg-card p-4 text-left">
+        <Icon name="fingerprint" size={32} />
+        <p className="text-muted-foreground text-sm">{t("block.confirm.biometricNote")}</p>
+      </div>
 
       {isLoading ? <LoadingRows /> : null}
       {isError ? <ErrorState /> : null}
 
-      {veto.isError ? (
-        <p className="text-destructive text-sm" role="alert">
-          {t(vetoErrorKey(veto.error))}
-        </p>
-      ) : null}
+      {veto.isError ? <ErrorBanner type="error" title={t(vetoErrorKey(veto.error))} /> : null}
 
-      <div className="mt-2 flex w-full flex-col gap-2">
+      <PrimaryZone className="w-full">
         <Button
-          variant="destructive"
-          disabled={wallet === null || veto.isPending}
+          variant="danger"
+          loading={veto.isPending}
+          disabled={wallet === null}
           onClick={() => wallet && veto.mutate(wallet.id)}
         >
+          <Icon name="fingerprint" />
           {veto.isPending ? t("block.confirm.signing") : t("block.confirm.cta")}
         </Button>
         <Button asChild variant="ghost" disabled={veto.isPending}>
           <Link to="/night-watch">{t("block.confirm.backCta")}</Link>
         </Button>
-      </div>
-    </main>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }

@@ -14,6 +14,10 @@ import { Button, Card, CardContent, CardHeader, CardTitle } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { TimelockCountdown } from "@/components/family/timelock-countdown";
 import {
   chainTruthOptions,
   openOnchainRequest,
@@ -49,22 +53,21 @@ function BlockAlertScreen() {
     : null;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col justify-center gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-destructive">{t("block.alert.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("block.alert.description")}</p>
+    <ProductScreen className="justify-center">
+      <span className="grid size-16 place-items-center rounded-full bg-destructive text-destructive-foreground">
+        <Icon name="alertTriangle" size={32} />
+      </span>
+      <ScreenHeader title={t("block.alert.title")} description={t("block.alert.description")} />
 
       {loading ? <LoadingRows /> : null}
 
       {/* Chain không đọc được = KHÔNG kết luận "không có gì đang mở". Nói thẳng
           là đang mù, kèm lối thử lại — im lặng ở đây là nguy hiểm nhất. */}
       {chain.isError ? (
-        <div
-          className="rounded-md border border-destructive/40 bg-destructive/10 p-3"
-          role="alert"
-          data-testid="chain-unreachable"
-        >
-          <p className="font-medium text-destructive text-sm">{t("block.alert.chainDownTitle")}</p>
-          <p className="mt-1 text-muted-foreground text-sm">{t("block.alert.chainDownBody")}</p>
+        <div data-testid="chain-unreachable">
+          <ErrorBanner type="error" title={t("block.alert.chainDownTitle")}>
+            {t("block.alert.chainDownBody")}
+          </ErrorBanner>
           <Button className="mt-2" size="sm" variant="outline" onClick={() => void chain.refetch()}>
             {t("block.alert.retryCta")}
           </Button>
@@ -73,13 +76,9 @@ function BlockAlertScreen() {
       {walletError ? <ErrorState /> : null}
 
       {outOfSync ? (
-        <p
-          className="rounded-md border border-border bg-muted/40 p-3 text-muted-foreground text-sm"
-          role="status"
-          data-testid="mirror-out-of-sync"
-        >
-          {t("block.alert.syncing")}
-        </p>
+        <div data-testid="mirror-out-of-sync">
+          <ErrorBanner type="pending" title={t("block.alert.syncing")} />
+        </div>
       ) : null}
 
       {!loading && !walletError && !chain.isError && !open ? (
@@ -92,7 +91,7 @@ function BlockAlertScreen() {
       ) : null}
 
       {open ? (
-        <Card className="border-destructive" data-testid="block-open-request">
+        <Card className="border-destructive bg-paper-2" data-testid="block-open-request">
           <CardHeader>
             <CardTitle className="text-lg">{t("block.alert.requestTitle")}</CardTitle>
           </CardHeader>
@@ -109,16 +108,16 @@ function BlockAlertScreen() {
               </p>
             ) : null}
             {veto && !veto.expired ? (
-              <p className="text-muted-foreground text-sm">
-                {t("block.alert.window", { countdown: veto.countdown, absolute: veto.absolute })}
-              </p>
+              <TimelockCountdown countdown={veto.countdown} absolute={veto.absolute} />
             ) : null}
-            <Button asChild variant="destructive">
-              <Link to="/block/confirm">{t("block.alert.cta")}</Link>
-            </Button>
+            <PrimaryZone>
+              <Button asChild variant="danger">
+                <Link to="/block/confirm">{t("block.alert.cta")}</Link>
+              </Button>
+            </PrimaryZone>
           </CardContent>
         </Card>
       ) : null}
-    </main>
+    </ProductScreen>
   );
 }

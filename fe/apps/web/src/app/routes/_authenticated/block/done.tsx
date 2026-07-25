@@ -5,6 +5,8 @@ import { Button } from "@repo/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
 
 export const Route = createFileRoute("/_authenticated/block/done")({
@@ -24,10 +26,16 @@ function BlockDoneScreen() {
   const { tx } = Route.useSearch();
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="font-semibold text-2xl text-foreground">{t("block.done.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("block.done.description")}</p>
-      <p className="text-muted-foreground text-sm">{t("block.done.guardiansNote")}</p>
+    <ProductScreen className="items-center justify-center text-center">
+      <span className="grid size-20 place-items-center rounded-full bg-success text-paper">
+        <Icon name="shieldCheck" size={32} />
+      </span>
+      <ScreenHeader
+        title={t("block.done.title")}
+        description={t("block.done.description")}
+        className="text-center"
+      />
+      <p className="product-copy">{t("block.done.guardiansNote")}</p>
       {tx ? (
         <a
           href={explorerTxUrl(tx)}
@@ -38,9 +46,11 @@ function BlockDoneScreen() {
           {t("block.done.txLabel", { hash: `${tx.slice(0, 8)}…` })}
         </a>
       ) : null}
-      <Button asChild className="mt-2 w-full">
-        <Link to="/night-watch">{t("block.done.cta")}</Link>
-      </Button>
-    </main>
+      <PrimaryZone className="w-full">
+        <Button asChild>
+          <Link to="/night-watch">{t("block.done.cta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
   );
 }
