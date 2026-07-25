@@ -468,6 +468,10 @@ impl RecoveryRegistry {
 #[cfg(test)]
 mod test;
 
+// Property test (closeout §5.2) — thay cargo-fuzz khi máy build chỉ có stable.
+#[cfg(test)]
+mod proptests;
+
 /// Cửa test-only cho vector chéo ngôn ngữ (test.rs) — không có trong wasm build.
 #[cfg(test)]
 pub(crate) fn test_support_fingerprint(e: &Env, signer: &Signer) -> soroban_sdk::BytesN<32> {
