@@ -5,6 +5,8 @@ import { Button, Card, CardContent } from "@repo/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { heirsOptions } from "@/features/family/api/inheritance";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
@@ -33,9 +35,16 @@ function InheritanceSetupScreen() {
   });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("inheritance.setup.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("inheritance.setup.description")}</p>
+    <ProductScreen>
+      <img
+        src="/assets/people/banker-seated.png"
+        alt=""
+        className="mx-auto h-48 w-full max-w-xs object-contain"
+      />
+      <ScreenHeader
+        title={t("inheritance.setup.title")}
+        description={t("inheritance.setup.description")}
+      />
 
       {walletLoading || heirs.isLoading ? <LoadingRows /> : null}
       {walletError || heirs.isError ? <ErrorState /> : null}
@@ -47,12 +56,21 @@ function InheritanceSetupScreen() {
       ) : null}
 
       <ul className="flex flex-col gap-2">
-        {(heirs.data ?? []).map((heir) => (
+        {(heirs.data ?? []).map((heir, index) => (
           <li key={heir.id}>
-            <Card>
+            <Card className="bg-paper-2">
               <CardContent className="flex items-center justify-between gap-3 p-4">
-                <span className="font-mono text-foreground text-sm">{shortRef(heir.heirRef)}</span>
-                <span className="font-semibold text-foreground text-sm">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={`/assets/avatars/${index % 2 === 0 ? "sister" : "brother"}-104.webp`}
+                    alt=""
+                    className="size-12 rounded-full object-cover"
+                  />
+                  <span className="font-mono text-foreground text-sm">
+                    {shortRef(heir.heirRef)}
+                  </span>
+                </div>
+                <span className="font-mono font-semibold text-foreground text-lg">
                   {formatShare(heir.bps, i18n.language)}
                 </span>
               </CardContent>
@@ -62,15 +80,18 @@ function InheritanceSetupScreen() {
       </ul>
 
       {wallet !== null ? (
-        <div className="mt-2 flex flex-col gap-2">
+        <PrimaryZone>
           <Button asChild>
-            <Link to="/inheritance/heartbeat">{t("inheritance.heartbeatCta")}</Link>
+            <Link to="/inheritance/heartbeat">
+              <Icon name="heart" />
+              {t("inheritance.heartbeatCta")}
+            </Link>
           </Button>
           <Button asChild variant="outline">
             <Link to="/inheritance/claim">{t("inheritance.claim.title")}</Link>
           </Button>
-        </div>
+        </PrimaryZone>
       ) : null}
-    </main>
+    </ProductScreen>
   );
 }

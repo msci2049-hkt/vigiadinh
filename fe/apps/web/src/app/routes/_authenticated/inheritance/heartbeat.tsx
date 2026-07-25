@@ -6,6 +6,8 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { sendHeartbeat } from "@/features/family/api/inheritance";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
@@ -24,23 +26,27 @@ function InheritanceHeartbeatScreen() {
   });
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col items-center justify-center gap-4 p-6 text-center">
-      <h1 className="font-semibold text-2xl text-foreground">{t("inheritance.heartbeat.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("inheritance.heartbeat.description")}</p>
+    <ProductScreen className="items-center justify-center text-center">
+      <span className="grid size-24 place-items-center rounded-full bg-primary">
+        <Icon name="heart" size={32} />
+      </span>
+      <ScreenHeader
+        title={t("inheritance.heartbeat.title")}
+        description={t("inheritance.heartbeat.description")}
+        className="text-center"
+      />
 
       {isLoading ? <LoadingRows /> : null}
       {isError ? <ErrorState /> : null}
 
       {wallet !== null ? (
-        <Button
-          size="lg"
-          className="h-16 w-full max-w-xs text-lg"
-          disabled={beat.isPending}
-          onClick={() => beat.mutate(wallet.id)}
-        >
-          {t("inheritance.heartbeatButton")}
-        </Button>
+        <PrimaryZone className="w-full">
+          <Button size="lg" loading={beat.isPending} onClick={() => beat.mutate(wallet.id)}>
+            <Icon name="heart" />
+            {t("inheritance.heartbeatButton")}
+          </Button>
+        </PrimaryZone>
       ) : null}
-    </main>
+    </ProductScreen>
   );
 }

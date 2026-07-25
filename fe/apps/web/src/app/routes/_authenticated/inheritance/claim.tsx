@@ -9,6 +9,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { Icon } from "@/components/family/icon";
+import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { StatusPill } from "@/components/family/status-pill";
 import { planKeys, planOptions, sendHeartbeat } from "@/features/family/api/inheritance";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
@@ -56,9 +59,11 @@ function InheritanceClaimScreen() {
   const canReset = data !== null && data.escalationTier < 3;
 
   return (
-    <main className="mx-auto flex min-h-svh w-full max-w-md flex-col gap-4 p-6">
-      <h1 className="font-semibold text-2xl text-foreground">{t("inheritance.claim.title")}</h1>
-      <p className="text-muted-foreground text-sm">{t("inheritance.claimNew.description")}</p>
+    <ProductScreen>
+      <ScreenHeader
+        title={t("inheritance.claim.title")}
+        description={t("inheritance.claimNew.description")}
+      />
 
       {loading ? <LoadingRows /> : null}
       {walletError || plan.isError ? <ErrorState /> : null}
@@ -71,35 +76,43 @@ function InheritanceClaimScreen() {
 
       {data ? (
         <>
-          <Card>
+          <Card className="bg-paper-2">
             <CardHeader>
               <CardTitle className="text-lg">{t("inheritance.claimNew.statusTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-foreground text-sm">{t(statusKey(data.escalationTier))}</p>
+              <StatusPill state={data.escalationTier >= 3 ? "slow" : "active"}>
+                {t(statusKey(data.escalationTier))}
+              </StatusPill>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="bg-paper-2">
             <CardHeader>
               <CardTitle className="text-lg">{t("inheritance.claimNew.stagesTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
               <div className="flex gap-3">
-                <span className="font-semibold text-muted-foreground text-sm">1</span>
-                <p className="text-foreground text-sm">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary font-bold">
+                  1
+                </span>
+                <p className="text-copy">
                   {t("inheritance.claimNew.stage1", { days: days(data.inactivityPeriodSecs) })}
                 </p>
               </div>
               <div className="flex gap-3">
-                <span className="font-semibold text-muted-foreground text-sm">2</span>
-                <p className="text-foreground text-sm">
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary font-bold">
+                  2
+                </span>
+                <p className="text-copy">
                   {t("inheritance.claimNew.stage2", { days: days(data.finalTimelockSecs) })}
                 </p>
               </div>
               <div className="flex gap-3">
-                <span className="font-semibold text-muted-foreground text-sm">3</span>
-                <p className="text-foreground text-sm">{t("inheritance.claimNew.stage3")}</p>
+                <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary font-bold">
+                  3
+                </span>
+                <p className="text-copy">{t("inheritance.claimNew.stage3")}</p>
               </div>
               <div className="flex items-center justify-between gap-2 border-border border-t pt-3">
                 <span className="text-muted-foreground text-sm">
@@ -117,9 +130,12 @@ function InheritanceClaimScreen() {
           <p className="text-muted-foreground text-xs">{t("inheritance.claimNew.guardianNote")}</p>
 
           {canReset ? (
-            <Button disabled={beat.isPending} onClick={() => wallet && beat.mutate(wallet.id)}>
-              {t("inheritance.claimNew.heartbeatCta")}
-            </Button>
+            <PrimaryZone>
+              <Button loading={beat.isPending} onClick={() => wallet && beat.mutate(wallet.id)}>
+                <Icon name="heart" />
+                {t("inheritance.claimNew.heartbeatCta")}
+              </Button>
+            </PrimaryZone>
           ) : null}
         </>
       ) : null}
@@ -127,6 +143,6 @@ function InheritanceClaimScreen() {
       <Button asChild variant="ghost">
         <Link to="/inheritance">{t("inheritance.claimNew.backCta")}</Link>
       </Button>
-    </main>
+    </ProductScreen>
   );
 }
