@@ -23,7 +23,7 @@ Ngày kiểm: 2026-07-25
 | 1 | `/welcome` | Về lịch sử trước; không có mutation. |
 | 2 | `/get-started` | Về `/welcome`; không có mutation. |
 | 3 | `/passkey` | Về bước trước; passkey chỉ chạy khi bấm CTA, Back không kích hoạt. |
-| 4 | `/recovery` | Về lịch sử trước; recovery draft vẫn ở storage, không tự gửi. |
+| 4 | `/recovery` | Về lịch sử trước; recovery draft chỉ ở RAM của phiên SPA, không tự gửi/persist. |
 | 5 | `/recovery/find-wallet` | Về `/recovery`; nhập chưa submit không tạo yêu cầu. |
 | 6 | `/recovery/sent` | Về find-wallet; địa chỉ recovery nằm trong query string. |
 | 7 | `/recovery/progress` | Về route lịch sử; địa chỉ recovery nằm trong query string. |
@@ -68,6 +68,25 @@ Ngày kiểm: 2026-07-25
   viewport được kiểm tự động nhưng không được ghi là PASS máy thật.
 - Android APK/Capacitor thật: chưa có JDK/Android SDK và native wrapper đã sync, nên
   chưa thể ghi PASS APK; Back logic của luồng gửi đã PASS trong browser history.
-- Chrome MV3 load-unpacked thật nằm ngoài phạm vi chỉ-`fe/`; viewport web 400×560
-  đã PASS 41/41 nhưng không thay thế kiểm popup extension root trên Chrome.
+- Chrome MV3 load-unpacked thật: đã kết nối Chrome nhưng bề mặt điều khiển chặn
+  `chrome://extensions` theo chính sách an toàn. Không lách bằng CDP/Playwright khác;
+  vì vậy chưa load được thư mục `extension/` và chưa được ghi PASS. Viewport web
+  400×560 đã PASS 41/41 nhưng không thay thế popup extension thật.
 
+## Sáu mục QA tay — trạng thái cuối
+
+| # | Mục | Trạng thái | Bằng chứng / giới hạn |
+|---:|---|---|---|
+| 1 | iOS standalone | **CHƯA CHẠY** | Host Windows không có iPhone/iOS Safari. Safe-area + standalone CSS có test tự động, không overclaim máy thật. |
+| 2 | iOS bàn phím | **CHƯA CHẠY** | Viewport 400×320 mô phỏng bàn phím giữ submit trong vùng thấy được; chưa có iOS thật. |
+| 3 | Extension popup load-unpacked | **CHƯA CHẠY** | Chrome đã kết nối nhưng `chrome://extensions` bị chính sách browser-control chặn. |
+| 4 | Android Back phần cứng | **CHƯA CHẠY MÁY THẬT** | Browser-history test PASS: không submit, không mất input; không có Android SDK/device để gọi Back phần cứng. |
+| 5 | 320 px + chuỗi VI dài | **PASS TỰ ĐỘNG** | 41/41 ở 320×568, locale VI; 0 overflow/clip/tap target lỗi. |
+| 6 | Ảnh nhân vật 41 màn | **PASS REVIEW** | Đã đọc bốn contact sheet của 82 baseline; không ô trống/icon vỡ/placeholder lạc. |
+
+Kết luận theo điều kiện người giao việc: QA tay chưa đủ, nên **không push**.
+
+Static audit bổ sung cho mục 3: `extension/manifest.json` khai
+`icons/icon-{16,48,128}.png` nhưng cả ba file đều không tồn tại. Phạm vi được giao
+chỉ cho sửa `fe/`, nên không tự ý vá `extension/`; đây là blocker cần xử trước lần
+load-unpacked tiếp theo.

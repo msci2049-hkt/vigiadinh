@@ -7,7 +7,7 @@
 
 import { Address, nativeToScVal, xdr } from "@stellar/stellar-sdk";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BlindSignError } from "@/lib/auth-entry-guard";
@@ -123,7 +123,9 @@ describe("useSendMachine — timeout ≠ thất bại (QA-8)", () => {
         }),
       { wrapper: makeWrapper() },
     );
-    void result.current.start(REVIEW, LOCAL);
+    act(() => {
+      void result.current.start(REVIEW, LOCAL);
+    });
 
     await waitFor(() => expect(result.current.phase).toBe("unconfirmed"));
     expect(result.current.canRetry).toBe(false); // KHÔNG có đường gửi lại
@@ -147,7 +149,9 @@ describe("useSendMachine — timeout ≠ thất bại (QA-8)", () => {
         }),
       { wrapper: makeWrapper() },
     );
-    void result.current.start(REVIEW, LOCAL);
+    act(() => {
+      void result.current.start(REVIEW, LOCAL);
+    });
 
     await waitFor(() => expect(result.current.phase).toBe("failed"));
     expect(result.current.error).toBeInstanceOf(DefiniteSubmitFailure);
@@ -168,7 +172,9 @@ describe("useSendMachine — timeout ≠ thất bại (QA-8)", () => {
         }),
       { wrapper: makeWrapper() },
     );
-    void result.current.start(REVIEW, LOCAL);
+    act(() => {
+      void result.current.start(REVIEW, LOCAL);
+    });
 
     await waitFor(() => expect(result.current.pollExhausted).toBe(true));
     expect(result.current.phase).toBe("unconfirmed");
@@ -185,7 +191,9 @@ describe("useSendMachine — guard chống ký mù giữ nguyên sau pre-warm (�
       () => useSendMachine({ walletId: "w1", walletAddress: WALLET, signEntries, timing: FAST }),
       { wrapper: makeWrapper() },
     );
-    void result.current.start(REVIEW, LOCAL);
+    act(() => {
+      void result.current.start(REVIEW, LOCAL);
+    });
 
     await waitFor(() => expect(result.current.phase).toBe("failed"));
     expect(result.current.error).toBeInstanceOf(BlindSignError);
@@ -203,7 +211,9 @@ describe("useSendMachine — guard chống ký mù giữ nguyên sau pre-warm (�
       () => useSendMachine({ walletId: "w1", walletAddress: WALLET, signEntries, timing: FAST }),
       { wrapper: makeWrapper() },
     );
-    void result.current.start(REVIEW, { recipient: FRIEND, amountStroops: "2000000" });
+    act(() => {
+      void result.current.start(REVIEW, { recipient: FRIEND, amountStroops: "2000000" });
+    });
 
     await waitFor(() => expect(result.current.phase).toBe("failed"));
     expect(result.current.error).toBeInstanceOf(BlindSignError);
@@ -225,7 +235,9 @@ describe("useSendMachine — thất bại TRƯỚC điểm nộp thì retry an t
         }),
       { wrapper: makeWrapper() },
     );
-    void result.current.start(REVIEW, LOCAL);
+    act(() => {
+      void result.current.start(REVIEW, LOCAL);
+    });
 
     await waitFor(() => expect(result.current.phase).toBe("failed"));
     expect(result.current.canRetry).toBe(true);
@@ -244,7 +256,9 @@ describe("useSendMachine — thất bại TRƯỚC điểm nộp thì retry an t
       () => useSendMachine({ walletId: "w1", walletAddress: WALLET, signEntries, timing: FAST }),
       { wrapper: makeWrapper() },
     );
-    void result.current.start(REVIEW, LOCAL);
+    act(() => {
+      void result.current.start(REVIEW, LOCAL);
+    });
 
     await waitFor(() => expect(result.current.phase).toBe("awaiting_guardian"));
     expect(signEntries).not.toHaveBeenCalled();

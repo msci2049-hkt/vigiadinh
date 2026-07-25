@@ -1,6 +1,6 @@
 // Cổng khôi phục (PUBLIC — người mất máy chưa có session, chủ ý). Giải thích
 // 3 bước bằng chữ người thường rồi dẫn vào find-wallet; ai đã gửi rồi thì
-// nhảy thẳng sang tiến độ (draft còn trong localStorage).
+// nhảy thẳng sang tiến độ khi draft còn trong RAM của phiên SPA hiện tại.
 
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";

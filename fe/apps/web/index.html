@@ -43,7 +43,19 @@
     <title>%VITE_APP_NAME%</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!--
+        First-paint shell: real text plus content-shaped blocks let the browser
+        paint before the React entry arrives. createRoot replaces this markup.
+      -->
+      <main class="app-boot-shell" aria-busy="true">
+        <p class="app-boot-brand">%VITE_APP_NAME%</p>
+        <div class="app-boot-title"></div>
+        <div class="app-boot-line"></div>
+        <div class="app-boot-card"></div>
+        <div class="app-boot-card"></div>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

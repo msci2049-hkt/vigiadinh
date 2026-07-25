@@ -1,14 +1,13 @@
 // Luồng MÁY MỚI của người mất máy (PHA 6 cụm GHI — public, chưa có session):
 // 1) tạo passkey MỚI ngay trên máy này (khoá không bao giờ rời secure enclave),
 // 2) gửi vật liệu PUBLIC (verifier + public key) qua cửa public cho guardian,
-// 3) giữ draft ở localStorage để màn "done" nối ví sau khi khôi phục xong.
+// 3) giữ draft CHỈ trong RAM của phiên SPA để màn "done" nối ví sau khi khôi phục xong.
+// Reload/tab mới cố ý mất draft: vật liệu liên kết ví không được persist trong web storage.
 // Server chỉ chuyển lời — không sinh/giữ/ký khoá (bất biến 2).
 import { queryOptions } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { env } from "@/lib/env";
 import { getWalletKit } from "../lib/kit";
-
-const DRAFT_KEY = "fw.recovery.draft";
 
 export type RecoveryDraft = {
   address: string;
@@ -18,22 +17,14 @@ export type RecoveryDraft = {
   fingerprint: string;
 };
 
+let recoveryDraft: RecoveryDraft | null = null;
+
 export function loadRecoveryDraft(): RecoveryDraft | null {
-  try {
-    const raw = localStorage.getItem(DRAFT_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as RecoveryDraft;
-    if (!parsed.address || !parsed.credentialId || !parsed.keyBase64 || !parsed.fingerprint) {
-      return null;
-    }
-    return parsed;
-  } catch {
-    return null;
-  }
+  return recoveryDraft;
 }
 
 export function clearRecoveryDraft(): void {
-  localStorage.removeItem(DRAFT_KEY);
+  recoveryDraft = null;
 }
 
 // Browser không có Buffer — encode/decode tay như sep45-entries.
@@ -79,7 +70,7 @@ export async function knockWithNewPasskey(address: string): Promise<RecoveryDraf
     keyBase64,
     fingerprint: res.data.fingerprint,
   };
-  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  recoveryDraft = draft;
   return draft;
 }
 

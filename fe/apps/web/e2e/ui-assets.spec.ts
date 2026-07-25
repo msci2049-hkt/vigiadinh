@@ -539,6 +539,11 @@ const VIEWPORTS = [
   { name: "tablet", width: 1024, height: 900 },
 ] as const;
 
+const VISUAL_VIEWPORTS = [
+  { name: "iphone-390", width: 390, height: 844 },
+  { name: "popup-400", width: 400, height: 560 },
+] as const;
+
 type LayoutResult = {
   route: string;
   viewport: (typeof VIEWPORTS)[number]["name"];
@@ -797,3 +802,54 @@ test("safe-area viewport shell honors simulated device insets", async ({ page })
   expect(platform.topPadding).toBeGreaterThanOrEqual(47);
   expect(platform.bottomPadding).toBeGreaterThanOrEqual(34);
 });
+
+for (const viewport of VISUAL_VIEWPORTS) {
+  for (const [index, route] of ROUTES.entries()) {
+    const slug =
+      route
+        .replace(/[?#].*$/, "")
+        .replace(/^\/|\/$/g, "")
+        .replaceAll("/", "-")
+        .replaceAll("$", "") || "home";
+
+    test(`visual regression ${viewport.name} ${route}`, async ({ page }) => {
+      await page.setViewportSize({ width: viewport.width, height: viewport.height });
+      await mockBackend(page);
+      await page.goto(route, { waitUntil: "domcontentloaded" });
+      await page.locator(".product-screen").waitFor({ state: "visible", timeout: 8_000 });
+      await page.evaluate(async () => {
+        await document.fonts.ready;
+        await Promise.all(
+          Array.from(document.images).map((image) => image.decode().catch(() => undefined)),
+        );
+      });
+      await page.addStyleTag({
+        content: `
+          *, *::before, *::after {
+            animation-delay: 0s !important;
+            animation-duration: 0s !important;
+            caret-color: transparent !important;
+            transition: none !important;
+          }
+          html { scroll-behavior: auto !important; }
+          ::-webkit-scrollbar { display: none !important; }
+        `,
+      });
+
+      await expect(page).toHaveScreenshot(
+        `${String(index + 1).padStart(2, "0")}-${slug}-${viewport.name}.png`,
+        {
+          animations: "disabled",
+          caret: "hide",
+          fullPage: true,
+          mask: [
+            page.locator(
+              '[data-testid*="countdown"], [data-testid*="identity-address"], .money-amount, code, time',
+            ),
+          ],
+          maxDiffPixelRatio: 0.01,
+        },
+      );
+    });
+  }
+}

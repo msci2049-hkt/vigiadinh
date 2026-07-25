@@ -6,4 +6,49 @@
 @import "./components/family/theme.css";
 @import "./components/family/family.css";
 
+/*
+ * Serverless first-paint shell. It matches the product paper and content
+ * geometry, then React replaces it atomically; this avoids an empty/white
+ * document while the entry chunks are still loading.
+ */
+.app-boot-shell {
+  width: min(100%, 34rem);
+  min-height: 100svh;
+  margin-inline: auto;
+  padding: max(1.5rem, env(safe-area-inset-top)) 1.5rem max(1.5rem, env(safe-area-inset-bottom));
+  color: #0a0a0a;
+  background: #fdfcf7;
+  font-family: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+}
+
+.app-boot-brand {
+  margin: 0 0 4rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.app-boot-title,
+.app-boot-line,
+.app-boot-card {
+  border-radius: 0.875rem;
+  background: #e8e5db;
+}
+
+.app-boot-title {
+  width: 68%;
+  height: 2.5rem;
+}
+
+.app-boot-line {
+  width: 100%;
+  height: 1rem;
+  margin-top: 1rem;
+}
+
+.app-boot-card {
+  width: 100%;
+  height: 5rem;
+  margin-top: 1.25rem;
+}
+
 /* Product, auth and admin all use the app-local family system. */

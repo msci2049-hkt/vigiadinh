@@ -16,6 +16,8 @@
     "test:e2e": "turbo run test:e2e",
     "test:assets": "corepack pnpm --filter @repo/web test:assets",
     "test:layout": "corepack pnpm --filter @repo/web test:layout",
+    "test:visual": "corepack pnpm --filter @repo/web test:visual",
+    "test:perf": "corepack pnpm --filter @repo/web test:perf",
     "bundle:report": "node scripts/measure-web-bundle.mjs",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",

@@ -21,9 +21,18 @@ export interface I18nResources {
   fw: typeof fw_vi;
 }
 
-// Lazy namespaces (`auth`/`errors`/`admin`/`fw`) stay OUT of the entry —
-// Vite code-splits each `src/locales/<lng>/<ns>.json` chunk; the template
-// literal MUST live in the app (not @repo/i18n) so Vite's glob analysis sees it.
+// Lazy namespaces (`auth`/`errors`/`admin`/`fw`) stay OUT of the entry.
+// The glob deliberately excludes `common`: it is already eager above, and including
+// it in a dynamic-import graph makes Vite emit a misleading static/dynamic warning.
+const lazyNamespaces = import.meta.glob("../locales/*/{admin,auth,errors,fw}.json");
+
+function loadNamespace(lng: string, ns: string): Promise<unknown> {
+  const loader = lazyNamespaces[`../locales/${lng}/${ns}.json`];
+  return loader
+    ? loader()
+    : Promise.reject(new Error(`Unsupported locale namespace: ${lng}/${ns}`));
+}
+
 // zh = Chinese (Simplified). `load: "languageOnly"` gộp zh-CN/zh-Hans/zh-TW → "zh"
 // nên MỘT catalog "zh" phục vụ mọi biến thể; nội dung là Giản thể (skill i18n-en-vi-zh).
 const i18n = initI18n({
@@ -34,7 +43,7 @@ const i18n = initI18n({
     en: { common: common_en },
     zh: { common: common_zh },
   },
-  loadNamespace: (lng: string, ns: string) => import(`../locales/${lng}/${ns}.json`),
+  loadNamespace,
   defaultNS,
 });
 
