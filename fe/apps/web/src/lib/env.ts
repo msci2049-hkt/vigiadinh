@@ -25,17 +25,18 @@ const EnvSchema = z.object({
   // Trước đây hai biến này default testnet: bản build production quên set env sẽ
   // IM LẶNG trỏ mạng thử. Giờ thiếu là throw ngay khi import env (trang trắng có
   // message rõ thay vì ví giả) — dev lấy giá trị từ .env (xem .env.example).
+  // Message KHÔNG nêu giá trị testnet (chuỗi sẽ bị nướng vào bundle → dính gate
+  // D4 no-testnet của deploy-fe.yml) — trỏ sang file example là đủ.
   VITE_STELLAR_RPC_URL: z.url({
     error:
       "VITE_STELLAR_RPC_URL bắt buộc — không còn default testnet. " +
-      "Dev: https://soroban-testnet.stellar.org · Prod: https://api.familyhaven.mscilabs.com/rpc",
+      "Giá trị dev: .env.example · production: env.production.example (proxy /rpc).",
   }),
   VITE_STELLAR_NETWORK_PASSPHRASE: z
     .string({
       error:
         "VITE_STELLAR_NETWORK_PASSPHRASE bắt buộc — không còn default testnet. " +
-        'Testnet: "Test SDF Network ; September 2015" · ' +
-        'Mainnet: "Public Global Stellar Network ; September 2015"',
+        "Giá trị dev: .env.example · production: env.production.example.",
     })
     .min(1),
   // WASM hash smart account + verifier đã deploy (contracts/). Trống = chưa nối

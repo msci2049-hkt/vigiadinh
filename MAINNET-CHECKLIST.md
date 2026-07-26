@@ -41,12 +41,13 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 
 ## D — GATES TRONG deploy-fe.yml
 
-- ☐ D1. Trước Build: fail nếu rỗng 4 biến chain + WEB_AUTH_CONTRACT_ID (echo tên biến thiếu)
-- ☐ D2. dist/assets PHẢI có `['"]familyhaven\.mscilabs\.com['"]`
-- ☐ D3. dist/assets KHÔNG có `['"]mscilabs\.com['"]`
-- ☐ D4. dist/assets KHÔNG có `soroban-testnet|Test SDF Network|friendbot`
-- ☐ D5. dist stellar.toml: CÓ passphrase mainnet, KHÔNG `__WEB_AUTH_CONTRACT_ID__`/`Test SDF`
-- ☐ D-localhost: thêm nếu không false-positive từ guard clause env.ts; dính thì bỏ + ghi lý do
+- ✅ D1. Step "Gate mainnet vars (D1)" trước Build: fail + echo đúng TÊN biến thiếu cho 4 biến chain + `WEB_AUTH_CONTRACT_ID`. Cố ý fail-loud (khác skip-deploy của CF secrets): workflow sẽ ĐỎ tới khi điền GitHub vars — đúng thiết kế.
+- ✅ D2. `grep -rqE "${Q}familyhaven\.mscilabs\.com${Q}"` (Q=`['"]`) trên dist/assets — PHẢI có (thay gate rpId cũ không-quote)
+- ✅ D3. `grep -rqE "${Q}mscilabs\.com${Q}"` — PHẢI KHÔNG có (apex quoted; `"familyhaven.mscilabs.com"` không dính vì trước `mscilabs` là dấu chấm)
+- ✅ D4. `soroban-testnet|Test SDF Network|friendbot` — PHẢI KHÔNG có trong dist/assets. Kéo theo: sửa message lỗi env.ts (A1) bỏ literal giá trị testnet (nó bị nướng vào bundle → tự làm D4 đỏ); message giờ trỏ `.env.example`/`env.production.example`. Đã rg toàn src (loại *.test.*): 0 tripwire còn lại.
+- ✅ D5. dist stellar.toml: PHẢI có passphrase mainnet; PHẢI KHÔNG có `__WEB_AUTH_CONTRACT_ID__`/`Test SDF`. Placeholder-check toàn dist thêm `__WEB_AUTH_CONTRACT_ID__`.
+- ✅ D-localhost: **BỎ gate cứng, có ghi chú trong workflow** — guard fail-closed của env.ts (`=== "localhost"` + message) tự chứa literal `"localhost"` trong bundle → false-positive chính đáng. Giữ cảnh báo mềm in context; D2/D3 vẫn là gate cứng cho rpId.
+  - File: `.github/workflows/deploy-fe.yml` (step D1 + khối Verify dist) · `fe/apps/web/src/lib/env.ts` (message)
 
 ## E — GUARD E2E
 
