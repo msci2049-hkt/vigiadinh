@@ -75,6 +75,13 @@ export const envShape = {
   // Optional: production khuyến nghị bật, dev/test có thể bỏ.
   SENTRY_DSN: z.url().optional(),
 
+  // Service account Firebase (JSON 1 dòng) cho kênh push của dispatcher thông báo.
+  // TRỐNG = push CHƯA cấu hình → dispatcher đánh row `failed` với lý do
+  // PUSH_NOT_CONFIGURED + log ERROR. CỐ Ý fail ồn ào: một kênh cảnh báo mà người
+  // vận hành TƯỞNG đang chạy còn nguy hiểm hơn một kênh biết rõ là tắt.
+  // Không phải PROD-REQUIRED: email mới là đường bắt buộc cho sự kiện an ninh.
+  FIREBASE_SERVICE_ACCOUNT_JSON: z.string().optional(),
+
   // === Stellar / SEP-45 (PHA 2.3 — đăng nhập bằng ví contract) ===
   STELLAR_RPC_URL: z.url().default("https://soroban-testnet.stellar.org"),
   STELLAR_NETWORK_PASSPHRASE: z.string().min(1).default("Test SDF Network ; September 2015"),

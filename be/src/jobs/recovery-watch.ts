@@ -46,7 +46,16 @@ export async function scheduleRecoveryWatch(): Promise<void> {
 export type WatchResult = { checked: number; alerted: number; skipped: boolean };
 
 export async function runRecoveryWatchTick(): Promise<WatchResult> {
-  if (!env.CONTRACT_ID_RECOVERY) return { checked: 0, alerted: 0, skipped: true };
+  if (!env.CONTRACT_ID_RECOVERY) {
+    // Skip là ĐÚNG (chưa có contract thì không có gì để hỏi) nhưng phải ỒN ÀO.
+    // Im lặng ở đây nghĩa là cron chạy mỗi 10 phút, không kiểm ví nào, không lỗi
+    // — nhìn mọi mặt đều "khoẻ" trong khi phòng tuyến báo-cho-chủ-ví đang TẮT.
+    // Cờ đọc-bằng-máy tương ứng nằm ở `/ready` → watchers.recoveryWatch.
+    logger.warn(
+      "recovery.watch.disabled: CONTRACT_ID_RECOVERY chưa set — KHÔNG ví nào được canh recovery",
+    );
+    return { checked: 0, alerted: 0, skipped: true };
+  }
 
   const rows = await db
     .select({ id: wallets.id, userId: wallets.userId, address: wallets.stellarAddress })

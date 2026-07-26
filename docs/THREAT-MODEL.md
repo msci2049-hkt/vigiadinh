@@ -27,7 +27,7 @@ TRONG smart account** (audit P0); AI chưa nối; két di chúc ĐÃ HỦY (bấ
 | Kẻ địch | Đòn đỡ chính | Cưỡng chế |
 |---|---|---|
 | **Kẻ lừa guardian** (giả chủ ví, xin duyệt) | Xác minh NGOÀI BĂNG (đọc fingerprint khoá mới qua điện thoại) + timelock + owner veto mọi kênh | FE `guardian/initiate` + `guardian/approve` hiện fingerprint từ mirror-chain; `sign-recovery-entries` chống-ký-mù; `entry-fingerprint` so khoá trong entry vs mirror TRƯỚC khi ký |
-| **Guardian thông đồng ≥threshold** | Timelock dài + notify đa kênh + owner veto THẮNG threshold trong timelock; policy on-chain | `finalize_recovery` gác timelock; `cancel_recovery` bởi ví thắng cả khi đủ phiếu (test `veto_kills_recovery_and_approve_after_dies`) |
+| **Guardian thông đồng ≥threshold** | Timelock dài + notify **email** (push CHƯA cấu hình) + owner veto THẮNG threshold trong timelock; policy on-chain | `finalize_recovery` gác timelock; `cancel_recovery` bởi ví thắng cả khi đủ phiếu (test `veto_kills_recovery_and_approve_after_dies`). Đường báo: `be/src/jobs/notification-dispatch.ts`, test `notification-dispatch.integration.test.ts` (mail thật vào Mailhog) |
 | **Chiếm backend** | Bất biến 1+2: không key, custody on-chain — mất availability, không mất tiền/quyền | Registry chỉ là *delegated invoker* cho ĐÚNG cửa `recovery_rotate`; chiếm BE cũng chỉ build được tx, không ký được của user; **cooldown** chặn xoay-rồi-rút-ngay |
 | **Chiếm AI** | AI không secret, không route ghi, output validate, kill-switch | Chưa nối AI (PHA sau); kill-switch `AI_ENABLED=false` là ràng buộc thiết kế |
 | **Mất máy hàng loạt** (nhà cháy) | Passkey sync platform + guardian ngoài hộ + heartbeat ladder + luồng máy-mới public | `recovery/*` PUBLIC (không cần session); `recovery.device_requested` notify guardian; heartbeat tier 1/2/3 (PHA 4) |
@@ -75,6 +75,30 @@ Chứng minh on-chain: e2e testnet gửi 1 XLM từ ví C…, người nhận nh
 - Audit append-only: TRIGGER Postgres — UPDATE/DELETE (0002) **và TRUNCATE** (0008, statement-level)
   chết thật (test integration). Còn hở: app chạy bằng role sở hữu bảng → `DROP TRIGGER` được (B-SEC-4).
 - Indexer là người ghi DUY NHẤT của mirror; sống sót restart giữa batch (checkpoint atomic).
+
+## Closeout đợt 3 (2026-07-26) — chuỗi thông báo
+
+- **🔴 Đường báo cho chủ ví ĐÃ NỐI LIỀN (mắt xích veto).** Trước đợt này:
+  `enqueueNotification()` chỉ INSERT một dòng vào bảng `notifications` rồi HẾT — **không
+  consumer nào** đọc bảng đó, và `sendEmail` có đúng **một** caller trong toàn repo
+  (`auth.ts`, OTP đăng ký). Nghĩa là 4 producer (recovery-watch, presence-ping, indexer,
+  heartbeat) đều ghi vào một hàng đợi **không ai đọc**. Chủ ví KHÔNG BAO GIỜ biết có
+  recovery đang mở → cửa sổ veto vô nghĩa, vì `finalize_recovery` không cần auth.
+  **Đã vá:** `be/src/jobs/notification-dispatch.ts` (cron 60s, claim lease atomic
+  `FOR UPDATE SKIP LOCKED`, backoff mũ, tối đa 5 lượt).
+  **Bằng chứng `[CHẠY THẬT]`:** `be/src/jobs/notification-dispatch.integration.test.ts` —
+  enqueue → tick → **mail nằm trong hộp thư Mailhog thật** (đọc lại qua HTTP API, không
+  phải mock); tick lần hai KHÔNG gửi lại (idempotent).
+- **Push (`channel='push'`) CHƯA CẤU HÌNH và cố ý fail ỒN ÀO.** Thiếu
+  `FIREBASE_SERVICE_ACCOUNT_JSON` → row đánh `failed` + `last_error='PUSH_NOT_CONFIGURED'`
+  + log ERROR, KHÔNG im lặng bỏ qua. Cờ đọc-bằng-máy: `/ready` → `watchers.push`.
+  **Hệ quả còn nguyên:** kênh ngoài-app hiện CHỈ có email. Với ví thừa kế (ca dùng chính là
+  *nhiều năm không mở app*) email là đường DUY NHẤT còn sống — chưa có kênh dự phòng nào.
+- **`recovery-watch` skip im lặng — ĐÃ ỒN ÀO.** Thiếu `CONTRACT_ID_RECOVERY` thì cron vẫn
+  chạy 10 phút/lần, không kiểm ví nào, không lỗi. Nay log WARN mỗi lần skip + cờ
+  `/ready` → `watchers.recoveryWatch = "disabled"`.
+  **CHƯA ĐÓNG:** điều kiện đóng thật là deploy contract testnet → set `CONTRACT_ID_RECOVERY`
+  → xác nhận `alerted > 0` trong một lần dựng recovery thật. Chưa làm được phiên này.
 
 ## Closeout đợt 2 (2026-07-25) — đóng gì, và phát hiện MỚI
 

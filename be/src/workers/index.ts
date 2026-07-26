@@ -10,6 +10,10 @@ import type { Worker } from "bullmq";
 import { createHeartbeatWorker, scheduleHeartbeatWatch } from "@/jobs/heartbeat-watch";
 import { createIndexerWorker, scheduleIndexerPoll } from "@/jobs/indexer-poll";
 import { createIntentSweeperWorker, scheduleIntentSweeper } from "@/jobs/intent-sweeper";
+import {
+  createNotificationDispatchWorker,
+  scheduleNotificationDispatch,
+} from "@/jobs/notification-dispatch";
 import { createPresenceWorker, schedulePresencePing } from "@/jobs/presence-ping";
 import { createRecoveryWatchWorker, scheduleRecoveryWatch } from "@/jobs/recovery-watch";
 import { createTtlKeeperWorker, scheduleTtlKeeper } from "@/jobs/ttl-keeper";
@@ -23,6 +27,9 @@ const workers: Worker[] = [
   createHeartbeatWorker(),
   createTtlKeeperWorker(),
   createRecoveryWatchWorker(),
+  // Mắt xích cuối của veto: không có worker này thì mọi enqueueNotification()
+  // chỉ nằm chết trong bảng, chủ ví không bao giờ biết có recovery đang mở.
+  createNotificationDispatchWorker(),
 ];
 // Lịch lặp đăng ký từ worker process (jobId cố định → gọi lại vô hại).
 void scheduleIntentSweeper();
@@ -31,6 +38,7 @@ void scheduleIndexerPoll();
 void scheduleHeartbeatWatch();
 void scheduleTtlKeeper();
 void scheduleRecoveryWatch();
+void scheduleNotificationDispatch();
 
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {

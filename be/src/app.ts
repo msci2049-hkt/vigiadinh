@@ -134,7 +134,16 @@ app.get("/ready", async (c) => {
   try {
     await db.execute(sql`SELECT 1`);
     await rateLimitConnection.ping();
-    return c.json({ ok: true });
+    // Cờ ĐỌC ĐƯỢC BẰNG MÁY cho các phòng tuyến có thể đang TẮT.
+    // recovery-watch skip toàn bộ khi thiếu CONTRACT_ID_RECOVERY: cron vẫn chạy
+    // 10 phút/lần, không kiểm ví nào, không báo lỗi — tức là "xanh" mà mù. Phơi
+    // ra đây để giám sát bắt được, thay vì phải đi đọc log mới biết.
+    // KHÔNG trả 503: app vẫn phục vụ được, đây là cảnh báo vận hành.
+    const watchers = {
+      recoveryWatch: env.CONTRACT_ID_RECOVERY ? "enabled" : "disabled",
+      push: env.FIREBASE_SERVICE_ACCOUNT_JSON ? "enabled" : "disabled",
+    } as const;
+    return c.json({ ok: true, watchers });
   } catch (err) {
     return c.json({ ok: false, error: (err as Error).message }, 503);
   }
