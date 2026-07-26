@@ -3,26 +3,58 @@
 # production chạy KHÔNG có header bảo mật nào (security review 2026-07-20).
 # Giữ ĐỒNG BỘ với deploy/nginx.conf — sửa một bên phải sửa bên kia.
 #
+# File PHẢI nằm trong `public/` để Vite copy vào `dist/`. Đặt ở gốc repo là
+# Cloudflare không bao giờ thấy.
+#
 # ⚠️ __API_ORIGIN__ là PLACEHOLDER: pipeline deploy phải thay bằng origin BE thật
 # (= VITE_API_URL prod). Quên thay → connect-src co về 'self' → fetch/SSE bị chặn
 # (fail-closed, hỏng ồn ào chứ không nới lỏng âm thầm). Xem docs/HUMAN-TODO.md.
+# Bước thay + bước verify "không còn placeholder trong dist" nằm ở
+# `.github/workflows/deploy-fe.yml` (ROOT — GitHub chỉ đọc workflow ở root monorepo).
 #
-# ⚠️ sha256 dưới đây là hash của inline FOUC script trong apps/web/index.html.
+# ⚠️ sha256 dưới đây là hash của inline FOUC script trong apps/web/index.html:24.
 # Sửa script đó → PHẢI tính lại hash (đừng bao giờ "sửa" bằng 'unsafe-inline' —
-# làm vậy là vứt bỏ toàn bộ tác dụng chống XSS của CSP).
+# làm vậy là vứt bỏ toàn bộ tác dụng chống XSS của CSP). Tính lại:
+#   node scripts/csp-script-hash.mjs
+#
+# ⚠️ `style-src` GIỮ 'unsafe-inline' — CÓ LÝ DO ĐO ĐƯỢC, không phải lười:
+# `grep -rn "style={{" apps/web/src | wc -l` = **0** (ta không có inline style),
+# NHƯNG `sonner` (toast — apps/web/package.json) TIÊM MỘT <style> LÚC CHẠY. Bỏ
+# 'unsafe-inline' là toast chết câm, mà toast là nơi báo lỗi tiền. Muốn siết thì
+# phải chuyển sonner sang nonce/hash và VERIFY TRONG TRÌNH DUYỆT THẬT trước —
+# đừng siết mù khi không chạy được app (xem B-FE-1).
 /*
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-81loPoXAH2d7v6xD+o+5CuQ/gzjTzt45bNHddccOcTs='; connect-src 'self' __API_ORIGIN__
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-81loPoXAH2d7v6xD+o+5CuQ/gzjTzt45bNHddccOcTs='; connect-src 'self' __API_ORIGIN__ __RPC_ORIGIN__
   X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
   Cross-Origin-Opener-Policy: same-origin
   Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains
 
-# Asset có hash trong tên → cache vĩnh viễn, an toàn.
+# Asset có hash trong tên → cache vĩnh viễn, an toàn vì tên đổi khi nội dung đổi.
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Service worker: KHÔNG để cache trung gian giữ bản cũ — update-toast (D-052)
-# dựa vào việc browser thấy sw.js mới ngay ở lần kiểm tra kế tiếp.
+# Service worker: TUYỆT ĐỐI KHÔNG immutable — cache trung gian giữ bản cũ nghĩa là
+# người dùng mắc kẹt ở bản cũ MÃI MÃI. update-toast (D-052) dựa vào việc browser
+# thấy sw.js mới ngay ở lần kiểm tra kế tiếp.
 /sw.js
-  Cache-Control: no-cache
+  Cache-Control: public, max-age=0, must-revalidate
+
+# registerSW.js KHÔNG được sinh ở cấu hình hiện tại (app import
+# `virtual:pwa-register/react` trong components/update-toast.tsx → vite-plugin-pwa
+# không tạo file rời). Luật cho file không tồn tại là no-op — giữ làm bảo hiểm nếu
+# sau này đổi `injectRegister`.
+/registerSW.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+# HTML luôn tươi — nó là thứ trỏ tới asset hash mới.
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+# stellar.toml: client SEP-45 (ví khác, KHÁC origin) đọc file này → cần CORS.
+/.well-known/stellar.toml
+  Access-Control-Allow-Origin: *
+  Content-Type: text/plain; charset=utf-8
+  Cache-Control: public, max-age=300

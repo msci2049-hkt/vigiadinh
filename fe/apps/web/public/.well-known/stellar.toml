@@ -1,0 +1,27 @@
+# stellar.toml — SEP-1, phục vụ ở HOME DOMAIN (https://familyhaven.mscilabs.com).
+# Client SEP-45 đọc file này để biết gọi đâu và tin chữ ký của ai.
+#
+# ⚠️ TESTNET. Lên mainnet phải đổi NETWORK_PASSPHRASE + deploy lại contract
+# web-auth + đổi WEB_AUTH_CONTRACT_ID (contract id gắn chặt với network).
+#
+# ⚠️ Xem BLOCKERS B-SEP45-1: backend hiện tách GET/POST ra HAI đường
+# (/api/sep45/challenge và /api/sep45/token) trong khi spec đòi MỘT endpoint
+# nhận cả hai verb. FE của ta gọi thẳng hai đường đó nên luồng trong app CHẠY,
+# nhưng client SEP-45 bên thứ ba đọc file này sẽ hỏng. Giá trị dưới đây là giá
+# trị ĐÚNG THEO SPEC — nó sẽ đúng ngay khi backend gộp hai verb về một path.
+
+VERSION = "2.7.0"
+
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+
+# Endpoint xác thực ví-hợp-đồng (SEP-45).
+WEB_AUTH_FOR_CONTRACTS_ENDPOINT = "https://api.familyhaven.mscilabs.com/api/sep45"
+
+# Contract web_auth_verify đã deploy testnet (contracts/web-auth).
+# Khớp BE env SEP45_WEB_AUTH_CONTRACT_ID — lệch là mọi challenge bị từ chối.
+WEB_AUTH_CONTRACT_ID = "CAKV3MKK3WA2CJX56LA52YYAG7FDMQTD7ZYRT3FKXUOCOEXZIANG2SST"
+
+# Khoá CÔNG KHAI của server, để client verify entry do server ký trong challenge.
+# Đây là địa chỉ G... — công khai theo định nghĩa. Khoá bí mật S... nằm ở
+# BE env SEP45_SIGNING_KEY và KHÔNG BAO GIỜ xuất hiện ở đây.
+SIGNING_KEY = "GB36727O4PD6ASHCJAREPS7XJZZL467LHETUTQYLFGJXFNZYRZQOBQBP"

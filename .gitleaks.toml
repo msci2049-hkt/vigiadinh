@@ -51,6 +51,18 @@ regexes = ['''41EEWAH79Y5OCGI7/mainnet''']
 description = "Stellar contract address (C... 56 ký tự) — định danh công khai"
 regexes = ['''\bC[A-Z2-7]{55}\b''']
 
+# Địa chỉ TÀI KHOẢN Stellar: base32 'G' + 55 ký tự = KHOÁ CÔNG KHAI ed25519.
+# Chú thích ngay phía trên đã nói "C/G là công khai" nhưng chỉ allowlist C —
+# lỗ này lộ ra 2026-07-26 khi thêm `SIGNING_KEY` vào
+# fe/apps/web/public/.well-known/stellar.toml: SEP-1 YÊU CẦU công bố khoá công
+# khai của server để client verify chữ ký challenge, tức giá trị này bắt buộc
+# phải phơi cho cả thế giới đọc. `generic-api-key` bắt nhầm vì entropy cao.
+# Khoá BÍ MẬT tương ứng là S... — vẫn bị `stellar-secret-seed` chặn, không đụng.
+# KHÔNG được nới thành [A-Z2-7] không neo chữ đầu — làm thế là mở cửa cho seed.
+[[allowlists]]
+description = "Stellar account address (G... 56 ký tự) — khoá CÔNG KHAI ed25519"
+regexes = ['''\bG[A-Z2-7]{55}\b''']
+
 # Khoá CÔNG KHAI của Chrome extension (manifest `key`) — chính là thứ ghim
 # extension ID, có mặt trong mọi extension đã publish. Khoá RIÊNG (.pem) nằm
 # ngoài repo. Allowlist đúng MỘT giá trị này.

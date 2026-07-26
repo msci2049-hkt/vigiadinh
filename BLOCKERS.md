@@ -510,7 +510,7 @@ node_modules/.pnpm/@rolldown+binding-linux-x64-gnu ← KHÔNG có
 - **Hệ quả:** mọi test FE phiên này ở mức `[CHƯA CHẠY ĐƯỢC]`, KHÔNG phải `[CHẠY THẬT]`.
   `tsc --noEmit` FE vẫn xanh (không cần rolldown).
 
-## B-FE-2 · `public/.well-known/stellar.toml` KHÔNG TỒN TẠI → SEP-45 login không chạy
+## B-FE-2 · `public/.well-known/stellar.toml` — ĐÃ TẠO 2026-07-26 (đóng phần thiếu file)
 
 `fe/apps/web/public/.well-known/` chỉ có `apple-app-site-association` + `assetlinks.json`.
 SEP-45 đòi `stellar.toml` ở home domain, chứa `WEB_AUTH_FOR_CONTRACTS_ENDPOINT` +
@@ -522,3 +522,54 @@ Giá trị đã có sẵn để điền (BE `.env`):
 **Chưa làm trong phiên này** — hết ngân sách context, và cần chốt luôn home domain
 production (`familyhaven.mscilabs.com`) + endpoint (`https://api.familyhaven.mscilabs.com/api/sep45`)
 trước khi ghi file, để không đẻ ra một file sai phải sửa lại sau.
+
+**Đã tạo** `fe/apps/web/public/.well-known/stellar.toml` với giá trị testnet THẬT:
+`WEB_AUTH_CONTRACT_ID=CAKV3MKK…SST` (khớp BE env) + `SIGNING_KEY=GB3672…QBP` (khoá CÔNG KHAI
+dẫn xuất từ `SEP45_SIGNING_KEY`; khoá bí mật KHÔNG rời env). Lên mainnet phải đổi passphrase +
+deploy lại contract + đổi id. TOML đã verify parse được.
+
+## B-SEP45-1 · BE tách GET/POST ra HAI path → không đúng spec SEP-45
+
+Spec (giống SEP-10): `WEB_AUTH_FOR_CONTRACTS_ENDPOINT` là **MỘT** URL mà `GET` trả challenge và
+`POST` đổi lấy JWT. Backend hiện tại tách đôi:
+
+- `GET  /api/sep45/challenge` (`be/src/modules/sep45/routes.ts:53`)
+- `POST /api/sep45/token`     (`be/src/modules/sep45/routes.ts:70`)
+
+Không có route nào ở `/api/sep45` gốc.
+
+- **Luồng trong app VẪN CHẠY** — FE gọi thẳng hai đường đó
+  (`fe/apps/web/src/features/wallet/api/sep45-login.ts:41,63`), không đọc `stellar.toml`.
+- **Client SEP-45 bên thứ ba sẽ HỎNG**: đọc toml → `GET /api/sep45` → 404.
+- `stellar.toml` đang ghi giá trị **đúng theo spec** (`/api/sep45`) — nó thành đúng ngay khi BE
+  gộp hai verb về một path. Cách sửa rẻ nhất: mount thêm `GET /` và `POST /` trong `sep45Routes`
+  trỏ vào chính hai handler sẵn có, giữ path cũ làm alias để không phá FE.
+- **Chưa sửa**: nằm ngoài phạm vi việc deploy FE, và đụng vào cổng login thì phải có test riêng.
+
+## B-CF-1 · Deploy FE cần 4 bước dashboard — CHƯA LÀM ĐƯỢC TỪ ĐÂY
+
+`.github/workflows/deploy-fe.yml` đã sẵn sàng nhưng **SKIP bước deploy** cho tới khi có secrets.
+Bốn việc phải làm bằng tay trên Cloudflare/GitHub (không có credential trong môi trường này):
+
+1. Cloudflare → Workers & Pages → Create → Pages → **Direct Upload**, tên project `familyhaven`.
+2. Account API Token quyền **Cloudflare Pages — Edit**.
+3. GitHub → Settings → Secrets and variables → Actions:
+   `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` (+ var `CF_PAGES_PROJECT_WEB` nếu tên khác).
+4. Sau deploy đầu tiên: project → Custom domains → `familyhaven.mscilabs.com`.
+
+⚠️ **KHÔNG test auth trên `*.pages.dev`**: `pages.dev` nằm trong Public Suffix List → khác site với
+`api.familyhaven.mscilabs.com` → cookie session không set, và sẽ tưởng code sai. Chỉ test trên
+custom domain.
+
+## B-FE-3 · `fe/.github/workflows/` CHƯA BAO GIỜ CHẠY — còn `ci.yml` mồ côi
+
+GitHub chỉ đọc `.github/workflows/` ở **gốc repo**. Từ khi FE thành thư mục con của monorepo, mọi
+workflow trong `fe/.github/workflows/` là **code chết**. Root `ci-fe.yml` tự ghi trong header:
+*"Port từ fe/.github/workflows/ci.yml (GitHub chỉ đọc workflow ở root monorepo)"* — tức là `ci.yml`
+đã được port nhưng **bản gốc không ai xoá**.
+
+- `fe/.github/workflows/deploy.yml` — **ĐÃ XOÁ 2026-07-26**, thay bằng `.github/workflows/deploy-fe.yml`
+  ở root. Bản cũ chưa từng chạy một lần nào, nên "deploy đã có sẵn" trong các ghi chú trước là SAI.
+- `fe/.github/workflows/ci.yml` — **CÒN**, đã bị `ci-fe.yml` thay thế. Vô hại (không chạy) nhưng gây
+  hiểu nhầm. Nên xoá; để lại ngoài phạm vi phiên này.
+

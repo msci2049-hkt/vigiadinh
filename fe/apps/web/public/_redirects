@@ -1,0 +1,7 @@
+# SPA fallback — thiếu dòng này thì refresh ở route sâu (/wallet/send, /block/confirm)
+# trả 404, vì Cloudflare đi tìm file tĩnh theo đúng đường dẫn đó.
+# 200 (không phải 301/302): giữ nguyên URL trên thanh địa chỉ để TanStack Router
+# tự route phía client.
+#
+# Đặt SAU mọi luật cụ thể nếu thêm luật mới — Pages khớp theo thứ tự từ trên xuống.
+/*  /index.html  200
