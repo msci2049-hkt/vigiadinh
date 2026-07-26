@@ -25,3 +25,6 @@ contracts/mutants.out.old/
 *.log
 __pycache__/
 *.py[cod]
+
+# Generated contract source dump (4.7k lines, drifts from source immediately)
+CONTRACT-DUMP.md
