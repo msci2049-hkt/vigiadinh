@@ -483,9 +483,23 @@ Quyết định sản phẩm: **không upload ảnh**. Nhận diện người b�
 Cannot find module '@rolldown/binding-linux-x64-gnu'
 Cannot find module '../rolldown-binding.linux-x64-gnu.node'
 ```
-`node_modules/.pnpm/` KHÔNG có thư mục rolldown → cây deps FE thiếu native binding
-của platform này (nhiều khả năng cài từ Windows, hoặc còn dở từ lần khôi phục
-`_deps-backup-family-wallet-fe-20260725`).
+**NGUYÊN NHÂN GỐC (đã xác định chính xác, không phải phỏng đoán):** `node_modules/.pnpm/`
+chứa `@biomejs+cli-win32-x64@2.5.0` — **binary WINDOWS**. Cây deps FE được cài **từ Windows**,
+nên MỌI optional dependency theo nền tảng đều resolve về `win32-x64` và không có bản
+`linux-x64` nào. Vì vậy chạy tooling FE trong WSL (Linux) là không thể với `node_modules` này:
+biome, rolldown/vitest, và mọi thứ có native binary đều đứt cùng một lý do.
+```
+node_modules/.pnpm/@biomejs+cli-win32-x64@2.5.0    ← có (Windows)
+node_modules/.pnpm/@biomejs+cli-linux-x64@2.5.0    ← KHÔNG có
+node_modules/.pnpm/@rolldown+binding-linux-x64-gnu ← KHÔNG có
+```
+
+**Hai đường sửa, người quyết định:**
+1. Chạy tooling FE **từ Windows** (PowerShell/cmd trong `D:\du-an\thi-stella\family-wallet\fe`)
+   — không đụng gì, dùng đúng binary đã cài.
+2. Cài lại trong WSL: `pnpm install` (nó sẽ đòi xoá trắng `node_modules`). Sau đó tooling
+   chạy được trong WSL nhưng **hỏng phía Windows** — không dùng chung một cây `node_modules`
+   cho cả hai nền tảng được.
 
 - **Không phải regress phiên này**: test có sẵn (`src/lib/i18n-icu.test.ts`) đỏ y hệt,
   không liên quan gì tới thay đổi trong phiên.

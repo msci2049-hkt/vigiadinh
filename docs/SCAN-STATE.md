@@ -73,8 +73,71 @@ trong môi trường này.
 
 ---
 
+---
+
+## PHA 1 — SCAN BE · phần đã đóng
+
+| Mục | Commit | Bằng chứng |
+|---|---|---|
+| §2.1 dispatcher thông báo | `f31f32d` | `[CHẠY THẬT]` mail vào Mailhog thật |
+| §2.2 recovery-watch ồn ào | `f31f32d` | `[HERMETIC]` log WARN + cờ `/ready` |
+| §2.5 R2 dead code | `659f66b` | `[CHẠY THẬT]` env:check ✅ không R2 |
+
+### §2.1 — chuỗi veto ĐÃ NỐI LIỀN
+
+Xác nhận chuỗi đứt trước khi vá: **4 producer** (`recovery-watch`, `presence-ping`,
+`indexer.service`, `heartbeat.repository`) gọi `enqueueNotification*()`; **6 worker** đăng ký
+trong `src/workers/index.ts`; **0 worker** đọc bảng `notifications`. `grep sendEmail src/`
+→ đúng **1** caller không phải test: `auth.ts:210` (OTP đăng ký).
+
+- Job mới: `be/src/jobs/notification-dispatch.ts` — cron 60s, claim lease atomic
+  (`FOR UPDATE SKIP LOCKED`), backoff mũ 1'/2'/4'/8'/16', tối đa 5 lượt.
+- Migration `0011` **add-only**: `attempts`/`claimed_at`/`sent_at`/`last_error` + index.
+  Không DROP, không rename.
+- **`[CHẠY THẬT]`** `notification-dispatch.integration.test.ts`: enqueue → tick → **mail nằm
+  trong hộp thư Mailhog thật** (đọc lại qua HTTP API :44555, không phải mock) → tick lần hai
+  KHÔNG gửi thêm. Log: `email.sent.dev subject:"Wallet recovery started"`.
+- **Bug bắt được TRƯỚC khi ship:** `db.execute()` với sql thô trả row tên cột DB
+  (snake_case), không phải field camelCase của Drizzle → `row.userId` **undefined im lặng**.
+  Hỏng theo kiểu tệ nhất: `channel` trùng tên ở cả hai quy ước nên nhánh push *trông như đúng*,
+  chỉ email gãy. Đã map tường minh qua `toClaimed()`.
+- **Push CHƯA cấu hình, cố ý fail ồn ào:** `PUSH_NOT_CONFIGURED` + log ERROR + cờ `/ready`.
+  → Kênh ngoài-app hiện **CHỈ có email**, chưa có dự phòng.
+
+## PHA 2 — SCAN FE · phần đã đóng
+
+| Mục | Commit | Bằng chứng |
+|---|---|---|
+| §3.1 rpId chốt + fail-closed | `98589ea` | `[HERMETIC]` tsc xanh; test logic verify ngoài vitest |
+
+`VITE_PASSKEY_RP_ID` trước đây default `"localhost"` và **không có `.env.production`** →
+build prod vẫn xanh, deploy xanh, mọi passkey gắn `localhost` và **chết vĩnh viễn** trên domain
+thật. Nay `loadEnv()` **throw** khi build PROD còn `localhost`. Chốt
+**`familyhaven.mscilabs.com`** (KHÔNG apex — apex cho mọi subdomain gọi passkey ví).
+
+---
+
+## 🔴 CHƯA LÀM ĐƯỢC / CÒN MỞ
+
+| Mục | Trạng thái |
+|---|---|
+| **CI thật** | `[CHƯA LÀM ĐƯỢC]` — không `gh`, không token, API 404 (private). **KHÔNG đoán màu.** |
+| **§2.3 SEP-45 footprint** | CHƯA LÀM — treo sang phiên sau |
+| **§2.4 ví phí alarm + veto không cần fee-bump** | CHƯA LÀM — **mục nặng nhất còn lại** |
+| **§2.6 nhãn guardian** | CHƯA LÀM |
+| **§2.7 jwt_version / BOLA / pagination audit / bun audit** | CHƯA LÀM |
+| **§3.2 stellar.toml** | CHƯA LÀM — B-FE-2, SEP-45 login không chạy nếu thiếu |
+| **§3.3 §3.4 lằn ranh tiền + 41 màn** | CHƯA LÀM |
+| **Gate FE** | `[CHƯA CHẠY ĐƯỢC]` — B-FE-1, node_modules là bản **Windows** |
+| **recovery-watch đóng thật** | cần deploy contract testnet + `alerted > 0` |
+
+---
+
 ## VIỆC TIẾP THEO CHÍNH XÁC
 
-§2.1 — dispatcher thông báo (mục #2 trong bảng thứ tự §4). Đang điều tra chuỗi đứt:
-`recovery-watch` → `enqueueNotification()` → INSERT bảng `notifications` → **hết**.
-Cần xác nhận không consumer nào đọc bảng đó rồi viết job dispatcher.
+1. **Quyết định B-FE-1** (người): chạy tooling FE từ Windows, HAY cài lại deps trong WSL.
+   Không quyết thì mọi gate FE còn mù.
+2. **§2.4 ví phí** — mục nặng nhất còn mở: job alarm số dư + đường veto không phụ thuộc
+   fee-bump. Đây là chuỗi mất ví duy nhất còn nguyên vẹn.
+3. **§2.3 SEP-45 footprint** — chặn signing oracle.
+4. **§3.2 `stellar.toml`** — B-FE-2.
