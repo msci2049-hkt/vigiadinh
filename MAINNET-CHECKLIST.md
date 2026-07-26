@@ -48,6 +48,9 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 - ✅ D5. dist stellar.toml: PHẢI có passphrase mainnet; PHẢI KHÔNG có `__WEB_AUTH_CONTRACT_ID__`/`Test SDF`. Placeholder-check toàn dist thêm `__WEB_AUTH_CONTRACT_ID__`.
 - ✅ D-localhost: **BỎ gate cứng, có ghi chú trong workflow** — guard fail-closed của env.ts (`=== "localhost"` + message) tự chứa literal `"localhost"` trong bundle → false-positive chính đáng. Giữ cảnh báo mềm in context; D2/D3 vẫn là gate cứng cho rpId.
   - File: `.github/workflows/deploy-fe.yml` (step D1 + khối Verify dist) · `fe/apps/web/src/lib/env.ts` (message)
+- ✅ D-tinh-chỉnh (phát hiện khi chạy gate THẬT trên dist ở mục I4, sửa lại workflow):
+  1. **Backtick:** esbuild minify đổi nháy thành backtick — rpId nằm dạng `` `familyhaven.mscilabs.com` `` → char class D2/D3 thành `['"\`]`, nếu không D2 false-negative (đo thật: FAIL trước sửa, PASS sau sửa).
+  2. **vendor-stellar:** `Test SDF Network` (hằng `Networks.TESTNET`) + `friendbot` (helper `requestAirdrop`) LUÔN có trong code THƯ VIỆN stellar-sdk → match duy nhất nằm ở `vendor-stellar-*.js`. D4 tách 2 tầng: `soroban-testnet` quét toàn bộ (0 hit); `Test SDF Network|friendbot` quét mọi chunk TRỪ vendor-stellar (code app import hằng đó sẽ nằm chunk khác → vẫn bị bắt).
 
 ## E — GUARD E2E
 
@@ -80,11 +83,28 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 
 ## I — VERIFY TOÀN CỤC
 
-- ☐ I1. Xoá node_modules FE → `pnpm install --frozen-lockfile`
-- ☐ I2. `pnpm validate` + `pnpm test` (fail có sẵn → dán nguyên văn)
-- ☐ I3. Build local đủ env (passphrase mainnet, RPC /rpc, rpId, 4 biến chain = PENDING_MAINNET_DEPLOY, NODE_OPTIONS=--no-experimental-strip-types)
-- ☐ I4. Chạy tay gate D2→D5 trên dist — dán output thật (bundle chứa PENDING → KHÔNG deploy được, D1 CI chặn đúng thiết kế)
-- ☐ I5. BE: test /rpc + ttl-keeper — dán kết quả
+- ✅ I1. `rm -rf fe/node_modules fe/apps/web/node_modules` → `pnpm install --frozen-lockfile` → "Done in 3m 14s using pnpm v9.15.9", exit 0. (Sau install: vá lại vitest START_TIMEOUT trong node_modules — fail-env WSL /mnt/d KI-5, vá LOCAL không commit.)
+- ⚠️✅ I2. `pnpm test` → **Tasks 5 successful** (toàn workspace, sau vá vitest). `pnpm typecheck` chạy riêng → **5/5 successful** (tsr generate + tsc 2 tsconfig). `pnpm validate` → **FAIL CÓ SẴN, KHÔNG do thay đổi này** — nguyên văn:
+  ```
+  scripts/csp-script-hash.mjs format ━━━
+    ✖ File content differs from formatting output
+  Found 1 error.
+   ELIFECYCLE  Command failed with exit code 1.
+  ```
+  Bằng chứng "có sẵn": file KHÔNG bị sửa trong nhánh này (`git status` sạch), lần chạm cuối là commit `a7b00af` (nhánh nền `feat/fe-ui-assets`, trước khi bắt đầu mainnet); 2 file tôi sửa (`env.ts`, `vite.config.ts`) qua `biome check` sạch. KHÔNG sửa hộ (luật 6 — ngoài checklist); fix = `pnpm exec biome check --write scripts/csp-script-hash.mjs` ở nhánh của nó.
+- ✅ I3. Honest build (`pnpm build` qua honest-build.mjs, NODE_OPTIONS=--no-experimental-strip-types) với env: API + RPC `/rpc` + passphrase mainnet + rpId + 4 biến chain `PENDING_MAINNET_DEPLOY` + devtools false → **BUILD OK** (8m32s), dist 6.7M.
+- ✅ I4. Gate chạy tay trên dist (sau tinh chỉnh D ở trên) — output thật:
+  ```
+  D2 PASS   (env-DAGGiVZk.js: P_ID:`familyhaven.mscilabs.com`)
+  D3 PASS   (0 apex quoted)
+  D4.1 PASS (soroban-testnet: 0 hit toàn assets)
+  D4.2 PASS (Test SDF/friendbot chỉ trong vendor-stellar-*.js — hằng thư viện)
+  D5a PASS (passphrase mainnet trong stellar.toml) · D5b PASS (không Test SDF)
+  D5c: template __WEB_AUTH_CONTRACT_ID__ CÒN — ĐÚNG KỲ VỌNG local (sed là bước CI
+       sau build; emulation sed → template sạch, đã chạy trong pipeline)
+  ```
+  Bằng chứng dương tính thêm: bundle chứa `` `Public Global Stellar Network ; September 2015` `` (env + stellar-explorer chunk) và `` api.familyhaven.mscilabs.com/rpc ``. Files `_headers`/`_redirects`/`.well-known/stellar.toml` đều vào dist. **Bundle này chứa PENDING → KHÔNG deploy được; trên CI, D1 chặn từ trước khi build — đúng thiết kế.**
+- ✅ I5. BE: `bun run validate` xanh (typecheck + biome 275 file + boundaries + env-parity 41 key + contract hash) · `bun test` toàn bộ: **312 pass, 9 skip (e2e theo thiết kế), 0 fail** — trong đó `/rpc` routes 11 pass (kể cả rate-limit thật 121 req → 429 trên Dragonfly local + CORS preflight) và `ttl-keeper` 4 pass; dry-run thật `fetchWasmHashHex` đọc đúng wasm hash 3 contract testnet qua RPC.
 
 ---
 

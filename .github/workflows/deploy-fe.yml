@@ -197,7 +197,10 @@ jobs:
             || { echo "❌ API URL không có trong bundle — VITE_API_URL chưa vào build"; exit 1; }
 
           # ---- GATES MAINNET D2→D5 (MAINNET-CHECKLIST.md) ----
-          Q="['\"]"
+          # Minifier (esbuild) đổi nháy đơn/kép thành BACKTICK khi có lợi — đo
+          # thật trên dist 2026-07-26: rpId nằm dạng `familyhaven.mscilabs.com`.
+          # Char class phủ cả ba loại nháy, nếu không D2 false-negative.
+          Q="['\"\`]"
 
           # D2: rpId (quoted) PHẢI có. rpId KHÔNG ĐẢO LẠI ĐƯỢC: tên biến sai là
           # giá trị rơi về "localhost" và mọi passkey người dùng tạo sẽ chết vĩnh
@@ -214,10 +217,24 @@ jobs:
             exit 1
           fi
 
-          # D4: KHÔNG còn dấu vết testnet trong bundle mainnet.
-          if grep -rqE 'soroban-testnet|Test SDF Network|friendbot' "$D/assets"; then
-            echo "❌ D4: bundle còn dấu vết testnet/friendbot:"
-            grep -roE '.{30}(soroban-testnet|Test SDF Network|friendbot).{30}' "$D/assets" | head -5
+          # D4: KHÔNG còn dấu vết testnet trong bundle mainnet — hai tầng:
+          # (1) `soroban-testnet` quét TOÀN BỘ assets: URL RPC là config của ta,
+          #     xuất hiện ở đâu cũng là misconfig.
+          # (2) `Test SDF Network|friendbot` quét mọi chunk TRỪ vendor-stellar-*:
+          #     stellar-sdk LUÔN chở hằng Networks.TESTNET + helper requestAirdrop
+          #     (friendbot) trong code THƯ VIỆN (đo thật trên dist 2026-07-26,
+          #     match duy nhất nằm ở vendor-stellar-*.js) — không phải config.
+          #     Code app import các hằng đó sẽ nằm ở chunk khác → vẫn bị bắt.
+          if grep -rq 'soroban-testnet' "$D/assets"; then
+            echo "❌ D4: còn soroban-testnet trong bundle:"
+            grep -ro '.{30}soroban-testnet.{30}' "$D/assets" | head -5
+            exit 1
+          fi
+          D4_HITS=$(grep -rlE 'Test SDF Network|friendbot' "$D/assets" | grep -v '/vendor-stellar-' || true)
+          if [ -n "$D4_HITS" ]; then
+            echo "❌ D4: dấu vết testnet/friendbot NGOÀI chunk vendor-stellar:"
+            echo "$D4_HITS"
+            grep -roE '.{30}(Test SDF Network|friendbot).{30}' $D4_HITS | head -5
             exit 1
           fi
 
