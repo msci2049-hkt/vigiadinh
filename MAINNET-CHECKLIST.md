@@ -74,9 +74,9 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 
 ## H — DOCS CHỐT
 
-- ☐ H1. Bảng "GitHub vars phải điền"
-- ☐ H2. Khối "VPS .env.production delta"
-- ☐ H3. BLOCKERS còn lại theo thứ tự làm
+- ✅ H1. Bảng "GitHub vars phải điền" — cuối file
+- ✅ H2. Khối "VPS .env.production delta" — cuối file
+- ✅ H3. BLOCKERS theo thứ tự làm — cuối file
 
 ## I — VERIFY TOÀN CỤC
 
@@ -85,3 +85,68 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 - ☐ I3. Build local đủ env (passphrase mainnet, RPC /rpc, rpId, 4 biến chain = PENDING_MAINNET_DEPLOY, NODE_OPTIONS=--no-experimental-strip-types)
 - ☐ I4. Chạy tay gate D2→D5 trên dist — dán output thật (bundle chứa PENDING → KHÔNG deploy được, D1 CI chặn đúng thiết kế)
 - ☐ I5. BE: test /rpc + ttl-keeper — dán kết quả
+
+---
+
+# H1 — GitHub vars phải điền (Settings → Secrets and variables → Actions → Variables)
+
+Gate D1 trong deploy-fe.yml chặn build khi thiếu BẤT KỲ biến nào dưới đây (workflow ĐỎ tới khi điền — đúng thiết kế).
+
+| GitHub vars | Lấy giá trị từ đâu |
+|---|---|
+| `VITE_SAC_NATIVE` | **Đã có (mục G):** `CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA` — điền được NGAY |
+| `VITE_ACCOUNT_WASM_HASH` | Output `stellar contract upload --wasm target/wasm32v1-none/release/smart_account.wasm --source deployer-mainnet --network mainnet` (sau `stellar contract build` trong `contracts/`) |
+| `VITE_WEBAUTHN_VERIFIER_ADDRESS` | Output `contracts/scripts/deploy-origin-verifier.sh` với `RP_ID=familyhaven.mscilabs.com ORIGIN_WEB=https://familyhaven.mscilabs.com ORIGIN_APK=… ORIGIN_EXT=… SOURCE=deployer-mainnet NETWORK=mainnet` (script tự chặn origin dev/localhost) |
+| `VITE_RECOVERY_REGISTRY_ADDRESS` | Output `stellar contract deploy --wasm …/recovery_registry.wasm --source deployer-mainnet --network mainnet` |
+| `WEB_AUTH_CONTRACT_ID` | Output `stellar contract deploy --wasm …/web_auth.wasm --source deployer-mainnet --network mainnet` (không constructor args) — workflow sed vào stellar.toml |
+
+Điền GitHub vars xong PHẢI điền giá trị BE tương ứng vào VPS (khối H2): `CONTRACT_ID_ORIGIN_VERIFIER` = `VITE_WEBAUTHN_VERIFIER_ADDRESS` · `ACCOUNT_WASM_HASH` = `VITE_ACCOUNT_WASM_HASH` · `SEP45_WEB_AUTH_CONTRACT_ID` = `WEB_AUTH_CONTRACT_ID` · `CONTRACT_ID_RECOVERY` = `VITE_RECOVERY_REGISTRY_ADDRESS` · `CONTRACT_ID_SAC_NATIVE` = `VITE_SAC_NATIVE`. Lệch FE↔BE là challenge SEP-45 bị từ chối / send flow chặn.
+
+# H2 — VPS `deploy/.env.production` delta (làm trên VPS, file KHÔNG có ở local — luật 2)
+
+Sau khi sửa, GATE bắt buộc: `bun run env:check --env-file deploy/.env.production` phải XANH (deploy.sh vốn chạy gate này).
+
+**THÊM/SỬA — BẮT BUỘC ngay (4 biến hết default sau A2, boot chết nếu thiếu):**
+
+```
+STELLAR_RPC_URL=<https://mainnet-rpc-provider-url>      # SỬA nếu đang soroban-testnet; provider nhúng key trong URL thì chỉ cần dòng này
+STELLAR_NETWORK_PASSPHRASE=Public Global Stellar Network ; September 2015
+SEP45_HOME_DOMAIN=familyhaven.mscilabs.com
+SEP45_WEB_AUTH_DOMAIN=api.familyhaven.mscilabs.com
+```
+
+**THÊM — optional theo cách nạp key (cách 2):**
+
+```
+STELLAR_RPC_API_KEY=<rpc-provider-api-key>              # chỉ khi provider dùng key rời; proxy /rpc gửi Authorization: Bearer
+```
+
+**THÊM — sau khi deploy contract mainnet (khớp bảng H1):**
+
+```
+SEP45_WEB_AUTH_CONTRACT_ID=<C...-web-auth-mainnet>
+SEP45_SIGNING_KEY=<S...-mainnet-MỚI>                    # KHÔNG tái dùng key testnet (luật security.md)
+CONTRACT_ID_RECOVERY=<C...-recovery-registry-mainnet>
+CONTRACT_ID_SAC_NATIVE=CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA
+CONTRACT_ID_ORIGIN_VERIFIER=<C...-origin-verifier-mainnet>
+ACCOUNT_WASM_HASH=<hex64-smart-account-wasm-mainnet>
+FEE_WALLET_SECRET=<S...-ví-phí-mainnet>                 # nạp XLM thật; mất ví này chỉ mất tiền phí
+INDEXER_CONTRACT_IDS=<C...-recovery-registry-mainnet>   # CSV cho indexer mirror
+```
+
+**KIỂM (không sửa mù):**
+
+```
+TRUSTED_ORIGINS  # PHẢI chứa https://familyhaven.mscilabs.com — /rpc (CORS) + cookie cùng cần
+STELLAR_RPC_FALLBACK_URL  # nếu đang trỏ testnet → XOÁ hoặc thay provider mainnet thứ hai
+```
+
+# H3 — BLOCKERS còn lại, theo thứ tự làm
+
+1. **B-MAINNET-1 · Chọn RPC provider mainnet** (user cấp URL ± key) → điền `STELLAR_RPC_URL` (+`STELLAR_RPC_API_KEY`) vào VPS theo H2. Public SDF `https://mainnet.sorobanrpc.com` chỉ đáng để thử — rate-limit công cộng, không SLA.
+2. **B-MAINNET-2 · Khoá deploy + ví phí mainnet**: tạo alias `deployer-mainnet` cho stellar-cli (key RIÊNG, không phải key testnet) + ví phí `FEE_WALLET_SECRET` mainnet, nạp XLM thật cho cả hai.
+3. **B-MAINNET-3 · Deploy contracts mainnet** theo thứ tự: `stellar contract build` → upload wasm smart-account (ra `ACCOUNT_WASM_HASH`) → `deploy-origin-verifier.sh` (cần `ORIGIN_APK` apk-key-hash + `ORIGIN_EXT` extension id THẬT — script đòi đủ 3 origin; vỏ APK/extension chưa phát hành thì đây là quyết định sản phẩm: chờ, hoặc sửa script nhận danh sách origin linh hoạt — ngoài scope nhiệm vụ này) → deploy recovery-registry → deploy web-auth.
+4. **B-MAINNET-4 · SEP45_SIGNING_KEY mainnet mới** → điền VPS (H2) **và THAY `SIGNING_KEY` trong `fe/apps/web/public/.well-known/stellar.toml`** (đang là G testnet dev — có comment BLOCKER tại chỗ trong file).
+5. **B-MAINNET-5 · Điền GitHub vars** theo bảng H1 (`VITE_SAC_NATIVE` điền được ngay) + kiểm secrets `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` đã có.
+6. **B-MAINNET-6 · Push + deploy** (user làm — nhiệm vụ này KHÔNG push): push `feat/mainnet` → merge main → deploy-fe.yml: D1 xanh khi vars đủ, D2–D5 gate dist, Verify live. BE: VPS pull + env-check GATE + up; smoke `POST /rpc {"jsonrpc":"2.0","id":1,"method":"getHealth"}` từ origin FE.
+7. Nợ sẵn có liên quan (không chặn migrate nhưng chặn "SEP-45 chuẩn"): **B-SEP45-1** — BE tách GET/POST hai path, client SEP-45 bên thứ ba sẽ hỏng (ghi trong stellar.toml).
