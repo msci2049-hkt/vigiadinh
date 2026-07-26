@@ -8,10 +8,18 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 
 ## A — ENV FAIL-CLOSED
 
-- ☐ A1. FE `env.ts`: xoá default testnet 2 biến Stellar → bắt buộc, throw sớm; giữ guard PROD rpId
-- ☐ A2. BE `env.schema.ts`: xoá default testnet `STELLAR_RPC_URL`/`STELLAR_NETWORK_PASSPHRASE`; xoá default localhost `SEP45_HOME_DOMAIN`/`SEP45_WEB_AUTH_DOMAIN` → required
-- ☐ A3. Thêm `STELLAR_RPC_API_KEY` (optional) vào schema
-- ☐ A4. Cập nhật `fe/apps/web/.env.example` + `fe/apps/web/env.production.example` + `be/.env.example` + `be/deploy/env.production.example`: section mainnet, 2 cách nạp key
+- ✅ A1. FE `env.ts`: xoá default testnet 2 biến Stellar → bắt buộc, throw sớm; giữ guard PROD rpId
+  - `fe/apps/web/src/lib/env.ts` (2 biến hết default, message rõ dev/prod)
+  - `fe/apps/web/vite.config.ts` (test.env cấp 2 biến tường minh — fixture test, không phải default app)
+- ✅ A2. BE `env.schema.ts`: 4 biến hết default → required (STELLAR_RPC_URL, STELLAR_NETWORK_PASSPHRASE, SEP45_HOME_DOMAIN, SEP45_WEB_AUTH_DOMAIN)
+  - `be/src/env.schema.ts` · `be/src/env.schema.test.ts` (completeness-lock 7→11, fixture +4) · `be/scripts/env-check.test.ts` (fixture +4)
+- ✅ A3. `STELLAR_RPC_API_KEY` optional vào schema (`be/src/env.schema.ts`)
+- ✅ A4. 4 file example cập nhật section mainnet + 2 cách nạp key:
+  - `fe/apps/web/.env.example` (2 biến ACTIVE giá trị dev testnet — ci-fe copy file này làm .env)
+  - `fe/apps/web/env.production.example` (RPC=/rpc proxy + passphrase mainnet ACTIVE)
+  - `be/.env.example` (4 biến required ACTIVE giá trị dev; API key 2 cách, comment)
+  - `be/deploy/env.production.example` (STELLAR_RPC_URL=`<placeholder>` → env-check GATE đỏ tới khi điền; passphrase mainnet literal; SEP45 domain prod ACTIVE; SIGNING_KEY ghi rõ key mainnet RIÊNG)
+  - Bằng chứng: `bun test env.schema+env-check` 16 pass · `check:env-parity` OK 39 key
 
 ## B — BE ROUTE POST /rpc
 

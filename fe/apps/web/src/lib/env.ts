@@ -21,9 +21,23 @@ const EnvSchema = z.object({
     .optional()
     .or(z.literal("").transform(() => undefined)),
 
-  // === Stellar / ví passkey (PHA 2.3) — mặc định testnet, đổi mainnet TƯỜNG MINH ===
-  VITE_STELLAR_RPC_URL: z.url().default("https://soroban-testnet.stellar.org"),
-  VITE_STELLAR_NETWORK_PASSPHRASE: z.string().min(1).default("Test SDF Network ; September 2015"),
+  // === Stellar / ví passkey — FAIL-CLOSED, HẾT default (mainnet migration 2026-07-26) ===
+  // Trước đây hai biến này default testnet: bản build production quên set env sẽ
+  // IM LẶNG trỏ mạng thử. Giờ thiếu là throw ngay khi import env (trang trắng có
+  // message rõ thay vì ví giả) — dev lấy giá trị từ .env (xem .env.example).
+  VITE_STELLAR_RPC_URL: z.url({
+    error:
+      "VITE_STELLAR_RPC_URL bắt buộc — không còn default testnet. " +
+      "Dev: https://soroban-testnet.stellar.org · Prod: https://api.familyhaven.mscilabs.com/rpc",
+  }),
+  VITE_STELLAR_NETWORK_PASSPHRASE: z
+    .string({
+      error:
+        "VITE_STELLAR_NETWORK_PASSPHRASE bắt buộc — không còn default testnet. " +
+        'Testnet: "Test SDF Network ; September 2015" · ' +
+        'Mainnet: "Public Global Stellar Network ; September 2015"',
+    })
+    .min(1),
   // WASM hash smart account + verifier đã deploy (contracts/). Trống = chưa nối
   // chain (features/wallet/lib/kit.ts throw lỗi RÕ khi bị dùng, app vẫn boot).
   VITE_ACCOUNT_WASM_HASH: z

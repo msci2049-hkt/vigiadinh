@@ -83,8 +83,17 @@ export const envShape = {
   FIREBASE_SERVICE_ACCOUNT_JSON: z.string().optional(),
 
   // === Stellar / SEP-45 (PHA 2.3 — đăng nhập bằng ví contract) ===
-  STELLAR_RPC_URL: z.url().default("https://soroban-testnet.stellar.org"),
-  STELLAR_NETWORK_PASSPHRASE: z.string().min(1).default("Test SDF Network ; September 2015"),
+  // FAIL-CLOSED (mainnet migration 2026-07-26): RPC + passphrase + 2 domain SEP-45
+  // HẾT default. Trước đây default testnet/localhost — production thiếu biến là
+  // im lặng chạy mạng thử. Giờ thiếu → boot chết với tên biến rõ (src/env.ts),
+  // env-check đỏ ở GATE deploy. Dev đặt tường minh trong .env (xem .env.example).
+  STELLAR_RPC_URL: z.url(),
+  STELLAR_NETWORK_PASSPHRASE: z.string().min(1),
+  // API key của RPC provider (optional): có → proxy POST /rpc gửi
+  // `Authorization: Bearer <key>` sang upstream. Provider nhúng key trong URL
+  // (https://rpc.xxx/<key>) thì CHỈ cần STELLAR_RPC_URL, bỏ biến này.
+  // Key KHÔNG BAO GIỜ được log / trả về client (modules/rpc).
+  STELLAR_RPC_API_KEY: z.string().min(1).optional(),
   // Contract SEP-45 (web_auth_verify) đã deploy — contracts/web-auth. Chưa set
   // → route sep45 trả 503 SEP45_NOT_CONFIGURED (boot vẫn sống, các module khác chạy).
   SEP45_WEB_AUTH_CONTRACT_ID: z
@@ -97,9 +106,11 @@ export const envShape = {
     .string()
     .regex(/^S[A-Z2-7]{55}$/, "phải là secret key (S...)")
     .optional(),
-  // home_domain = domain FE (nơi host stellar.toml sau này); web_auth_domain = domain BE.
-  SEP45_HOME_DOMAIN: z.string().min(1).default("localhost:5173"),
-  SEP45_WEB_AUTH_DOMAIN: z.string().min(1).default("localhost:3000"),
+  // home_domain = domain FE (host stellar.toml); web_auth_domain = domain BE.
+  // HẾT default localhost (fail-closed như RPC/passphrase ở trên) — dev đặt
+  // localhost:5173 / localhost:3000 tường minh trong .env.
+  SEP45_HOME_DOMAIN: z.string().min(1),
+  SEP45_WEB_AUTH_DOMAIN: z.string().min(1),
   // TTL challenge/nonce (A4: 2–5 phút) + TTL JWT phiên ví.
   SEP45_CHALLENGE_TTL_SECONDS: z.coerce.number().int().positive().default(300),
   SEP45_JWT_TTL_SECONDS: z.coerce.number().int().positive().default(86400),

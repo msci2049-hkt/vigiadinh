@@ -17,6 +17,11 @@ export default defineAppConfig({
     // validates import.meta.env at import time, so VITE_API_URL must exist.
     env: {
       VITE_API_URL: "http://localhost:3000",
+      // Mainnet migration: 2 biến Stellar hết default (fail-closed) — test
+      // hermetic phải cấp TƯỜNG MINH. Giá trị testnet ở đây là fixture của
+      // test, không phải default ngầm của app.
+      VITE_STELLAR_RPC_URL: "https://soroban-testnet.stellar.org",
+      VITE_STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015",
     },
     coverage: {
       provider: "v8",
