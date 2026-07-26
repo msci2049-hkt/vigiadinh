@@ -186,3 +186,120 @@ STELLAR_RPC_FALLBACK_URL  # nếu đang trỏ testnet → XOÁ hoặc thay provi
 5. **B-MAINNET-5 · Điền GitHub vars** theo bảng H1 (`VITE_SAC_NATIVE` điền được ngay) + kiểm secrets `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` đã có.
 6. **B-MAINNET-6 · Push + deploy** (user làm — nhiệm vụ này KHÔNG push): push `feat/mainnet` → merge main → deploy-fe.yml: D1 xanh khi vars đủ, D2–D5 gate dist, Verify live. BE: VPS pull + env-check GATE + up; smoke `POST /rpc {"jsonrpc":"2.0","id":1,"method":"getHealth"}` từ origin FE.
 7. Nợ sẵn có liên quan (không chặn migrate nhưng chặn "SEP-45 chuẩn"): **B-SEP45-1** — BE tách GET/POST hai path, client SEP-45 bên thứ ba sẽ hỏng (ghi trong stellar.toml).
+
+# L — PHA 6: PUSH + DEPLOY BE testnet (2026-07-26)
+
+## L1 — Trạng thái & chốt chặn
+
+- G1 ✅ quét secret 20 commit chưa push (gitleaks 8.30.1 `no leaks` + grep 7 pattern: 0 seed S…, 0 private key, hit còn lại toàn TÊN biến/placeholder/hash công khai).
+- G2 ✅ `CONTRACT-DUMP.md` → .gitignore; `pnpm-lock.yaml` gốc (114B, lạc chỗ) đã xoá.
+- G3 ✅ deploy-fe.yml tách 2 job: `build-and-gate` (D1–D5, MỌI nhánh) + `deploy` (`if: ref == refs/heads/main`, nhận dist qua artifact `include-hidden-files: true`); concurrency per-ref.
+- G4–G6 ⛔ **BLOCKER B-CI-1**: không có đường đọc CI (không GH_TOKEN, repo private → API 404, SSH không phục vụ Actions). Luật PHA 6: *không push mù*. `gh` 2.86.0 ĐÃ cài sẵn `~/.local/bin/gh`.
+  **Cần người dùng**: PAT fine-grained (repo `msci2026vn/family-wallet`, quyền Actions:read + Contents:read) → `export GH_TOKEN=<pat>` → phiên sau push + đọc CI được ngay.
+- VPS: SSH được bằng alias `vps-phonghoc` (user `cdhc`, host bac-biav / 14.225.198.86 = api.familyhaven.mscilabs.com). `cdhc` thuộc group docker (đọc được trạng thái container) nhưng KHÔNG sudo không-mật-khẩu → mọi bước ghi (V2–V5) cần root: runbook L3.
+- Stack `vgd` ĐANG chạy code CŨ (origin/main, image build 2026-07-26T00:48Z): `/rpc` → 404 (baseline đúng); `/ready` → `{"ok":true}` (bản mới sẽ có thêm `watchers` — dùng làm marker deploy thành công). ⚠️ `vgd-worker-1` **unhealthy TỪ TRƯỚC** (Up 13h, healthcheck output rỗng, 0 restart) — điều tra khi deploy.
+
+## L2 — Mốc V1 (đo 2026-07-26 ~13:55 UTC+7, lưu `/tmp/vgd-before.txt` trên VPS — 18 container)
+
+| Domain | GET / | GET /health |
+|---|---|---|
+| api-os.tranver.com | 401 | 200 |
+| api.familyhaven.mscilabs.com | 404 | 200 |
+| api.trungtamgiasuskv.com | 404 | 200 |
+| api.vapec.vn | 200 | 404 |
+| api.vietnamsme.gov.vn | 404 | 200 |
+
+Disk `/`: 28G/49G (58%), còn 21G. Sau deploy: mọi ô của bảng PHẢI GIỮ NGUYÊN.
+
+## L3 — RUNBOOK deploy BE testnet (root trên VPS; CHỈ chạy SAU khi main đã chứa code mới — G6)
+
+```bash
+# == V1 phần còn thiếu (đọc) ==
+cd /root/apps/family-wallet
+git status --porcelain            # kỳ vọng: RỖNG (wrapper mới chạy được)
+git rev-parse HEAD                # GHI LẠI = <SHA-TRƯỚC> cho rollback
+grep -cE '^[A-Z]' be/deploy/.env.production   # đếm key hiện có (kỳ vọng ~24–29)
+
+# == V2 backup ==
+cd be
+cp -a deploy/.env.production deploy/.env.production.bak.$(date +%F-%H%M)
+ls -lh deploy/.env.production.bak.*           # PHẢI khác 0 byte
+
+# == V3 sửa env (GIÁ TRỊ TESTNET — bảng dưới) ==
+$EDITOR deploy/.env.production
+
+# == V4 GATE (fail = DỪNG, không up) ==
+export PATH="/root/.bun/bin:$PATH"
+bun scripts/env-check.ts --env-file deploy/.env.production
+# kỳ vọng: "✅ ENV hợp lệ (…) — đủ 11 biến bắt buộc."  (đã chứng minh bộ delta đủ 11 bằng file mô phỏng local)
+
+# == V5 deploy ==
+vgd-deploy.sh                                  # wrapper root: reset về origin/main + be/deploy/deploy.sh
+cd /root/apps/family-wallet && git rev-parse HEAD   # PHẢI = SHA merge ở G6
+```
+
+### Bảng V3 — delta `be/deploy/.env.production` (TESTNET; đối chiếu env.schema.ts hiện tại)
+
+**THÊM/SỬA (4 biến PROD-REQUIRED mới — thiếu là boot chết fail-closed):**
+```
+STELLAR_RPC_URL=https://soroban-testnet.stellar.org
+STELLAR_NETWORK_PASSPHRASE=Test SDF Network ; September 2015
+SEP45_HOME_DOMAIN=familyhaven.mscilabs.com
+SEP45_WEB_AUTH_DOMAIN=api.familyhaven.mscilabs.com
+```
+**KIỂM — phải CÓ SẴN đúng giá trị testnet (thiếu dòng nào thì thêm; secret lấy từ nguồn của người vận hành, KHÔNG commit):**
+```
+TRUSTED_ORIGINS=…phải chứa https://familyhaven.mscilabs.com…
+SEP45_WEB_AUTH_CONTRACT_ID=CAKV3MKK3WA2CJX56LA52YYAG7FDMQTD7ZYRT3FKXUOCOEXZIANG2SST
+SEP45_SIGNING_KEY=<S...-testnet-sep45-signing>
+CONTRACT_ID_RECOVERY=CAFU4CZNPN5YWFV3QOCA4Y6FSJUB7IGI456MIGTQRJXA4DQLWUIHFMCO
+CONTRACT_ID_SAC_NATIVE=CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC
+INDEXER_CONTRACT_IDS=CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY
+FEE_WALLET_SECRET=<S...-ví-phí-testnet — ví GCJT4UD4II6H…GMFE đang có 9975+ XLM>
+```
+**THÊM (optional — để ttl-keeper phủ đủ hạ tầng, giá trị CÔNG KHAI):**
+```
+CONTRACT_ID_ORIGIN_VERIFIER=CCNS6O5HBTF7XOOVCNF4XLTKORQ4JB4PKUKUA6CX2MW7OXOKGKKC2O4N
+ACCOUNT_WASM_HASH=78e7521f391123c2dc119bdf2c3ecae1a4655fbf360e5c2a17fd12be028da170
+```
+**XOÁ:**
+```
+mọi dòng ^R2_            # đã gỡ hẳn khỏi schema (B-ENV-1)
+STELLAR_RPC_API_KEY      # bỏ trống/xoá — testnet công khai không cần key
+STELLAR_RPC_FALLBACK_URL # xoá nếu trỏ linh tinh; testnet không cần
+```
+
+### V6 — verify sau deploy (6 mục, output thật)
+```bash
+# a) hàng xóm nguyên trạng
+docker ps --format '{{.Names}}\t{{.Status}}' | sort > /tmp/vgd-after.txt && diff /tmp/vgd-before.txt /tmp/vgd-after.txt
+for d in api-os.tranver.com api.trungtamgiasuskv.com api.vapec.vn api.vietnamsme.gov.vn; do curl -s -o /dev/null -w "$d %{http_code}\n" "https://$d/"; done
+# kỳ vọng: 401 · 404 · 200 · 404 (khớp bảng L2); diff chỉ được khác các dòng vgd-*
+# b) backup wrapper khác 0 byte: ls -lh deploy/.env.production.bak.*
+# c) /rpc pass-through (marker code mới + đúng env testnet):
+curl -sS -X POST https://api.familyhaven.mscilabs.com/rpc -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"getNetwork"}'
+# kỳ vọng: {"jsonrpc":"2.0","id":1,"result":{"passphrase":"Test SDF Network ; September 2015",…}}
+curl -s https://api.familyhaven.mscilabs.com/ready    # kỳ vọng có "watchers":{"recoveryWatch":"enabled","push":…}
+# d) CORS 3 ca:
+curl -s -o /dev/null -w '%{http_code}\n' -X POST https://api.familyhaven.mscilabs.com/rpc -H 'Origin: https://familyhaven.mscilabs.com' -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}'   # 200
+curl -s -X POST https://api.familyhaven.mscilabs.com/rpc -H 'Origin: https://evil.example.com' -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"getHealth"}' -w ' %{http_code}\n'                       # 403 ORIGIN_NOT_ALLOWED
+curl -s -X POST https://api.familyhaven.mscilabs.com/rpc -H 'content-type: application/json' -d '{"jsonrpc":"2.0","id":1,"method":"getLedgers"}'   # {"error":{"code":-32601 METHOD_NOT_ALLOWED}} — không forward
+# e) ttl-keeper: cron đăng ký + chạy tay 1 lượt
+docker exec vgd-worker-1 bun -e 'import {ttlKeeperQueue} from "./src/jobs/ttl-keeper"; console.log(await ttlKeeperQueue.getRepeatableJobs())'   # pattern "0 3 * * *" tz UTC
+docker exec vgd-app-1 bun run scripts/ttl-keeper-once.ts    # dán TTL trước/sau + result; tx hash: https://stellar.expert/explorer/testnet/account/GCJT4UD4II6H3FDWPWFH5D5B7CVDOLJZXDVV6VSNQ4GJQK4EYMGHGMFE
+# f) dispatcher: tạo 1 notification thật (INSERT qua app hoặc luồng recovery test) rồi chứng minh mail ĐI:
+#    log PROVIDER (Resend dashboard → Emails → status delivered), KHÔNG phải log app.
+#    Không có Resend key production/testnet thật → ghi ⛔, đừng ✅.
+```
+
+### V7 — ROLLBACK (viết sẵn TRƯỚC khi deploy)
+```bash
+# (1) Khôi phục env từ backup V2:
+cd /root/apps/family-wallet/be
+cp -a deploy/.env.production.bak.<timestamp> deploy/.env.production
+# (2) Rollback code — forward-only (KHÔNG force-push): revert merge trên main rồi deploy lại
+git -C /root/apps/family-wallet revert -m 1 <SHA-merge-G6> && git push origin main   # (làm ở máy dev nếu VPS không có quyền push)
+vgd-deploy.sh                       # wrapper reset về origin/main (= bản revert) + build + up
+# (3) Xác nhận: git rev-parse HEAD = <SHA-TRƯỚC ghi ở V1>; curl /health + /ready 200; bảng L2 nguyên trạng.
+# Migration là forward-only additive — KHÔNG rollback schema; bản cũ chạy được trên schema mới (expand-contract).
+```
