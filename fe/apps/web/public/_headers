@@ -10,7 +10,7 @@
 # (= VITE_API_URL prod). Quên thay → connect-src co về 'self' → fetch/SSE bị chặn
 # (fail-closed, hỏng ồn ào chứ không nới lỏng âm thầm). Xem docs/HUMAN-TODO.md.
 #
-# Mainnet migration 2026-07-26: __RPC_ORIGIN__ ĐÃ GỠ — FE gọi Stellar RPC qua
+# Mainnet migration 2026-07-26: placeholder RPC-ORIGIN ĐÃ GỠ — FE gọi Stellar RPC qua
 # proxy BE POST /rpc (cùng origin API), không gọi thẳng provider nữa.
 # connect-src chỉ còn 'self' + API origin.
 # Bước thay + bước verify "không còn placeholder trong dist" nằm ở

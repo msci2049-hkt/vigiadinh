@@ -2,8 +2,8 @@
 # Client SEP-45 đọc file này để biết gọi đâu và tin chữ ký của ai.
 #
 # MAINNET (migration 2026-07-26). WEB_AUTH_CONTRACT_ID là TEMPLATE
-# "__WEB_AUTH_CONTRACT_ID__": deploy-fe.yml sed bằng GitHub vars
-# WEB_AUTH_CONTRACT_ID sau khi build (cùng cơ chế __API_ORIGIN__ của _headers).
+# (token WEB-AUTH-CONTRACT-ID hai gạch dưới): deploy-fe.yml sed bằng GitHub vars
+# WEB_AUTH_CONTRACT_ID sau khi build (cùng cơ chế token API-ORIGIN của _headers).
 # Gate D1 chặn build khi vars trống; gate D5 chặn ship khi template còn sót.
 # Contract id gắn chặt với network — GIÁ TRỊ PHẢI là contract web-auth đã deploy
 # MAINNET, không tái dùng id testnet.
