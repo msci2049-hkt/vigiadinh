@@ -65,6 +65,10 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
   - **Target:** instance origin-verifier + web-auth + registry (registry instance thêm vào đây để phủ ca 0 ví — `extend_ttl(wallet)` chỉ chạy khi có ví) + code entry của 3 contract đó (hash khám phá RPC) + code smart-account từ env `ACCOUNT_WASM_HASH`. Mỗi target MỘT tx — một contract chưa deploy không làm hỏng lượt của entry còn lại.
   - **Env mới (schema + 2 example cùng commit, luật 1):** `CONTRACT_ID_ORIGIN_VERIFIER` (convention CONTRACT_ID_*), `ACCOUNT_WASM_HASH` (mirror FE VITE_ACCOUNT_WASM_HASH) — cả hai optional, parity 41 key OK.
   - **Bằng chứng:** `bun test src/jobs/ttl-keeper.test.ts` 4 pass (khoá danh sách target theo env, giải mã ngược LedgerKey đúng contract/hash, cách ly lỗi từng target, RPC chết không throw ra cron) · typecheck sạch · **dry-run THẬT**: `fetchWasmHashHex` trên testnet RPC trả đúng wasm hash 3 contract dev (origin-verifier `21164f7b…`, web-auth `e44a1fcb…`, registry `bb503a91…`).
+  - **⚠️ ĐÍNH CHÍNH (audit PHA 5, 2026-07-26 — commit `audit: T6`):** lần chạy THẬT đầu tiên trên testnet phơi ra job này CHƯA TỪNG gia hạn nổi entry nào, 2 lỗi:
+    1. `TTL_EXTEND_TO=3_110_400` là MALFORMED — core chối `extendFootprintTtlMalformed` lúc submit (max là maxEntryTTL−1) trong khi **simulate vẫn OK** → mọi tx instance chết `SUBMIT_REJECTED:txFailed`. Sửa: `3_110_399` (tx chứng minh `a2927cff…` SUCCESS).
+    2. Trần phí 5M stroop chặn sạch WASM code entry — đo thật: web-auth:code 35_498_854, registry:code **235_602_550 stroop (~23.6 XLM)**. Sửa: trần riêng `TTL_INFRA_MAX_FEE_STROOPS=400M` cho hạ tầng (id từ env, không có bề mặt B-SEC-3); per-wallet giữ 5M.
+    Chạy thật sau sửa (`bun run scripts/ttl-keeper-once.ts`): **infra 4 extended / 0 failed**, TTL 4 entry → 6.92M (Δ ≈ +3.0M ledger), tx `85a46ee6…`, `3b55810a…`, `f82eb3ac…`, `6cd15cc0…` (stellar.expert/explorer/testnet/tx/<hash>). **Hệ quả mainnet:** ví phí §2.4 phải trù ~40 XLM cho lượt extend code entry ĐẦU TIÊN (các tick sau chỉ trả delta nhỏ).
   - File: `be/src/services/stellar/ttl.service.ts` (mới) · `be/src/jobs/ttl-keeper.ts` · `be/src/jobs/ttl-keeper.test.ts` (mới) · `be/src/env.schema.ts` · `be/.env.example` · `be/deploy/env.production.example`
 
 ## G — DERIVE VITE_SAC_NATIVE
@@ -83,7 +87,7 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 
 ## I — VERIFY TOÀN CỤC
 
-- ✅ I1. `rm -rf fe/node_modules fe/apps/web/node_modules` → `pnpm install --frozen-lockfile` → "Done in 3m 14s using pnpm v9.15.9", exit 0. (Sau install: vá lại vitest START_TIMEOUT trong node_modules — fail-env WSL /mnt/d KI-5, vá LOCAL không commit.)
+- ✅ I1. `rm -rf fe/node_modules fe/apps/web/node_modules` → `pnpm install --frozen-lockfile` → "Done in 3m 14s using pnpm v9.15.9", exit 0. ~~(Sau install: vá lại vitest START_TIMEOUT trong node_modules — vá LOCAL không commit.)~~ **Audit PHA 5 (`audit: F3`): vá đã chuyển thành `pnpm.patchedDependencies` + `fe/patches/vitest@4.1.9.patch` COMMIT vào repo — install tự áp, KHÔNG còn vá tay.** Clean-room 2026-07-26: wipe → install 7m0.1s → patch tự áp (6e5/6e5) → `pnpm validate` 11/11 tasks exit=0 · `pnpm test -- --force` ui 3 + core 31 + web 80 = **114 pass, 0 fail** exit=0 — không đụng node_modules.
 - ⚠️✅ I2. `pnpm test` → **Tasks 5 successful** (toàn workspace, sau vá vitest). `pnpm typecheck` chạy riêng → **5/5 successful** (tsr generate + tsc 2 tsconfig). `pnpm validate` → **FAIL CÓ SẴN, KHÔNG do thay đổi này** — nguyên văn:
   ```
   scripts/csp-script-hash.mjs format ━━━
@@ -91,7 +95,7 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
   Found 1 error.
    ELIFECYCLE  Command failed with exit code 1.
   ```
-  Bằng chứng "có sẵn": file KHÔNG bị sửa trong nhánh này (`git status` sạch), lần chạm cuối là commit `a7b00af` (nhánh nền `feat/fe-ui-assets`, trước khi bắt đầu mainnet); 2 file tôi sửa (`env.ts`, `vite.config.ts`) qua `biome check` sạch. KHÔNG sửa hộ (luật 6 — ngoài checklist); fix = `pnpm exec biome check --write scripts/csp-script-hash.mjs` ở nhánh của nó.
+  Bằng chứng "có sẵn": file KHÔNG bị sửa trong nhánh này (`git status` sạch), lần chạm cuối là commit `a7b00af` (nhánh nền `feat/fe-ui-assets`, trước khi bắt đầu mainnet); 2 file tôi sửa (`env.ts`, `vite.config.ts`) qua `biome check` sạch. KHÔNG sửa hộ (luật 6 — ngoài checklist); fix = `pnpm exec biome check --write scripts/csp-script-hash.mjs` ở nhánh của nó. **→ ĐÃ SỬA trong audit PHA 5 (`audit: F1`) — `pnpm validate` FE xanh lại (mục K).**
 - ✅ I3. Honest build (`pnpm build` qua honest-build.mjs, NODE_OPTIONS=--no-experimental-strip-types) với env: API + RPC `/rpc` + passphrase mainnet + rpId + 4 biến chain `PENDING_MAINNET_DEPLOY` + devtools false → **BUILD OK** (8m32s), dist 6.7M.
 - ✅ I4. Gate chạy tay trên dist (sau tinh chỉnh D ở trên) — output thật:
   ```
@@ -104,7 +108,19 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
        sau build; emulation sed → template sạch, đã chạy trong pipeline)
   ```
   Bằng chứng dương tính thêm: bundle chứa `` `Public Global Stellar Network ; September 2015` `` (env + stellar-explorer chunk) và `` api.familyhaven.mscilabs.com/rpc ``. Files `_headers`/`_redirects`/`.well-known/stellar.toml` đều vào dist. **Bundle này chứa PENDING → KHÔNG deploy được; trên CI, D1 chặn từ trước khi build — đúng thiết kế.**
-- ✅ I5. BE: `bun run validate` xanh (typecheck + biome 275 file + boundaries + env-parity 41 key + contract hash) · `bun test` toàn bộ: **312 pass, 9 skip (e2e theo thiết kế), 0 fail** — trong đó `/rpc` routes 11 pass (kể cả rate-limit thật 121 req → 429 trên Dragonfly local + CORS preflight) và `ttl-keeper` 4 pass; dry-run thật `fetchWasmHashHex` đọc đúng wasm hash 3 contract testnet qua RPC.
+- ✅ I5. BE: `bun run validate` xanh (typecheck + biome 275 file + boundaries + env-parity 41 key + contract hash) · `bun test` toàn bộ: **312 pass, 9 skip (e2e theo thiết kế), 0 fail** — trong đó `/rpc` routes 11 pass (kể cả rate-limit thật 121 req → 429 trên Dragonfly local + CORS preflight) và `ttl-keeper` 4 pass; dry-run thật `fetchWasmHashHex` đọc đúng wasm hash 3 contract testnet qua RPC. **Cập nhật audit PHA 5: 316 pass, 9 skip, 0 fail (+4 test originGuard `/rpc`).**
+
+## K — AUDIT PHA 5 (2026-07-26, nhánh feat/mainnet)
+
+Review 6 vấn đề → soi thật → sửa → chứng minh bằng chạy thật. Commit: `audit: F1…F5`, `audit: S5`, `audit: T6`, `audit: report`.
+
+- **F1** `fe/scripts/csp-script-hash.mjs` biome format — `pnpm validate` FE hết đỏ (gỡ luôn ghi chú I2 ở trên).
+- **F2** `/rpc` khoá server-side theo `TRUSTED_ORIGINS` (`be/src/middlewares/origin-guard.ts`): hono/cors KHÔNG chặn request thật cho Origin lạ, /rpc lại nằm ngoài csrf(/api/*). Curl thật: Origin tin cậy → 200; Origin lạ → **403 trước handler**; preflight Origin lạ → 204 KHÔNG kèm Allow-Origin; không Origin (curl/CLI) → qua CÓ CHỦ ĐÍCH.
+- **F3** Vá vitest → `pnpm.patchedDependencies` + `fe/patches/vitest@4.1.9.patch` (commit). Gỡ vá chạy thật: `@repo/core` chết 4 file `Timeout waiting for worker to respond` sau 60.15s — fail-env KI-5 thật, không phải lỗi test.
+- **F4** D4 ba tầng — miễn trừ CHỈ theo tên file `/vendor-stellar-`; tầng (3) mới quét `.TESTNET` bắt ca app code dùng `Networks.TESTNET` (tầng 2 mù vì passphrase nằm bên vendor chunk). Tiêm lỗi thật: đỏ đúng chunk env-*.js; revert: xanh.
+- **F5** Gate mới: dist KHÔNG chứa `PENDING_MAINNET_DEPLOY` (đỏ thật trên build placeholder — build mà bộ gate D2–D5 CŨ cho qua sạch) + D1 assert định dạng (`^C[A-Z2-7]{55}$` / `^[0-9a-f]{64}$`; đỏ với "abc" lẫn PENDING, xanh với giá trị hợp lệ).
+- **S5** Comment trong `public/_headers` + `public/stellar.toml` nhắc nguyên văn token `__…__` làm gate template đỏ giả trên build hợp lệ → sửa lời comment, gate giữ nguyên.
+- **T6** ttl-keeper lần đầu chạy thật trên testnet — 2 bug chôn (extendTo malformed + trần phí chặn code entry), đã sửa + 4 tx gia hạn thật (xem ĐÍNH CHÍNH mục F).
 
 ---
 

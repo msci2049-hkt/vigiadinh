@@ -1006,3 +1006,43 @@ của brief giữ nguyên tuyệt đối (0 optimistic, 0 persist chạm tiền)
   `@repo/ui` trong scope sản phẩm; button riêng cao 58 px, link phụ 44 px và không tràn EN/VI.
 - Gate BE: `bun run validate` pass. Bộ test đầy đủ vướng timeout Windows có sẵn tại
   `deploy/backup.test.ts` (process không trả exit code trong giới hạn 5 giây), không phải lỗi UI.
+
+## §PHA5-AUDIT — 2026-07-26 (feat/mainnet)
+
+Audit 6 vấn đề review chỉ ra: soi thật → sửa → chứng minh bằng chạy thật (không mục nào
+dừng ở suy luận). Commit `audit: F1…F5`, `audit: S5`, `audit: T6`, `audit: report`.
+
+- **CORS /rpc (F2/T1):** hono/cors với Origin lạ chỉ bỏ header Allow-Origin rồi vẫn
+  `next()` — request thật vẫn chạm handler, và /rpc nằm NGOÀI csrf(/api/*). Thêm
+  `originGuard` (đọc `TRUSTED_ORIGINS`, throw 403 trước handler + trước rate-limit).
+  Curl thật đủ 6 ca: trusted 204/200 có ACAO · evil 204-không-ACAO / **403** ·
+  không-Origin qua (chủ đích — Origin là tín hiệu browser). BE test 316 pass (+4 mới).
+- **Vá vitest (S2/F3/T5):** gỡ vá chạy thật → `@repo/core` chết 4 file
+  `[vitest-pool] Failed to start forks worker … Timeout waiting for worker to respond`
+  đúng 60.15s (START_TIMEOUT stock) — chốt fail-env KI-5. Vá chuyển thành
+  `pnpm.patchedDependencies` + `fe/patches/vitest@4.1.9.patch` (pnpm 9 KHÔNG đọc
+  patchedDependencies từ pnpm-workspace.yaml — đó là tính năng pnpm 10 → để ở
+  package.json). Clean-room: wipe node_modules → install 7m0.1s → patch TỰ áp.
+- **Gate deploy (S3/S4/S5/F4/F5/T2/T3/T4):** build thật 3 lần (11m59/9m44/12m13).
+  Build 4 biến chain = PENDING_MAINNET_DEPLOY **qua sạch bộ gate cũ** ("✅ dist hợp lệ")
+  → thêm gate PENDING trong Verify dist (đỏ thật: stellar.toml + env-*.js) + D1 assert
+  định dạng (abc → đỏ · hợp lệ → xanh · PENDING → đỏ cả 5). D4 thêm tầng `.TESTNET`
+  (miễn trừ CHỈ theo tên file /vendor-stellar-): tiêm `console.log(Networks.TESTNET)`
+  vào env.ts → CHỈ tầng mới đỏ (chứng minh 2 tầng cũ mù ca này); revert → xanh.
+  Phát hiện kèm: comment trong public/_headers + stellar.toml chứa token `__…__`
+  nguyên văn làm gate template đỏ giả trên build hợp lệ → sửa lời comment (audit: S5).
+- **ttl-keeper (S6/T6) — phát hiện lớn nhất:** Horizon xác nhận ví phí
+  `GCJT4UD4…` chưa từng phát op extend nào (24 tx đều create_account/invoke khác).
+  Lần chạy THẬT đầu tiên: 4/4 entry hạ tầng FAIL — (1) `TTL_EXTEND_TO=3_110_400`
+  bị core chối `extendFootprintTtlMalformed` lúc submit trong khi simulate OK
+  (max = maxEntryTTL−1); (2) trần phí 5M stroop chặn WASM code entry (đo thật:
+  35.5M và 235.6M stroop ≈ 23.6 XLM cho registry code / 6 tháng — comment
+  "extend_ttl rất rẻ" SAI với code entry). Sửa: `TTL_EXTEND_TO=3_110_399` + trần
+  riêng `TTL_INFRA_MAX_FEE_STROOPS=400M` cho hạ tầng (per-wallet giữ 5M, B-SEC-3
+  nguyên vẹn). Chạy lại: infra 4 extended/0 failed, TTL 4 entry → ~6.92M
+  (Δ +3.0M ledger), tx `85a46ee6… 3b55810a… f82eb3ac… 6cd15cc0…` (testnet).
+  Tool mới `be/scripts/ttl-keeper-once.ts` (đo TTL trước/sau, guard mainnet).
+  **Mainnet §2.4: trù ~40 XLM cho lượt extend code entry đầu tiên.**
+- **Clean room (T5):** BE `bun test` 316 pass / 9 skip / 0 fail + validate xanh.
+  FE sau wipe+install: validate + test chạy trên node_modules KHÔNG vá tay
+  (patch tự áp qua patchedDependencies) — kết quả ghi ở MAINNET-CHECKLIST mục K.
