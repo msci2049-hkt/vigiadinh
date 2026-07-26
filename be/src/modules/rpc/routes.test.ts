@@ -53,9 +53,9 @@ const app = new Hono().route("/rpc", rpcRoutes);
 // Mỗi test một xô rate-limit riêng (defaultKey đọc x-forwarded-for đầu tiên)
 // để pass-through không ăn 429 lây từ test khác / lần chạy trước trong 60s.
 let bucket = 0;
-function post(body: unknown, headers: Record<string, string> = {}): Promise<Response> {
+async function post(body: unknown, headers: Record<string, string> = {}): Promise<Response> {
   bucket += 1;
-  return app.request("/rpc", {
+  return await app.request("/rpc", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -171,7 +171,7 @@ describe("POST /rpc — key không rò (B3)", () => {
     mutableEnv.STELLAR_RPC_API_KEY = TEST_KEY;
     globalThis.fetch = (async () => {
       throw new TypeError(`Unable to connect to ${UPSTREAM_URL}?key=${TEST_KEY}`);
-    }) as typeof fetch;
+    }) as unknown as typeof fetch;
     const res = await post({ jsonrpc: "2.0", id: 3, method: "getFeeStats" });
     const text = await res.text();
     expect(text).toContain("RPC_UPSTREAM_UNREACHABLE");

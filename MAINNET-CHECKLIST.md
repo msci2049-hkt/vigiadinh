@@ -57,7 +57,12 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 
 ## F — TTL-KEEPER PHỦ NỐT
 
-- ☐ F. origin-verifier + web-auth + WASM code entries vào vòng gia hạn cron; env mới theo convention; test chứng minh
+- ✅ F. Hạ tầng vào vòng gia hạn cron 03:00 UTC (chạy TRƯỚC vòng per-wallet, KHÔNG phụ thuộc `CONTRACT_ID_RECOVERY`; cần `FEE_WALLET_SECRET` để trả phí):
+  - **Cách:** origin-verifier + web-auth KHÔNG có hàm `extend_ttl`, và WASM code entry thì không hàm contract nào chạm được → dùng thẳng `ExtendFootprintTTLOp` (service mới `be/src/services/stellar/ttl.service.ts`: `extendEntriesTtl` — simulate → trần phí B-SEC-3 → ví phí ký → submit+poll; `fetchWasmHashHex` — tự khám phá code hash qua `getLedgerEntries(instance)`, không cần env hash cho từng contract).
+  - **Target:** instance origin-verifier + web-auth + registry (registry instance thêm vào đây để phủ ca 0 ví — `extend_ttl(wallet)` chỉ chạy khi có ví) + code entry của 3 contract đó (hash khám phá RPC) + code smart-account từ env `ACCOUNT_WASM_HASH`. Mỗi target MỘT tx — một contract chưa deploy không làm hỏng lượt của entry còn lại.
+  - **Env mới (schema + 2 example cùng commit, luật 1):** `CONTRACT_ID_ORIGIN_VERIFIER` (convention CONTRACT_ID_*), `ACCOUNT_WASM_HASH` (mirror FE VITE_ACCOUNT_WASM_HASH) — cả hai optional, parity 41 key OK.
+  - **Bằng chứng:** `bun test src/jobs/ttl-keeper.test.ts` 4 pass (khoá danh sách target theo env, giải mã ngược LedgerKey đúng contract/hash, cách ly lỗi từng target, RPC chết không throw ra cron) · typecheck sạch · **dry-run THẬT**: `fetchWasmHashHex` trên testnet RPC trả đúng wasm hash 3 contract dev (origin-verifier `21164f7b…`, web-auth `e44a1fcb…`, registry `bb503a91…`).
+  - File: `be/src/services/stellar/ttl.service.ts` (mới) · `be/src/jobs/ttl-keeper.ts` · `be/src/jobs/ttl-keeper.test.ts` (mới) · `be/src/env.schema.ts` · `be/.env.example` · `be/deploy/env.production.example`
 
 ## G — DERIVE VITE_SAC_NATIVE
 

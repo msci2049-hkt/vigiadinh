@@ -140,6 +140,21 @@ export const envShape = {
     .string()
     .regex(/^C[A-Z2-7]{55}$/)
     .optional(),
+  // Origin-verifier (contracts/origin-verifier — pin rpIdHash + allow-list
+  // origin). Cron ttl-keeper gia hạn instance + code entry của nó: contract này
+  // KHÔNG có hàm extend_ttl nên phải đi đường ExtendFootprintTTLOp
+  // (services/stellar/ttl.service). Trống = chưa deploy → cron bỏ qua.
+  CONTRACT_ID_ORIGIN_VERIFIER: z
+    .string()
+    .regex(/^C[A-Z2-7]{55}$/)
+    .optional(),
+  // WASM hash smart-account (= FE VITE_ACCOUNT_WASM_HASH): cron gia hạn CODE
+  // entry dùng chung của MỌI ví — extend_ttl của từng ví chỉ chạm instance +
+  // signer data, không chạm code entry. Trống → cron bỏ qua phần này.
+  ACCOUNT_WASM_HASH: z
+    .string()
+    .regex(/^[0-9a-f]{64}$/, "phải là wasm hash hex 64 ký tự")
+    .optional(),
   // SAC native (XLM) — gửi tiền từ ví hợp đồng = invoke transfer trên đây (PHA 6
   // SEND). Lấy: `stellar contract id asset --asset native --network <net>`.
   // Chưa set → route send trả 503 (app sống). Testnet id trong .env.
