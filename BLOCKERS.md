@@ -475,3 +475,36 @@ Quyết định sản phẩm: **không upload ảnh**. Nhận diện người b�
 - **Việc TAY còn lại trên VPS:** xoá 4 dòng `R2_*` khỏi `deploy/.env.production` rồi `up -d`
   (không cần `--build` — chỉ env đổi). Để lại cũng không sập (biến thừa bị bỏ qua), nhưng
   `check:env-parity` sẽ kêu key ACTIVE không có trong schema.
+
+## B-FE-1 · vitest FE KHÔNG CHẠY ĐƯỢC — fail-env, có trước phiên này
+
+`npx vitest run <bất kỳ file nào>` chết ngay khi nạp runner:
+```
+Cannot find module '@rolldown/binding-linux-x64-gnu'
+Cannot find module '../rolldown-binding.linux-x64-gnu.node'
+```
+`node_modules/.pnpm/` KHÔNG có thư mục rolldown → cây deps FE thiếu native binding
+của platform này (nhiều khả năng cài từ Windows, hoặc còn dở từ lần khôi phục
+`_deps-backup-family-wallet-fe-20260725`).
+
+- **Không phải regress phiên này**: test có sẵn (`src/lib/i18n-icu.test.ts`) đỏ y hệt,
+  không liên quan gì tới thay đổi trong phiên.
+- **`pnpm install --frozen-lockfile` đòi XOÁ TRẮNG toàn bộ node_modules rồi cài lại**
+  ("The modules directories will be removed and reinstalled from scratch"). CHƯA CHẠY:
+  thao tác phá huỷ, rất chậm trên `/mnt/d` (WSL), và có phiên khác dùng chung cây làm việc.
+  Cần người quyết định.
+- **Hệ quả:** mọi test FE phiên này ở mức `[CHƯA CHẠY ĐƯỢC]`, KHÔNG phải `[CHẠY THẬT]`.
+  `tsc --noEmit` FE vẫn xanh (không cần rolldown).
+
+## B-FE-2 · `public/.well-known/stellar.toml` KHÔNG TỒN TẠI → SEP-45 login không chạy
+
+`fe/apps/web/public/.well-known/` chỉ có `apple-app-site-association` + `assetlinks.json`.
+SEP-45 đòi `stellar.toml` ở home domain, chứa `WEB_AUTH_FOR_CONTRACTS_ENDPOINT` +
+`WEB_AUTH_CONTRACT_ID`. Thiếu → client không tìm được endpoint → **không ai đăng nhập được**.
+
+Giá trị đã có sẵn để điền (BE `.env`):
+`SEP45_WEB_AUTH_CONTRACT_ID=CAKV3MKK3WA2CJX56LA52YYAG7FDMQTD7ZYRT3FKXUOCOEXZIANG2SST` (testnet).
+
+**Chưa làm trong phiên này** — hết ngân sách context, và cần chốt luôn home domain
+production (`familyhaven.mscilabs.com`) + endpoint (`https://api.familyhaven.mscilabs.com/api/sep45`)
+trước khi ghi file, để không đẻ ra một file sai phải sửa lại sau.

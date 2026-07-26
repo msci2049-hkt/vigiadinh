@@ -36,7 +36,18 @@ const EnvSchema = z.object({
     .regex(/^C[A-Z2-7]{55}$/, "phải là contract ID (C...)")
     .optional()
     .or(z.literal("").transform(() => undefined)),
-  // rpId passkey — vĩnh viễn theo domain (chốt TRƯỚC passkey đầu tiên). Dev: localhost.
+  // rpId passkey — QUYẾT ĐỊNH KHÔNG ĐẢO LẠI ĐƯỢC.
+  //
+  // Authenticator băm SHA-256 rpId và nhúng vào credential NGAY LÚC TẠO. Không có
+  // API nào sửa được sau đó, không có đường migrate. Đổi rpId = MỌI passkey chết =
+  // người dùng mất đường vào ví, chỉ còn cách đi qua guardian recovery.
+  //
+  // Vì sao KHÔNG dùng apex `mscilabs.com`: rpId là scope — passkey điều khiển tiền
+  // sẽ gọi được từ BẤT KỲ subdomain nào của apex. Một subdomain khác dính XSS là
+  // gọi được passkey ví. Hẹp lại `familyhaven.mscilabs.com` thì TRÌNH DUYỆT tự từ
+  // chối, không phải chờ server kiểm.
+  //
+  // Default "localhost" CHỈ cho dev; production fail-closed ở loadEnv() bên dưới.
   VITE_PASSKEY_RP_ID: z.string().min(1).default("localhost"),
   // Registry khôi phục (v2) — cắm vào ví NGAY trong tx deploy (constructor).
   // Trống = ví deploy ra KHÔNG khôi phục được, nên màn tạo ví chặn trước khi
@@ -72,6 +83,20 @@ function loadEnv(): Env {
       `❌ Invalid environment variables:\n${details}\n\nCopy .env.example to .env and fix the values.`,
     );
   }
+
+  // FAIL-CLOSED cho build production: rpId rơi về "localhost" là hỏng KHÔNG THỂ
+  // SỬA. Vite nướng env lúc BUILD, nên nếu không chặn ở đây thì bản production
+  // vẫn build xanh, deploy xanh, và mỗi passkey người dùng tạo ra đều gắn với
+  // "localhost" — chết vĩnh viễn trên domain thật, phát hiện ra thì đã muộn.
+  // Thà vỡ lúc build còn hơn đẻ ra credential không dùng được.
+  if (import.meta.env.PROD && result.data.VITE_PASSKEY_RP_ID === "localhost") {
+    throw new Error(
+      '❌ VITE_PASSKEY_RP_ID vẫn là "localhost" trong build PRODUCTION.\n' +
+        "   rpId nhúng vĩnh viễn vào passkey lúc tạo — không sửa được, không migrate được.\n" +
+        "   Đặt VITE_PASSKEY_RP_ID=familyhaven.mscilabs.com rồi build lại.",
+    );
+  }
+
   return result.data;
 }
 
