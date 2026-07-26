@@ -33,10 +33,11 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 
 ## C — FE WIRING
 
-- ☐ C1. deploy-fe.yml step Build: API URL + RPC URL /rpc + passphrase mainnet + rpId (kiểm)
-- ☐ C2. 4 biến chain từ GitHub vars vào step Build
-- ☐ C3. stellar.toml: passphrase mainnet; `WEB_AUTH_CONTRACT_ID = "__WEB_AUTH_CONTRACT_ID__"` + workflow sed từ `vars.WEB_AUTH_CONTRACT_ID`
-- ☐ C4. `_headers`: connect-src chỉ còn `'self'` + API origin (dedupe __RPC_ORIGIN__)
+- ✅ C1. deploy-fe.yml step Build: `VITE_API_URL=$API_ORIGIN` (đã có) · `VITE_STELLAR_RPC_URL=$RPC_URL` (= https://api.familyhaven.mscilabs.com/rpc, env mới thay RPC_ORIGIN testnet) · `VITE_STELLAR_NETWORK_PASSPHRASE` = mainnet (hết hardcode testnet dòng 100 cũ) · `VITE_PASSKEY_RP_ID=$PASSKEY_RP_ID` (đã có, giữ nguyên)
+  - `.github/workflows/deploy-fe.yml` (env block + step Build)
+- ✅ C2. 4 biến chain vào step Build từ `vars.VITE_ACCOUNT_WASM_HASH` / `vars.VITE_WEBAUTHN_VERIFIER_ADDRESS` / `vars.VITE_RECOVERY_REGISTRY_ADDRESS` / `vars.VITE_SAC_NATIVE`
+- ✅ C3. `fe/apps/web/public/.well-known/stellar.toml`: `NETWORK_PASSPHRASE` mainnet; `WEB_AUTH_CONTRACT_ID = "__WEB_AUTH_CONTRACT_ID__"` template; step mới trong deploy-fe.yml sed từ `vars.WEB_AUTH_CONTRACT_ID` (cùng cơ chế `_headers`). ⚠️ `SIGNING_KEY` vẫn là G testnet dev — có comment BLOCKER tại chỗ, xem H3 (ngoài phạm vi C3, cần key mainnet mới thay được).
+- ✅ C4. `fe/apps/web/public/_headers`: connect-src = `'self' __API_ORIGIN__` (gỡ `__RPC_ORIGIN__`); sed step chỉ còn thay API origin; `deploy/nginx.conf` vốn đã chỉ có `__API_ORIGIN__` → hai file tự đồng bộ.
 
 ## D — GATES TRONG deploy-fe.yml
 

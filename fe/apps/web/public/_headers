@@ -9,6 +9,10 @@
 # ⚠️ __API_ORIGIN__ là PLACEHOLDER: pipeline deploy phải thay bằng origin BE thật
 # (= VITE_API_URL prod). Quên thay → connect-src co về 'self' → fetch/SSE bị chặn
 # (fail-closed, hỏng ồn ào chứ không nới lỏng âm thầm). Xem docs/HUMAN-TODO.md.
+#
+# Mainnet migration 2026-07-26: __RPC_ORIGIN__ ĐÃ GỠ — FE gọi Stellar RPC qua
+# proxy BE POST /rpc (cùng origin API), không gọi thẳng provider nữa.
+# connect-src chỉ còn 'self' + API origin.
 # Bước thay + bước verify "không còn placeholder trong dist" nằm ở
 # `.github/workflows/deploy-fe.yml` (ROOT — GitHub chỉ đọc workflow ở root monorepo).
 #
@@ -24,7 +28,7 @@
 # phải chuyển sonner sang nonce/hash và VERIFY TRONG TRÌNH DUYỆT THẬT trước —
 # đừng siết mù khi không chạy được app (xem B-FE-1).
 /*
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-81loPoXAH2d7v6xD+o+5CuQ/gzjTzt45bNHddccOcTs='; connect-src 'self' __API_ORIGIN__ __RPC_ORIGIN__
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-81loPoXAH2d7v6xD+o+5CuQ/gzjTzt45bNHddccOcTs='; connect-src 'self' __API_ORIGIN__
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin

@@ -40,7 +40,13 @@ concurrency:
 env:
   # Nguồn sự thật DUY NHẤT cho các giá trị production. Đổi ở đây, không rải rác.
   API_ORIGIN: https://api.familyhaven.mscilabs.com
-  RPC_ORIGIN: https://soroban-testnet.stellar.org
+  # MAINNET (migration 2026-07-26): FE gọi Stellar RPC qua proxy BE POST /rpc —
+  # không gọi thẳng provider (key nằm server-side). PHẢI = API_ORIGIN + "/rpc"
+  # (env block GitHub không nối được từ env khác — đổi API_ORIGIN thì đổi theo).
+  RPC_URL: https://api.familyhaven.mscilabs.com/rpc
+  # Passphrase MAINNET — chính xác từng ký tự. env.ts đã fail-closed (hết
+  # default testnet) nên thiếu/sai biến này là app throw ngay lúc boot.
+  STELLAR_NETWORK_PASSPHRASE: "Public Global Stellar Network ; September 2015"
   SITE_ORIGIN: https://familyhaven.mscilabs.com
   # rpId KHÔNG ĐẢO LẠI ĐƯỢC — authenticator băm và nhúng vào credential lúc tạo.
   # Đổi giá trị này sau khi có passkey đầu tiên = mọi passkey chết. Xem §3.1.
@@ -96,9 +102,17 @@ jobs:
       - name: Build (honest)
         env:
           VITE_API_URL: ${{ env.API_ORIGIN }}
-          VITE_STELLAR_RPC_URL: ${{ env.RPC_ORIGIN }}
-          VITE_STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+          VITE_STELLAR_RPC_URL: ${{ env.RPC_URL }}
+          VITE_STELLAR_NETWORK_PASSPHRASE: ${{ env.STELLAR_NETWORK_PASSPHRASE }}
           VITE_PASSKEY_RP_ID: ${{ env.PASSKEY_RP_ID }}
+          # 4 biến chain MAINNET từ GitHub vars (Settings → Secrets and
+          # variables → Actions → Variables). Nguồn giá trị: bảng "GitHub vars
+          # phải điền" trong MAINNET-CHECKLIST.md. Gate D1 ở trên đã chặn khi
+          # trống — tới đây là chắc chắn có giá trị.
+          VITE_ACCOUNT_WASM_HASH: ${{ vars.VITE_ACCOUNT_WASM_HASH }}
+          VITE_WEBAUTHN_VERIFIER_ADDRESS: ${{ vars.VITE_WEBAUTHN_VERIFIER_ADDRESS }}
+          VITE_RECOVERY_REGISTRY_ADDRESS: ${{ vars.VITE_RECOVERY_REGISTRY_ADDRESS }}
+          VITE_SAC_NATIVE: ${{ vars.VITE_SAC_NATIVE }}
           VITE_ENABLE_DEVTOOLS: "false"
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN_WEB }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -115,9 +129,26 @@ jobs:
         run: |
           H=apps/web/dist/_headers
           test -f "$H" || { echo "❌ _headers không vào dist — kiểm apps/web/public/_headers"; exit 1; }
-          sed -i "s#__API_ORIGIN__#${API_ORIGIN}#g; s#__RPC_ORIGIN__#${RPC_ORIGIN}#g" "$H"
+          # __RPC_ORIGIN__ đã gỡ khỏi _headers (RPC đi qua /rpc cùng origin API);
+          # placeholder-check ở Verify dist vẫn quét cả hai để bắt sót.
+          sed -i "s#__API_ORIGIN__#${API_ORIGIN}#g" "$H"
           echo "--- CSP sau khi thay ---"
           grep -m1 'Content-Security-Policy' "$H"
+
+      # ---- Bake WEB_AUTH_CONTRACT_ID vào stellar.toml (C3) ----
+      # Cùng cơ chế sed như _headers: public/ giữ TEMPLATE __WEB_AUTH_CONTRACT_ID__
+      # để repo không pin contract id (id gắn chặt network); giá trị thật nằm ở
+      # GitHub vars WEB_AUTH_CONTRACT_ID (điền sau khi deploy contracts/web-auth
+      # lên MAINNET). Gate D1 đã chặn khi vars trống; gate D5 chặn template sót.
+      - name: Bake WEB_AUTH_CONTRACT_ID vào stellar.toml
+        env:
+          WEB_AUTH_CONTRACT_ID: ${{ vars.WEB_AUTH_CONTRACT_ID }}
+        run: |
+          T=apps/web/dist/.well-known/stellar.toml
+          test -f "$T" || { echo "❌ stellar.toml không vào dist"; exit 1; }
+          sed -i "s#__WEB_AUTH_CONTRACT_ID__#${WEB_AUTH_CONTRACT_ID}#g" "$T"
+          echo "--- stellar.toml sau khi thay ---"
+          grep -m1 'WEB_AUTH_CONTRACT_ID' "$T"
 
       # ---- Verify output TRƯỚC khi upload — rẻ hơn debug trên production ----
       - name: Verify dist
