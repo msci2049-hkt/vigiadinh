@@ -7,6 +7,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { env } from "@/env";
 import { rateLimitConnection } from "@/lib/redis";
+import { originGuard } from "@/middlewares/origin-guard";
 import { RPC_MAX_BODY_BYTES, RPC_RATE_LIMIT, rpcRoutes } from "./routes";
 
 const UPSTREAM_URL = "https://upstream.rpc.test";
@@ -236,5 +237,75 @@ describe("CORS phủ /rpc (B4 — cùng khuôn app.use('*', cors) của app.ts)"
     });
     expect(res.status).toBe(200);
     expect(res.headers.get("Access-Control-Allow-Origin")).toBe(FE_ORIGIN);
+  });
+});
+
+describe("originGuard chặn /rpc server-side (audit F2 — cùng khuôn mount app.ts)", () => {
+  // Mirror app.ts: cors trước (trả preflight), originGuard trước route module.
+  function guardedApp(trusted: string[]): Hono {
+    const a = new Hono();
+    a.use("*", cors({ origin: trusted, credentials: true }));
+    a.use("/rpc", originGuard);
+    a.use("/rpc/*", originGuard);
+    a.route("/rpc", rpcRoutes);
+    return a;
+  }
+  const TRUSTED = env.TRUSTED_ORIGINS[0] ?? "http://localhost:5173";
+  const EVIL = "https://evil.example.com";
+
+  testIt("Origin ∈ TRUSTED_ORIGINS → qua (200, có ACAO)", async () => {
+    stubUpstream(() => Response.json({ jsonrpc: "2.0", id: 1, result: {} }));
+    const res = await guardedApp(env.TRUSTED_ORIGINS).request("/rpc", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: TRUSTED,
+        "x-forwarded-for": "10.97.1.1",
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getHealth" }),
+    });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBe(TRUSTED);
+  });
+
+  testIt("Origin lạ → 403 TRƯỚC handler, upstream không bị gọi", async () => {
+    captured = null;
+    stubUpstream(() => Response.json({ jsonrpc: "2.0", id: 2, result: {} }));
+    const res = await guardedApp(env.TRUSTED_ORIGINS).request("/rpc", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Origin: EVIL,
+        "x-forwarded-for": "10.97.1.2",
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "getHealth" }),
+    });
+    expect(res.status).toBe(403);
+    expect(captured).toBeNull();
+    // Browser không đọc được response này: cors không cấp ACAO cho origin lạ.
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
+  });
+
+  testIt("preflight OPTIONS từ origin lạ → 204 KHÔNG có Allow-Origin (browser chặn)", async () => {
+    const res = await guardedApp(env.TRUSTED_ORIGINS).request("/rpc", {
+      method: "OPTIONS",
+      headers: {
+        Origin: EVIL,
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type",
+      },
+    });
+    expect(res.status).toBe(204);
+    expect(res.headers.get("Access-Control-Allow-Origin")).toBeNull();
+  });
+
+  testIt("không có header Origin (curl/CLI) → qua — Origin là tín hiệu browser", async () => {
+    stubUpstream(() => Response.json({ jsonrpc: "2.0", id: 3, result: {} }));
+    const res = await guardedApp(env.TRUSTED_ORIGINS).request("/rpc", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-forwarded-for": "10.97.1.3" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 3, method: "getHealth" }),
+    });
+    expect(res.status).toBe(200);
   });
 });
