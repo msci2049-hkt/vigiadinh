@@ -26,7 +26,8 @@ name: Deploy FE
 
 on:
   push:
-    branches: [main]
+    # audit PHA6 G3: bỏ lọc branches — job build+gate (D1–D5) chạy trên MỌI
+    # nhánh chạm fe/**; job deploy bên dưới tự gác `if: ref == main`.
     paths:
       - "fe/**"
       - "shared/**"
@@ -34,7 +35,9 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-fe-prod
+  # Per-ref (PHA6 G3): build nhánh feature KHÔNG được cancel deploy đang chạy
+  # của main — group cũ `deploy-fe-prod` dùng chung sẽ làm đúng điều đó.
+  group: deploy-fe-${{ github.ref }}
   cancel-in-progress: true # FE khác BE: huỷ build cũ an toàn, không có migration
 
 env:
@@ -53,11 +56,11 @@ env:
   PASSKEY_RP_ID: familyhaven.mscilabs.com
 
 jobs:
-  build-and-deploy:
+  # ---- Job 1: build + gate (D1–D5) — chạy trên MỌI nhánh (audit PHA6 G3) ----
+  build-and-gate:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      deployments: write
     defaults:
       run:
         working-directory: fe
@@ -302,6 +305,40 @@ jobs:
           fi
 
           echo "✅ dist hợp lệ"; du -sh "$D"
+
+      # ---- Bàn giao dist cho job deploy ----
+      # ⚠️ include-hidden-files BẮT BUỘC: upload-artifact v4 mặc định BỎ đường
+      # dẫn bắt đầu bằng dấu chấm → .well-known/stellar.toml biến mất im lặng.
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: fe/apps/web/dist
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
+
+  # ---- Job 2: deploy — CHỈ chạy khi ref == refs/heads/main (audit PHA6 G3) ----
+  # Nội dung step giữ NGUYÊN từ bản 1-job; chỉ điều kiện chạy đổi. Nhánh feature
+  # dừng ở build+gate, không bao giờ chạm upload production.
+  deploy:
+    needs: build-and-gate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    defaults:
+      run:
+        working-directory: fe
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: fe/apps/web/dist
 
       # ---- Deploy ----
       # Chưa có secrets → SKIP deploy, job vẫn xanh (build + gate đã chạy thật).
