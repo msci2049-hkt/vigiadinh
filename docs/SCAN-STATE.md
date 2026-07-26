@@ -133,10 +133,45 @@ thật. Nay `loadEnv()` **throw** khi build PROD còn `localhost`. Chốt
 
 ---
 
+## PHA 3 — DEPLOY FE (Cloudflare Pages) · HẠ TẦNG XONG, CHƯA DEPLOY
+
+Commit `a7b00af`. **Chưa có gì lên production** — bước deploy tự SKIP tới khi có secrets.
+
+- **Phát hiện lớn:** `fe/.github/workflows/deploy.yml` **CHƯA BAO GIỜ CHẠY** (GitHub chỉ đọc
+  `.github/workflows/` ở GỐC repo). "Deploy đã nối dây" trong ghi chú cũ là SAI. Đã port sang
+  `.github/workflows/deploy-fe.yml` ở root + xoá bản chết (B-FE-3; `ci.yml` mồ côi vẫn còn).
+- **3 giá trị trong spec deploy KHÔNG khớp code** — mỗi cái đều đủ làm hỏng bản production:
+  tên biến env (`VITE_PASSKEY_RP_ID` chứ không phải `VITE_RP_ID` → rpId rơi về localhost →
+  **trắng màn**) · `script-src 'self'` trần sẽ chặn inline script `index.html:24` (đang pin
+  bằng sha256) · `style-src` KHÔNG bỏ được `'unsafe-inline'` vì **sonner tiêm `<style>` lúc chạy**.
+- **`__API_ORIGIN__` chưa từng được thay** bởi pipeline nào → CSP shipped kèm chuỗi placeholder.
+  Nay workflow bake + FAIL nếu còn placeholder trong dist.
+- Mới: `_redirects` (SPA fallback) · `.well-known/stellar.toml` (giá trị testnet THẬT, `SIGNING_KEY`
+  = khoá CÔNG KHAI G…, secret không rời `be/.env`) · `scripts/csp-script-hash.mjs` (gác drift hash).
+- **gitleaks CHẶN commit này** vì `SIGNING_KEY` (entropy G-address). Đã thêm allowlist
+  `\bG[A-Z2-7]{55}\b` **theo giá trị/hình dạng, không theo file** — `.gitleaks.toml` vốn đã ghi
+  "C/G là công khai" mà chỉ allowlist C. **Chứng minh không nới quá tay:** seed `S...` giả thả vào
+  ĐÚNG thư mục đó vẫn bị chặn. Full history quét lại: **147 commit, no leaks**.
+- **`[CHẠY THẬT]`** — replay bước `Verify dist` trên dist của lần build thật gần nhất: mọi check
+  cấu trúc PASS; hai grep env **FAIL đúng như thiết kế** vì bundle đó còn `http://localhost:3000`.
+  Đó chính là ca trắng-màn mà guard sinh ra để bắt — chứng minh, không tuyên bố.
+- **`[CHƯA CHẠY ĐƯỢC]`** — `pnpm validate/test/build/audit` (B-FE-1).
+
+⚠️ Push `a7b00af` có chạm `fe/**` ⇒ **workflow `Deploy FE` sẽ tự chạy trên GitHub** (deploy SKIP,
+nhưng validate/test/build/audit CHẠY THẬT trên runner Linux sạch). **Đó là lần đầu gate FE được
+chạy thật** — nhưng phiên này KHÔNG đọc được kết quả (B-CI-1). Người có token phải xem.
+
+---
+
 ## VIỆC TIẾP THEO CHÍNH XÁC
 
-1. **Quyết định B-FE-1** (người): chạy tooling FE từ Windows, HAY cài lại deps trong WSL.
-   Không quyết thì mọi gate FE còn mù.
+0. **ĐỌC KẾT QUẢ workflow `Deploy FE`** của `a7b00af` — nó là lần đầu FE gate chạy trên môi trường
+   sạch. Đỏ ở đâu thì đó là bug thật, không phải fail-env.
+1. **4 bước dashboard Cloudflare** (B-CF-1) — không có credential ở đây: tạo Pages project
+   `familyhaven` (Direct Upload) · API token · 2 secrets GitHub · custom domain.
+   ⚠️ KHÔNG test auth trên `*.pages.dev` (Public Suffix List → cookie vỡ).
+2. **Quyết định B-FE-1** (người): chạy tooling FE từ Windows, HAY cài lại deps trong WSL.
+   Không quyết thì gate FE ở máy này còn mù.
 2. **§2.4 ví phí** — mục nặng nhất còn mở: job alarm số dư + đường veto không phụ thuộc
    fee-bump. Đây là chuỗi mất ví duy nhất còn nguyên vẹn.
 3. **§2.3 SEP-45 footprint** — chặn signing oracle.
