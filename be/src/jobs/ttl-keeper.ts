@@ -36,15 +36,32 @@ import {
 
 export const TTL_KEEPER_QUEUE = "{ttl-keeper}";
 
-/** Ngưỡng/mốc gia hạn (ledger) — khớp hằng trong contract registry. */
+/**
+ * Ngưỡng/mốc gia hạn (ledger). extendTo TỐI ĐA là maxEntryTTL−1 = 3_110_399:
+ * ExtendFootprintTTLOp với extendTo = 3_110_400 bị core chối
+ * `extendFootprintTtlMalformed` NGAY LÚC SUBMIT trong khi simulate vẫn OK
+ * (preflight không chạy static check của op) — đo thật testnet 2026-07-26
+ * (audit T6): 3_110_400 → txFailed/Malformed; 3_110_399 → SUCCESS
+ * (tx a2927cff26092593ad175645c57a9cacfeb91048135afc8eb56c4960eb431bcc).
+ * Giá trị cũ 3_110_400 là lý do ttl-keeper chưa từng gia hạn nổi entry nào.
+ */
 const TTL_THRESHOLD = 300_000;
-const TTL_EXTEND_TO = 3_110_400;
+const TTL_EXTEND_TO = 3_110_399;
 
-// Trần phí per-tx (stroops). `extend_ttl` rất rẻ (~vài chục nghìn stroops); đặt
-// 5_000_000 (0.5 XLM) là dư xa cho tx thật nhưng chặn cost-attack B-SEC-3: một
+// Trần phí per-tx (stroops) cho vòng PER-WALLET. Đặt 5_000_000 (0.5 XLM) đủ cho
+// extend_ttl instance/persistent của MỘT ví nhưng chặn cost-attack B-SEC-3: một
 // contract do kẻ tấn công khai (POST /api/wallets nhận C… bất kỳ) để extend_ttl
 // ngốn tài nguyên tối đa sẽ vượt trần → bị bỏ qua, ví phí không mất gì.
 const TTL_MAX_FEE_STROOPS = 5_000_000;
+
+// Trần phí RIÊNG cho entry HẠ TẦNG (id lấy từ env, KHÔNG phải input người dùng
+// → không có bề mặt B-SEC-3). WASM CODE entry to thì rent ~6 tháng KHÔNG rẻ —
+// đo thật testnet 2026-07-26 (audit T6): web-auth:code 35_498_854 stroops
+// (~3.5 XLM), recovery-registry:code 235_602_550 stroops (~23.6 XLM). Trần cũ
+// 5M chặn sạch mọi code entry → ttl-keeper "chạy" mà không gia hạn được gì.
+// 400M (40 XLM) đủ lần prepay đầu + headroom; các tick sau chỉ trả phần delta
+// (rất nhỏ) vì TTL đã gần trần.
+const TTL_INFRA_MAX_FEE_STROOPS = 400_000_000;
 // Trần số ví mỗi lượt — bó việc một tick, chống bơm bảng wallets thành DoS.
 const TTL_MAX_WALLETS_PER_TICK = 1_000;
 
@@ -160,7 +177,8 @@ export async function runTtlKeeperTick(): Promise<TtlResult> {
           extendEntriesTtl({
             keys,
             extendTo: TTL_EXTEND_TO,
-            maxFeeStroops: TTL_MAX_FEE_STROOPS,
+            // Trần hạ tầng riêng — code entry to có rent lớn (xem WHY ở hằng).
+            maxFeeStroops: TTL_INFRA_MAX_FEE_STROOPS,
           }),
         wasmHashHexOf: fetchWasmHashHex,
       })
