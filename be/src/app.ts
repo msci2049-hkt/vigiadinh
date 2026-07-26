@@ -30,6 +30,7 @@ import { presenceRoutes } from "@/modules/presence/routes";
 import { realtimeRoutes } from "@/modules/realtime/routes";
 import { recoveryRoutes } from "@/modules/recovery/routes";
 import { riskRoutes } from "@/modules/risk/routes";
+import { rpcRoutes } from "@/modules/rpc/routes";
 import { sep45Routes } from "@/modules/sep45";
 import { walletsRoutes } from "@/modules/wallets/routes";
 
@@ -178,6 +179,12 @@ app.route("/api/risk", riskRoutes);
 // SEP-45 — đăng nhập bằng ví contract (public có chủ đích: đây là cửa login;
 // rate-limit failOpen=false + nonce single-use bên trong module).
 app.route("/api/sep45", sep45Routes);
+// Proxy JSON-RPC Stellar (mainnet migration): FE gọi qua đây, KHÔNG gọi thẳng
+// provider — key provider nằm server-side. Mount NGOÀI /api/* (FE bake
+// VITE_STELLAR_RPC_URL=<API origin>/rpc); vẫn sau cors("*") toàn cục nên CORS
+// phủ đủ (B4); csrf chỉ gác /api/* nhưng /rpc là JSON-only — csrf vốn bỏ qua
+// JSON. Public + rate-limit failOpen=false + allowlist method trong module.
+app.route("/rpc", rpcRoutes);
 // Pipeline intent (PHA 3) — trục mọi luồng tiền, requireAuth trong feature.
 app.route("/api/intents", intentsRoutes);
 
