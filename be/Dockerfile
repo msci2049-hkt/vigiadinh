@@ -15,7 +15,11 @@ RUN --mount=type=cache,id=bun,target=/root/.bun/install/cache bun install --froz
 
 FROM base AS prod-deps
 COPY package.json bun.lock ./
-RUN --mount=type=cache,id=bun,target=/root/.bun/install/cache bun install --frozen-lockfile --production
+# --ignore-scripts BẮT BUỘC ở đây cũng vậy: `--production` bỏ devDependencies
+# (lefthook nằm trong đó) nhưng script `prepare` VẪN chạy `lefthook install`
+# → `command not found` → exit 127 → build container FAIL. Cùng footgun với
+# stage `deps` ở trên, chỉ khác nguyên nhân (thiếu binary thay vì node-gyp).
+RUN --mount=type=cache,id=bun,target=/root/.bun/install/cache bun install --frozen-lockfile --production --ignore-scripts
 
 FROM deps AS builder
 COPY tsconfig.json ./

@@ -448,3 +448,30 @@ Hai P0 tìm được đã VÁ trong phiên (`set_recovery_registry` → construc
   — đó là layout TRƯỚC khi gộp monorepo. Người đọc theo sẽ đi tìm thư mục không tồn tại.
 - **Chưa sửa trong phiên này** (ngoài phạm vi audit, và `README.md` gốc mới viết đã dẫn
   đúng đường). Cần một lượt rà lại `be/README.md` + `fe/README.md` cho khớp cây hiện tại.
+
+---
+
+## B-INFRA-1 · `api.familyhaven.mscilabs.com` PHẢI để DNS-only (Cloudflare grey cloud)
+
+Cloudflare Universal SSL (gói free) chỉ phủ `mscilabs.com` + `*.mscilabs.com` — **MỘT** tầng
+wildcard. `api.familyhaven.mscilabs.com` là **HAI** tầng → không nằm trong cert đó → bật proxy
+(orange cloud) = TLS handshake fail phía edge = `HTTP 000`, không phải lỗi origin.
+
+- Origin khoẻ: cert Let's Encrypt, hết hạn **2026-10-23**, auto-renew đang chạy.
+- **Muốn có WAF** thì phải một trong hai: đổi sang `familyhaven-api.mscilabs.com` (1 tầng,
+  lọt wildcard free), hoặc mua Cloudflare ACM (Advanced Certificate Manager).
+- **Hệ quả đang chấp nhận:** không có WAF trước API, và IP origin `14.225.198.86` lộ ra DNS
+  công khai → phải dựa hoàn toàn vào firewall + rate limit ở tầng app.
+
+## B-ENV-1 · R2 từng là PROD-REQUIRED nhưng KHÔNG DÙNG — ĐÃ ĐÓNG 2026-07-26
+
+Quyết định sản phẩm: **không upload ảnh**. Nhận diện người bảo hộ bằng **nhãn text + địa chỉ ví**.
+
+- Trạng thái cũ: `src/env.schema.ts` xếp `R2_*` cùng mức bắt buộc như `DATABASE_URL`
+  (`z.string().min(1)`), `src/lib/storage.ts` export `r2` nhưng **0 consumer production** →
+  VPS phải chạy giá trị bịa `dummy_chua_dung_r2` để boot qua GATE env:check.
+- **Đã sửa:** xoá `src/lib/storage.ts`, gỡ `R2_*` khỏi `env.schema.ts`, khỏi
+  `deploy/env.production.example` + `.env.example`, khỏi fixture test và `init-project.mjs`.
+- **Việc TAY còn lại trên VPS:** xoá 4 dòng `R2_*` khỏi `deploy/.env.production` rồi `up -d`
+  (không cần `--build` — chỉ env đổi). Để lại cũng không sập (biến thừa bị bỏ qua), nhưng
+  `check:env-parity` sẽ kêu key ACTIVE không có trong schema.

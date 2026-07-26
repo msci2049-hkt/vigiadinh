@@ -10,7 +10,7 @@
 | 3 | Cài Docker Compose v2 + buildx (additive, không gỡ gì) | — | — (runbook) |
 | 4 | Scan xung đột port host / subnet | **GATE 1** | port bận → đổi `APP_HOST_PORT` trong env, KHÔNG sửa repo |
 | 5 | Clone code qua GitHub SSH deploy key | — | — (runbook) |
-| 6 | Tạo env prod: `cp deploy/env.production.example deploy/.env.production` → điền theo nhãn `[TỰ SINH]`/`[BẮT BUỘC THẬT]`/`[PLACEHOLDER-ĐƯỢC]` (openssl ghi cạnh biến, secret sinh THẲNG vào file — không dán vào chat) | — | `env.production.example` (header = tập PROD-REQUIRED) |
+| 6 | Tạo **HAI** file env: `cp deploy/env.production.example deploy/.env.production` (env của app) **và** `cp deploy/env.migrate.example deploy/.env.migrate` (CHỈ `DATABASE_URL_OWNER`) → điền theo nhãn `[TỰ SINH]`/`[BẮT BUỘC THẬT]`/`[PLACEHOLDER-ĐƯỢC]` (openssl ghi cạnh biến, secret sinh THẲNG vào file — không dán vào chat) | — | `env.production.example` (header = tập PROD-REQUIRED) + `env.migrate.example` |
 | 7 | **Preflight**: `bun run env:check --env-file deploy/.env.production` + Resend key thật + pool budget + no-localhost | **GATE 2** | `scripts/env-check.ts` (❌ = DỪNG, không up) |
 | 8 | Build + migrate + up: `bash deploy/deploy.sh` — thứ tự GATE cứng bên trong: env:check → build → **GATE migrate** (`migrate.ts --dry-run` liệt kê pending → apply, fail = DỪNG không up app) → up | **GATE 3** | `deploy.sh`, `scripts/migrate.ts`, `docker-compose.prod.yml` (`<proj>-app-1 healthy` + worker ×1) |
 | 9 | Test loopback: `/health` (liveness, không đụng DB) + `/ready` (DB+Dragonfly, fail→503) + PID count = WEB_INSTANCES — deploy.sh đã curl 2 endpoint | **GATE 4** | `deploy.sh` |
@@ -52,6 +52,17 @@ stderr liệt kê từng biến sai TÊN + LÝ DO. Chi tiết: `.claude/ERRORS.m
 - `env.production.example` **không có chấm đầu** (khác `.env.production` thật):
   tránh bị gitignore/permission-rule (`.env.*`) quét nhầm; file thật
   `deploy/.env.production` đã nằm trong `.gitignore`, CHỈ sống trên VPS.
+- **HAI file env, tách có chủ đích** — đừng gộp lại làm một:
+  | file | ai đọc | chứa |
+  |---|---|---|
+  | `deploy/.env.production` | `env_file:` của service `app` + `worker` → sống trong process app 24/7 | mọi biến app cần |
+  | `deploy/.env.migrate` | CHỈ `deploy.sh`, bơm qua `-e` vào container `run --rm` ephemeral | CHỈ `DATABASE_URL_OWNER` |
+
+  Role OWNER sở hữu bảng và **bypass mọi GRANT**, kể cả REVOKE
+  UPDATE/DELETE/TRUNCATE trên `audit_log` mà migration 0009 dựng. Đưa owner URL
+  vào `.env.production` = app đang chạy giữ credential owner = một lỗ RCE leo
+  thẳng lên quyền sửa nhật ký kiểm toán, và tầng append-only chỉ còn là quy ước.
+  Cả hai file khớp `.env.*` trong `.gitignore` → không bao giờ lên git.
 - Service tên `app` (không phải `api`) — khớp GATE 3 runbook (`<proj>-app-1`).
 - Healthcheck container (Dockerfile) trỏ `/health` — liveness, để DB chập chờn
   không làm docker giết oan app. `/ready` chỉ dùng verify sau deploy + LB.

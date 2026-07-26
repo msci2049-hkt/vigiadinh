@@ -18,6 +18,17 @@ cd "$(dirname "$0")/.."
 ENV_FILE="deploy/.env.production"
 PROJECT="${COMPOSE_PROJECT:-$(basename "$PWD")}"
 
+# HAI file env, có chủ đích:
+#   deploy/.env.production — env của process app (service `app`/`worker` qua env_file).
+#   deploy/.env.migrate    — CHỈ chứa DATABASE_URL_OWNER, KHÔNG bao giờ vào env_file.
+# Owner URL bơm bằng `-e` vào container `run --rm` ephemeral của GATE migrate.
+# Đặt nó vào .env.production là đưa credential owner cho app đang chạy 24/7 —
+# một lỗ RCE leo thẳng lên owner, và tầng REVOKE trên `audit_log` (migration 0009)
+# mất sạch tác dụng vì owner bypass được mọi GRANT.
+MIGRATE_ENV="deploy/.env.migrate"
+OWNER_URL="$(grep -E "^DATABASE_URL_OWNER=" "$MIGRATE_ENV" 2>/dev/null | cut -d= -f2-)"
+[ -n "$OWNER_URL" ] || { echo "❌ thiếu DATABASE_URL_OWNER trong $MIGRATE_ENV"; exit 1; }
+
 # Mọi lệnh compose dùng CHUNG bộ flag (PHASE 8 runbook) — sai lệch flag giữa
 # các bước = chạy nhầm project/env.
 compose() {
@@ -50,14 +61,14 @@ compose build
 echo "==> [5/7] GATE migrate: dry-run liệt kê pending rồi apply (fail = DỪNG, KHÔNG up app)"
 # `run --rm` tự kéo postgres/dragonfly (depends_on healthy) trong network data.
 # App/worker set RUN_MIGRATIONS=false — ĐÂY là nơi duy nhất migrate chạy ở prod.
-compose run --rm app bun ./dist/migrate.js --dry-run
-compose run --rm app bun ./dist/migrate.js
+compose run --rm -e DATABASE_URL_OWNER="$OWNER_URL" app bun ./dist/migrate.js --dry-run
+compose run --rm -e DATABASE_URL_OWNER="$OWNER_URL" app bun ./dist/migrate.js
 
 # Role runtime PHẢI sẵn sàng trước khi app up: `DATABASE_URL` trỏ vào role đăng
 # nhập mà migration 0009 KHÔNG tạo được (migration nằm trong git → không chứa mật
 # khẩu). Script này idempotent và tự FAIL nếu role vẫn xoá được audit_log.
 echo "==> [5.5/7] GATE provision role runtime (fail = DỪNG, KHÔNG up app)"
-compose run --rm app bun ./dist/provision-runtime-role.js
+compose run --rm -e DATABASE_URL_OWNER="$OWNER_URL" app bun ./dist/provision-runtime-role.js
 
 echo "==> [6/7] docker compose up -d"
 compose up -d
