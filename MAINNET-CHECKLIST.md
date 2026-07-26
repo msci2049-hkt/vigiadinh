@@ -66,7 +66,11 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 
 ## G — DERIVE VITE_SAC_NATIVE
 
-- ☐ G. `stellar contract id asset --asset native` passphrase mainnet → ghi kết quả vào mục GitHub vars
+- ✅ G. Chạy thật bằng stellar-cli 27.0.0 (local), đối chứng 2 cách ra CÙNG kết quả:
+  - `stellar contract id asset --asset native --network mainnet`
+  - `stellar contract id asset --asset native --network-passphrase "Public Global Stellar Network ; September 2015" --rpc-url https://mainnet.sorobanrpc.com`
+  - **`VITE_SAC_NATIVE` = `CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA`** (ghi vào bảng H1)
+  - Sanity: cùng lệnh với testnet ra id KHÁC (`CDLZFC3S…`) — id gắn chặt network, đúng kỳ vọng.
 
 ## H — DOCS CHỐT
 
