@@ -51,7 +51,9 @@ không đổi rpId · fail-closed (không default ngầm testnet) · KHÔNG depl
 
 ## E — GUARD E2E
 
-- ☐ E. 2 file onchain.e2e.test.ts: throw ngay khi passphrase mainnet, kể cả RUN_TESTNET_E2E=1
+- ✅ E. Guard module-scope trong cả 2 file `onchain.e2e.test.ts` (recovery + intents/send-flow): passphrase mainnet → `throw` ngay lúc LOAD module, trước mọi knob — `RUN_TESTNET_E2E=1` không bypass được.
+  - Bằng chứng chạy thật: `STELLAR_NETWORK_PASSPHRASE=<mainnet> bun test onchain.e2e` → 2 fail "onchain.e2e CHỈ chạy testnet…"; env testnet thường → 6 skip 0 fail (như trước).
+  - File: `be/src/modules/recovery/features/onchain-actions/onchain.e2e.test.ts` · `be/src/modules/intents/features/send-flow/onchain.e2e.test.ts`
 
 ## F — TTL-KEEPER PHỦ NỐT
 

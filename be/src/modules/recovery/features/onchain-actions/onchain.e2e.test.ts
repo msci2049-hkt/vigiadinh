@@ -45,6 +45,15 @@ import {
   submitRecoveryAction,
 } from "./service";
 
+// GUARD MAINNET (MAINNET-CHECKLIST.md mục E): file này gọi friendbot + đốt phí.
+// Passphrase mainnet → NỔ NGAY lúc load module, KỂ CẢ RUN_TESTNET_E2E=1 —
+// friendbot và XLM thật không bao giờ được đi cùng nhau.
+if (env.STELLAR_NETWORK_PASSPHRASE === "Public Global Stellar Network ; September 2015") {
+  throw new Error(
+    "onchain.e2e CHỈ chạy testnet: STELLAR_NETWORK_PASSPHRASE đang là MAINNET — đổi env trước khi chạy e2e.",
+  );
+}
+
 const dbUp = await pgReachable();
 const enabled =
   dbUp &&
