@@ -113,7 +113,21 @@ jobs:
             echo "→ Settings → Secrets and variables → Actions → Variables; giá trị: MAINNET-CHECKLIST.md mục H1."
             exit 1
           fi
-          echo "✅ đủ 5 biến mainnet"
+          # audit F5: assert ĐỊNH DẠNG, không chỉ non-empty — giá trị giữ chỗ
+          # (PENDING_MAINNET_DEPLOY) hay id cắt dán thiếu ký tự phải chết Ở ĐÂY,
+          # trước khi tốn một lượt build và trước khi placeholder kịp vào dist.
+          bad=0
+          for v in VITE_WEBAUTHN_VERIFIER_ADDRESS VITE_RECOVERY_REGISTRY_ADDRESS \
+                   VITE_SAC_NATIVE WEB_AUTH_CONTRACT_ID; do
+            if ! printf '%s' "${!v}" | grep -qE '^C[A-Z2-7]{55}$'; then
+              echo "❌ D1: $v sai định dạng contract id (cần ^C[A-Z2-7]{55}\$)"; bad=1
+            fi
+          done
+          if ! printf '%s' "$VITE_ACCOUNT_WASM_HASH" | grep -qE '^[0-9a-f]{64}$'; then
+            echo "❌ D1: VITE_ACCOUNT_WASM_HASH sai định dạng wasm hash (cần ^[0-9a-f]{64}\$)"; bad=1
+          fi
+          if [ "$bad" != "0" ]; then exit 1; fi
+          echo "✅ D1: đủ 5 biến mainnet, đúng định dạng"
 
       # ---- BUILD ----
       # Vite nướng VITE_* vào bundle LÚC BUILD. Đặt ở đây, KHÔNG ở dashboard
@@ -191,6 +205,15 @@ jobs:
             echo "❌ còn placeholder chưa thay trong dist"; exit 1
           fi
 
+          # audit F5: giá trị giữ chỗ PENDING_MAINNET_DEPLOY ("chưa deploy
+          # contracts") tuyệt đối không được vào dist — lọt là ship ví trỏ
+          # contract không tồn tại. D1 đã chặn theo định dạng ở trước build;
+          # gate này là lưới sau build, quét cả assets lẫn stellar.toml.
+          if grep -rq 'PENDING_MAINNET_DEPLOY' "$D"; then
+            echo "❌ còn PENDING_MAINNET_DEPLOY trong dist:"
+            grep -rl 'PENDING_MAINNET_DEPLOY' "$D"; exit 1
+          fi
+
           # CHỨNG MINH env build-time đã vào bundle. Thiếu bước này thì FE deploy
           # xanh mà gọi API sai, triệu chứng là "trắng màn" rất khó đoán.
           grep -rq 'api\.familyhaven\.mscilabs\.com' "$D/assets" \
@@ -244,8 +267,6 @@ jobs:
           #     tầng (2) MÙ: app code dùng `Networks.TESTNET` thì chuỗi
           #     passphrase nằm bên chunk vendor (được miễn trừ), chunk app chỉ
           #     còn property access `.TESTNET` sau minify — quét đúng dấu vết đó.
-          #     Đã tiêm lỗi thật (audit T2): console.log(Networks.TESTNET) trong
-          #     env.ts → chỉ tầng (3) đỏ; revert → xanh.
           D4_PROP_HITS=$(grep -rlE '\.TESTNET\b' "$D/assets" | grep -v '/vendor-stellar-' || true)
           if [ -n "$D4_PROP_HITS" ]; then
             echo "❌ D4: truy cập .TESTNET (Networks.TESTNET) NGOÀI chunk vendor-stellar:"
