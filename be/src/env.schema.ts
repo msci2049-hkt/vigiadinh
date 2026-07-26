@@ -66,10 +66,11 @@ export const envShape = {
   SMTP_HOST: z.string().optional(),
   SMTP_PORT: z.coerce.number().int().positive().optional(),
 
-  R2_ACCOUNT_ID: z.string().min(1),
-  R2_ACCESS_KEY_ID: z.string().min(1),
-  R2_SECRET_ACCESS_KEY: z.string().min(1),
-  R2_BUCKET: z.string().min(1),
+  // R2_* ĐÃ GỠ (B-ENV-1): quyết định sản phẩm là KHÔNG upload ảnh — nhận diện
+  // người bảo hộ bằng NHÃN text + địa chỉ ví. `src/lib/storage.ts` đã xoá cùng
+  // commit này; 4 biến đó từng nằm ở mức PROD-REQUIRED (z.string().min(1)) nên
+  // mọi deploy phải bịa giá trị `dummy_*` để boot qua — bắt buộc-nhưng-không-dùng
+  // là bề mặt tấn công miễn phí trong repo ví.
 
   // Optional: production khuyến nghị bật, dev/test có thể bỏ.
   SENTRY_DSN: z.url().optional(),

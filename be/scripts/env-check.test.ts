@@ -18,10 +18,6 @@ function validRecord(): Record<string, string> {
     TRUSTED_ORIGINS: "http://localhost:3000",
     RESEND_API_KEY: "re_test_key",
     EMAIL_FROM: "noreply@example.com",
-    R2_ACCOUNT_ID: "acc",
-    R2_ACCESS_KEY_ID: "key",
-    R2_SECRET_ACCESS_KEY: "secret",
-    R2_BUCKET: "bucket",
   };
 }
 
@@ -31,7 +27,7 @@ describe("requiredEnvKeys", () => {
     expect(keys).toContain("DATABASE_URL");
     expect(keys).toContain("REDIS_URL");
     expect(keys).toContain("BETTER_AUTH_SECRET");
-    expect(keys).toContain("R2_BUCKET");
+    expect(keys).toContain("EMAIL_FROM");
     // Có default → không nằm trong tập bắt buộc.
     expect(keys).not.toContain("PORT");
     expect(keys).not.toContain("NODE_ENV");
@@ -89,7 +85,7 @@ describe("checkEnvRecord", () => {
 
   test("NODE_ENV=production được báo lại trong result (để in tập prod-required)", () => {
     const record = { ...validRecord(), NODE_ENV: "production" };
-    delete (record as Record<string, string | undefined>).R2_BUCKET;
+    delete (record as Record<string, string | undefined>).EMAIL_FROM;
     const result = checkEnvRecord(record);
     expect(result.nodeEnv).toBe("production");
     expect(result.ok).toBe(false);
@@ -148,7 +144,7 @@ describe("CLI --env-file (spawn thật, chốt exit code)", () => {
 
   test("file production thiếu biến + placeholder → exit 1, in tên biến", () => {
     const path = join(dir, "bad.env");
-    // Thiếu DATABASE_URL/R2_*, BETTER_AUTH_URL là placeholder.
+    // Thiếu DATABASE_URL/RESEND_API_KEY/EMAIL_FROM, BETTER_AUTH_URL là placeholder.
     writeFileSync(
       path,
       ["NODE_ENV=production", "REDIS_URL=redis://dragonfly:6379", "BETTER_AUTH_URL=<DOMAIN>"].join(

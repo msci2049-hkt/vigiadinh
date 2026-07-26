@@ -15,10 +15,6 @@ function validRecord(): Record<string, string> {
     TRUSTED_ORIGINS: "http://localhost:3000",
     RESEND_API_KEY: "re_test",
     EMAIL_FROM: "noreply@example.com",
-    R2_ACCOUNT_ID: "a",
-    R2_ACCESS_KEY_ID: "b",
-    R2_SECRET_ACCESS_KEY: "c",
-    R2_BUCKET: "d",
   };
 }
 
@@ -60,9 +56,14 @@ describe("biến có DEFAULT bị set rỗng → rơi về default (không thàn
 });
 
 describe("requiredEnvKeys ổn định", () => {
-  test("chỉ 11 biến bắt buộc — biến optional/default KHÔNG chui vào tập bắt buộc", () => {
+  // 11 → 7 khi gỡ R2_* (B-ENV-1, 2026-07-26): 4 biến bắt-buộc-nhưng-không-dùng.
+  // Đây là completeness-lock: thêm biến bắt buộc mới phải sửa con số Ở ĐÂY một cách
+  // có chủ đích, không để nó trôi vào tập PROD-REQUIRED mà không ai nhận ra.
+  test("chỉ 7 biến bắt buộc — biến optional/default KHÔNG chui vào tập bắt buộc", () => {
     const keys = requiredEnvKeys();
-    expect(keys).toHaveLength(11);
+    expect(keys).toHaveLength(7);
     expect(keys).not.toContain("COOKIE_PREFIX");
+    // R2_* đã gỡ — không được quay lại tập bắt buộc mà không sửa B-ENV-1.
+    expect(keys).not.toContain("R2_BUCKET");
   });
 });

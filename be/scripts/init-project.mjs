@@ -305,7 +305,6 @@ console.log(`
 
   Secrets & dịch vụ ngoài (điền vào .env — KHÔNG dùng giá trị của dự án khác)
   □ RESEND_API_KEY + EMAIL_FROM (verify domain trong Resend)
-  □ R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET
   □ SENTRY_DSN mới (tạo project Sentry riêng; trống = tắt)
 
   Khi lên production
