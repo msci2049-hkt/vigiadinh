@@ -1046,3 +1046,36 @@ dừng ở suy luận). Commit `audit: F1…F5`, `audit: S5`, `audit: T6`, `audi
 - **Clean room (T5):** BE `bun test` 316 pass / 9 skip / 0 fail + validate xanh.
   FE sau wipe+install: validate + test chạy trên node_modules KHÔNG vá tay
   (patch tự áp qua patchedDependencies) — kết quả ghi ở MAINNET-CHECKLIST mục K.
+
+## §PHA6-PUSH-DEPLOY — 2026-07-26 (feat/mainnet, dừng có kiểm soát ở G4)
+
+- **G1 ✅** quét secret toàn nhánh chưa push (cuối cùng 20 commit): gitleaks 8.30.1
+  `no leaks found` + grep 7 pattern trên dòng THÊM của diff — 0 seed `S…`, 0 private key,
+  0 giá trị secret; hit còn lại toàn TÊN biến/placeholder `<...>`/hash công khai.
+- **G2 ✅** CONTRACT-DUMP.md (4.7k dòng generated) vào .gitignore; pnpm-lock.yaml 114B ở
+  gốc XOÁ. ⚠️ Ghi nhận: một process `pnpm build` lạ (PID 44323, không thuộc phiên này)
+  tái sinh lockfile đó lúc 13:43 rồi tự thoát — dấu hiệu phiên/lệnh khác đụng cùng cây;
+  xoá lại thì ổn định. Trước push nên kiểm `git status` lần cuối.
+- **G3 ✅** deploy-fe.yml tách 2 job: `build-and-gate` (toàn bộ gate D1–D5 + build +
+  Verify dist, chạy MỌI nhánh chạm fe/**) + `deploy` (`if: github.ref == refs/heads/main`,
+  nhận dist qua artifact — `include-hidden-files: true` bắt buộc kẻo upload-artifact v4
+  nuốt im lặng `.well-known/`). Concurrency đổi sang per-ref để build nhánh không cancel
+  deploy của main. Nội dung từng gate GIỮ NGUYÊN.
+- **G4–G6 ⛔ B-CI-1**: không có đường đọc CI (không GH_TOKEN/GITHUB_TOKEN, không
+  ~/.config/gh, API không token → 404 vì repo private, SSH không phục vụ Actions).
+  Luật PHA 6 "đừng push mù" → KHÔNG push. Đã cài sẵn `gh` 2.86.0 vào `~/.local/bin`.
+  Cần: PAT fine-grained (Actions:read + Contents:read) → export GH_TOKEN → phiên sau
+  push + đọc CI ngay được.
+- **PHẦN V — làm được phần ĐỌC qua SSH `vps-phonghoc`** (14.225.198.86 =
+  api.familyhaven.mscilabs.com, host bac-biav, user `cdhc` ∈ group docker, KHÔNG sudo
+  không-mật-khẩu): V1 chốt mốc — 18 container (`/tmp/vgd-before.txt` trên VPS), disk 58%,
+  bảng HTTP 5 domain (tranver 401 · familyhaven 404//200health · trungtamgiasuskv 404 ·
+  vapec 200 · vietnamsme.gov.vn 404). Stack `vgd` ĐANG chạy code cũ (image
+  2026-07-26T00:48Z, compose dir /root/apps/family-wallet/be/deploy): `/rpc` 404 (marker),
+  `/ready` chưa có `watchers`; `vgd-worker-1` unhealthy TỪ TRƯỚC (healthcheck output rỗng).
+- **V3 delta TESTNET đã CHỨNG MINH ĐỦ**: dựng file env mô phỏng (example + delta, dummy
+  cho secret) → `bun scripts/env-check.ts --env-file` → “✅ đủ 11 biến bắt buộc”; và gate
+  tự bắt placeholder sót (POSTGRES_PASSWORD) trước khi sửa — đúng thiết kế fail-closed.
+- **V2–V7 = runbook paste-ready cho root** (MAINNET-CHECKLIST mục L3: backup, delta
+  THÊM/SỬA/XOÁ, gate, vgd-deploy.sh, verify 6 mục kèm output kỳ vọng, rollback
+  revert-merge + khôi phục env). CHỐT CHẶN giữ nguyên: chỉ chạy sau khi main chứa code mới.
