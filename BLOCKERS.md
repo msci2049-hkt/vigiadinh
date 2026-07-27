@@ -463,6 +463,77 @@ wildcard. `api.familyhaven.mscilabs.com` là **HAI** tầng → không nằm tro
 - **Hệ quả đang chấp nhận:** không có WAF trước API, và IP origin `14.225.198.86` lộ ra DNS
   công khai → phải dựa hoàn toàn vào firewall + rate limit ở tầng app.
 
+## B-INFRA-2 · `vgd-worker-1` "unhealthy" 32 giờ — HEALTHCHECK SAI, worker vẫn chạy đúng
+
+**Kết luận dứt khoát: (a) healthcheck sai. Worker KHÔNG hỏng.** Chẩn 2026-07-27, đọc-only bằng
+`cdhc`. Ghi ở đây vì đây là loại lỗi làm hỏng khả năng CHẨN ĐOÁN của cả hệ: một container báo đỏ
+liên tục 32 giờ dạy mọi người ngó lơ cột `STATUS`, và cột đó chính là thứ ta cần đọc ở §5 sau khi
+deploy để biết worker mới có sống không.
+
+### Bằng chứng
+
+`be/Dockerfile:60` khai `HEALTHCHECK` ở TẦNG IMAGE — một phép dò HTTP:
+
+```
+bun -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/health')…"
+```
+
+Service `worker:` trong `be/deploy/docker-compose.prod.yml` (dòng 118–142) override `command`
+thành `["bun","run","dist/workers/index.js"]` — tiến trình worker BullMQ, **không mở cổng HTTP
+nào** — nhưng KHÔNG override `healthcheck`. Nên container thừa kế phép dò của service `app`.
+
+Chạy tay đúng lệnh healthcheck bên trong container:
+
+```
+$ docker exec vgd-worker-1 sh -c "bun -e \"fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/health')…\""
+CAUGHT: Unable to connect. Is the computer able to access the url?
+EXIT CODE = 1
+```
+
+`FailingStreak: 3828` × 30s ≈ **31.9 giờ**, khớp `Up 32 hours`. `Output` rỗng trong log health vì
+bản gốc `.catch(()=>process.exit(1))` không in gì — mất luôn manh mối, phải chạy tay mới thấy.
+
+Worker thì đang làm việc, log nói rõ:
+
+```
+workers.ready            count=6
+redis.bull.connected
+redis.rate-limit.connected
+ttl.tick   2026-07-26T03:00:00.049Z   extended=0 failed=0 skipped=true
+ttl.tick   2026-07-27T03:00:00.061Z   extended=0 failed=0 skipped=true
+```
+
+Cron `0 3 * * *` UTC bắn đúng giờ hai ngày liên tiếp. `Running=true`, `RestartCount=0`.
+(`skipped=true` là nhánh `!env.CONTRACT_ID_RECOVERY` trong `src/jobs/ttl-keeper.ts:187` — chưa cấu
+hình registry thì không có ví nào để gia hạn. Đúng hành vi, không phải lỗi.)
+
+**Không phải lỗi riêng của dự án này:** `bac-worker-1` (hàng xóm, cùng template BE) cũng
+`Up 3 weeks (unhealthy)` với đúng phép dò đó. `phonghoc-worker` KHÔNG có healthcheck nên không báo
+đỏ giả. Tức đây là lỗi cấu hình đi theo template, không phải sự cố runtime.
+
+### Code mới CÓ SỬA KHÔNG? — **KHÔNG**
+
+Repo HEAD (`feat/mainnet`) vẫn giữ nguyên `HEALTHCHECK` trong `be/Dockerfile` và service `worker:`
+vẫn KHÔNG có `healthcheck:`. Deploy xong, `vgd-worker-1` sẽ tiếp tục `unhealthy` y hệt. **Đừng đọc
+đó là dấu hiệu deploy hỏng, và cũng đừng đọc là deploy xong.**
+
+### Cách sửa (CHƯA áp — cố ý)
+
+Thêm vào service `worker:` của `be/deploy/docker-compose.prod.yml`:
+
+```yaml
+    healthcheck:
+      disable: true
+```
+
+Không áp trong đợt này vì deploy lần này là deploy **CODE** trên một cây đã test; đổi compose ngay
+trước lúc bấm nút là thêm một biến số vào đúng thứ đang cần đo. Làm ở lượt sau, kèm test trong
+`be/deploy/deploy-hardening.test.ts`.
+
+⚠️ `disable: true` chỉ **gỡ báo động giả**, KHÔNG cho ta tín hiệu sống nào cho worker. Phép đo thật
+cần worker tự ghi nhịp (heartbeat vào file/Redis) rồi healthcheck đọc nhịp đó — chỉ khi có nó mới
+bắt được ca "tiến trình còn sống nhưng đã rớt khỏi hàng đợi". Đó là việc riêng, không gộp vào đây.
+
 ## B-ENV-1 · R2 từng là PROD-REQUIRED nhưng KHÔNG DÙNG — ĐÃ ĐÓNG 2026-07-26
 
 Quyết định sản phẩm: **không upload ảnh**. Nhận diện người bảo hộ bằng **nhãn text + địa chỉ ví**.
