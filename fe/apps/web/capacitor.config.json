@@ -1,6 +1,6 @@
 {
   "appId": "app.familywallet",
-  "appName": "FamilyWallet",
+  "appName": "FamilyHaven",
   "webDir": "dist",
   "server": {
     "androidScheme": "https"

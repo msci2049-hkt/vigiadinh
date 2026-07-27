@@ -1,4 +1,4 @@
-# FamilyWallet — Extension MV3 (PHA 9.1)
+# FamilyHaven — Extension MV3 (PHA 9.1)
 
 Vỏ THỨ BA của cùng một lõi (web + APK + extension). Giá trị vỏ app (đường A, skill
 `vi-extension-mv3` §0): guardian ngồi máy tính cả ngày — yêu cầu duyệt hiện thành **số đỏ**

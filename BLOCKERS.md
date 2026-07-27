@@ -572,7 +572,31 @@ template (`_locales` en/vi/zh_CN đầy đủ, "FamilyWallet"/"VíGiaĐình"/"�
    (popup còn mở `${API_BASE}/guardian` và `/login`). Domain đó không tồn tại. Phải là
    `https://api.familyhaven.mscilabs.com` cho API và `https://familyhaven.mscilabs.com` cho tab —
    **hai origin khác nhau**, hiện đang bị gộp làm một.
-3. **Tên lệch web app**: extension tên "FamilyWallet", web đã chốt "FamilyHaven".
+3. ~~**Tên lệch web app**: extension tên "FamilyWallet", web đã chốt "FamilyHaven".~~
+   **ĐÃ SỬA 2026-07-27** — xem §1.3 dưới đây. Còn lại lỗi 1 và 2, cả hai vẫn CHẶN load.
+
+### §1.3 · Tên sản phẩm — chốt "FamilyHaven", một nguồn duy nhất
+
+Đo được: **bốn tên cho một sản phẩm**. Web `FamilyHaven`; extension
+`FamilyWallet`/`VíGiaĐình`/`家庭钱包` (mỗi locale một tên); Capacitor `appName: FamilyWallet`.
+Không test nào bắt được vì mỗi chỗ tự khai một hằng số riêng.
+
+Vì sao đây không phải chuyện thẩm mỹ: `rpName` (`features/wallet/lib/kit.ts`) lấy thẳng
+`VITE_APP_NAME`, và **đó là dòng chữ trong hộp thoại vân tay/Face ID lúc người dùng KÝ giao dịch
+tiền**. Tên ở đó khác tên trên tab, khác tên dưới icon màn hình chính, khác tên extension đang xin
+duyệt — người dùng có đủ lý do để nghi ngờ đúng vào giây họ quyết định ký.
+
+Đã chốt **FamilyHaven**, khớp luôn `rpId = familyhaven.mscilabs.com`. Tên thương hiệu **KHÔNG
+dịch**: web hiện `site.name` y hệt ở cả ba ngôn ngữ (nó là biến env, không phải khoá i18n), nên
+extension theo đúng vậy; phần copy còn lại vẫn dịch bình thường. Test
+`apps/web/src/test/brand-name.test.ts` khoá lại theo NGUYÊN TẮC — mọi chỗ hiển thị phải quy về
+`VITE_APP_NAME`, chỗ nào chạy ngoài Vite (extension, Capacitor) phải khai đúng giá trị đó.
+
+**Cố ý KHÔNG đổi `appId: app.familywallet`** (`capacitor.config.json`, và `package_name` tương ứng
+trong `assetlinks.json` + `apple-app-site-association`). Nó là ĐỊNH DANH reverse-DNS, không phải
+tên hiển thị; đổi sau khi đã lên store là gãy đường cập nhật của mọi máy đã cài — cùng loại quyết
+định một chiều như `rpId`. Đáng bàn riêng khi thật sự nộp store, không đổi kèm việc sửa tên hiển
+thị. (Ghi luôn cho lần đó: `app.familywallet` không phải reverse-DNS của domain ta sở hữu.)
 
 ### Passkey: extension KHÔNG dùng chung được với web (chưa cấu hình)
 
