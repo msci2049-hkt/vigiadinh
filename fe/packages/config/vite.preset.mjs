@@ -52,15 +52,26 @@ import { configDefaults } from "vitest/config";
  * `options.pwa`. Thiếu biến là THROW: manifest mang tên sai còn tệ hơn không có
  * manifest, vì tên đó nằm dưới icon trên màn hình chính và không ai đọc lại.
  */
-function buildManifest(branding, mode, srcDir) {
+function buildManifest(branding, mode, command, srcDir) {
   // `srcDir` là `<app>/src` → thư mục env của app là cha nó (nơi có .env).
   const envDir = srcDir.replace(/[\\/]src[\\/]?$/, "");
   const appName = loadEnv(mode, envDir, "VITE_").VITE_APP_NAME;
   if (!appName) {
-    throw new Error(
-      "VITE_APP_NAME trống — manifest PWA sẽ mang tên rỗng trên màn hình chính. " +
-        "Đặt trong <app>/.env (dev) hoặc env của step build (CI). Xem .env.example.",
-    );
+    // THROW CHỈ KHI BUILD. Vitest nạp chính file config này, và `test.env` của nó
+    // CỐ Ý hermetic ("don't depend on a local .env in CI" — apps/web/vite.config.ts).
+    // Throw ở mọi command làm `pnpm test` chết ngay lúc nạp config khi máy chưa có
+    // `.env` — tức bắt test phụ thuộc đúng cái thứ nó vừa tuyên bố là không.
+    // Đo thật 2026-07-27: dời `.env` đi một lát là vitest chết ở vite.preset.mjs:104.
+    // Chỉ bản BUILD mới ship manifest ra ngoài, nên đó mới là chỗ đáng fail-closed.
+    if (command === "build") {
+      throw new Error(
+        "VITE_APP_NAME trống — manifest PWA sẽ mang tên rỗng trên màn hình chính. " +
+          "Đặt trong <app>/.env (dev) hoặc env của step build (CI). Xem .env.example.",
+      );
+    }
+    // serve/test: manifest không đi đâu cả. Trả về `false` để plugin bỏ qua hẳn,
+    // thay vì sinh một manifest tên rỗng rồi dev tưởng mình cài được app.
+    return false;
   }
   return {
     name: appName,
@@ -82,7 +93,7 @@ function buildManifest(branding, mode, srcDir) {
 export function defineAppConfig({ srcDir, port = 5173, test = {}, sentryProject, pwa = false }) {
   // Upload source map chỉ ở CI có token (deploy.yml). Local build thường: tắt.
   const sentryUpload = Boolean(process.env.SENTRY_AUTH_TOKEN && sentryProject);
-  return defineConfig(({ mode }) => ({
+  return defineConfig(({ mode, command }) => ({
     plugins: [
       // tanstackRouter MUST come before @vitejs/plugin-react (codegen + code-split transforms).
       tanstackRouter({
@@ -101,7 +112,7 @@ export function defineAppConfig({ srcDir, port = 5173, test = {}, sentryProject,
             VitePWA({
               registerType: "prompt",
               // `pwa: true` (không manifest) = chỉ update-notify, app KHÔNG cài được.
-              manifest: typeof pwa === "object" ? buildManifest(pwa, mode, srcDir) : false,
+              manifest: typeof pwa === "object" ? buildManifest(pwa, mode, command, srcDir) : false,
               // ⚠️ `includeManifestIcons` MẶC ĐỊNH true và nó BỎ QUA globPatterns:
               // đo thật trên dist 2026-07-27, ba icon PNG (231 KiB) vào precache dù
               // globPatterns không hề có `png`. Icon chỉ được HỆ ĐIỀU HÀNH đọc lúc
