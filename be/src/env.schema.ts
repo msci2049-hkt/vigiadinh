@@ -196,6 +196,19 @@ export function requiredEnvKeys(): string[] {
     .map(([key]) => key);
 }
 
+/** 4 biến chain BẮT BUỘC khi NODE_ENV=production (gate env-check TRƯỚC deploy).
+ * Schema trên CỐ Ý để optional/default: dev/test thiếu thì module tự 503/skip
+ * (sep45, send, recovery-watch, indexer) — nhưng PRODUCTION thiếu là các phòng
+ * tuyến đó tắt IM LẶNG trong khi healthcheck vẫn xanh (audit 2026-07-27).
+ * Chỉ env-check dùng danh sách này; boot runtime KHÔNG đổi (vẫn degrade có chủ
+ * đích để dev chưa deploy contract vẫn chạy được phần còn lại của app). */
+export const PROD_REQUIRED_CHAIN_KEYS = [
+  "SEP45_WEB_AUTH_CONTRACT_ID",
+  "CONTRACT_ID_RECOVERY",
+  "CONTRACT_ID_SAC_NATIVE",
+  "INDEXER_CONTRACT_IDS",
+] as const;
+
 export type EnvIssueLine = { key: string; reason: string };
 
 /** Zod issues → dòng "TÊN_BIẾN — lý do" đọc được trong 5 giây (không dump JSON).

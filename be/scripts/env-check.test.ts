@@ -4,7 +4,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { requiredEnvKeys } from "../src/env.schema";
+import { PROD_REQUIRED_CHAIN_KEYS, requiredEnvKeys } from "../src/env.schema";
 import { checkEnvRecord, parseEnvFile } from "./env-check";
 
 /** Record env tối thiểu HỢP LỆ theo schema (mirror .env.example). */
@@ -86,6 +86,28 @@ describe("checkEnvRecord", () => {
     const strict = checkEnvRecord(record, { scanAllKeysForPlaceholder: true });
     expect(strict.ok).toBe(false);
     expect(strict.problems[0]?.key).toBe("POSTGRES_PASSWORD");
+  });
+
+  test("production: thiếu 4 biến chain → fail đủ 4 tên; dev thì không đòi", () => {
+    expect(checkEnvRecord(validRecord()).ok).toBe(true); // dev: 4 biến chain optional
+    const prod = checkEnvRecord({ ...validRecord(), NODE_ENV: "production" });
+    expect(prod.ok).toBe(false);
+    for (const key of PROD_REQUIRED_CHAIN_KEYS) {
+      expect(prod.problems.find((p) => p.key === key)?.reason).toContain("production");
+    }
+  });
+
+  test("production: đủ 4 biến chain → ok (giá trị testnet 2026-07-27)", () => {
+    const prod = checkEnvRecord({
+      ...validRecord(),
+      NODE_ENV: "production",
+      SEP45_WEB_AUTH_CONTRACT_ID: "CCSIOPPEPX6ZGT2KWDVQK7WC27VSIIAXZFKKZVYGFI2N3D3ZVUN57F5O",
+      CONTRACT_ID_RECOVERY: "CDDOCXZ3OWM5TAQCRBKELETTIHQZD5NL3SF564VMD63MVJOGFV27F4Q3",
+      CONTRACT_ID_SAC_NATIVE: "CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC",
+      INDEXER_CONTRACT_IDS: "CDDOCXZ3OWM5TAQCRBKELETTIHQZD5NL3SF564VMD63MVJOGFV27F4Q3",
+    });
+    expect(prod.problems).toEqual([]);
+    expect(prod.ok).toBe(true);
   });
 
   test("NODE_ENV=production được báo lại trong result (để in tập prod-required)", () => {

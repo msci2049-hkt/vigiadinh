@@ -14,6 +14,7 @@ import {
   envShape,
   formatEnvIssues,
   normalizeRawEnv,
+  PROD_REQUIRED_CHAIN_KEYS,
   requiredEnvKeys,
 } from "../src/env.schema";
 
@@ -75,6 +76,17 @@ export function checkEnvRecord(
     const value = raw[key];
     if (value !== undefined && PLACEHOLDER_RE.test(value)) {
       byKey.set(key, `placeholder \`${value}\` chưa thay bằng giá trị thật`);
+    }
+  }
+
+  // 4 biến chain: schema optional (dev/test degrade có chủ đích) nhưng file env
+  // PRODUCTION thiếu chúng = sep45 503 + recovery-watch skipped + indexer no-op
+  // + send 503 — các phòng tuyến chính tắt im lặng. Chặn tại gate này.
+  if (raw.NODE_ENV === "production") {
+    for (const key of PROD_REQUIRED_CHAIN_KEYS) {
+      if (raw[key] === undefined && !byKey.has(key)) {
+        byKey.set(key, "THIẾU — bắt buộc khi NODE_ENV=production (biến chain, xem env.schema.ts)");
+      }
     }
   }
 
