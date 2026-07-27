@@ -51,6 +51,15 @@ env:
   # default testnet) nên thiếu/sai biến này là app throw ngay lúc boot.
   STELLAR_NETWORK_PASSPHRASE: "Public Global Stellar Network ; September 2015"
   SITE_ORIGIN: https://familyhaven.mscilabs.com
+  # Tên hiển thị. KHÔNG bỏ trống được, và đây là lý do đo được (2026-07-27):
+  #   1. `apps/web/index.html` dùng token `%VITE_APP_NAME%`. Vite 8 thay token theo
+  #      env; KHÔNG có key thì nó `return text` — trả nguyên chuỗi, chỉ warn (nguồn:
+  #      vite/dist/node/chunks/node.js). Tức tab trình duyệt production hiện đúng
+  #      chữ "%VITE_APP_NAME%".
+  #   2. Phía JS, `env.ts` có `.default("Mau Demo FE")` → `kit.ts` lấy làm `rpName`,
+  #      nên hộp thoại vân tay/Face ID trên máy người dùng ghi tên template.
+  # Khác rpId: rpName ĐỔI ĐƯỢC sau, không nhúng vào credential.
+  APP_NAME: FamilyHaven
   # rpId KHÔNG ĐẢO LẠI ĐƯỢC — authenticator băm và nhúng vào credential lúc tạo.
   # Đổi giá trị này sau khi có passkey đầu tiên = mọi passkey chết. Xem §3.1.
   PASSKEY_RP_ID: familyhaven.mscilabs.com
@@ -70,7 +79,16 @@ jobs:
 
       # pnpm KHÔNG pin số ở đây — action đọc `packageManager` trong fe/package.json
       # (pnpm@9.15.9). Pin tay là mở đường cho drift CI↔local.
+      #
+      # ⚠️ `package_json_file` BẮT BUỘC và đây là lý do: `defaults.run.working-directory`
+      # CHỈ áp cho step `run:`, KHÔNG áp cho step `uses:`. Thiếu dòng này thì action đọc
+      # `package.json` ở GỐC repo — mà gốc CỐ Ý không có `packageManager` (monorepo
+      # "git chung, build riêng", xem CLAUDE.md §1) → action chết ngay bước 2 với
+      # "No pnpm version is specified", trước cả install. ci-fe.yml đã làm đúng từ đầu;
+      # file này port thiếu. Đo thật 2026-07-27: root package.json không có field đó.
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: fe/package.json
 
       # Node từ .nvmrc (20) — KHÔNG Bun, và KHÔNG bump lên cho "đỡ lỗi".
       # Bun và Node ≥23.6 strip type nên nạp được `.ts` config cross-package →
@@ -143,6 +161,7 @@ jobs:
       - name: Build (honest)
         env:
           VITE_API_URL: ${{ env.API_ORIGIN }}
+          VITE_APP_NAME: ${{ env.APP_NAME }}
           VITE_STELLAR_RPC_URL: ${{ env.RPC_URL }}
           VITE_STELLAR_NETWORK_PASSPHRASE: ${{ env.STELLAR_NETWORK_PASSPHRASE }}
           VITE_PASSKEY_RP_ID: ${{ env.PASSKEY_RP_ID }}
@@ -207,6 +226,28 @@ jobs:
           if grep -rq '__API_ORIGIN__\|__RPC_ORIGIN__\|__WEB_AUTH_CONTRACT_ID__' "$D"; then
             echo "❌ còn placeholder chưa thay trong dist"; exit 1
           fi
+
+          # Token %VITE_*% chưa thay trong HTML. Vite KHÔNG fail khi biến thiếu — nó
+          # trả nguyên chuỗi và chỉ warn, nên "%VITE_APP_NAME%" đi thẳng vào <title>
+          # của production mà build vẫn xanh. Đây là gate duy nhất bắt được ca đó.
+          if grep -rq '%VITE_[A-Z_]*%' "$D"; then
+            echo "❌ token %VITE_*% chưa thay trong dist:"
+            grep -ro '%VITE_[A-Z_]*%' "$D" | sort -u; exit 1
+          fi
+          # Tên template rò vào bản production (Zod default của VITE_APP_NAME) — nó là
+          # rpName, tức chữ hiện trong hộp thoại vân tay trên máy người dùng.
+          #
+          # ⚠️ Đo GIÁ TRỊ ĐÃ NƯỚNG trong <title>, KHÔNG grep cả dist. Cùng cái bẫy như
+          # gate localhost bên dưới: `.default("Mau Demo FE")` trong env.ts là literal
+          # nằm sẵn trong chunk env-*.js dù biến ĐÃ set đúng — grep cả dist là
+          # false-positive chắc chắn (đo thật 2026-07-27: title=FamilyHaven mà chuỗi
+          # default vẫn có mặt). <title> là chỗ DUY NHẤT phản ánh giá trị thật.
+          TITLE=$(grep -o '<title>[^<]*</title>' "$D/index.html" || true)
+          echo "title: $TITLE"
+          case "$TITLE" in
+            *"Mau Demo FE"*|"")
+              echo "❌ <title> vẫn là tên template / rỗng — VITE_APP_NAME chưa vào build"; exit 1;;
+          esac
 
           # audit F5: giá trị giữ chỗ PENDING_MAINNET_DEPLOY ("chưa deploy
           # contracts") tuyệt đối không được vào dist — lọt là ship ví trỏ

@@ -476,7 +476,18 @@ Quyết định sản phẩm: **không upload ảnh**. Nhận diện người b�
   (không cần `--build` — chỉ env đổi). Để lại cũng không sập (biến thừa bị bỏ qua), nhưng
   `check:env-parity` sẽ kêu key ACTIVE không có trong schema.
 
-## B-FE-1 · vitest FE KHÔNG CHẠY ĐƯỢC — fail-env, có trước phiên này
+## B-FE-1 · ~~vitest FE KHÔNG CHẠY ĐƯỢC~~ — **ĐÓNG 2026-07-27, đo thật trong WSL**
+
+> **KHÔNG CÒN ĐÚNG.** Toàn bộ chuỗi build chạy XANH trong WSL, Node 20.20.2 (nvm) + pnpm 9.15.9:
+> `install --frozen-lockfile` ✅ · `csp-script-hash` ✅ · `validate` ✅ · `test` ✅ ·
+> `audit --audit-level=high` ✅ · `build` (honest) ✅ — cả 6 bước `exit=0`.
+> `node_modules/.pnpm/` HIỆN chứa `@esbuild+linux-x64@0.28.1`, tức cây deps đã được cài lại
+> từ Linux ở phiên nào đó sau khi mục này được viết. Chẩn đoán "binary win32" bên dưới đúng
+> tại thời điểm viết, SAI ở hiện tại — đừng dùng nó để tự miễn chạy test nữa.
+> Cái còn đúng: `/mnt/d` CHẬM (KI-5) — `tsc --noEmit` mất ~13 phút, build ~8 phút. Chậm ≠ hỏng.
+> Cách chạy: `export PATH="$HOME/.nvm/versions/node/v20.20.2/bin:$PATH"` rồi chạy như bình thường.
+
+### Nội dung gốc (giữ làm lịch sử — đã hết hiệu lực)
 
 `npx vitest run <bất kỳ file nào>` chết ngay khi nạp runner:
 ```
@@ -546,6 +557,58 @@ Không có route nào ở `/api/sep45` gốc.
   trỏ vào chính hai handler sẵn có, giữ path cũ làm alias để không phá FE.
 - **Chưa sửa**: nằm ngoài phạm vi việc deploy FE, và đụng vào cổng login thì phải có test riêng.
 
+## B-CF-2 · CI deploy CHƯA NỐI — deploy FE hiện là TAY (2026-07-27)
+
+Bản production đang chạy được đẩy lên bằng `wrangler pages deploy` chạy tay, **không** qua
+`deploy-fe.yml`. Workflow vẫn **chưa từng chạy một lần nào trên runner thật** (nhánh `feat/mainnet`
+chưa push — xem B-CI-1). Để nối:
+
+1. Cloudflare API Token quyền **Account → Cloudflare Pages → Edit** (OAuth của máy local KHÔNG
+   dùng được cho CI).
+2. GitHub → Settings → Secrets and variables → Actions → Secrets:
+   - `CLOUDFLARE_API_TOKEN` = token ở bước 1
+   - `CLOUDFLARE_ACCOUNT_ID` = `b79e6e346d19031bf1b709d7a7dce34c`
+3. Cần PAT fine-grained để push + set secret + đọc log (B-CI-1 vẫn mở).
+
+⚠️ Ngay cả khi nối xong, job `build-and-gate` sẽ **ĐỎ ở gate D1** cho tới khi 4 biến chain mainnet
+được điền (contracts chưa deploy — xem B-CF-3). Đó là **đúng thiết kế**, không phải hỏng CI.
+
+### Bẫy môi trường đã trả giá: `wrangler` KHÔNG upload được từ WSL
+
+`pages deploy` từ WSL2 chết ở `ETIMEDOUT` giữa chừng (dừng ~55/164 file), retry cũng thế —
+trong khi `pages project list` (GET) và `curl` tới `api.cloudflare.com` vẫn OK, và MTU 1500 đã
+loại trừ (ping DF payload 1472 qua được). Tức là hỏng riêng ở đường upload bulk của WSL2 NAT.
+**Cách chạy được:** gọi từ Windows —
+`powershell.exe -NoProfile -Command "cd 'D:\du-an\thi-stella\family-wallet\fe'; npx wrangler@4 pages deploy ..."`.
+Credential OAuth nằm ở `C:\Users\huyng\AppData\Roaming\xdg.config\.wrangler\config\default.toml`;
+từ WSL đọc được bằng `XDG_CONFIG_HOME=/mnt/c/Users/huyng/AppData/Roaming/xdg.config` (đủ cho lệnh
+GET, KHÔNG đủ cho upload). Trên CI không dính bẫy này — runner Linux thật, không qua WSL.
+
+Ghi chú: `pages project create` cũng trả `8000000 unknown error` hai lần rồi thành công ở lần thứ
+ba với body y hệt — lỗi thoáng qua phía Cloudflare, cứ retry, đừng đổi tên project.
+
+## B-CF-3 · LỆCH MẠNG BA TẦNG — UI xem được, KHÔNG luồng thật nào chạy
+
+Ba tầng đang ở ba mạng khác nhau. Đây là thứ chặn người thật dùng ví, không phải lỗi FE:
+
+| Tầng | Trạng thái | Đo lúc 2026-07-27 |
+|---|---|---|
+| FE (bản vừa deploy) | **mainnet** | passphrase `Public Global…`, RPC trỏ `…/rpc` |
+| BE (VPS đang chạy) | **testnet**, bản CŨ | `GET /health` → `{"ok":true}` nhưng `POST /rpc` → **404** (proxy nằm trong 22 commit chưa push) |
+| Contracts mainnet | **chưa deploy** | không có bản ghi deploy nào trong `contracts/` |
+
+Hệ quả cụ thể:
+- `VITE_ACCOUNT_WASM_HASH` / `VITE_WEBAUTHN_VERIFIER_ADDRESS` / `VITE_RECOVERY_REGISTRY_ADDRESS`
+  build ra **RỖNG** (Zod cho optional) → màn tạo ví tự chặn, không đẻ ra ví cụt.
+  Chỉ `VITE_SAC_NATIVE` có giá trị thật (`CAS3J7…OWMA`, hằng số mainnet, H1 nói điền được ngay).
+- `dist/.well-known/stellar.toml` ship kèm **template `__WEB_AUTH_CONTRACT_ID__` chưa thay** —
+  gate D5 ĐỎ đúng như thiết kế. Chấp nhận có chủ ý cho lần deploy này (quyết định của user):
+  luồng trong app KHÔNG đọc file này (FE gọi thẳng hai path BE), chỉ client SEP-45 bên thứ ba đọc —
+  mà nhóm đó vốn đã hỏng sẵn vì B-SEP45-1. **Không được coi là đã xong.**
+- `SIGNING_KEY` trong stellar.toml vẫn là G của khoá **testnet** dev (B-MAINNET-4).
+
+**Chốt trước khi cho ai thử ví thật.** Thứ tự sửa: MAINNET-CHECKLIST.md mục H3.
+
 ## B-CF-1 · Deploy FE cần 4 bước dashboard — CHƯA LÀM ĐƯỢC TỪ ĐÂY
 
 `.github/workflows/deploy-fe.yml` đã sẵn sàng nhưng **SKIP bước deploy** cho tới khi có secrets.
@@ -570,6 +633,35 @@ workflow trong `fe/.github/workflows/` là **code chết**. Root `ci-fe.yml` t�
 
 - `fe/.github/workflows/deploy.yml` — **ĐÃ XOÁ 2026-07-26**, thay bằng `.github/workflows/deploy-fe.yml`
   ở root. Bản cũ chưa từng chạy một lần nào, nên "deploy đã có sẵn" trong các ghi chú trước là SAI.
-- `fe/.github/workflows/ci.yml` — **CÒN**, đã bị `ci-fe.yml` thay thế. Vô hại (không chạy) nhưng gây
-  hiểu nhầm. Nên xoá; để lại ngoài phạm vi phiên này.
+- `fe/.github/workflows/ci.yml` — **ĐÃ XOÁ 2026-07-27**. Đã diff trước khi xoá: `ci-fe.yml` là
+  SIÊU TẬP thực sự (thêm path filter, `working-directory: fe`, `package_json_file`,
+  `cache-dependency-path`, bước `check:contract` gốc) — không mất gì. `fe/.github/` giờ trống sạch.
+- ⚠️ `be/.github/workflows/ci.yml` — **CÙNG BỆNH, CÒN NGUYÊN**. Ngoài phạm vi phiên FE-deploy này
+  nên KHÔNG đụng. Ai làm BE: hoặc port lên root thành `ci-be.yml` (root đã có `ci-be.yml` — kiểm
+  trùng trước), hoặc xoá.
+
+## B-FE-4 · Hai lỗi trong `deploy-fe.yml` khiến lần chạy CI ĐẦU TIÊN sẽ chết — ĐÃ SỬA 2026-07-27
+
+Workflow chưa từng chạy trên runner thật (nhánh `feat/mainnet` chưa push). Đọc kỹ trước khi push
+thì thấy hai lỗi, cả hai đều chỉ lộ ra khi chạy thật:
+
+1. **`pnpm/action-setup@v4` thiếu `package_json_file: fe/package.json`.**
+   `defaults.run.working-directory` CHỈ áp cho step `run:`, KHÔNG áp cho step `uses:`. Action vì thế
+   đọc `package.json` ở GỐC repo — mà gốc CỐ Ý không có `packageManager` (monorepo "git chung, build
+   riêng", CLAUDE.md §1). Kết quả: chết ở bước 2 với *"No pnpm version is specified"*, trước cả
+   `install`. Comment ngay trên nó lại khẳng định "action đọc packageManager trong fe/package.json"
+   — sai. `ci-fe.yml` làm đúng từ đầu ở cả 3 chỗ; bản port sang `deploy-fe.yml` rơi mất dòng này.
+
+2. **Không ai set `VITE_APP_NAME`.** Hai hậu quả, đo thật chứ không suy luận:
+   - `apps/web/index.html` dùng token `%VITE_APP_NAME%`. Vite 8 khi thiếu key thì `return text`
+     (nguồn: `vite/dist/node/chunks/node.js`) — chỉ warn, KHÔNG fail. Tab trình duyệt production
+     hiện đúng chữ `%VITE_APP_NAME%`.
+   - Phía JS, `env.ts` có `.default("Mau Demo FE")` → `features/wallet/lib/kit.ts` lấy làm `rpName`
+     → **hộp thoại vân tay/Face ID trên máy người dùng ghi "Mau Demo FE"**.
+   Chứng minh: bản build đầu (không set biến) ra `<title>Mau Demo FE</title>` + chuỗi đó nằm trong
+   `assets/env-*.js`. Set `APP_NAME: FamilyHaven` rồi build lại → `<title>FamilyHaven</title>`.
+   Khác `rpId`: `rpName` ĐỔI ĐƯỢC sau, không nhúng vào credential.
+
+Đã thêm 2 gate mới vào "Verify dist" để không tái diễn: chặn mọi token `%VITE_*%` còn sót, và chặn
+chuỗi `Mau Demo FE` trong dist.
 
