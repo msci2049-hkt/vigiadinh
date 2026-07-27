@@ -27,18 +27,41 @@ import { bullConnection } from "@/lib/redis";
 import { redlock } from "@/lib/redlock";
 import { wallets } from "@/modules/wallets/infra/wallets.schema";
 import { invokeWithSignedEntries } from "@/services/stellar/stellar.service";
+import {
+  contractCodeKey,
+  contractInstanceKey,
+  extendEntriesTtl,
+  fetchWasmHashHex,
+} from "@/services/stellar/ttl.service";
 
 export const TTL_KEEPER_QUEUE = "{ttl-keeper}";
 
-/** Ngưỡng/mốc gia hạn (ledger) — khớp hằng trong contract registry. */
+/**
+ * Ngưỡng/mốc gia hạn (ledger). extendTo TỐI ĐA là maxEntryTTL−1 = 3_110_399:
+ * ExtendFootprintTTLOp với extendTo = 3_110_400 bị core chối
+ * `extendFootprintTtlMalformed` NGAY LÚC SUBMIT trong khi simulate vẫn OK
+ * (preflight không chạy static check của op) — đo thật testnet 2026-07-26
+ * (audit T6): 3_110_400 → txFailed/Malformed; 3_110_399 → SUCCESS
+ * (tx a2927cff26092593ad175645c57a9cacfeb91048135afc8eb56c4960eb431bcc).
+ * Giá trị cũ 3_110_400 là lý do ttl-keeper chưa từng gia hạn nổi entry nào.
+ */
 const TTL_THRESHOLD = 300_000;
-const TTL_EXTEND_TO = 3_110_400;
+const TTL_EXTEND_TO = 3_110_399;
 
-// Trần phí per-tx (stroops). `extend_ttl` rất rẻ (~vài chục nghìn stroops); đặt
-// 5_000_000 (0.5 XLM) là dư xa cho tx thật nhưng chặn cost-attack B-SEC-3: một
+// Trần phí per-tx (stroops) cho vòng PER-WALLET. Đặt 5_000_000 (0.5 XLM) đủ cho
+// extend_ttl instance/persistent của MỘT ví nhưng chặn cost-attack B-SEC-3: một
 // contract do kẻ tấn công khai (POST /api/wallets nhận C… bất kỳ) để extend_ttl
 // ngốn tài nguyên tối đa sẽ vượt trần → bị bỏ qua, ví phí không mất gì.
 const TTL_MAX_FEE_STROOPS = 5_000_000;
+
+// Trần phí RIÊNG cho entry HẠ TẦNG (id lấy từ env, KHÔNG phải input người dùng
+// → không có bề mặt B-SEC-3). WASM CODE entry to thì rent ~6 tháng KHÔNG rẻ —
+// đo thật testnet 2026-07-26 (audit T6): web-auth:code 35_498_854 stroops
+// (~3.5 XLM), recovery-registry:code 235_602_550 stroops (~23.6 XLM). Trần cũ
+// 5M chặn sạch mọi code entry → ttl-keeper "chạy" mà không gia hạn được gì.
+// 400M (40 XLM) đủ lần prepay đầu + headroom; các tick sau chỉ trả phần delta
+// (rất nhỏ) vì TTL đã gần trần.
+const TTL_INFRA_MAX_FEE_STROOPS = 400_000_000;
 // Trần số ví mỗi lượt — bó việc một tick, chống bơm bảng wallets thành DoS.
 const TTL_MAX_WALLETS_PER_TICK = 1_000;
 
@@ -59,16 +82,111 @@ export async function scheduleTtlKeeper(): Promise<void> {
   );
 }
 
-export type TtlResult = { extended: number; failed: number; skipped: boolean };
+export type TtlResult = {
+  extended: number;
+  failed: number;
+  skipped: boolean;
+  /** Entry HẠ TẦNG (verifier/web-auth/registry instance + wasm code) — mục F. */
+  infra: { extended: number; failed: number };
+};
+
+export type InfraTtlTarget = { label: string; key: xdr.LedgerKey };
+
+export type InfraTtlDeps = {
+  /** Gia hạn một bó ledger key (thật: ttl.service.extendEntriesTtl). */
+  extend: (keys: xdr.LedgerKey[]) => Promise<unknown>;
+  /** Wasm hash hex theo contract id (thật: ttl.service.fetchWasmHashHex). */
+  wasmHashHexOf: (contractIds: string[]) => Promise<Map<string, string>>;
+};
+
+/**
+ * Gom entry HẠ TẦNG cần gia hạn từ env (mục F — CONTRACT-DUMP.md bảng (b)):
+ *   · instance origin-verifier + web-auth (2 contract KHÔNG có hàm extend_ttl);
+ *   · instance registry (extend_ttl(wallet) chỉ chạy khi CÓ ví — 0 ví thì đây
+ *     là đường gia hạn duy nhất);
+ *   · CODE entry của 3 contract trên (hash tự khám phá qua RPC — không cần env);
+ *   · CODE entry smart-account (env ACCOUNT_WASM_HASH — mọi ví dùng chung,
+ *     extend_ttl từng ví không chạm tới nó).
+ * Export riêng để test khoá danh sách target theo env.
+ */
+export async function collectInfraTtlTargets(
+  deps: Pick<InfraTtlDeps, "wasmHashHexOf">,
+): Promise<InfraTtlTarget[]> {
+  const contracts: Array<[label: string, id: string | undefined]> = [
+    ["origin-verifier", env.CONTRACT_ID_ORIGIN_VERIFIER],
+    ["web-auth", env.SEP45_WEB_AUTH_CONTRACT_ID],
+    ["recovery-registry", env.CONTRACT_ID_RECOVERY],
+  ];
+  const present = contracts.filter((c): c is [string, string] => Boolean(c[1]));
+  const targets: InfraTtlTarget[] = present.map(([label, id]) => ({
+    label: `${label}:instance`,
+    key: contractInstanceKey(id),
+  }));
+  const hashes = await deps.wasmHashHexOf(present.map(([, id]) => id));
+  for (const [label, id] of present) {
+    const hashHex = hashes.get(id);
+    if (hashHex) targets.push({ label: `${label}:code`, key: contractCodeKey(hashHex) });
+  }
+  if (env.ACCOUNT_WASM_HASH) {
+    targets.push({ label: "smart-account:code", key: contractCodeKey(env.ACCOUNT_WASM_HASH) });
+  }
+  return targets;
+}
+
+/**
+ * Gia hạn hạ tầng — MỖI target MỘT tx: một contract chưa deploy (entry không
+ * tồn tại → simulate fail) không được làm hỏng lượt của các entry còn lại,
+ * cùng triết lý vòng per-wallet bên dưới.
+ */
+export async function extendInfraTtl(deps: InfraTtlDeps): Promise<{
+  extended: number;
+  failed: number;
+}> {
+  let targets: InfraTtlTarget[];
+  try {
+    targets = await collectInfraTtlTargets(deps);
+  } catch (err) {
+    logger.warn({ err }, "ttl.infra.collect.failed");
+    return { extended: 0, failed: 1 };
+  }
+  let extended = 0;
+  let failed = 0;
+  for (const target of targets) {
+    try {
+      await deps.extend([target.key]);
+      extended += 1;
+    } catch (err) {
+      failed += 1;
+      logger.warn({ err, target: target.label }, "ttl.infra.extend.failed");
+    }
+  }
+  return { extended, failed };
+}
 
 /**
  * Một lượt gia hạn. Trả số ví gia hạn được / hỏng để log — KHÔNG throw khi một
  * ví hỏng, vì lượt sau phải chạy tiếp cho những ví còn lại.
  */
 export async function runTtlKeeperTick(): Promise<TtlResult> {
+  // Hạ tầng TRƯỚC, độc lập với CONTRACT_ID_RECOVERY: web-auth/verifier có thể
+  // được cấu hình trước khi có ví nào. Cần ví phí để trả tx — thiếu thì bỏ qua
+  // (log ở /ready đã phơi trạng thái thiếu cấu hình).
+  const infra = env.FEE_WALLET_SECRET
+    ? await extendInfraTtl({
+        extend: (keys) =>
+          extendEntriesTtl({
+            keys,
+            extendTo: TTL_EXTEND_TO,
+            // Trần hạ tầng riêng — code entry to có rent lớn (xem WHY ở hằng).
+            maxFeeStroops: TTL_INFRA_MAX_FEE_STROOPS,
+          }),
+        wasmHashHexOf: fetchWasmHashHex,
+      })
+    : { extended: 0, failed: 0 };
+
   if (!env.CONTRACT_ID_RECOVERY) {
-    // Chưa cấu hình chain → không có gì để gia hạn, app vẫn sống.
-    return { extended: 0, failed: 0, skipped: true };
+    // Chưa cấu hình registry → không có ví nào để gia hạn, app vẫn sống.
+    return { extended: 0, failed: 0, skipped: true, infra };
   }
   const rows = await db
     .select({ address: wallets.stellarAddress })
@@ -102,7 +220,7 @@ export async function runTtlKeeperTick(): Promise<TtlResult> {
       logger.warn({ err, wallet: row.address }, "ttl.extend.failed");
     }
   }
-  return { extended, failed, skipped: false };
+  return { extended, failed, skipped: false, infra };
 }
 
 export function createTtlKeeperWorker(): Worker {

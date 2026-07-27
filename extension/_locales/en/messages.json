@@ -1,5 +1,5 @@
 {
-  "extName": { "message": "FamilyWallet" },
+  "extName": { "message": "FamilyHaven" },
   "extDescription": {
     "message": "Approve family recovery requests fast — a red badge shows when someone you protect needs your help."
   },
@@ -9,6 +9,6 @@
   "popupNoRequests": { "message": "Nothing needs you right now." },
   "popupSignedOut": { "message": "Sign in to see requests." },
   "popupReview": { "message": "Review requests" },
-  "popupOpenApp": { "message": "Open FamilyWallet" },
+  "popupOpenApp": { "message": "Open FamilyHaven" },
   "popupSignIn": { "message": "Sign in" }
 }

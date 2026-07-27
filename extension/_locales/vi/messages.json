@@ -1,5 +1,5 @@
 {
-  "extName": { "message": "VíGiaĐình" },
+  "extName": { "message": "FamilyHaven" },
   "extDescription": {
     "message": "Duyệt yêu cầu khôi phục của gia đình thật nhanh — số đỏ hiện lên khi người bạn bảo hộ cần giúp."
   },
@@ -9,6 +9,6 @@
   "popupNoRequests": { "message": "Hiện chưa có gì cần bạn." },
   "popupSignedOut": { "message": "Đăng nhập để xem yêu cầu." },
   "popupReview": { "message": "Xem yêu cầu" },
-  "popupOpenApp": { "message": "Mở VíGiaĐình" },
+  "popupOpenApp": { "message": "Mở FamilyHaven" },
   "popupSignIn": { "message": "Đăng nhập" }
 }

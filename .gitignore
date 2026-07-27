@@ -20,8 +20,21 @@ contracts/mutants.out.old/
 *.pem
 *.key
 
+# Lockfile RỖNG ở GỐC repo — rác, không phải lockfile thật.
+# Gốc CỐ Ý không có workspaces ("git chung, build riêng", CLAUDE.md §1): lockfile
+# thật là `fe/pnpm-lock.yaml` và `be/bun.lock`. Nhưng chạy pnpm trong repo này
+# thỉnh thoảng vẫn nhả ra một file 114 byte `importers: .: {}` ở gốc (đo thật
+# 2026-07-27, sinh lại ngay giữa `pnpm test`).
+# Vô hại — nhưng nó làm `git status --porcelain` KHÔNG rỗng, mà cây sạch lại đúng
+# là cổng gác trước mỗi lần push. Một cổng gác kêu vì rác là cổng gác sẽ bị bỏ qua.
+# CHỈ bỏ qua ở gốc (`/`) — lockfile của fe/ và be/ vẫn được theo dõi như cũ.
+/pnpm-lock.yaml
+
 # misc
 .DS_Store
 *.log
 __pycache__/
 *.py[cod]
+
+# Generated contract source dump (4.7k lines, drifts from source immediately)
+CONTRACT-DUMP.md

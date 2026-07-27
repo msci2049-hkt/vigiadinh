@@ -4,7 +4,7 @@ import { loadEnv } from "vite";
 // The tab <title> is single-sourced from VITE_APP_NAME (Vite substitutes
 // %VITE_APP_NAME% in index.html). Read the same value the build used so renaming
 // the app never breaks this assertion.
-const APP_NAME = loadEnv("production", process.cwd(), "VITE_").VITE_APP_NAME || "Mau Demo FE";
+const APP_NAME = loadEnv("production", process.cwd(), "VITE_").VITE_APP_NAME || "FamilyHaven";
 
 // All smoke tests run WITHOUT a backend: SSE/data calls fail gracefully,
 // and the protected-route guard treats a failed getSession as "unauthenticated".

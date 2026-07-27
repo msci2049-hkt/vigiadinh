@@ -9,6 +9,10 @@
 # ⚠️ __API_ORIGIN__ là PLACEHOLDER: pipeline deploy phải thay bằng origin BE thật
 # (= VITE_API_URL prod). Quên thay → connect-src co về 'self' → fetch/SSE bị chặn
 # (fail-closed, hỏng ồn ào chứ không nới lỏng âm thầm). Xem docs/HUMAN-TODO.md.
+#
+# Mainnet migration 2026-07-26: placeholder RPC-ORIGIN ĐÃ GỠ — FE gọi Stellar RPC qua
+# proxy BE POST /rpc (cùng origin API), không gọi thẳng provider nữa.
+# connect-src chỉ còn 'self' + API origin.
 # Bước thay + bước verify "không còn placeholder trong dist" nằm ở
 # `.github/workflows/deploy-fe.yml` (ROOT — GitHub chỉ đọc workflow ở root monorepo).
 #
@@ -17,6 +21,17 @@
 # làm vậy là vứt bỏ toàn bộ tác dụng chống XSS của CSP). Tính lại:
 #   node scripts/csp-script-hash.mjs
 #
+# ⚠️ `font-src` PHẢI có `data:` — đo trên production 2026-07-27 bằng chromium thật:
+# MỌI màn đều log `Loading the font 'data:font/woff2;base64,d09GMgAB…' violates the
+# following Content Security Policy`. Nguồn: `@font-face` của **JetBrains Mono
+# Variable** trong `dist/assets/index-*.css` có `src:url(data:font/woff2;base64,…)`
+# — Vite nhúng thẳng vì file nhỏ hơn `assetsInlineLimit` (ba font Fraunces to hơn nên
+# vẫn là `/assets/fraunces-*`, không dính). Thiếu `data:` = font mono bị chặn và rơi
+# về font hệ thống trên production, im lặng.
+# `data:` ở font-src rủi ro thấp (font không chạy được như script) và đã có tiền lệ
+# ngay trong policy này ở `img-src`. Muốn siết lại thì hạ `assetsInlineLimit` để font
+# không bao giờ được inline — ĐỔI BUILD, phải đo lại dist, đừng làm mù.
+#
 # ⚠️ `style-src` GIỮ 'unsafe-inline' — CÓ LÝ DO ĐO ĐƯỢC, không phải lười:
 # `grep -rn "style={{" apps/web/src | wc -l` = **0** (ta không có inline style),
 # NHƯNG `sonner` (toast — apps/web/package.json) TIÊM MỘT <style> LÚC CHẠY. Bỏ
@@ -24,7 +39,7 @@
 # phải chuyển sonner sang nonce/hash và VERIFY TRONG TRÌNH DUYỆT THẬT trước —
 # đừng siết mù khi không chạy được app (xem B-FE-1).
 /*
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-81loPoXAH2d7v6xD+o+5CuQ/gzjTzt45bNHddccOcTs='; connect-src 'self' __API_ORIGIN__ __RPC_ORIGIN__
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-81loPoXAH2d7v6xD+o+5CuQ/gzjTzt45bNHddccOcTs='; connect-src 'self' __API_ORIGIN__
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
@@ -52,6 +67,47 @@
 # HTML luôn tươi — nó là thứ trỏ tới asset hash mới.
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
+
+# Manifest PWA: `.webmanifest` không nằm trong bảng đoán của Cloudflare → ra
+# `application/octet-stream`. Chrome vẫn cài được nhưng ghi cảnh báo trong
+# DevTools, và Safari khó tính hơn. Khai tường minh cho khỏi đoán.
+# max-age ngắn: đổi tên/icon app phải tới được máy người đã cài.
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=300
+
+# ============================================================================
+# `.well-known/` — MỌI file ở đây PHẢI có luật `Content-Type` tường minh.
+#
+# ⚠️ MÃ 200 KHÔNG ĐỦ, và đây là bài học đo được trên chính production 2026-07-27:
+# Cloudflare đoán content-type theo PHẦN MỞ RỘNG. Hai file dưới đây không có phần
+# mở rộng nào → đoán ra `application/octet-stream`. Client chờ JSON sẽ bỏ qua file
+# mà KHÔNG báo lỗi gì, còn `curl -w '%{http_code}'` vẫn cho ta số 200 đẹp đẽ.
+#   - `webauthn` → Related Origin Requests chết → passkey web ↔ extension không nối
+#   - `apple-app-site-association` → universal link iOS im lặng không mở app
+# Gate `.well-known content-type` trong `deploy-fe.yml` chặn file mới thiếu luật.
+# ============================================================================
+
+# Related Origin Requests (WebAuthn L3): trình duyệt TỰ tải file này khi origin gọi
+# (vd extension) khác origin của rpId. Nó là fetch nội bộ của trình duyệt, không phải
+# fetch của trang → KHÔNG cần CORS. Nhưng PHẢI là JSON, nếu không Chrome bỏ qua.
+# ⚠️ Mỗi origin thêm vào file này là một origin được phép dùng passkey ĐIỀU KHIỂN TIỀN
+# của ví. Không thêm cho tiện — thêm là mở quyền ký.
+/.well-known/webauthn
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+
+# Universal Links iOS: Apple đòi đúng `application/json` cho file không phần mở rộng.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+
+# assetlinks.json có phần mở rộng `.json` → Cloudflare đã đoán đúng
+# (đo thật: `application/json`). Khai lại tường minh để luật không phụ thuộc phép đoán,
+# và để gate `.well-known content-type` có cái mà kiểm.
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
 
 # stellar.toml: client SEP-45 (ví khác, KHÁC origin) đọc file này → cần CORS.
 /.well-known/stellar.toml

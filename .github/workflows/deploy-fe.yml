@@ -26,7 +26,8 @@ name: Deploy FE
 
 on:
   push:
-    branches: [main]
+    # audit PHA6 G3: bỏ lọc branches — job build+gate (D1–D5) chạy trên MỌI
+    # nhánh chạm fe/**; job deploy bên dưới tự gác `if: ref == main`.
     paths:
       - "fe/**"
       - "shared/**"
@@ -34,24 +35,41 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: deploy-fe-prod
+  # Per-ref (PHA6 G3): build nhánh feature KHÔNG được cancel deploy đang chạy
+  # của main — group cũ `deploy-fe-prod` dùng chung sẽ làm đúng điều đó.
+  group: deploy-fe-${{ github.ref }}
   cancel-in-progress: true # FE khác BE: huỷ build cũ an toàn, không có migration
 
 env:
   # Nguồn sự thật DUY NHẤT cho các giá trị production. Đổi ở đây, không rải rác.
   API_ORIGIN: https://api.familyhaven.mscilabs.com
-  RPC_ORIGIN: https://soroban-testnet.stellar.org
+  # MAINNET (migration 2026-07-26): FE gọi Stellar RPC qua proxy BE POST /rpc —
+  # không gọi thẳng provider (key nằm server-side). PHẢI = API_ORIGIN + "/rpc"
+  # (env block GitHub không nối được từ env khác — đổi API_ORIGIN thì đổi theo).
+  RPC_URL: https://api.familyhaven.mscilabs.com/rpc
+  # Passphrase MAINNET — chính xác từng ký tự. env.ts đã fail-closed (hết
+  # default testnet) nên thiếu/sai biến này là app throw ngay lúc boot.
+  STELLAR_NETWORK_PASSPHRASE: "Public Global Stellar Network ; September 2015"
   SITE_ORIGIN: https://familyhaven.mscilabs.com
+  # Tên hiển thị. KHÔNG bỏ trống được, và đây là lý do đo được (2026-07-27):
+  #   1. `apps/web/index.html` dùng token `%VITE_APP_NAME%`. Vite 8 thay token theo
+  #      env; KHÔNG có key thì nó `return text` — trả nguyên chuỗi, chỉ warn (nguồn:
+  #      vite/dist/node/chunks/node.js). Tức tab trình duyệt production hiện đúng
+  #      chữ "%VITE_APP_NAME%".
+  #   2. Phía JS, `env.ts` có `.default("Mau Demo FE")` → `kit.ts` lấy làm `rpName`,
+  #      nên hộp thoại vân tay/Face ID trên máy người dùng ghi tên template.
+  # Khác rpId: rpName ĐỔI ĐƯỢC sau, không nhúng vào credential.
+  APP_NAME: FamilyHaven
   # rpId KHÔNG ĐẢO LẠI ĐƯỢC — authenticator băm và nhúng vào credential lúc tạo.
   # Đổi giá trị này sau khi có passkey đầu tiên = mọi passkey chết. Xem §3.1.
   PASSKEY_RP_ID: familyhaven.mscilabs.com
 
 jobs:
-  build-and-deploy:
+  # ---- Job 1: build + gate (D1–D5) — chạy trên MỌI nhánh (audit PHA6 G3) ----
+  build-and-gate:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      deployments: write
     defaults:
       run:
         working-directory: fe
@@ -61,7 +79,16 @@ jobs:
 
       # pnpm KHÔNG pin số ở đây — action đọc `packageManager` trong fe/package.json
       # (pnpm@9.15.9). Pin tay là mở đường cho drift CI↔local.
+      #
+      # ⚠️ `package_json_file` BẮT BUỘC và đây là lý do: `defaults.run.working-directory`
+      # CHỈ áp cho step `run:`, KHÔNG áp cho step `uses:`. Thiếu dòng này thì action đọc
+      # `package.json` ở GỐC repo — mà gốc CỐ Ý không có `packageManager` (monorepo
+      # "git chung, build riêng", xem CLAUDE.md §1) → action chết ngay bước 2 với
+      # "No pnpm version is specified", trước cả install. ci-fe.yml đã làm đúng từ đầu;
+      # file này port thiếu. Đo thật 2026-07-27: root package.json không có field đó.
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: fe/package.json
 
       # Node từ .nvmrc (20) — KHÔNG Bun, và KHÔNG bump lên cho "đỡ lỗi".
       # Bun và Node ≥23.6 strip type nên nạp được `.ts` config cross-package →
@@ -85,6 +112,44 @@ jobs:
       - name: Audit (high/critical)
         run: pnpm audit --audit-level=high
 
+      # ---- GATE D1: đủ 5 biến mainnet TRƯỚC khi build ----
+      # Cố ý FAIL Ồ ẠT khi GitHub vars chưa điền (khác triết lý skip-deploy của
+      # Cloudflare secrets bên dưới): thiếu contract id mainnet mà vẫn ship là
+      # ship ví không tạo được / stellar.toml chở template. Điền theo bảng
+      # "GitHub vars phải điền" trong MAINNET-CHECKLIST.md rồi chạy lại.
+      - name: Gate mainnet vars (D1)
+        env:
+          VITE_ACCOUNT_WASM_HASH: ${{ vars.VITE_ACCOUNT_WASM_HASH }}
+          VITE_WEBAUTHN_VERIFIER_ADDRESS: ${{ vars.VITE_WEBAUTHN_VERIFIER_ADDRESS }}
+          VITE_RECOVERY_REGISTRY_ADDRESS: ${{ vars.VITE_RECOVERY_REGISTRY_ADDRESS }}
+          VITE_SAC_NATIVE: ${{ vars.VITE_SAC_NATIVE }}
+          WEB_AUTH_CONTRACT_ID: ${{ vars.WEB_AUTH_CONTRACT_ID }}
+        run: |
+          missing=0
+          for v in VITE_ACCOUNT_WASM_HASH VITE_WEBAUTHN_VERIFIER_ADDRESS \
+                   VITE_RECOVERY_REGISTRY_ADDRESS VITE_SAC_NATIVE WEB_AUTH_CONTRACT_ID; do
+            if [ -z "${!v:-}" ]; then echo "❌ thiếu GitHub vars: $v"; missing=1; fi
+          done
+          if [ "$missing" != "0" ]; then
+            echo "→ Settings → Secrets and variables → Actions → Variables; giá trị: MAINNET-CHECKLIST.md mục H1."
+            exit 1
+          fi
+          # audit F5: assert ĐỊNH DẠNG, không chỉ non-empty — giá trị giữ chỗ
+          # (PENDING_MAINNET_DEPLOY) hay id cắt dán thiếu ký tự phải chết Ở ĐÂY,
+          # trước khi tốn một lượt build và trước khi placeholder kịp vào dist.
+          bad=0
+          for v in VITE_WEBAUTHN_VERIFIER_ADDRESS VITE_RECOVERY_REGISTRY_ADDRESS \
+                   VITE_SAC_NATIVE WEB_AUTH_CONTRACT_ID; do
+            if ! printf '%s' "${!v}" | grep -qE '^C[A-Z2-7]{55}$'; then
+              echo "❌ D1: $v sai định dạng contract id (cần ^C[A-Z2-7]{55}\$)"; bad=1
+            fi
+          done
+          if ! printf '%s' "$VITE_ACCOUNT_WASM_HASH" | grep -qE '^[0-9a-f]{64}$'; then
+            echo "❌ D1: VITE_ACCOUNT_WASM_HASH sai định dạng wasm hash (cần ^[0-9a-f]{64}\$)"; bad=1
+          fi
+          if [ "$bad" != "0" ]; then exit 1; fi
+          echo "✅ D1: đủ 5 biến mainnet, đúng định dạng"
+
       # ---- BUILD ----
       # Vite nướng VITE_* vào bundle LÚC BUILD. Đặt ở đây, KHÔNG ở dashboard
       # Cloudflare — dashboard chỉ có tác dụng khi Cloudflare tự build.
@@ -96,9 +161,18 @@ jobs:
       - name: Build (honest)
         env:
           VITE_API_URL: ${{ env.API_ORIGIN }}
-          VITE_STELLAR_RPC_URL: ${{ env.RPC_ORIGIN }}
-          VITE_STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+          VITE_APP_NAME: ${{ env.APP_NAME }}
+          VITE_STELLAR_RPC_URL: ${{ env.RPC_URL }}
+          VITE_STELLAR_NETWORK_PASSPHRASE: ${{ env.STELLAR_NETWORK_PASSPHRASE }}
           VITE_PASSKEY_RP_ID: ${{ env.PASSKEY_RP_ID }}
+          # 4 biến chain MAINNET từ GitHub vars (Settings → Secrets and
+          # variables → Actions → Variables). Nguồn giá trị: bảng "GitHub vars
+          # phải điền" trong MAINNET-CHECKLIST.md. Gate D1 ở trên đã chặn khi
+          # trống — tới đây là chắc chắn có giá trị.
+          VITE_ACCOUNT_WASM_HASH: ${{ vars.VITE_ACCOUNT_WASM_HASH }}
+          VITE_WEBAUTHN_VERIFIER_ADDRESS: ${{ vars.VITE_WEBAUTHN_VERIFIER_ADDRESS }}
+          VITE_RECOVERY_REGISTRY_ADDRESS: ${{ vars.VITE_RECOVERY_REGISTRY_ADDRESS }}
+          VITE_SAC_NATIVE: ${{ vars.VITE_SAC_NATIVE }}
           VITE_ENABLE_DEVTOOLS: "false"
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN_WEB }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -115,9 +189,26 @@ jobs:
         run: |
           H=apps/web/dist/_headers
           test -f "$H" || { echo "❌ _headers không vào dist — kiểm apps/web/public/_headers"; exit 1; }
-          sed -i "s#__API_ORIGIN__#${API_ORIGIN}#g; s#__RPC_ORIGIN__#${RPC_ORIGIN}#g" "$H"
+          # __RPC_ORIGIN__ đã gỡ khỏi _headers (RPC đi qua /rpc cùng origin API);
+          # placeholder-check ở Verify dist vẫn quét cả hai để bắt sót.
+          sed -i "s#__API_ORIGIN__#${API_ORIGIN}#g" "$H"
           echo "--- CSP sau khi thay ---"
           grep -m1 'Content-Security-Policy' "$H"
+
+      # ---- Bake WEB_AUTH_CONTRACT_ID vào stellar.toml (C3) ----
+      # Cùng cơ chế sed như _headers: public/ giữ TEMPLATE __WEB_AUTH_CONTRACT_ID__
+      # để repo không pin contract id (id gắn chặt network); giá trị thật nằm ở
+      # GitHub vars WEB_AUTH_CONTRACT_ID (điền sau khi deploy contracts/web-auth
+      # lên MAINNET). Gate D1 đã chặn khi vars trống; gate D5 chặn template sót.
+      - name: Bake WEB_AUTH_CONTRACT_ID vào stellar.toml
+        env:
+          WEB_AUTH_CONTRACT_ID: ${{ vars.WEB_AUTH_CONTRACT_ID }}
+        run: |
+          T=apps/web/dist/.well-known/stellar.toml
+          test -f "$T" || { echo "❌ stellar.toml không vào dist"; exit 1; }
+          sed -i "s#__WEB_AUTH_CONTRACT_ID__#${WEB_AUTH_CONTRACT_ID}#g" "$T"
+          echo "--- stellar.toml sau khi thay ---"
+          grep -m1 'WEB_AUTH_CONTRACT_ID' "$T"
 
       # ---- Verify output TRƯỚC khi upload — rẻ hơn debug trên production ----
       - name: Verify dist
@@ -128,12 +219,139 @@ jobs:
           test -f "$D/index.html"   || { echo "❌ thiếu index.html"; exit 1; }
           test -f "$D/_headers"     || { echo "❌ _headers không vào dist"; exit 1; }
           test -f "$D/_redirects"   || { echo "❌ _redirects không vào dist"; exit 1; }
+          # Đích của luật `/.well-known/*  /404.html  404` trong _redirects. Thiếu
+          # file này thì luật thành no-op và SPA fallback nuốt lại `.well-known/`.
+          test -f "$D/404.html"     || { echo "❌ 404.html không vào dist"; exit 1; }
           # Bundler có thể bỏ qua thư mục bắt đầu bằng dấu chấm — kiểm tường minh.
           test -f "$D/.well-known/stellar.toml" || { echo "❌ stellar.toml không vào dist"; exit 1; }
+          test -f "$D/.well-known/webauthn"     || { echo "❌ webauthn không vào dist"; exit 1; }
 
-          # Không còn placeholder nào sót trong dist.
-          if grep -rq '__API_ORIGIN__\|__RPC_ORIGIN__' "$D"; then
+          # ---- GATE: MỌI file .well-known/ phải khai Content-Type trong _headers ----
+          # MÃ 200 KHÔNG ĐỦ. Cloudflare đoán content-type theo phần mở rộng; file
+          # không có phần mở rộng ra `application/octet-stream` (đo thật trên
+          # production 2026-07-27: apple-app-site-association). Client chờ JSON bỏ
+          # qua file mà không báo gì — hỏng im lặng, status vẫn 200.
+          for f in "$D"/.well-known/*; do
+            n=$(basename "$f")
+            # In khối luật của đúng pattern này (dòng không thụt = pattern mới → dừng).
+            block=$(awk -v pat="/.well-known/$n" '
+              $0 == pat { inblock = 1; next }
+              inblock && /^[^[:space:]]/ { exit }
+              inblock { print }
+            ' "$D/_headers")
+            if [ -z "$block" ]; then
+              echo "❌ .well-known/$n: không có khối luật nào trong _headers"; exit 1
+            fi
+            if ! printf '%s\n' "$block" | grep -qiE '^[[:space:]]*Content-Type:'; then
+              echo "❌ .well-known/$n: khối luật có nhưng THIẾU Content-Type"
+              printf '%s\n' "$block"; exit 1
+            fi
+            echo "✅ .well-known/$n → $(printf '%s\n' "$block" | grep -iE '^[[:space:]]*Content-Type:' | head -1 | tr -d ' ')"
+          done
+
+          # `.well-known/webauthn` phải là JSON PARSE ĐƯỢC và chứa origin extension.
+          # File rỗng / lỡ tay ghi HTML vẫn "tồn tại" — test có kiểm, gate này là
+          # lưới sau build (đo trên đúng byte sắp upload).
+          node -e '
+            const o = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+            if (!Array.isArray(o.origins) || o.origins.length === 0) throw new Error("origins rỗng");
+            if (!o.origins.some((x) => x.startsWith("chrome-extension://"))) {
+              throw new Error("thiếu origin chrome-extension:// — extension sẽ không dùng chung được passkey");
+            }
+            console.log("webauthn origins:", o.origins.join(", "));
+          ' "$D/.well-known/webauthn"
+
+          # Không còn placeholder/template nào sót trong dist.
+          if grep -rq '__API_ORIGIN__\|__RPC_ORIGIN__\|__WEB_AUTH_CONTRACT_ID__' "$D"; then
             echo "❌ còn placeholder chưa thay trong dist"; exit 1
+          fi
+
+          # Token %VITE_*% chưa thay trong HTML. Vite KHÔNG fail khi biến thiếu — nó
+          # trả nguyên chuỗi và chỉ warn, nên "%VITE_APP_NAME%" đi thẳng vào <title>
+          # của production mà build vẫn xanh. Đây là gate duy nhất bắt được ca đó.
+          if grep -rq '%VITE_[A-Z_]*%' "$D"; then
+            echo "❌ token %VITE_*% chưa thay trong dist:"
+            grep -ro '%VITE_[A-Z_]*%' "$D" | sort -u; exit 1
+          fi
+          # Tên template rò vào bản production (Zod default của VITE_APP_NAME) — nó là
+          # rpName, tức chữ hiện trong hộp thoại vân tay trên máy người dùng.
+          #
+          # ⚠️ Đo GIÁ TRỊ ĐÃ NƯỚNG trong <title>, KHÔNG grep cả dist. Cùng cái bẫy như
+          # gate localhost bên dưới: `.default("Mau Demo FE")` trong env.ts là literal
+          # nằm sẵn trong chunk env-*.js dù biến ĐÃ set đúng — grep cả dist là
+          # false-positive chắc chắn (đo thật 2026-07-27: title=FamilyHaven mà chuỗi
+          # default vẫn có mặt). <title> là chỗ DUY NHẤT phản ánh giá trị thật.
+          TITLE=$(grep -o '<title>[^<]*</title>' "$D/index.html" || true)
+          echo "title: $TITLE"
+          case "$TITLE" in
+            *"Mau Demo FE"*|"")
+              echo "❌ <title> vẫn là tên template / rỗng — VITE_APP_NAME chưa vào build"; exit 1;;
+          esac
+
+          # ---- GATE: manifest PWA phải CÀI ĐƯỢC (quyết định 2026-07-27) ----
+          # Ba thứ dưới đây đều hỏng IM LẶNG: thiếu manifest thì trình duyệt chỉ
+          # không mời cài; icon khai mà file thiếu thì nút "Cài đặt" không hiện;
+          # `name` lệch `<title>` thì tên dưới icon trên màn hình chính khác tên
+          # trong app và trong hộp thoại vân tay (rpName) — không có log nào cả.
+          M="$D/manifest.webmanifest"
+          test -f "$M" || { echo "❌ manifest.webmanifest không vào dist — PWA không cài được"; exit 1; }
+          node -e '
+            const fs = require("fs");
+            const [manifestPath, distDir, html] = process.argv.slice(1);
+            const m = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+            const title = (fs.readFileSync(html, "utf8").match(/<title>([^<]*)<\/title>/) || [])[1];
+            if (!m.name) throw new Error("manifest thiếu name");
+            if (m.name !== title) {
+              throw new Error(`manifest.name "${m.name}" != <title> "${title}" — hai nguồn tên đã lệch`);
+            }
+            if (m.display !== "standalone") throw new Error(`display=${m.display}, cần standalone`);
+            const icons = m.icons || [];
+            for (const i of icons) {
+              if (!fs.existsSync(distDir + i.src)) throw new Error(`icon khai trong manifest nhưng thiếu file: ${i.src}`);
+            }
+            const big = icons.filter((i) => Number(String(i.sizes).split("x")[0]) >= 192);
+            if (big.length === 0) throw new Error("không có icon >= 192px — Chrome sẽ không cho cài");
+            if (!icons.some((i) => String(i.purpose || "").includes("maskable"))) {
+              throw new Error("không có icon maskable — Android sẽ tự cắt icon full-bleed");
+            }
+            console.log(`manifest: name="${m.name}" display=${m.display} icons=${icons.length}`);
+          ' "$M" "$D" "$D/index.html"
+
+          # iOS bỏ qua icon của manifest — nó chỉ đọc thẻ này. Thiếu/gãy đường dẫn
+          # là màn hình chính hiện ảnh chụp trang web thay cho icon.
+          ATI=$(grep -o 'rel="apple-touch-icon" href="[^"]*"' "$D/index.html" | sed 's/.*href="//;s/"//')
+          [ -n "$ATI" ] || { echo "❌ index.html thiếu <link rel=apple-touch-icon>"; exit 1; }
+          test -f "$D$ATI" || { echo "❌ apple-touch-icon trỏ tới file không có trong dist: $ATI"; exit 1; }
+          grep -q 'name="apple-mobile-web-app-capable" content="yes"' "$D/index.html" \
+            || { echo "❌ thiếu apple-mobile-web-app-capable — iOS vẫn mở trong tab Safari"; exit 1; }
+          echo "✅ PWA cài được: manifest + icon >= 192 + maskable + apple-touch-icon $ATI"
+
+          # ---- Nội dung TRANG MẪU template không được lên production ----
+          # Ngày 2026-07-27 phát hiện `/` ship nguyên trang mẫu khoe stack của template
+          # ("FE mẫu React 19 + Vite — cắm thẳng BE Bun + Hono" + 6 thẻ tên thư viện).
+          # Nó sống sót vì chuỗi hiển thị nằm trong `locales/*/common.json`, không phải
+          # trong TSX — mọi lần grep trước đều tìm theo tên biến hoặc theo "Mau Demo".
+          #
+          # ⚠️ Danh sách dưới đây ĐÃ ĐO trên dist thật, cố ý HẸP. KHÔNG thêm `TanStack`
+          # hay `Tailwind` trần: `TanStack Router` nằm trong comment của chính
+          # `public/_redirects`, còn `TanStack` trần khớp 67 file (tên chunk
+          # vendor-tanstack-*.js + manifest precache của sw.js). Gate luôn-đỏ thì
+          # người ta tắt gate. Lưới rộng nằm ở `scripts/check-user-copy.mjs` (chạy
+          # trong pnpm validate) — nó quét NGUỒN locale, đúng chỗ sinh ra lỗi này.
+          for s in 'mau demo' 'mau-demo' 'FE mẫu' 'mẫu React' 'cắm thẳng' 'Tailwind v4 + shadcn' 'RHF + Zod'; do
+            if grep -rqiF "$s" "$D"; then
+              echo "❌ CÒN NỘI DUNG TEMPLATE trong dist: \"$s\""
+              grep -rliF "$s" "$D"; exit 1
+            fi
+          done
+
+          # audit F5: giá trị giữ chỗ PENDING_MAINNET_DEPLOY ("chưa deploy
+          # contracts") tuyệt đối không được vào dist — lọt là ship ví trỏ
+          # contract không tồn tại. D1 đã chặn theo định dạng ở trước build;
+          # gate này là lưới sau build, quét cả assets lẫn stellar.toml.
+          if grep -rq 'PENDING_MAINNET_DEPLOY' "$D"; then
+            echo "❌ còn PENDING_MAINNET_DEPLOY trong dist:"
+            grep -rl 'PENDING_MAINNET_DEPLOY' "$D"; exit 1
           fi
 
           # CHỨNG MINH env build-time đã vào bundle. Thiếu bước này thì FE deploy
@@ -141,11 +359,74 @@ jobs:
           grep -rq 'api\.familyhaven\.mscilabs\.com' "$D/assets" \
             || { echo "❌ API URL không có trong bundle — VITE_API_URL chưa vào build"; exit 1; }
 
-          # rpId KHÔNG ĐẢO LẠI ĐƯỢC: nếu tên biến sai thì giá trị rơi về
-          # "localhost" và mọi passkey người dùng tạo sẽ chết vĩnh viễn trên domain
-          # thật. Bắt ngay tại đây, đừng để phát hiện khi đã có người dùng.
-          grep -rq 'familyhaven\.mscilabs\.com' "$D/assets" \
-            || { echo "❌ rpId không có trong bundle — VITE_PASSKEY_RP_ID chưa vào build"; exit 1; }
+          # ---- GATES MAINNET D2→D5 (MAINNET-CHECKLIST.md) ----
+          # Minifier (esbuild) đổi nháy đơn/kép thành BACKTICK khi có lợi — đo
+          # thật trên dist 2026-07-26: rpId nằm dạng `familyhaven.mscilabs.com`.
+          # Char class phủ cả ba loại nháy, nếu không D2 false-negative.
+          Q="['\"\`]"
+
+          # D2: rpId (quoted) PHẢI có. rpId KHÔNG ĐẢO LẠI ĐƯỢC: tên biến sai là
+          # giá trị rơi về "localhost" và mọi passkey người dùng tạo sẽ chết vĩnh
+          # viễn trên domain thật. Bắt ở đây, đừng để phát hiện khi đã có người dùng.
+          grep -rqE "${Q}familyhaven\.mscilabs\.com${Q}" "$D/assets" \
+            || { echo "❌ D2: rpId không có trong bundle — VITE_PASSKEY_RP_ID chưa vào build"; exit 1; }
+
+          # D3: apex quoted 'mscilabs.com' KHÔNG được có — apex làm rpId/origin
+          # là mở scope passkey cho MỌI subdomain (ký tự trước phải là quote,
+          # nên "familyhaven.mscilabs.com" hợp lệ không dính gate này).
+          if grep -rqE "${Q}mscilabs\.com${Q}" "$D/assets"; then
+            echo "❌ D3: apex mscilabs.com (quoted) xuất hiện trong bundle:"
+            grep -roE ".{30}${Q}mscilabs\.com${Q}.{10}" "$D/assets" | head -5
+            exit 1
+          fi
+
+          # D4: KHÔNG còn dấu vết testnet trong bundle mainnet — ba tầng.
+          # Miễn trừ DUY NHẤT theo TÊN FILE chunk vendor `/vendor-stellar-`
+          # (manualChunks trong packages/config/vite.preset.mjs — chỉ chứa
+          # node_modules/@stellar + smart-account-kit, không chứa code app):
+          # stellar-sdk LUÔN chở hằng Networks.TESTNET + helper requestAirdrop
+          # (friendbot) trong code THƯ VIỆN (đo thật trên dist 2026-07-26) —
+          # không phải config của ta. Mọi chunk chứa code app đều bị quét đủ.
+          # (1) `soroban-testnet` quét TOÀN BỘ assets: URL RPC là config của ta,
+          #     xuất hiện ở đâu cũng là misconfig.
+          if grep -rq 'soroban-testnet' "$D/assets"; then
+            echo "❌ D4: còn soroban-testnet trong bundle:"
+            grep -ro '.{30}soroban-testnet.{30}' "$D/assets" | head -5
+            exit 1
+          fi
+          # (2) `Test SDF Network|friendbot` — mọi chunk trừ vendor-stellar-*.
+          #     Code app DÁN chuỗi passphrase testnet sẽ nằm ở chunk app → bắt.
+          D4_HITS=$(grep -rlE 'Test SDF Network|friendbot' "$D/assets" | grep -v '/vendor-stellar-' || true)
+          if [ -n "$D4_HITS" ]; then
+            echo "❌ D4: dấu vết testnet/friendbot NGOÀI chunk vendor-stellar:"
+            echo "$D4_HITS"
+            grep -roE '.{30}(Test SDF Network|friendbot).{30}' $D4_HITS | head -5
+            exit 1
+          fi
+          # (3) `.TESTNET` (audit F4) — mọi chunk trừ vendor-stellar-*. Bắt ca
+          #     tầng (2) MÙ: app code dùng `Networks.TESTNET` thì chuỗi
+          #     passphrase nằm bên chunk vendor (được miễn trừ), chunk app chỉ
+          #     còn property access `.TESTNET` sau minify — quét đúng dấu vết đó.
+          D4_PROP_HITS=$(grep -rlE '\.TESTNET\b' "$D/assets" | grep -v '/vendor-stellar-' || true)
+          if [ -n "$D4_PROP_HITS" ]; then
+            echo "❌ D4: truy cập .TESTNET (Networks.TESTNET) NGOÀI chunk vendor-stellar:"
+            echo "$D4_PROP_HITS"
+            grep -roE '.{40}\.TESTNET.{20}' $D4_PROP_HITS | head -5
+            exit 1
+          fi
+
+          # D5: stellar.toml mainnet — có passphrase mainnet, sạch template + testnet.
+          T="$D/.well-known/stellar.toml"
+          grep -q 'Public Global Stellar Network ; September 2015' "$T" \
+            || { echo "❌ D5: stellar.toml thiếu passphrase mainnet"; exit 1; }
+          if grep -qE '__WEB_AUTH_CONTRACT_ID__|Test SDF' "$T"; then
+            echo "❌ D5: stellar.toml còn template/testnet"; exit 1
+          fi
+
+          # Gate cứng localhost-quoted KHÔNG thêm được: guard fail-closed trong
+          # env.ts (`VITE_PASSKEY_RP_ID === "localhost"` + message lỗi) tự chứa
+          # literal "localhost" trong bundle → false-positive chính đáng. Giữ
+          # cảnh báo mềm dưới đây; D2/D3 mới là gate cứng cho rpId.
           if grep -rqE '"localhost"|rpId:"localhost"' "$D/assets"; then
             echo "⚠️ chuỗi localhost xuất hiện trong bundle — kiểm tra không phải rpId"
             grep -roE '.{40}localhost.{40}' "$D/assets" | head -5
@@ -161,6 +442,40 @@ jobs:
           fi
 
           echo "✅ dist hợp lệ"; du -sh "$D"
+
+      # ---- Bàn giao dist cho job deploy ----
+      # ⚠️ include-hidden-files BẮT BUỘC: upload-artifact v4 mặc định BỎ đường
+      # dẫn bắt đầu bằng dấu chấm → .well-known/stellar.toml biến mất im lặng.
+      - name: Upload dist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: fe/apps/web/dist
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 3
+
+  # ---- Job 2: deploy — CHỈ chạy khi ref == refs/heads/main (audit PHA6 G3) ----
+  # Nội dung step giữ NGUYÊN từ bản 1-job; chỉ điều kiện chạy đổi. Nhánh feature
+  # dừng ở build+gate, không bao giờ chạm upload production.
+  deploy:
+    needs: build-and-gate
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    defaults:
+      run:
+        working-directory: fe
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-dist
+          path: fe/apps/web/dist
 
       # ---- Deploy ----
       # Chưa có secrets → SKIP deploy, job vẫn xanh (build + gate đã chạy thật).
@@ -216,3 +531,28 @@ jobs:
           curl -s -o /dev/null -w 'stellar.toml: %{http_code}\n' "$SITE_ORIGIN/.well-known/stellar.toml"
           curl -sI "$SITE_ORIGIN/.well-known/stellar.toml" | grep -i 'access-control-allow-origin' \
             || echo "⚠️ stellar.toml thiếu CORS header"
+
+          # ---- .well-known/ trên production: đo CONTENT-TYPE, không đo status ----
+          # Gate `Verify dist` chỉ chứng minh _headers KHAI đúng. Đây là chỗ duy nhất
+          # chứng minh Cloudflare THỰC SỰ phục vụ đúng. `text/html` = SPA fallback đã
+          # nuốt file → hỏng im lặng với status 200 (chính ca 2026-07-27).
+          fail=0
+          check_ct() {
+            ct=$(curl -sI -m 10 "$SITE_ORIGIN$1" | tr -d '\r' | grep -i '^content-type:' | cut -d' ' -f2-)
+            printf '%-42s %s\n' "$1" "${ct:-<không có>}"
+            case "$ct" in
+              "$2"*) ;;
+              *) echo "   ❌ chờ '$2', nhận '${ct:-<không có>}'"; fail=1;;
+            esac
+          }
+          check_ct /.well-known/webauthn                   application/json
+          check_ct /.well-known/apple-app-site-association application/json
+          check_ct /.well-known/assetlinks.json            application/json
+          check_ct /.well-known/stellar.toml               text/plain
+
+          # `.well-known/` thiếu file phải 404 THẬT — 200 nghĩa là catch-all còn nuốt.
+          C=$(curl -s -o /dev/null -m 10 -w '%{http_code}' "$SITE_ORIGIN/.well-known/khong-ton-tai")
+          echo "/.well-known/khong-ton-tai: $C (chờ 404)"
+          [ "$C" = "404" ] || { echo "   ❌ SPA fallback vẫn nuốt .well-known/"; fail=1; }
+
+          [ "$fail" = "0" ] || exit 1

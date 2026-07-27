@@ -1,0 +1,22 @@
+diff --git a/dist/chunks/cli-api.24X8XwN1.js b/dist/chunks/cli-api.24X8XwN1.js
+index 63a0164a50e1a3fc1522b122820d33c2fa22d389..252f97bf509bb1f1c94e8fc92a8730259ff48a09 100755
+--- a/dist/chunks/cli-api.24X8XwN1.js
++++ b/dist/chunks/cli-api.24X8XwN1.js
+@@ -2791,7 +2791,7 @@ var RunnerState = /* @__PURE__ */ function(RunnerState) {
+ 	RunnerState["STOPPED"] = "stopped";
+ 	return RunnerState;
+ }(RunnerState || {});
+-const START_TIMEOUT = 6e4;
++const START_TIMEOUT = 6e5;
+ const STOP_TIMEOUT = 6e4;
+ /** @experimental */
+ class PoolRunner {
+@@ -3392,7 +3392,7 @@ class VmThreadsPoolWorker extends ThreadsPoolWorker {
+ 	}
+ }
+ 
+-const WORKER_START_TIMEOUT = 9e4;
++const WORKER_START_TIMEOUT = 6e5;
+ class Pool {
+ 	maxWorkers = 0;
+ 	workerIds = /* @__PURE__ */ new Map();

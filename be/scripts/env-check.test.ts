@@ -18,6 +18,11 @@ function validRecord(): Record<string, string> {
     TRUSTED_ORIGINS: "http://localhost:3000",
     RESEND_API_KEY: "re_test_key",
     EMAIL_FROM: "noreply@example.com",
+    // Mainnet migration 2026-07-26: 4 biến Stellar/SEP-45 hết default (fail-closed).
+    STELLAR_RPC_URL: "https://soroban-testnet.stellar.org",
+    STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015",
+    SEP45_HOME_DOMAIN: "localhost:5173",
+    SEP45_WEB_AUTH_DOMAIN: "localhost:3000",
   };
 }
 

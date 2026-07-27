@@ -42,7 +42,9 @@ if (process.argv.includes("--write")) {
     if (replacement) next = next.replaceAll(old, replacement);
   }
   writeFileSync(headersPath, next);
-  console.log(`✅ _headers cập nhật: ${stale.join(", ") || "(không có gì cũ)"} → ${hashes.join(", ")}`);
+  console.log(
+    `✅ _headers cập nhật: ${stale.join(", ") || "(không có gì cũ)"} → ${hashes.join(", ")}`,
+  );
   process.exit(0);
 }
 
@@ -55,4 +57,6 @@ if (missing.length > 0 || stale.length > 0) {
   process.exit(1);
 }
 
-console.log(`✅ CSP script-hash khớp index.html (${hashes.length} inline script): ${hashes.join(", ")}`);
+console.log(
+  `✅ CSP script-hash khớp index.html (${hashes.length} inline script): ${hashes.join(", ")}`,
+);

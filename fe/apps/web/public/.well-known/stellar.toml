@@ -1,8 +1,12 @@
 # stellar.toml — SEP-1, phục vụ ở HOME DOMAIN (https://familyhaven.mscilabs.com).
 # Client SEP-45 đọc file này để biết gọi đâu và tin chữ ký của ai.
 #
-# ⚠️ TESTNET. Lên mainnet phải đổi NETWORK_PASSPHRASE + deploy lại contract
-# web-auth + đổi WEB_AUTH_CONTRACT_ID (contract id gắn chặt với network).
+# MAINNET (migration 2026-07-26). WEB_AUTH_CONTRACT_ID là TEMPLATE
+# (token WEB-AUTH-CONTRACT-ID hai gạch dưới): deploy-fe.yml sed bằng GitHub vars
+# WEB_AUTH_CONTRACT_ID sau khi build (cùng cơ chế token API-ORIGIN của _headers).
+# Gate D1 chặn build khi vars trống; gate D5 chặn ship khi template còn sót.
+# Contract id gắn chặt với network — GIÁ TRỊ PHẢI là contract web-auth đã deploy
+# MAINNET, không tái dùng id testnet.
 #
 # ⚠️ Xem BLOCKERS B-SEP45-1: backend hiện tách GET/POST ra HAI đường
 # (/api/sep45/challenge và /api/sep45/token) trong khi spec đòi MỘT endpoint
@@ -12,16 +16,20 @@
 
 VERSION = "2.7.0"
 
-NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+NETWORK_PASSPHRASE = "Public Global Stellar Network ; September 2015"
 
 # Endpoint xác thực ví-hợp-đồng (SEP-45).
 WEB_AUTH_FOR_CONTRACTS_ENDPOINT = "https://api.familyhaven.mscilabs.com/api/sep45"
 
-# Contract web_auth_verify đã deploy testnet (contracts/web-auth).
+# Contract web_auth_verify MAINNET (contracts/web-auth) — template, xem đầu file.
 # Khớp BE env SEP45_WEB_AUTH_CONTRACT_ID — lệch là mọi challenge bị từ chối.
-WEB_AUTH_CONTRACT_ID = "CAKV3MKK3WA2CJX56LA52YYAG7FDMQTD7ZYRT3FKXUOCOEXZIANG2SST"
+WEB_AUTH_CONTRACT_ID = "__WEB_AUTH_CONTRACT_ID__"
 
 # Khoá CÔNG KHAI của server, để client verify entry do server ký trong challenge.
 # Đây là địa chỉ G... — công khai theo định nghĩa. Khoá bí mật S... nằm ở
 # BE env SEP45_SIGNING_KEY và KHÔNG BAO GIỜ xuất hiện ở đây.
+# ⚠️ BLOCKER B-MAINNET (xem MAINNET-CHECKLIST.md H3): giá trị dưới là G của
+# SEP45_SIGNING_KEY TESTNET dev. Khi tạo SEP45_SIGNING_KEY MAINNET riêng (key
+# testnet ≠ mainnet — luật security.md), PHẢI thay G này theo, nếu không client
+# SEP-45 bên thứ ba verify chữ ký server sẽ fail.
 SIGNING_KEY = "GB36727O4PD6ASHCJAREPS7XJZZL467LHETUTQYLFGJXFNZYRZQOBQBP"

@@ -9,7 +9,7 @@
   },
   "overview": {
     "title": "管理概览",
-    "description": "来自 Better Auth 管理 API 的用户指标。",
+    "description": "有多少人在使用，以及当前谁被封禁。",
     "totalUsers": "用户总数",
     "bannedUsers": "当前被封禁",
     "quickLinksTitle": "快捷方式",
@@ -17,7 +17,7 @@
   },
   "users": {
     "title": "用户",
-    "description": "搜索、分页、设置角色、封禁、代操作 — 通过 listUsers 在服务端完成。",
+    "description": "查找某人、更改角色、封禁账户，或代替他们登录以提供帮助。",
     "searchPlaceholder": "按邮箱搜索…",
     "roleFilter": "按角色筛选",
     "roleAll": "所有角色",

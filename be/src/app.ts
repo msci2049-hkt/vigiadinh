@@ -21,6 +21,7 @@ import { rateLimitConnection } from "@/lib/redis";
 import { VALIDATION_LIMITS } from "@/lib/validation-limits";
 import { errorHandler } from "@/middlewares/error";
 import { hashGuard } from "@/middlewares/hash-guard";
+import { originGuard } from "@/middlewares/origin-guard";
 import { guardiansRoutes } from "@/modules/guardians/routes";
 import { indexerRoutes } from "@/modules/indexer/routes";
 import { inheritanceRoutes } from "@/modules/inheritance/routes";
@@ -30,6 +31,7 @@ import { presenceRoutes } from "@/modules/presence/routes";
 import { realtimeRoutes } from "@/modules/realtime/routes";
 import { recoveryRoutes } from "@/modules/recovery/routes";
 import { riskRoutes } from "@/modules/risk/routes";
+import { rpcRoutes } from "@/modules/rpc/routes";
 import { sep45Routes } from "@/modules/sep45";
 import { walletsRoutes } from "@/modules/wallets/routes";
 
@@ -178,6 +180,17 @@ app.route("/api/risk", riskRoutes);
 // SEP-45 — đăng nhập bằng ví contract (public có chủ đích: đây là cửa login;
 // rate-limit failOpen=false + nonce single-use bên trong module).
 app.route("/api/sep45", sep45Routes);
+// Proxy JSON-RPC Stellar (mainnet migration): FE gọi qua đây, KHÔNG gọi thẳng
+// provider — key provider nằm server-side. Mount NGOÀI /api/* (FE bake
+// VITE_STELLAR_RPC_URL=<API origin>/rpc) nên csrf({origin}) KHÔNG gác nó, và
+// hono/cors KHÔNG chặn server-side (Origin lạ chỉ mất header Allow-Origin,
+// request thật vẫn tới handler). originGuard (audit F2) đóng lỗ đó: Origin ∉
+// TRUSTED_ORIGINS → 403 TRƯỚC handler; preflight OPTIONS thì cors ở trên đã
+// trả 204 KHÔNG kèm Allow-Origin cho origin lạ (browser tự chặn). Public +
+// rate-limit failOpen=false + allowlist method trong module.
+app.use("/rpc", originGuard);
+app.use("/rpc/*", originGuard);
+app.route("/rpc", rpcRoutes);
 // Pipeline intent (PHA 3) — trục mọi luồng tiền, requireAuth trong feature.
 app.route("/api/intents", intentsRoutes);
 

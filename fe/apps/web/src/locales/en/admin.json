@@ -9,7 +9,7 @@
   },
   "overview": {
     "title": "Admin overview",
-    "description": "User metrics from the Better Auth admin API.",
+    "description": "How many people use this app, and who is currently blocked.",
     "totalUsers": "Total users",
     "bannedUsers": "Currently banned",
     "quickLinksTitle": "Shortcuts",
@@ -17,7 +17,7 @@
   },
   "users": {
     "title": "Users",
-    "description": "Search, paginate, set roles, ban, impersonate — server-side via listUsers.",
+    "description": "Find someone, change their role, block them, or sign in as them to help.",
     "searchPlaceholder": "Search by email…",
     "roleFilter": "Filter by role",
     "roleAll": "All roles",

@@ -34,6 +34,20 @@ const TOKENS = [
   { re: /\byour app\b/i, label: '"Your App"' },
   { re: /\bmy app\b/i, label: '"My App"' },
   { re: /mau[ -]demo/i, label: "tên template gốc (Mau Demo)" },
+  // ---- Trang mẫu "khoe stack" (thêm 2026-07-27, sau khi nó LÊN PRODUCTION) ----
+  // Guard này vốn ĐÃ quét locales JSON, nhưng danh sách token chỉ có localhost/TODO/
+  // "Mau Demo" nên trang chủ template lọt qua nhiều tuần: chuỗi hiển thị của nó là
+  // "FE mẫu React 19 + Vite — cắm thẳng BE Bun + Hono" và 6 thẻ tên thư viện, nằm
+  // trong `home.*` của common.json. Grep theo tên biến hay theo "Mau Demo" đều KHÔNG
+  // khớp. Bài học: bắt theo CHUỖI NGƯỜI DÙNG NHÌN THẤY, và bắt cả tiếng Việt.
+  // Copy sản phẩm nói chuyện với người thường thì không có lý do gì nhắc tên thư viện.
+  { re: /FE mẫu|mẫu React/i, label: 'copy template ("FE mẫu")' },
+  { re: /cắm thẳng/i, label: 'copy template ("cắm thẳng BE…")' },
+  { re: /TanStack/i, label: "tên thư viện trong copy (TanStack)" },
+  { re: /shadcn/i, label: "tên thư viện trong copy (shadcn)" },
+  { re: /tailwind/i, label: "tên thư viện trong copy (Tailwind)" },
+  { re: /better auth/i, label: "tên thư viện trong copy (Better Auth)" },
+  { re: /\bRHF\b/i, label: "tên thư viện trong copy (RHF)" },
 ];
 
 /** Copy hiển thị cho user: locales JSON + index.html + site.ts của mỗi app. */

@@ -463,6 +463,77 @@ wildcard. `api.familyhaven.mscilabs.com` là **HAI** tầng → không nằm tro
 - **Hệ quả đang chấp nhận:** không có WAF trước API, và IP origin `14.225.198.86` lộ ra DNS
   công khai → phải dựa hoàn toàn vào firewall + rate limit ở tầng app.
 
+## B-INFRA-2 · `vgd-worker-1` "unhealthy" 32 giờ — HEALTHCHECK SAI, worker vẫn chạy đúng
+
+**Kết luận dứt khoát: (a) healthcheck sai. Worker KHÔNG hỏng.** Chẩn 2026-07-27, đọc-only bằng
+`cdhc`. Ghi ở đây vì đây là loại lỗi làm hỏng khả năng CHẨN ĐOÁN của cả hệ: một container báo đỏ
+liên tục 32 giờ dạy mọi người ngó lơ cột `STATUS`, và cột đó chính là thứ ta cần đọc ở §5 sau khi
+deploy để biết worker mới có sống không.
+
+### Bằng chứng
+
+`be/Dockerfile:60` khai `HEALTHCHECK` ở TẦNG IMAGE — một phép dò HTTP:
+
+```
+bun -e "fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/health')…"
+```
+
+Service `worker:` trong `be/deploy/docker-compose.prod.yml` (dòng 118–142) override `command`
+thành `["bun","run","dist/workers/index.js"]` — tiến trình worker BullMQ, **không mở cổng HTTP
+nào** — nhưng KHÔNG override `healthcheck`. Nên container thừa kế phép dò của service `app`.
+
+Chạy tay đúng lệnh healthcheck bên trong container:
+
+```
+$ docker exec vgd-worker-1 sh -c "bun -e \"fetch('http://127.0.0.1:'+(process.env.PORT||3000)+'/health')…\""
+CAUGHT: Unable to connect. Is the computer able to access the url?
+EXIT CODE = 1
+```
+
+`FailingStreak: 3828` × 30s ≈ **31.9 giờ**, khớp `Up 32 hours`. `Output` rỗng trong log health vì
+bản gốc `.catch(()=>process.exit(1))` không in gì — mất luôn manh mối, phải chạy tay mới thấy.
+
+Worker thì đang làm việc, log nói rõ:
+
+```
+workers.ready            count=6
+redis.bull.connected
+redis.rate-limit.connected
+ttl.tick   2026-07-26T03:00:00.049Z   extended=0 failed=0 skipped=true
+ttl.tick   2026-07-27T03:00:00.061Z   extended=0 failed=0 skipped=true
+```
+
+Cron `0 3 * * *` UTC bắn đúng giờ hai ngày liên tiếp. `Running=true`, `RestartCount=0`.
+(`skipped=true` là nhánh `!env.CONTRACT_ID_RECOVERY` trong `src/jobs/ttl-keeper.ts:187` — chưa cấu
+hình registry thì không có ví nào để gia hạn. Đúng hành vi, không phải lỗi.)
+
+**Không phải lỗi riêng của dự án này:** `bac-worker-1` (hàng xóm, cùng template BE) cũng
+`Up 3 weeks (unhealthy)` với đúng phép dò đó. `phonghoc-worker` KHÔNG có healthcheck nên không báo
+đỏ giả. Tức đây là lỗi cấu hình đi theo template, không phải sự cố runtime.
+
+### Code mới CÓ SỬA KHÔNG? — **KHÔNG**
+
+Repo HEAD (`feat/mainnet`) vẫn giữ nguyên `HEALTHCHECK` trong `be/Dockerfile` và service `worker:`
+vẫn KHÔNG có `healthcheck:`. Deploy xong, `vgd-worker-1` sẽ tiếp tục `unhealthy` y hệt. **Đừng đọc
+đó là dấu hiệu deploy hỏng, và cũng đừng đọc là deploy xong.**
+
+### Cách sửa (CHƯA áp — cố ý)
+
+Thêm vào service `worker:` của `be/deploy/docker-compose.prod.yml`:
+
+```yaml
+    healthcheck:
+      disable: true
+```
+
+Không áp trong đợt này vì deploy lần này là deploy **CODE** trên một cây đã test; đổi compose ngay
+trước lúc bấm nút là thêm một biến số vào đúng thứ đang cần đo. Làm ở lượt sau, kèm test trong
+`be/deploy/deploy-hardening.test.ts`.
+
+⚠️ `disable: true` chỉ **gỡ báo động giả**, KHÔNG cho ta tín hiệu sống nào cho worker. Phép đo thật
+cần worker tự ghi nhịp (heartbeat vào file/Redis) rồi healthcheck đọc nhịp đó — chỉ khi có nó mới
+bắt được ca "tiến trình còn sống nhưng đã rớt khỏi hàng đợi". Đó là việc riêng, không gộp vào đây.
+
 ## B-ENV-1 · R2 từng là PROD-REQUIRED nhưng KHÔNG DÙNG — ĐÃ ĐÓNG 2026-07-26
 
 Quyết định sản phẩm: **không upload ảnh**. Nhận diện người bảo hộ bằng **nhãn text + địa chỉ ví**.
@@ -476,7 +547,18 @@ Quyết định sản phẩm: **không upload ảnh**. Nhận diện người b�
   (không cần `--build` — chỉ env đổi). Để lại cũng không sập (biến thừa bị bỏ qua), nhưng
   `check:env-parity` sẽ kêu key ACTIVE không có trong schema.
 
-## B-FE-1 · vitest FE KHÔNG CHẠY ĐƯỢC — fail-env, có trước phiên này
+## B-FE-1 · ~~vitest FE KHÔNG CHẠY ĐƯỢC~~ — **ĐÓNG 2026-07-27, đo thật trong WSL**
+
+> **KHÔNG CÒN ĐÚNG.** Toàn bộ chuỗi build chạy XANH trong WSL, Node 20.20.2 (nvm) + pnpm 9.15.9:
+> `install --frozen-lockfile` ✅ · `csp-script-hash` ✅ · `validate` ✅ · `test` ✅ ·
+> `audit --audit-level=high` ✅ · `build` (honest) ✅ — cả 6 bước `exit=0`.
+> `node_modules/.pnpm/` HIỆN chứa `@esbuild+linux-x64@0.28.1`, tức cây deps đã được cài lại
+> từ Linux ở phiên nào đó sau khi mục này được viết. Chẩn đoán "binary win32" bên dưới đúng
+> tại thời điểm viết, SAI ở hiện tại — đừng dùng nó để tự miễn chạy test nữa.
+> Cái còn đúng: `/mnt/d` CHẬM (KI-5) — `tsc --noEmit` mất ~13 phút, build ~8 phút. Chậm ≠ hỏng.
+> Cách chạy: `export PATH="$HOME/.nvm/versions/node/v20.20.2/bin:$PATH"` rồi chạy như bình thường.
+
+### Nội dung gốc (giữ làm lịch sử — đã hết hiệu lực)
 
 `npx vitest run <bất kỳ file nào>` chết ngay khi nạp runner:
 ```
@@ -546,6 +628,307 @@ Không có route nào ở `/api/sep45` gốc.
   trỏ vào chính hai handler sẵn có, giữ path cũ làm alias để không phá FE.
 - **Chưa sửa**: nằm ngoài phạm vi việc deploy FE, và đụng vào cổng login thì phải có test riêng.
 
+## B-EXT-1 · Extension CHƯA CHẠY ĐƯỢC — 3 lỗi chặn, chưa từng load-unpacked (2026-07-27)
+
+Kết luận dứt khoát: **CHƯA DÙNG ĐƯỢC, và chưa ai thử load lần nào.** Không phải "chưa test" —
+có bằng chứng nó *không thể* load ở trạng thái hiện tại. Manifest V3 ✅, tên/mô tả KHÔNG phải rác
+template (`_locales` en/vi/zh_CN đầy đủ, "FamilyWallet"/"VíGiaĐình"/"家庭钱包"). Ba lỗi chặn:
+
+1. **Thiếu toàn bộ thư mục `icons/`.** `manifest.json` khai `icons` 16/48/128 + `action.default_title`,
+   nhưng `extension/` chỉ có `manifest.json` `popup.html` `popup.js` `service-worker.js` `_locales/`
+   `README.md`. Chrome từ chối load unpacked khi file icon khai báo không tồn tại ⇒ **chứng minh
+   extension chưa từng được load thành công**, nếu không lỗi này đã lộ ngay lần đầu.
+2. **Domain là placeholder, không phải BE thật.** `host_permissions: ["https://app.familywallet.example/*"]`
+   và `API_BASE = "https://app.familywallet.example"` ở CẢ `service-worker.js:10` LẪN `popup.js:4`
+   (popup còn mở `${API_BASE}/guardian` và `/login`). Domain đó không tồn tại. Phải là
+   `https://api.familyhaven.mscilabs.com` cho API và `https://familyhaven.mscilabs.com` cho tab —
+   **hai origin khác nhau**, hiện đang bị gộp làm một.
+3. ~~**Tên lệch web app**: extension tên "FamilyWallet", web đã chốt "FamilyHaven".~~
+   **ĐÃ SỬA 2026-07-27** — xem §1.3 dưới đây. Còn lại lỗi 1 và 2, cả hai vẫn CHẶN load.
+
+### §1.3 · Tên sản phẩm — chốt "FamilyHaven", một nguồn duy nhất
+
+Đo được: **bốn tên cho một sản phẩm**. Web `FamilyHaven`; extension
+`FamilyWallet`/`VíGiaĐình`/`家庭钱包` (mỗi locale một tên); Capacitor `appName: FamilyWallet`.
+Không test nào bắt được vì mỗi chỗ tự khai một hằng số riêng.
+
+Vì sao đây không phải chuyện thẩm mỹ: `rpName` (`features/wallet/lib/kit.ts`) lấy thẳng
+`VITE_APP_NAME`, và **đó là dòng chữ trong hộp thoại vân tay/Face ID lúc người dùng KÝ giao dịch
+tiền**. Tên ở đó khác tên trên tab, khác tên dưới icon màn hình chính, khác tên extension đang xin
+duyệt — người dùng có đủ lý do để nghi ngờ đúng vào giây họ quyết định ký.
+
+Đã chốt **FamilyHaven**, khớp luôn `rpId = familyhaven.mscilabs.com`. Tên thương hiệu **KHÔNG
+dịch**: web hiện `site.name` y hệt ở cả ba ngôn ngữ (nó là biến env, không phải khoá i18n), nên
+extension theo đúng vậy; phần copy còn lại vẫn dịch bình thường. Test
+`apps/web/src/test/brand-name.test.ts` khoá lại theo NGUYÊN TẮC — mọi chỗ hiển thị phải quy về
+`VITE_APP_NAME`, chỗ nào chạy ngoài Vite (extension, Capacitor) phải khai đúng giá trị đó.
+
+**Cố ý KHÔNG đổi `appId: app.familywallet`** (`capacitor.config.json`, và `package_name` tương ứng
+trong `assetlinks.json` + `apple-app-site-association`). Nó là ĐỊNH DANH reverse-DNS, không phải
+tên hiển thị; đổi sau khi đã lên store là gãy đường cập nhật của mọi máy đã cài — cùng loại quyết
+định một chiều như `rpId`. Đáng bàn riêng khi thật sự nộp store, không đổi kèm việc sửa tên hiển
+thị. (Ghi luôn cho lần đó: `app.familywallet` không phải reverse-DNS của domain ta sở hữu.)
+
+### Passkey: extension KHÔNG dùng chung được với web (chưa cấu hình)
+
+Origin của extension là `chrome-extension://aakakeieeijeflbnblolnlhmooibddmc` — **không phải
+subdomain** của `familyhaven.mscilabs.com`, nên `rpId = familyhaven.mscilabs.com` không phủ tới nó.
+Cơ chế duy nhất nối hai origin là **Related Origin Requests**: home domain phải phục vụ
+`/.well-known/webauthn` trả JSON `{"origins":[...]}`.
+
+Đo thật 2026-07-27: `curl https://familyhaven.mscilabs.com/.well-known/webauthn` → **HTTP 200 nhưng
+trả về `index.html`**. Đây TỆ HƠN 404: SPA fallback `/*  /index.html  200` nuốt mọi đường dẫn chưa
+có file, nên trình duyệt nhận HTML ở chỗ nó chờ JSON. ⇒ Related Origin Requests **chưa cấu hình**,
+passkey tạo trên web **không dùng được** trong extension và ngược lại.
+
+Muốn nối: thêm `fe/apps/web/public/.well-known/webauthn` (JSON, có `chrome-extension://<id>` trong
+`origins`) — cùng chỗ với `stellar.toml`, và nhớ luật `_headers` cho content-type.
+
+#### CẬP NHẬT 2026-07-27 (phiên đóng nốt FE) — phía WEB đã làm xong
+
+`fe/apps/web/public/.well-known/webauthn` đã có, `_headers` ép `application/json`, `_redirects`
+có luật `.well-known` đứng trước catch-all. Test `apps/web/src/test/well-known.test.ts` + gate
+`.well-known content-type` trong `deploy-fe.yml` khoá lại. Phía extension vẫn còn lỗi 1 và 2.
+
+**Sửa một tuyên bố SAI trong bản ghi trước:** id `aakakeieeijeflbnblolnlhmooibddmc` **KHÔNG PHẢI**
+id tạm của bản unpacked, và nó **KHÔNG đổi khi đóng gói**. `extension/manifest.json` có trường
+`key` (khoá công khai RSA), nên Chrome DẪN XUẤT id từ đúng khoá đó thay vì từ đường dẫn thư mục —
+id được GHIM. Kiểm lại bất cứ lúc nào bằng chính phép tính Chrome dùng (16 byte đầu của SHA-256
+khoá DER, mỗi nibble → `'a' + n`):
+
+```bash
+node -e 'const f=require("fs"),c=require("crypto");
+const k=JSON.parse(f.readFileSync("extension/manifest.json","utf8")).key;
+const h=c.createHash("sha256").update(Buffer.from(k,"base64")).digest();
+let id="";for(let i=0;i<16;i++){id+=String.fromCharCode(97+(h[i]>>4))+String.fromCharCode(97+(h[i]&15));}
+console.log(id);'
+# → aakakeieeijeflbnblolnlhmooibddmc
+```
+
+Test `well-known.test.ts` TÍNH LẠI id này từ manifest mỗi lần chạy chứ không so với hằng số chép
+tay — đổi `key` mà quên sửa `.well-known/webauthn` là test đỏ ngay.
+
+⚠️ **Điều kiện id đổi (vẫn phải canh):** nếu Chrome Web Store cấp khoá khác lúc publish (xảy ra khi
+gói tải lên KHÔNG mang `key` này, hoặc item được tạo mới), id sẽ khác và `origins` phải cập nhật —
+nếu không, Related Origin Requests chết trên bản store trong khi bản unpacked vẫn chạy. Giữ `key`
+trong manifest khi đóng gói là cách rẻ nhất để id không đổi.
+
+⚠️ **Ý nghĩa an toàn:** mỗi origin trong `.well-known/webauthn` là một origin được phép dùng passkey
+**điều khiển tiền** của ví. Hiện file mở quyền cho một extension CHƯA từng load được (lỗi 1+2) —
+vô hại lúc này vì chỉ khoá riêng của ta mới sinh ra được id đó, nhưng đừng thêm origin cho tiện.
+
+**Lỗi 1 và 2 KHÔNG sửa trong phiên này** — extension là deliverable riêng, sửa nó cần load thử trên
+Chrome thật mới gọi là xong (§1.3 chỉ chốt TÊN, xem bên dưới).
+
+## B-CF-2 · CI deploy CHƯA NỐI — deploy FE hiện là TAY (2026-07-27)
+
+Bản production đang chạy được đẩy lên bằng `wrangler pages deploy` chạy tay, **không** qua
+`deploy-fe.yml`. Workflow vẫn **chưa từng chạy một lần nào trên runner thật** (nhánh `feat/mainnet`
+chưa push — xem B-CI-1). Để nối:
+
+1. Cloudflare API Token quyền **Account → Cloudflare Pages → Edit** (OAuth của máy local KHÔNG
+   dùng được cho CI).
+2. GitHub → Settings → Secrets and variables → Actions → Secrets:
+   - `CLOUDFLARE_API_TOKEN` = token ở bước 1
+   - `CLOUDFLARE_ACCOUNT_ID` = `b79e6e346d19031bf1b709d7a7dce34c`
+3. Cần PAT fine-grained để push + set secret + đọc log (B-CI-1 vẫn mở).
+
+⚠️ Ngay cả khi nối xong, job `build-and-gate` sẽ **ĐỎ ở gate D1** cho tới khi 4 biến chain mainnet
+được điền (contracts chưa deploy — xem B-CF-3). Đó là **đúng thiết kế**, không phải hỏng CI.
+
+### Bẫy môi trường đã trả giá: `wrangler` KHÔNG upload được từ WSL
+
+`pages deploy` từ WSL2 chết ở `ETIMEDOUT` giữa chừng (dừng ~55/164 file), retry cũng thế —
+trong khi `pages project list` (GET) và `curl` tới `api.cloudflare.com` vẫn OK, và MTU 1500 đã
+loại trừ (ping DF payload 1472 qua được). Tức là hỏng riêng ở đường upload bulk của WSL2 NAT.
+**Cách chạy được:** gọi từ Windows —
+`powershell.exe -NoProfile -Command "cd 'D:\du-an\thi-stella\family-wallet\fe'; npx wrangler@4 pages deploy ..."`.
+Credential OAuth nằm ở `C:\Users\huyng\AppData\Roaming\xdg.config\.wrangler\config\default.toml`;
+từ WSL đọc được bằng `XDG_CONFIG_HOME=/mnt/c/Users/huyng/AppData/Roaming/xdg.config` (đủ cho lệnh
+GET, KHÔNG đủ cho upload). Trên CI không dính bẫy này — runner Linux thật, không qua WSL.
+
+Ghi chú: `pages project create` cũng trả `8000000 unknown error` hai lần rồi thành công ở lần thứ
+ba với body y hệt — lỗi thoáng qua phía Cloudflare, cứ retry, đừng đổi tên project.
+
+## B-CF-3 · LỆCH MẠNG BA TẦNG — UI xem được, KHÔNG luồng thật nào chạy
+
+Ba tầng đang ở ba mạng khác nhau. Đây là thứ chặn người thật dùng ví, không phải lỗi FE:
+
+| Tầng | Trạng thái | Đo lúc 2026-07-27 |
+|---|---|---|
+| FE (bản vừa deploy) | **mainnet** | passphrase `Public Global…`, RPC trỏ `…/rpc` |
+| BE (VPS đang chạy) | **testnet**, bản CŨ | `GET /health` → `{"ok":true}` nhưng `POST /rpc` → **404** (proxy nằm trong 22 commit chưa push) |
+| Contracts mainnet | **chưa deploy** | không có bản ghi deploy nào trong `contracts/` |
+
+Hệ quả cụ thể:
+- `VITE_ACCOUNT_WASM_HASH` / `VITE_WEBAUTHN_VERIFIER_ADDRESS` / `VITE_RECOVERY_REGISTRY_ADDRESS`
+  build ra **RỖNG** (Zod cho optional) → màn tạo ví tự chặn, không đẻ ra ví cụt.
+  Chỉ `VITE_SAC_NATIVE` có giá trị thật (`CAS3J7…OWMA`, hằng số mainnet, H1 nói điền được ngay).
+- `dist/.well-known/stellar.toml` ship kèm **template `__WEB_AUTH_CONTRACT_ID__` chưa thay** —
+  gate D5 ĐỎ đúng như thiết kế. Chấp nhận có chủ ý cho lần deploy này (quyết định của user):
+  luồng trong app KHÔNG đọc file này (FE gọi thẳng hai path BE), chỉ client SEP-45 bên thứ ba đọc —
+  mà nhóm đó vốn đã hỏng sẵn vì B-SEP45-1. **Không được coi là đã xong.**
+- `SIGNING_KEY` trong stellar.toml vẫn là G của khoá **testnet** dev (B-MAINNET-4).
+
+**Chốt trước khi cho ai thử ví thật.** Thứ tự sửa: MAINNET-CHECKLIST.md mục H3.
+
+### Badge "Mạng chính" đang NÓI TRƯỚC SỰ THẬT — quyết định 2026-07-27: GIỮ mainnet
+
+`components/family/product-shell.tsx:14` — `isTestnet = env.VITE_STELLAR_NETWORK_PASSPHRASE.startsWith("Test ")`,
+rồi header hiện `network.mainnet` = **"Mạng chính"** (en "Mainnet", zh "主网"). Đây là **hằng số lúc
+build**, nó chỉ nói *FE được cấu hình cho mạng nào*, KHÔNG nói chuỗi phía sau có sống không.
+Người dùng ví đọc badge đó là "ví này đang chạy trên mạng thật" — trong khi BE còn testnet và
+contract mainnet chưa tồn tại. Với UI của một cái ví tiền, hiển thị sai mạng nguy hiểm hơn lỗi UI
+thường.
+
+Hai lựa chọn đã cân, **chọn (B)**:
+- (A) Hạ FE về testnet cho khớp BE — bác bỏ: phải đảo ngược toàn bộ migration đã commit
+  (`a9b23db`→`d825aac`), CSP/`connect-src` và `stellar.toml` đều đang hình mainnet, và BE sẽ lên
+  mainnet chứ không ở lại testnet. Đảo chiều rồi đảo lại là tự chuốc hai lần rủi ro.
+- (B) **GIỮ mainnet**, ghi nợ tại đây: badge ĐÚNG so với cấu hình FE, SAI so với hệ thống. Nó chỉ
+  trở thành đúng khi B-CF-3 đóng (BE mainnet + contracts deploy).
+  Nếu cần cho người ngoài dùng thử TRƯỚC khi B-CF-3 đóng thì phải sửa badge trước — cách rẻ nhất là
+  cho nó phản ánh **khả năng gọi được chuỗi** (ping `/rpc`) chứ không phải hằng số passphrase.
+
+## B-FE-5 · TRANG MẪU TEMPLATE ĐÃ LÊN PRODUCTION ở `/` — vá 2026-07-27
+
+`https://familyhaven.mscilabs.com/` phục vụ nguyên **trang giới thiệu template**: tiêu đề + 6 thẻ
+khoe stack ("TanStack Router", "TanStack Query v5", "Better Auth", "SSE", "Tailwind v4 + shadcn",
+"RHF + Zod"), bản tiếng Việt ghi *"FE mẫu React 19 + Vite — cắm thẳng BE Bun + Hono + Better Auth."*
+Đây là thứ ĐẦU TIÊN người vào gốc domain nhìn thấy; `/welcome` mới là màn mở đầu thật.
+
+**Vì sao lọt qua mọi vòng kiểm** — đây mới là bài học, không phải cái lỗi:
+chuỗi hiển thị nằm trong `apps/web/src/locales/*/common.json` (khối `home.*`), KHÔNG nằm trong TSX.
+`index.tsx` chỉ có `t("home.description")` và `t(\`home.stack.${key}.title\`)` — **không một ký tự
+tiếng Việt nào**. Nên: grep theo tên biến → trượt; grep `"Mau Demo"` → trượt (chuỗi là "FE mẫu");
+gate dist theo `%VITE_*%`/`<title>` → trượt (title vẫn đúng "FamilyHaven"). Guard
+`scripts/check-user-copy.mjs` VỐN ĐÃ quét đúng file locale, chỉ là danh sách TOKENS không có cụm nào
+khớp. **Bắt theo chuỗi NGƯỜI DÙNG NHÌN THẤY, và bắt cả tiếng Việt.**
+
+Đã vá: `/` chuyển hướng `/welcome` bằng `redirect()` trong `beforeLoad` (không `<Navigate>` — tránh
+nháy một frame); xoá khối `home.*` khỏi cả 3 locale (parity 25 key giữ nguyên); `check-user-copy.mjs`
+thêm 7 token (`FE mẫu`, `cắm thẳng`, `TanStack`, `shadcn`, `tailwind`, `better auth`, `RHF`);
+`deploy-fe.yml` thêm gate dist theo 7 chuỗi ĐÃ ĐO.
+
+Guard mở rộng bắt được **3 lỗi cùng loại chưa ai thấy**: `admin.json` cả 3 locale ghi *"User metrics
+from the Better Auth admin API"* và *"…server-side via listUsers"* — tên thư viện + tên hàm nội bộ
+trong copy hiển thị cho admin. Đã viết lại thành tiếng người.
+
+⚠️ Gate dist cố ý HẸP. KHÔNG thêm `TanStack` trần: nó khớp comment trong chính `public/_redirects`
+("để TanStack Router tự route phía client") và khớp 67 file khác (tên chunk `vendor-tanstack-*.js`,
+manifest precache `sw.js`). Gate luôn-đỏ là gate sẽ bị tắt.
+
+## B-FE-6 · `font-src 'self'` CHẶN font mono trên production — vá 2026-07-27
+
+Quét production bằng chromium thật (23 màn): **mọi màn** log
+`Loading the font 'data:font/woff2;base64,d09GMgAB…' violates the following Content Security Policy`.
+Nguồn: `@font-face` của **JetBrains Mono Variable** trong `dist/assets/index-*.css` dùng
+`src:url(data:font/woff2;base64,…)` — Vite nhúng thẳng vì file nhỏ hơn `assetsInlineLimit`
+(ba font Fraunces to hơn nên vẫn là `/assets/fraunces-*`, không dính). Hậu quả: font mono bị chặn,
+rơi về font hệ thống, **im lặng** — không ai thấy trừ khi mở Console.
+
+Vá: `font-src 'self' data:` trong `public/_headers` **và** `deploy/nginx.conf` (hai file phải đồng bộ).
+Rủi ro thấp: font không thực thi được như script, và policy này vốn đã cho `data:` ở `img-src`.
+Siết lại được nếu muốn — hạ `assetsInlineLimit` để font không bao giờ inline, nhưng đó là đổi build,
+phải đo lại dist.
+
+## B-FE-7 · Cloudflare Web Analytics beacon bị CSP chặn — CẦN QUYẾT (chưa sửa)
+
+Cùng đợt quét: mọi màn cũng log
+`Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/…' violates … CSP`
++ một `requestfailed … csp`. **Không phải script của ta** — Cloudflare Pages TỰ TIÊM khi bật Web
+Analytics. CSP `script-src 'self' 'sha256-…'` chặn nó, nên: console bẩn trên mọi trang, và
+**analytics không chạy** dù dashboard báo đã bật.
+
+Hai đường, người quyết:
+1. **Tắt auto-injection** ở Cloudflare (Web Analytics → tắt automatic setup cho site này). Khuyến
+   nghị — giữ `script-src` nguyên vẹn.
+2. Thêm `https://static.cloudflareinsights.com` vào `script-src` + `connect-src`. **Không tự làm**:
+   nới `script-src` cho một script bên thứ ba đi ngược đúng thứ CSP này sinh ra để chặn, và
+   `.gitleaks`/security rule của repo coi `script-src` là hàng rào chính chống XSS.
+
+## B-FE-9 · `sw.js` bị cache 4 GIỜ trên custom domain (KHÔNG phải trên pages.dev)
+
+`public/_headers` đặt `/sw.js → max-age=0, must-revalidate` và Cloudflare TÔN TRỌNG điều đó trên
+`*.pages.dev`. Nhưng trên **custom domain** thì không. Đo song song 2026-07-27:
+
+| đường dẫn | `familyhaven.pages.dev` | `familyhaven.mscilabs.com` |
+|---|---|---|
+| `/` | `max-age=0, must-revalidate` ✅ | `max-age=0, must-revalidate` ✅ |
+| `/assets/*.css` | `max-age=31536000, immutable` ✅ | `max-age=31536000, immutable` ✅ |
+| **`/sw.js`** | `max-age=0, must-revalidate` ✅ | **`max-age=14400, must-revalidate`** ❌ |
+
+14400s = 4 giờ = **đúng mặc định "Browser Cache TTL" của zone Cloudflare**. Zone áp nó cho tài
+nguyên tĩnh cacheable (`.js`), trong khi HTML được miễn và luật `immutable` của `/assets/*` sống sót
+— nên chỉ mỗi `sw.js` dính, và chỉ trên domain có proxy zone.
+
+Hậu quả: trình duyệt có thể phục vụ `sw.js` từ cache tới 4 giờ ⇒ update-toast (D-052) chậm tối đa
+4 giờ. KHÔNG phải "kẹt vĩnh viễn" (không có `immutable`, vẫn `must-revalidate`), nhưng đúng thứ luật
+`_headers` sinh ra để chống.
+
+**Cần làm trên dashboard (người dùng):** zone `mscilabs.com` → Caching → Configuration →
+**Browser Cache TTL = "Respect Existing Headers"**. Hoặc hẹp hơn: Cache Rule riêng cho `/sw.js`.
+Không sửa được từ `_headers` — zone override đứng trên nó.
+
+⚠️ Bài học đo lường: đây là lỗi **chỉ lộ trên custom domain**. Kiểm trên `*.pages.dev` rồi kết luận
+"header đúng" là sai — hai đường đi qua cấu hình khác nhau.
+
+## B-FE-8 · SPA fallback nuốt mọi file thiếu → không có 404 thật — VÁ MỘT PHẦN 2026-07-27
+
+> **Trạng thái:** `.well-known/` ĐÃ đóng (luật `/.well-known/*  /404.html  404` đứng trước
+> catch-all + `public/404.html`). Phần **còn mở**: mọi đường KHÁC vẫn trả 200 + HTML —
+> `/nothing-here.png` vẫn là 200. Cố ý thu hẹp phạm vi: `.well-known/` là chỗ có client máy
+> đọc (trình duyệt, iOS, ví SEP-45) nên hỏng im lặng; ảnh/asset thiếu thì người nhìn thấy ngay.
+> Muốn đóng nốt phải liệt kê từng tiền tố tĩnh (`/assets/*`, `/*.png`…) — làm mù dễ chặn nhầm
+> route ứng dụng, nên để lại làm việc có chủ đích.
+
+
+
+`public/_redirects` là catch-all `/*  /index.html  200`. Hệ quả đo được: `/nothing-here.png` trả
+**200 + HTML**, và `/.well-known/webauthn` cũng trả **200 + HTML** thay vì 404 (xem B-EXT-1 — đây là
+lý do Related Origin Requests hỏng im lặng). Với route ứng dụng thì đúng (router client tự xử, và
+`notFoundComponent` hiện "404 — Page not found" đàng hoàng). Với **file tĩnh và `.well-known/`** thì
+sai: client nào chờ JSON/ảnh sẽ nhận HTML.
+
+Cách sửa khi cần: thêm luật cụ thể TRƯỚC dòng catch-all (Pages khớp từ trên xuống), ví dụ
+`/.well-known/*  /404  404`, rồi khai báo riêng file `.well-known` nào có thật.
+**Chưa sửa** — nằm ngoài phạm vi phiên này, nhưng phải xử trước khi làm extension (B-EXT-1).
+
+## B-FE-10 · PWA đã CÀI ĐƯỢC (2026-07-27) — còn hở đúng một gate: iOS máy thật
+
+**Quyết định (người giao việc chốt 2026-07-27): CÓ hỗ trợ "cài lên màn hình chính".** Trước đó
+`VitePWA({ manifest: false })` — service worker VẪN chạy và precache, nên mọi dấu hiệu bề ngoài
+giống một PWA đầy đủ, nhưng không có manifest thì trình duyệt không bao giờ mời cài. Đã thêm:
+manifest thật (`name` lấy từ `VITE_APP_NAME`, cùng nguồn với `<title>` và `rpName`), 4 icon sinh
+từ linh vật (`scripts/make-app-icons.mjs`), 3 thẻ iOS trong `index.html`.
+
+Hai thứ đo được lúc làm, đáng ghi vì cả hai đều "xanh mà sai":
+
+1. **Khối `@media (display-mode: standalone)` trong `family.css` là NO-OP hai lần** — đã gỡ.
+   Không manifest nên chưa bao giờ chạy; và kể cả chạy thì hai khai báo trong đó GIỐNG HỆT luật
+   nền (`.product-shell__chrome` padding-top, `.product-screen` padding-bottom — cùng `max()`,
+   cùng `env()`). E2e cũ assert `hasStandaloneRule` (CSS có chứa CHUỖI đó không) nên xanh suốt
+   trong khi không đo gì cả. Test mới bật `display-mode: standalone` bằng CDP rồi mới đo.
+2. **`includeManifestIcons` của vite-plugin-pwa mặc định `true` và BỎ QUA `globPatterns`** — đo
+   thật trên dist: 3 icon PNG (231 KiB) vào precache dù `globPatterns` không có `png`. Đã tắt.
+   Precache 126 → 123 entry.
+
+### CÒN HỞ — iOS standalone máy thật
+
+`docs/UI-PLATFORM-REPORT.md` mục QA #1 vẫn **CHƯA CHẠY**: host Windows/WSL không có iPhone.
+E2e mới chạy chromium EMULATE `display-mode: standalone` + `Emulation.setSafeAreaInsetsOverride`
+(safe-area top 47 / bottom 34, nút submit nằm trọn trong màn) — đủ để bắt lỗi CSS, **không** thay
+được máy thật. Hai thứ chỉ iPhone thật mới nói được:
+
+- Icon + tên dưới icon trên màn hình chính iOS (`apple-touch-icon`, `apple-mobile-web-app-capable`
+  chỉ được kiểm là CÓ MẶT và trỏ đúng file, chưa ai thấy nó hiện ra).
+- **Storage partition:** PWA cài trên iOS có kho lưu trữ RIÊNG với Safari. Passkey nằm ở keychain
+  nên vẫn dùng chung được, nhưng **phiên đăng nhập thì không**. Người tạo ví trong Safari rồi cài
+  lên màn hình chính sẽ mở ra một app trông như chưa có gì. Chưa đo được từ đây, và đây là thứ
+  đáng sợ nhất trong mục này vì nó giống hệt "mất ví" dưới mắt người dùng.
+
+Cần: một iPhone thật, cài từ Safari, kiểm 2 gạch đầu dòng trên. Không có thì đừng ghi PWA là xong.
+
 ## B-CF-1 · Deploy FE cần 4 bước dashboard — CHƯA LÀM ĐƯỢC TỪ ĐÂY
 
 `.github/workflows/deploy-fe.yml` đã sẵn sàng nhưng **SKIP bước deploy** cho tới khi có secrets.
@@ -570,6 +953,35 @@ workflow trong `fe/.github/workflows/` là **code chết**. Root `ci-fe.yml` t�
 
 - `fe/.github/workflows/deploy.yml` — **ĐÃ XOÁ 2026-07-26**, thay bằng `.github/workflows/deploy-fe.yml`
   ở root. Bản cũ chưa từng chạy một lần nào, nên "deploy đã có sẵn" trong các ghi chú trước là SAI.
-- `fe/.github/workflows/ci.yml` — **CÒN**, đã bị `ci-fe.yml` thay thế. Vô hại (không chạy) nhưng gây
-  hiểu nhầm. Nên xoá; để lại ngoài phạm vi phiên này.
+- `fe/.github/workflows/ci.yml` — **ĐÃ XOÁ 2026-07-27**. Đã diff trước khi xoá: `ci-fe.yml` là
+  SIÊU TẬP thực sự (thêm path filter, `working-directory: fe`, `package_json_file`,
+  `cache-dependency-path`, bước `check:contract` gốc) — không mất gì. `fe/.github/` giờ trống sạch.
+- ⚠️ `be/.github/workflows/ci.yml` — **CÙNG BỆNH, CÒN NGUYÊN**. Ngoài phạm vi phiên FE-deploy này
+  nên KHÔNG đụng. Ai làm BE: hoặc port lên root thành `ci-be.yml` (root đã có `ci-be.yml` — kiểm
+  trùng trước), hoặc xoá.
+
+## B-FE-4 · Hai lỗi trong `deploy-fe.yml` khiến lần chạy CI ĐẦU TIÊN sẽ chết — ĐÃ SỬA 2026-07-27
+
+Workflow chưa từng chạy trên runner thật (nhánh `feat/mainnet` chưa push). Đọc kỹ trước khi push
+thì thấy hai lỗi, cả hai đều chỉ lộ ra khi chạy thật:
+
+1. **`pnpm/action-setup@v4` thiếu `package_json_file: fe/package.json`.**
+   `defaults.run.working-directory` CHỈ áp cho step `run:`, KHÔNG áp cho step `uses:`. Action vì thế
+   đọc `package.json` ở GỐC repo — mà gốc CỐ Ý không có `packageManager` (monorepo "git chung, build
+   riêng", CLAUDE.md §1). Kết quả: chết ở bước 2 với *"No pnpm version is specified"*, trước cả
+   `install`. Comment ngay trên nó lại khẳng định "action đọc packageManager trong fe/package.json"
+   — sai. `ci-fe.yml` làm đúng từ đầu ở cả 3 chỗ; bản port sang `deploy-fe.yml` rơi mất dòng này.
+
+2. **Không ai set `VITE_APP_NAME`.** Hai hậu quả, đo thật chứ không suy luận:
+   - `apps/web/index.html` dùng token `%VITE_APP_NAME%`. Vite 8 khi thiếu key thì `return text`
+     (nguồn: `vite/dist/node/chunks/node.js`) — chỉ warn, KHÔNG fail. Tab trình duyệt production
+     hiện đúng chữ `%VITE_APP_NAME%`.
+   - Phía JS, `env.ts` có `.default("Mau Demo FE")` → `features/wallet/lib/kit.ts` lấy làm `rpName`
+     → **hộp thoại vân tay/Face ID trên máy người dùng ghi "Mau Demo FE"**.
+   Chứng minh: bản build đầu (không set biến) ra `<title>Mau Demo FE</title>` + chuỗi đó nằm trong
+   `assets/env-*.js`. Set `APP_NAME: FamilyHaven` rồi build lại → `<title>FamilyHaven</title>`.
+   Khác `rpId`: `rpName` ĐỔI ĐƯỢC sau, không nhúng vào credential.
+
+Đã thêm 2 gate mới vào "Verify dist" để không tái diễn: chặn mọi token `%VITE_*%` còn sót, và chặn
+chuỗi `Mau Demo FE` trong dist.
 

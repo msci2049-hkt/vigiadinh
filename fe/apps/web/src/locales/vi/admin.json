@@ -9,7 +9,7 @@
   },
   "overview": {
     "title": "Tổng quan quản trị",
-    "description": "Số liệu người dùng từ Better Auth admin API.",
+    "description": "Có bao nhiêu người đang dùng, và ai đang bị khoá.",
     "totalUsers": "Tổng người dùng",
     "bannedUsers": "Đang bị khoá",
     "quickLinksTitle": "Lối tắt",
@@ -17,7 +17,7 @@
   },
   "users": {
     "title": "Người dùng",
-    "description": "Tìm kiếm, phân trang, đổi vai, khoá, mạo danh — server-side qua listUsers.",
+    "description": "Tìm một người, đổi vai trò, khoá tài khoản, hoặc đăng nhập thay họ để hỗ trợ.",
     "searchPlaceholder": "Tìm theo email…",
     "roleFilter": "Lọc theo vai trò",
     "roleAll": "Mọi vai trò",

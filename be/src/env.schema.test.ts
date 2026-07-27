@@ -15,6 +15,11 @@ function validRecord(): Record<string, string> {
     TRUSTED_ORIGINS: "http://localhost:3000",
     RESEND_API_KEY: "re_test",
     EMAIL_FROM: "noreply@example.com",
+    // Mainnet migration 2026-07-26: 4 biến Stellar/SEP-45 hết default (fail-closed).
+    STELLAR_RPC_URL: "https://soroban-testnet.stellar.org",
+    STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015",
+    SEP45_HOME_DOMAIN: "localhost:5173",
+    SEP45_WEB_AUTH_DOMAIN: "localhost:3000",
   };
 }
 
@@ -57,11 +62,21 @@ describe("biến có DEFAULT bị set rỗng → rơi về default (không thàn
 
 describe("requiredEnvKeys ổn định", () => {
   // 11 → 7 khi gỡ R2_* (B-ENV-1, 2026-07-26): 4 biến bắt-buộc-nhưng-không-dùng.
+  // 7 → 11 mainnet migration (2026-07-26): STELLAR_RPC_URL + STELLAR_NETWORK_PASSPHRASE
+  // + SEP45_HOME_DOMAIN + SEP45_WEB_AUTH_DOMAIN hết default (fail-closed, chống
+  // production im lặng chạy testnet/localhost).
   // Đây là completeness-lock: thêm biến bắt buộc mới phải sửa con số Ở ĐÂY một cách
   // có chủ đích, không để nó trôi vào tập PROD-REQUIRED mà không ai nhận ra.
-  test("chỉ 7 biến bắt buộc — biến optional/default KHÔNG chui vào tập bắt buộc", () => {
+  test("đúng 11 biến bắt buộc — biến optional/default KHÔNG chui vào tập bắt buộc", () => {
     const keys = requiredEnvKeys();
-    expect(keys).toHaveLength(7);
+    expect(keys).toHaveLength(11);
+    expect(keys).toContain("STELLAR_RPC_URL");
+    expect(keys).toContain("STELLAR_NETWORK_PASSPHRASE");
+    expect(keys).toContain("SEP45_HOME_DOMAIN");
+    expect(keys).toContain("SEP45_WEB_AUTH_DOMAIN");
+    // Key provider là OPTIONAL — không được trôi vào tập bắt buộc (provider có
+    // thể nhúng key trong URL).
+    expect(keys).not.toContain("STELLAR_RPC_API_KEY");
     expect(keys).not.toContain("COOKIE_PREFIX");
     // R2_* đã gỡ — không được quay lại tập bắt buộc mà không sửa B-ENV-1.
     expect(keys).not.toContain("R2_BUCKET");
