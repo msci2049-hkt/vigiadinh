@@ -56,7 +56,7 @@ async function requireOwnedWallet(walletId: string, userId: string) {
 }
 
 /** Đọc số dư ví trên SAC (view) — bigint stroops. */
-async function readBalance(
+export async function readBalance(
   gateway: SendGateway,
   sacContractId: string,
   address: string,

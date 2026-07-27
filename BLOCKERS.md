@@ -8,6 +8,38 @@ cần ai/cái gì để gỡ. Không mục nào ở đây được coi là "đã
 > Chi tiết + bảng tra: `BUILD-LOG.md` đầu file. Lịch sử cũ nằm ngoài repo:
 > `../family-wallet-backup-full.bundle` (repo chỉ còn nhánh `main`).
 
+## Audit BE 2026-07-25 (phiên 3) — branch `sec/be-audit-hardening`
+
+Báo cáo đầy đủ: `be/docs/security/CLOSEOUT-BE-2026-07-25.md`. **Đã đóng:** DATABASE_URL
+role runtime (B-SEC-4 nay ĐÓNG HẲN) · thu hồi JWT ví · footprint SEP-45 · pre-commit
+gitleaks · ma trận BOLA (26 route nhận ID, **0 rò**) · phân trang nhật ký · 4 lỗi vận hành.
+
+### CÒN MỞ — cần người / môi trường thật
+
+| Mục | Chặn gì | Cần gì để gỡ |
+|---|---|---|
+| **Veto phụ thuộc cứng BE** | Kịch bản #3: `finalize_recovery` nộp thẳng lên RPC công cộng không cần BE, còn veto cần **ví phí ký envelope**. BE sập trong cửa sổ timelock = mất phòng tuyến, giữ nguyên đường tấn công | Đường veto **không fee-bump** (chủ ví tự trả XLM). BE: tách `build` khỏi `invoke`. **FE: màn veto khẩn cấp nộp thẳng RPC** (phiên này KHÔNG sửa fe/). Diễn tập THẬT với BE tắt, ghi tx hash. Chi tiết: `be/docs/security/VETO-DEPENDENCY.md` |
+| **Cảnh báo số dư ví phí** | Ví phí cạn XLM = hậu quả GIỐNG HỆT backend sập, nhưng âm thầm. Không có cảnh báo nào | Monitor số dư ví phí + ngưỡng cảnh báo trong runbook mainnet |
+| **`invites/:token/accept` không có yếu tố thứ hai** | Lộ token = mất một ghế guardian. Không bind email, chủ ví không xác nhận trước khi accept | Quyết định thiết kế: chủ ví xác nhận, hoặc bind email/OTP. Ghép với "2 guardian thông đồng" là đường rẻ nhất đạt ngưỡng |
+| **Rate-limit XFF chưa kiểm qua proxy thật** | Đã sửa code (đọc `x-real-ip` trước) + Caddyfile, nhưng bằng chứng mới ở mức đọc cấu hình | Dựng nginx/Caddy thật, gửi `X-Forwarded-For` giả → phải cùng một xô đếm |
+| **Chưa đo hành vi khi hạ tầng chết** | `statement_timeout`, pool cạn, Dragonfly down: sửa theo cấu hình, chưa quan sát dưới điều kiện thật | Dừng Postgres/Dragonfly → app phải suy giảm êm (503 có message), không chết cứng |
+| **Ghost connection PM2** | §7 đòi số connection trước/sau 3 lần restart PM2 — **chưa đo được**, môi trường này deploy bằng Docker Compose, không PM2 | Chạy trên VPS thật |
+| **FE phải xử lý `401 WALLET_SESSION_REVOKED`** | BE nay chối JWT ví đã thu hồi. FE cần xoá localStorage + chạy lại SEP-45 login thay vì hiện lỗi chung | Phiên FE (KHÔNG sửa ở phiên BE này — luật §0.1) |
+| **CSRF Hono không chạy với JSON** | `csrf` middleware chỉ khớp form/multipart/text-plain; toàn bộ bề mặt ghi là JSON ⇒ tầng này gần như trang trí. Phòng thủ thật = SameSite + CORS | Quyết định: CSRF token-based, hay chấp nhận bearer + SameSite và **sửa tài liệu cho khớp** |
+
+### CÒN MỞ — làm được ngay, chưa làm (thiếu thời gian phiên này)
+
+- `guardians/features/invites/handler.ts:16` import `zValidator as zv` thẳng → 4 route trả
+  envelope lỗi khác + nguyên cây ZodError.
+- N+1: `heartbeat.repository.ts:36-94` (1+N SELECT, N transaction);
+  `jobs/recovery-watch.ts:52-72` `.from(wallets)` **không LIMIT** + 2 RPC mỗi dòng.
+- Số dư ví rò qua `error.code` (`INSUFFICIENT_BALANCE:{"balance":…}`) — phá contract enum của FE.
+- Không rate limit: `POST /api/guardians/invites`, `/presence/ack`, `/inheritance/heartbeat`,
+  `POST /api/intents`. `ack` INSERT 1 `presence_pings` mỗi guardian mỗi lần gọi.
+- Chưa có test cho: rate-limit key, lọc-trong-SQL (`?status=` ngoài 100 dòng mới nhất).
+
+---
+
 ## Audit toàn diện 2026-07-25 — P1 CÒN MỞ
 
 Nguồn: `docs/security/AUDIT-2026-07-25.md`. 7 lỗ hổng P0 đã vá kèm test hồi quy.

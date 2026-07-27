@@ -151,10 +151,73 @@ export async function buildChallengeEntries(
 // ---------- validate signed challenge (POST /token, TRƯỚC simulate) ----------
 
 function entryAddress(entry: xdr.SorobanAuthorizationEntry): string {
-  if (entry.credentials().switch() !== xdr.SorobanCredentialsType.sorobanCredentialsAddress()) {
+  const kind = entry.credentials().switch();
+  // SEP-45 loại credential DELEGATED (CAP-71 `addressWithDelegates`, và biến thể
+  // `addressV2`): người ký thật khi đó không phải địa chỉ ghi trong entry, nên mọi
+  // so-địa-chỉ phía dưới không còn nghĩa gì. Tách mã lỗi riêng để log nói đúng
+  // chuyện gì xảy ra thay vì gộp vào "không phải address".
+  if (
+    kind === xdr.SorobanCredentialsType.sorobanCredentialsAddressV2() ||
+    kind === xdr.SorobanCredentialsType.sorobanCredentialsAddressWithDelegates()
+  ) {
+    fail("DELEGATED_CREDENTIALS_FORBIDDEN");
+  }
+  if (kind !== xdr.SorobanCredentialsType.sorobanCredentialsAddress()) {
     fail("CREDENTIALS_NOT_ADDRESS");
   }
   return Address.fromScAddress(entry.credentials().address().address()).toString();
+}
+
+// ---------- footprint (SEP-45 §"server verification", closeout §4) ----------
+
+/**
+ * Cổng CƠ CHẾ chống biến /challenge thành máy ký thuê.
+ *
+ * Các check cấu trúc ở `validateSignedEntries` chặn theo DANH SÁCH: sai contract,
+ * sai hàm, có subInvocation, args lệch… Chúng đúng, nhưng đều là "ta có nghĩ ra
+ * đường đó không". Footprint thì ngược lại: nó là thứ Soroban BÁO CÁO là giao dịch
+ * sẽ GHI vào đâu. Một entry `transfer` lén vào bằng bất kỳ đường nào ta chưa nghĩ
+ * ra vẫn phải ghi vào balance, và balance thì hiện ra ở `read_write` — nên nó bị
+ * chặn mà không cần ta đoán trước hình dạng của đòn tấn công.
+ *
+ * Spec cho phép ĐÚNG một loại entry trong `read_write`: `contract_data` với key là
+ * `ledger_key_nonce`, thuộc Client Account · Server Account · (tuỳ chọn) Client
+ * Domain Account. Bất kỳ thứ gì khác → từ chối.
+ *
+ * `read_only` KHÔNG kiểm: đọc không đổi trạng thái, và simulate luôn cần đọc
+ * instance/wasm của chính contract web-auth.
+ */
+export function assertNonceOnlyFootprint(
+  readWrite: readonly xdr.LedgerKey[],
+  allowedAddresses: readonly string[],
+): void {
+  const allowed = new Set(allowedAddresses);
+  for (const key of readWrite) {
+    if (key.switch() !== xdr.LedgerEntryType.contractData()) fail("FOOTPRINT_NOT_CONTRACT_DATA");
+    const data = key.contractData();
+    if (data.key().switch() !== xdr.ScValType.scvLedgerKeyNonce()) {
+      // Đây là dòng bắt `transfer`: ghi balance là contract_data key kiểu map/vec,
+      // không phải nonce.
+      fail("FOOTPRINT_NOT_NONCE");
+    }
+    let owner: string;
+    try {
+      owner = Address.fromScAddress(data.contract()).toString();
+    } catch {
+      fail("FOOTPRINT_BAD_ADDRESS");
+    }
+    if (!allowed.has(owner)) fail("FOOTPRINT_UNEXPECTED_ADDRESS");
+  }
+}
+
+/** Địa chỉ được phép xuất hiện trong `read_write` — theo spec, đúng 2 (+1 optional). */
+export function footprintAllowedAddresses(
+  config: Sep45Config,
+  args: ChallengeArgs,
+): readonly string[] {
+  const list = [args.account, config.serverAccount];
+  if (args.client_domain_account) list.push(args.client_domain_account);
+  return list;
 }
 
 /** Mọi check cấu trúc của spec (mục server verification) TRỪ chữ ký — chữ ký do simulate. */

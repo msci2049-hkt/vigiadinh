@@ -1,16 +1,32 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { type NewNotification, type Notification, notifications } from "./notifications.schema";
 
 const LIST_LIMIT = 100;
 
-export async function listByUser(userId: string): Promise<Notification[]> {
+/**
+ * Audit 2026-07-25 (§6.5) — LỌC TRONG SQL, không lọc sau LIMIT.
+ *
+ * Bản cũ: repo trả 100 dòng mới nhất rồi handler mới `.filter(status)`. Hệ quả là
+ * `?status=unread` trả MẢNG RỖNG khi 100 thông báo mới nhất đều đã đọc, dù còn
+ * thông báo chưa đọc ở vị trí 101 trở đi. Không phải chậm — SAI, và sai im lặng:
+ * người dùng thấy "không có gì mới" trong khi có.
+ */
+export async function listByUser(
+  userId: string,
+  status?: string,
+  limit = LIST_LIMIT,
+): Promise<Notification[]> {
   return db
     .select()
     .from(notifications)
-    .where(eq(notifications.userId, userId))
+    .where(
+      status
+        ? and(eq(notifications.userId, userId), eq(notifications.status, status))
+        : eq(notifications.userId, userId),
+    )
     .orderBy(desc(notifications.createdAt))
-    .limit(LIST_LIMIT);
+    .limit(limit);
 }
 
 export async function enqueue(data: NewNotification): Promise<Notification> {

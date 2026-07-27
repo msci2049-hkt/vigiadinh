@@ -7,7 +7,12 @@
 4. **Toàn cầu từ ngày 1.** Không seed phrase (passkey), không hardcode ngôn ngữ/kênh chat/tiền tệ của nước nào.
 
 ## Khóa & secret
-- Cấm seed `S...` trong repo/log/chat. Pre-commit đã quét `S[A-Z0-9]{55}` — không được tắt hook.
+- Cấm seed `S...` trong repo/log/chat. Pre-commit quét `S[A-Z0-9]{55}` bằng gitleaks 8.30.1 —
+  cấu hình ở **`lefthook.yml` GỐC monorepo** (không phải `be/lefthook.yml`), luật ở `.gitleaks.toml`,
+  cùng bản pin với `.github/workflows/ci.yml`. Không được tắt hook, cấm `--no-verify`.
+  **Kiểm hook có SỐNG không, đừng tin file cấu hình:** `ls .git/hooks/pre-commit` phải tồn tại —
+  tới 2026-07-25 nó KHÔNG tồn tại (lefthook gốc là bản ví dụ comment 100%) trong khi dòng rule này
+  vẫn khẳng định đã quét. Chạy `lefthook install` ở thư mục gốc sau mỗi lần clone.
 - Private key passkey không bao giờ serialize. Key deploy testnet ≠ key mainnet ≠ key dev.
 - Secrets qua env/CI vault; `.env` trong `.gitignore`; pino đã che password/token/cookie — thêm trường nhạy cảm mới thì thêm vào redact list.
 

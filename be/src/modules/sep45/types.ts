@@ -1,5 +1,6 @@
 // Types cho SEP-45 (web auth cho ví contract) — spec: stellar-protocol ecosystem/sep-0045.md.
 // Xem RESEARCH-LOG.md (root) mục "PHA 2.3 · SEP-45".
+import type { xdr } from "@stellar/stellar-sdk";
 
 /** Cấu hình đã resolve từ env — route dựng một lần mỗi request (throw 503 nếu thiếu). */
 export type Sep45Config = {
@@ -63,7 +64,16 @@ export type NonceStore = {
 };
 
 /** Cổng simulate — bọc rpc.Server để test tiêm fake (không network). */
+/**
+ * Kết quả simulate. `readWrite` là footprint GHI mà host báo cáo — bằng chứng duy
+ * nhất, do chính Soroban tính, về việc giao dịch này sẽ đụng vào state nào. Service
+ * bắt buộc kiểm nó (closeout §4): nếu chỉ trả `error` thì một entry `transfer` lọt
+ * qua các check cấu trúc sẽ simulate THÀNH CÔNG và ta ký cho nó.
+ */
+export type SimulationResult =
+  | { ok: false; error: string }
+  | { ok: true; readWrite: readonly xdr.LedgerKey[] };
+
 export type ChallengeSimulator = {
-  /** Trả null nếu simulate thành công, ngược lại trả chuỗi lỗi. */
-  simulate(entriesXdrBase64: string, args: ChallengeArgs): Promise<string | null>;
+  simulate(entriesXdrBase64: string, args: ChallengeArgs): Promise<SimulationResult>;
 };

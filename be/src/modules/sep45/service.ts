@@ -2,7 +2,13 @@
 // simulator, ledger) để test hermetic; bản wire thật nằm ở infra.ts + routes.ts.
 import { createHash } from "node:crypto";
 import type { Keypair } from "@stellar/stellar-sdk";
-import { buildChallengeEntries, Sep45ValidationError, validateSignedEntries } from "./entries";
+import {
+  assertNonceOnlyFootprint,
+  buildChallengeEntries,
+  footprintAllowedAddresses,
+  Sep45ValidationError,
+  validateSignedEntries,
+} from "./entries";
 import { signWalletJwt } from "./jwt";
 import type { ChallengeSimulator, NonceStore, Sep45Config, WalletJwtClaims } from "./types";
 
@@ -80,10 +86,15 @@ export async function verifyChallengeAndIssueJwt(
   if (bound.account !== validated.account) throw new Sep45ValidationError("ACCOUNT_MISMATCH");
 
   // Chữ ký (server + __check_auth của ví) verify bằng SIMULATE — theo spec.
-  const simulationError = await deps.simulator.simulate(input.entriesXdrBase64, validated.args);
-  if (simulationError !== null) {
-    throw new Sep45ValidationError(`SIMULATION_FAILED:${simulationError}`);
-  }
+  const sim = await deps.simulator.simulate(input.entriesXdrBase64, validated.args);
+  if (!sim.ok) throw new Sep45ValidationError(`SIMULATION_FAILED:${sim.error}`);
+
+  // Cổng CƠ CHẾ (closeout §4): simulate THÀNH CÔNG chưa đủ — một entry `transfer`
+  // lọt qua các check cấu trúc cũng simulate thành công, và lúc đó ta đang ký hộ
+  // lệnh rút tiền trong khi màn hình người dùng chỉ nói "đăng nhập bằng passkey".
+  // Footprint GHI là thứ host báo cáo, không phải thứ ta đoán: chỉ cho phép đúng
+  // các entry nonce của những địa chỉ spec liệt kê, mọi thứ khác chối.
+  assertNonceOnlyFootprint(sim.readWrite, footprintAllowedAddresses(config, validated.args));
 
   // Số hiệu phiên PHẢI có mặt trong claims, nếu không token vừa phát đã không thu
   // hồi được. Ví không có trong DB → chối luôn: không có mốc nào để so sau này, mà

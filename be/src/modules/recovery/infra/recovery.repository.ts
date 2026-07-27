@@ -245,16 +245,21 @@ export async function openRequestsForGuardianUser(
   }));
 }
 
+// Audit 2026-07-25 (§6.5): `status` lọc TRONG SQL, không sau LIMIT. Ở đúng bảng này
+// hậu quả nặng nhất: `?status=pending` bỏ sót một yêu cầu khôi phục đang mở chỉ vì
+// nó nằm ngoài 100 dòng mới nhất — chủ ví không thấy để mà phủ quyết.
 export async function listByWalletForOwner(
   walletId: string,
   ownerUserId: string,
+  status?: string,
   limit = LIST_LIMIT,
 ): Promise<RecoveryRequest[]> {
+  const scope = and(eq(recoveryRequests.walletId, walletId), eq(wallets.userId, ownerUserId));
   const rows = await db
     .select({ request: recoveryRequests })
     .from(recoveryRequests)
     .innerJoin(wallets, eq(recoveryRequests.walletId, wallets.id))
-    .where(and(eq(recoveryRequests.walletId, walletId), eq(wallets.userId, ownerUserId)))
+    .where(status ? and(scope, eq(recoveryRequests.status, status)) : scope)
     .orderBy(desc(recoveryRequests.startedAt))
     .limit(limit);
   return rows.map((r) => r.request);

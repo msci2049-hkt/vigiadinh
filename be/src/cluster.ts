@@ -24,7 +24,12 @@ const children = Array.from({ length: N }, (_, i) =>
 logger.info({ instances: N, entry: childEntry }, "cluster.spawned");
 
 let stopping = false;
-const SHUTDOWN_TIMEOUT_MS = 8_000; // dưới Docker --stop-timeout mặc định 10s
+// Audit 2026-07-25 (§7): 8s là SAI — nó thấp hơn ngân sách của chính child (10s,
+// xem src/index.ts), nên supervisor SIGKILL con giữa lúc con đang drain và pool
+// Postgres không kịp đóng. Chú thích cũ ("dưới Docker --stop-timeout mặc định 10s")
+// đã lạc hậu: deploy/docker-compose.prod.yml:108 đặt stop_grace_period 15s.
+// Thứ tự bắt buộc: 10s (child) < 13s (đây) < 15s (Docker).
+const SHUTDOWN_TIMEOUT_MS = 13_000;
 async function stopAll(signal: string, code: number): Promise<void> {
   if (stopping) return;
   stopping = true;

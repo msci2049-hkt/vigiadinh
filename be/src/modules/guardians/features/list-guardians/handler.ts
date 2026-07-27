@@ -17,7 +17,8 @@ export const listGuardiansRoute = new Hono().get(
     if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
     const { walletId } = c.req.valid("param");
     const { status } = c.req.valid("query");
-    const items = await repo.listByWalletForOwner(walletId, user.id);
-    return c.json({ data: status ? items.filter((g) => g.status === status) : items });
+    // `status` vào thẳng WHERE — xem chú thích ở guardians.repository.
+    const items = await repo.listByWalletForOwner(walletId, user.id, status);
+    return c.json({ data: items });
   },
 );

@@ -18,7 +18,8 @@ export const listRequestsRoute = new Hono().get(
     if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
     const { walletId } = c.req.valid("param");
     const { status } = c.req.valid("query");
-    const items = await repo.listByWalletForOwner(walletId, user.id);
-    return c.json({ data: status ? items.filter((r) => r.status === status) : items });
+    // `status` vào thẳng WHERE — xem chú thích ở recovery.repository.
+    const items = await repo.listByWalletForOwner(walletId, user.id, status);
+    return c.json({ data: items });
   },
 );

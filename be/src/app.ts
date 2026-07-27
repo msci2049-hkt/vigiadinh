@@ -22,6 +22,7 @@ import { VALIDATION_LIMITS } from "@/lib/validation-limits";
 import { errorHandler } from "@/middlewares/error";
 import { hashGuard } from "@/middlewares/hash-guard";
 import { originGuard } from "@/middlewares/origin-guard";
+import { walletSession } from "@/middlewares/wallet-session";
 import { guardiansRoutes } from "@/modules/guardians/routes";
 import { indexerRoutes } from "@/modules/indexer/routes";
 import { inheritanceRoutes } from "@/modules/inheritance/routes";
@@ -127,6 +128,12 @@ app.use("*", async (c, next) => {
   c.set("activeOrgId", orgId ?? null);
   await next();
 });
+
+// 5.5) Thu hồi phiên VÍ — SAU session populate, TRƯỚC mọi module route (audit
+// 2026-07-25 §1.2). Đặt tập trung ở đây vì rải từng route thì route thêm sau sẽ
+// bỏ sót, và JWT ví đã thu hồi đi lọt đúng ở chỗ bỏ sót đó. Chỉ `/api/*`: /health
+// và /ready phải sống kể cả khi client cầm token chết.
+app.use("/api/*", walletSession);
 
 // 6) Liveness — process còn sống. KHÔNG check downstream.
 app.get("/health", (c) => c.json({ ok: true, ts: new Date().toISOString() }));
