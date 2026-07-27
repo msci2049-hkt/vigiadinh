@@ -1,0 +1,54 @@
+<!doctype html>
+<!--
+  Trang 404 TĨNH — KHÔNG phải notFoundComponent của router.
+
+  Chỉ dùng cho đường `_redirects` trả mã 404 thật (hiện tại: `/.well-known/*` khi
+  không có file). Route ứng dụng vẫn đi catch-all `/* /index.html 200` và được
+  TanStack Router xử lý như cũ — file này không chạm tới chúng.
+
+  Cố ý KHÔNG có JS, KHÔNG token %VITE_*%, KHÔNG inline script: nó phải phục vụ
+  được ngay cả khi bundle hỏng, và không được kéo theo luật CSP mới.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <meta name="robots" content="noindex" />
+    <title>404</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        display: grid;
+        place-items: center;
+        font: 16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: Canvas;
+        color: CanvasText;
+      }
+      main {
+        max-width: 32rem;
+        padding: 2rem;
+        text-align: center;
+      }
+      h1 {
+        font-size: 2.5rem;
+        margin: 0 0 0.5rem;
+      }
+      p {
+        margin: 0 0 1.5rem;
+        opacity: 0.75;
+      }
+      a {
+        color: inherit;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>404</h1>
+      <p>This address does not exist.</p>
+      <a href="/">Go to the home page</a>
+    </main>
+  </body>
+</html>

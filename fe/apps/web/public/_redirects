@@ -1,3 +1,17 @@
+# Pages khớp luật theo THỨ TỰ TỪ TRÊN XUỐNG — luật cụ thể phải đứng TRƯỚC catch-all.
+#
+# ---- `.well-known/` KHÔNG được rơi vào SPA fallback (B-FE-8 / B-EXT-1) ----
+# File CÓ THẬT trong `.well-known/` vẫn phục vụ bình thường: Cloudflare Pages ưu tiên
+# asset tĩnh có thật TRƯỚC mọi luật `_redirects` — đo thật trên production 2026-07-27,
+# `stellar.toml` ra `text/plain` và `assetlinks.json` ra `application/json`, cả hai đều
+# thắng dòng catch-all bên dưới.
+#
+# Luật này chỉ chạm đường `.well-known/` KHÔNG có file. Trước đây chúng rơi vào catch-all
+# và trả **200 + index.html**: client chờ JSON nhận về HTML. Đó là hỏng IM LẶNG, tệ hơn
+# 404 — chính là lý do Related Origin Requests chết trong khi
+# `curl -o /dev/null -w '%{http_code}'` vẫn báo 200. Giờ trả 404 THẬT.
+/.well-known/*  /404.html  404
+
 # SPA fallback — thiếu dòng này thì refresh ở route sâu (/wallet/send, /block/confirm)
 # trả 404, vì Cloudflare đi tìm file tĩnh theo đúng đường dẫn đó.
 # 200 (không phải 301/302): giữ nguyên URL trên thanh địa chỉ để TanStack Router

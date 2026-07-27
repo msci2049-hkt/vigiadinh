@@ -68,6 +68,39 @@
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
 
+# ============================================================================
+# `.well-known/` — MỌI file ở đây PHẢI có luật `Content-Type` tường minh.
+#
+# ⚠️ MÃ 200 KHÔNG ĐỦ, và đây là bài học đo được trên chính production 2026-07-27:
+# Cloudflare đoán content-type theo PHẦN MỞ RỘNG. Hai file dưới đây không có phần
+# mở rộng nào → đoán ra `application/octet-stream`. Client chờ JSON sẽ bỏ qua file
+# mà KHÔNG báo lỗi gì, còn `curl -w '%{http_code}'` vẫn cho ta số 200 đẹp đẽ.
+#   - `webauthn` → Related Origin Requests chết → passkey web ↔ extension không nối
+#   - `apple-app-site-association` → universal link iOS im lặng không mở app
+# Gate `.well-known content-type` trong `deploy-fe.yml` chặn file mới thiếu luật.
+# ============================================================================
+
+# Related Origin Requests (WebAuthn L3): trình duyệt TỰ tải file này khi origin gọi
+# (vd extension) khác origin của rpId. Nó là fetch nội bộ của trình duyệt, không phải
+# fetch của trang → KHÔNG cần CORS. Nhưng PHẢI là JSON, nếu không Chrome bỏ qua.
+# ⚠️ Mỗi origin thêm vào file này là một origin được phép dùng passkey ĐIỀU KHIỂN TIỀN
+# của ví. Không thêm cho tiện — thêm là mở quyền ký.
+/.well-known/webauthn
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+
+# Universal Links iOS: Apple đòi đúng `application/json` cho file không phần mở rộng.
+/.well-known/apple-app-site-association
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+
+# assetlinks.json có phần mở rộng `.json` → Cloudflare đã đoán đúng
+# (đo thật: `application/json`). Khai lại tường minh để luật không phụ thuộc phép đoán,
+# và để gate `.well-known content-type` có cái mà kiểm.
+/.well-known/assetlinks.json
+  Content-Type: application/json
+  Cache-Control: public, max-age=300
+
 # stellar.toml: client SEP-45 (ví khác, KHÁC origin) đọc file này → cần CORS.
 /.well-known/stellar.toml
   Access-Control-Allow-Origin: *

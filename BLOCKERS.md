@@ -589,8 +589,41 @@ passkey tạo trên web **không dùng được** trong extension và ngược l
 Muốn nối: thêm `fe/apps/web/public/.well-known/webauthn` (JSON, có `chrome-extension://<id>` trong
 `origins`) — cùng chỗ với `stellar.toml`, và nhớ luật `_headers` cho content-type.
 
-**KHÔNG sửa trong phiên này** — §6 của nhiệm vụ yêu cầu *kiểm và ghi*, không yêu cầu sửa; và
-extension là deliverable riêng, sửa nó cần load thử trên Chrome thật mới gọi là xong.
+#### CẬP NHẬT 2026-07-27 (phiên đóng nốt FE) — phía WEB đã làm xong
+
+`fe/apps/web/public/.well-known/webauthn` đã có, `_headers` ép `application/json`, `_redirects`
+có luật `.well-known` đứng trước catch-all. Test `apps/web/src/test/well-known.test.ts` + gate
+`.well-known content-type` trong `deploy-fe.yml` khoá lại. Phía extension vẫn còn lỗi 1 và 2.
+
+**Sửa một tuyên bố SAI trong bản ghi trước:** id `aakakeieeijeflbnblolnlhmooibddmc` **KHÔNG PHẢI**
+id tạm của bản unpacked, và nó **KHÔNG đổi khi đóng gói**. `extension/manifest.json` có trường
+`key` (khoá công khai RSA), nên Chrome DẪN XUẤT id từ đúng khoá đó thay vì từ đường dẫn thư mục —
+id được GHIM. Kiểm lại bất cứ lúc nào bằng chính phép tính Chrome dùng (16 byte đầu của SHA-256
+khoá DER, mỗi nibble → `'a' + n`):
+
+```bash
+node -e 'const f=require("fs"),c=require("crypto");
+const k=JSON.parse(f.readFileSync("extension/manifest.json","utf8")).key;
+const h=c.createHash("sha256").update(Buffer.from(k,"base64")).digest();
+let id="";for(let i=0;i<16;i++){id+=String.fromCharCode(97+(h[i]>>4))+String.fromCharCode(97+(h[i]&15));}
+console.log(id);'
+# → aakakeieeijeflbnblolnlhmooibddmc
+```
+
+Test `well-known.test.ts` TÍNH LẠI id này từ manifest mỗi lần chạy chứ không so với hằng số chép
+tay — đổi `key` mà quên sửa `.well-known/webauthn` là test đỏ ngay.
+
+⚠️ **Điều kiện id đổi (vẫn phải canh):** nếu Chrome Web Store cấp khoá khác lúc publish (xảy ra khi
+gói tải lên KHÔNG mang `key` này, hoặc item được tạo mới), id sẽ khác và `origins` phải cập nhật —
+nếu không, Related Origin Requests chết trên bản store trong khi bản unpacked vẫn chạy. Giữ `key`
+trong manifest khi đóng gói là cách rẻ nhất để id không đổi.
+
+⚠️ **Ý nghĩa an toàn:** mỗi origin trong `.well-known/webauthn` là một origin được phép dùng passkey
+**điều khiển tiền** của ví. Hiện file mở quyền cho một extension CHƯA từng load được (lỗi 1+2) —
+vô hại lúc này vì chỉ khoá riêng của ta mới sinh ra được id đó, nhưng đừng thêm origin cho tiện.
+
+**Lỗi 1 và 2 KHÔNG sửa trong phiên này** — extension là deliverable riêng, sửa nó cần load thử trên
+Chrome thật mới gọi là xong (§1.3 chỉ chốt TÊN, xem bên dưới).
 
 ## B-CF-2 · CI deploy CHƯA NỐI — deploy FE hiện là TAY (2026-07-27)
 
@@ -745,7 +778,16 @@ Không sửa được từ `_headers` — zone override đứng trên nó.
 ⚠️ Bài học đo lường: đây là lỗi **chỉ lộ trên custom domain**. Kiểm trên `*.pages.dev` rồi kết luận
 "header đúng" là sai — hai đường đi qua cấu hình khác nhau.
 
-## B-FE-8 · SPA fallback nuốt mọi file thiếu → không có 404 thật
+## B-FE-8 · SPA fallback nuốt mọi file thiếu → không có 404 thật — VÁ MỘT PHẦN 2026-07-27
+
+> **Trạng thái:** `.well-known/` ĐÃ đóng (luật `/.well-known/*  /404.html  404` đứng trước
+> catch-all + `public/404.html`). Phần **còn mở**: mọi đường KHÁC vẫn trả 200 + HTML —
+> `/nothing-here.png` vẫn là 200. Cố ý thu hẹp phạm vi: `.well-known/` là chỗ có client máy
+> đọc (trình duyệt, iOS, ví SEP-45) nên hỏng im lặng; ảnh/asset thiếu thì người nhìn thấy ngay.
+> Muốn đóng nốt phải liệt kê từng tiền tố tĩnh (`/assets/*`, `/*.png`…) — làm mù dễ chặn nhầm
+> route ứng dụng, nên để lại làm việc có chủ đích.
+
+
 
 `public/_redirects` là catch-all `/*  /index.html  200`. Hệ quả đo được: `/nothing-here.png` trả
 **200 + HTML**, và `/.well-known/webauthn` cũng trả **200 + HTML** thay vì 404 (xem B-EXT-1 — đây là

@@ -219,8 +219,47 @@ jobs:
           test -f "$D/index.html"   || { echo "❌ thiếu index.html"; exit 1; }
           test -f "$D/_headers"     || { echo "❌ _headers không vào dist"; exit 1; }
           test -f "$D/_redirects"   || { echo "❌ _redirects không vào dist"; exit 1; }
+          # Đích của luật `/.well-known/*  /404.html  404` trong _redirects. Thiếu
+          # file này thì luật thành no-op và SPA fallback nuốt lại `.well-known/`.
+          test -f "$D/404.html"     || { echo "❌ 404.html không vào dist"; exit 1; }
           # Bundler có thể bỏ qua thư mục bắt đầu bằng dấu chấm — kiểm tường minh.
           test -f "$D/.well-known/stellar.toml" || { echo "❌ stellar.toml không vào dist"; exit 1; }
+          test -f "$D/.well-known/webauthn"     || { echo "❌ webauthn không vào dist"; exit 1; }
+
+          # ---- GATE: MỌI file .well-known/ phải khai Content-Type trong _headers ----
+          # MÃ 200 KHÔNG ĐỦ. Cloudflare đoán content-type theo phần mở rộng; file
+          # không có phần mở rộng ra `application/octet-stream` (đo thật trên
+          # production 2026-07-27: apple-app-site-association). Client chờ JSON bỏ
+          # qua file mà không báo gì — hỏng im lặng, status vẫn 200.
+          for f in "$D"/.well-known/*; do
+            n=$(basename "$f")
+            # In khối luật của đúng pattern này (dòng không thụt = pattern mới → dừng).
+            block=$(awk -v pat="/.well-known/$n" '
+              $0 == pat { inblock = 1; next }
+              inblock && /^[^[:space:]]/ { exit }
+              inblock { print }
+            ' "$D/_headers")
+            if [ -z "$block" ]; then
+              echo "❌ .well-known/$n: không có khối luật nào trong _headers"; exit 1
+            fi
+            if ! printf '%s\n' "$block" | grep -qiE '^[[:space:]]*Content-Type:'; then
+              echo "❌ .well-known/$n: khối luật có nhưng THIẾU Content-Type"
+              printf '%s\n' "$block"; exit 1
+            fi
+            echo "✅ .well-known/$n → $(printf '%s\n' "$block" | grep -iE '^[[:space:]]*Content-Type:' | head -1 | tr -d ' ')"
+          done
+
+          # `.well-known/webauthn` phải là JSON PARSE ĐƯỢC và chứa origin extension.
+          # File rỗng / lỡ tay ghi HTML vẫn "tồn tại" — test có kiểm, gate này là
+          # lưới sau build (đo trên đúng byte sắp upload).
+          node -e '
+            const o = JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"));
+            if (!Array.isArray(o.origins) || o.origins.length === 0) throw new Error("origins rỗng");
+            if (!o.origins.some((x) => x.startsWith("chrome-extension://"))) {
+              throw new Error("thiếu origin chrome-extension:// — extension sẽ không dùng chung được passkey");
+            }
+            console.log("webauthn origins:", o.origins.join(", "));
+          ' "$D/.well-known/webauthn"
 
           # Không còn placeholder/template nào sót trong dist.
           if grep -rq '__API_ORIGIN__\|__RPC_ORIGIN__\|__WEB_AUTH_CONTRACT_ID__' "$D"; then
@@ -454,3 +493,28 @@ jobs:
           curl -s -o /dev/null -w 'stellar.toml: %{http_code}\n' "$SITE_ORIGIN/.well-known/stellar.toml"
           curl -sI "$SITE_ORIGIN/.well-known/stellar.toml" | grep -i 'access-control-allow-origin' \
             || echo "⚠️ stellar.toml thiếu CORS header"
+
+          # ---- .well-known/ trên production: đo CONTENT-TYPE, không đo status ----
+          # Gate `Verify dist` chỉ chứng minh _headers KHAI đúng. Đây là chỗ duy nhất
+          # chứng minh Cloudflare THỰC SỰ phục vụ đúng. `text/html` = SPA fallback đã
+          # nuốt file → hỏng im lặng với status 200 (chính ca 2026-07-27).
+          fail=0
+          check_ct() {
+            ct=$(curl -sI -m 10 "$SITE_ORIGIN$1" | tr -d '\r' | grep -i '^content-type:' | cut -d' ' -f2-)
+            printf '%-42s %s\n' "$1" "${ct:-<không có>}"
+            case "$ct" in
+              "$2"*) ;;
+              *) echo "   ❌ chờ '$2', nhận '${ct:-<không có>}'"; fail=1;;
+            esac
+          }
+          check_ct /.well-known/webauthn                   application/json
+          check_ct /.well-known/apple-app-site-association application/json
+          check_ct /.well-known/assetlinks.json            application/json
+          check_ct /.well-known/stellar.toml               text/plain
+
+          # `.well-known/` thiếu file phải 404 THẬT — 200 nghĩa là catch-all còn nuốt.
+          C=$(curl -s -o /dev/null -m 10 -w '%{http_code}' "$SITE_ORIGIN/.well-known/khong-ton-tai")
+          echo "/.well-known/khong-ton-tai: $C (chờ 404)"
+          [ "$C" = "404" ] || { echo "   ❌ SPA fallback vẫn nuốt .well-known/"; fail=1; }
+
+          [ "$fail" = "0" ] || exit 1
