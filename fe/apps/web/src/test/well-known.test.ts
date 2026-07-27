@@ -96,27 +96,38 @@ describe("_headers — content-type của .well-known/ (mã 200 không đủ)", 
   });
 });
 
-describe("_redirects — catch-all SPA không được nuốt .well-known/", () => {
+// ⚠️ SỰ CỐ PRODUCTION 2026-07-27 — test này tồn tại vì một bản vá đã LÀM SẬP SITE.
+//
+// Để `.well-known/` thiếu file trả 404 thật, bản vá đầu thêm `public/404.html` +
+// luật `/.well-known/*  /404.html  404` đứng trước catch-all. Deploy xong đo trên
+// production: `/welcome` `/get-started` `/login` `/wallet/send` đều **404**, body
+// là chính trang 404.html. MỌI route ứng dụng chết, chỉ `/` sống.
+//
+// Nguyên nhân: Cloudflare Pages coi `404.html` ở GỐC output là trang not-found TỰ
+// ĐỘNG và nó THẮNG catch-all `/* /index.html 200` — không liên quan thứ tự luật,
+// nên đọc `_redirects` cả ngày cũng không thấy. Không test hermetic nào bắt được:
+// hành vi này nằm ở edge của Cloudflare, không nằm trong repo.
+//
+// Bài học đóng vào test: `public/404.html` là CẤM. Và `.well-known/` không cần
+// luật `_redirects` nào để chạy đúng — Pages phục vụ file tĩnh có thật trước mọi
+// luật; hai describe ở trên mới là thứ giữ `webauthn` sống.
+describe("_redirects — bẫy đã trả giá bằng một lần sập production", () => {
   const lines = readFileSync(join(PUBLIC_DIR, "_redirects"), "utf8")
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter((l) => l !== "" && !l.startsWith("#"));
 
-  test("luật .well-known đứng TRƯỚC catch-all (Pages khớp từ trên xuống)", () => {
-    const wellKnown = lines.findIndex((l) => l.startsWith("/.well-known/*"));
-    const catchAll = lines.findIndex((l) => l.startsWith("/*"));
-    expect(wellKnown).toBeGreaterThanOrEqual(0);
-    expect(catchAll).toBeGreaterThanOrEqual(0);
-    expect(wellKnown).toBeLessThan(catchAll);
+  test("KHÔNG có public/404.html — Pages sẽ lấy nó làm not-found và giết SPA fallback", () => {
+    expect(readdirSync(PUBLIC_DIR)).not.toContain("404.html");
   });
 
-  test("đường .well-known thiếu file trả 404 THẬT, không phải 200 + index.html", () => {
-    const rule = lines.find((l) => l.startsWith("/.well-known/*"));
-    expect(rule?.split(/\s+/).at(-1)).toBe("404");
+  test("catch-all SPA còn nguyên và trả 200 (route sâu refresh được)", () => {
+    const catchAll = lines.find((l) => l.startsWith("/*"));
+    expect(catchAll).toBeDefined();
+    expect(catchAll?.split(/\s+/)).toEqual(["/*", "/index.html", "200"]);
   });
 
-  test("đích của luật 404 tồn tại trong public/", () => {
-    const target = lines.find((l) => l.startsWith("/.well-known/*"))?.split(/\s+/)[1];
-    expect(readdirSync(PUBLIC_DIR)).toContain(target?.replace(/^\//, ""));
+  test("không luật nào trỏ tới 404.html", () => {
+    expect(lines.some((l) => l.includes("404.html"))).toBe(false);
   });
 });

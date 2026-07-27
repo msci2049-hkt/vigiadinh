@@ -1,21 +1,21 @@
-# Pages khớp luật theo THỨ TỰ TỪ TRÊN XUỐNG — luật cụ thể phải đứng TRƯỚC catch-all.
-#
-# ---- `.well-known/` KHÔNG được rơi vào SPA fallback (B-FE-8 / B-EXT-1) ----
-# File CÓ THẬT trong `.well-known/` vẫn phục vụ bình thường: Cloudflare Pages ưu tiên
-# asset tĩnh có thật TRƯỚC mọi luật `_redirects` — đo thật trên production 2026-07-27,
-# `stellar.toml` ra `text/plain` và `assetlinks.json` ra `application/json`, cả hai đều
-# thắng dòng catch-all bên dưới.
-#
-# Luật này chỉ chạm đường `.well-known/` KHÔNG có file. Trước đây chúng rơi vào catch-all
-# và trả **200 + index.html**: client chờ JSON nhận về HTML. Đó là hỏng IM LẶNG, tệ hơn
-# 404 — chính là lý do Related Origin Requests chết trong khi
-# `curl -o /dev/null -w '%{http_code}'` vẫn báo 200. Giờ trả 404 THẬT.
-/.well-known/*  /404.html  404
-
 # SPA fallback — thiếu dòng này thì refresh ở route sâu (/wallet/send, /block/confirm)
 # trả 404, vì Cloudflare đi tìm file tĩnh theo đúng đường dẫn đó.
 # 200 (không phải 301/302): giữ nguyên URL trên thanh địa chỉ để TanStack Router
 # tự route phía client.
 #
 # Đặt SAU mọi luật cụ thể nếu thêm luật mới — Pages khớp theo thứ tự từ trên xuống.
+#
+# ⚠️⚠️ ĐỪNG THÊM `404.html` VÀO `public/` — ĐÃ LÀM SẬP PRODUCTION 2026-07-27.
+# Cloudflare Pages coi `404.html` ở GỐC thư mục output là trang not-found TỰ ĐỘNG,
+# và nó THẮNG dòng catch-all dưới đây. Đo thật trên production ngay sau deploy:
+#     /welcome /get-started /login /wallet/send → 404, body chính là trang 404.html
+# Tức MỌI route ứng dụng chết, chỉ `/` còn sống. Bản vá là GỠ `404.html`, không
+# phải đổi thứ tự luật — đây không phải chuyện thứ tự.
+#
+# Muốn `.well-known/` thiếu file trả 404 THẬT (B-FE-8): KHÔNG cần đụng file này, và
+# đừng đụng cho tới khi có cách verify trước khi lên production. File `.well-known/`
+# CÓ THẬT vẫn được phục vụ đúng content-type mà không cần luật nào — đo thật sau
+# deploy: `webauthn`/`assetlinks.json` → `application/json`, `stellar.toml` →
+# `text/plain`. Phần còn lại (đường `.well-known` KHÔNG có file vẫn trả 200 +
+# index.html) chỉ là nice-to-have, mà cái giá của lần thử sai đã đo được: sập site.
 /*  /index.html  200

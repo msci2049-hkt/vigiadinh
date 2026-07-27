@@ -219,9 +219,14 @@ jobs:
           test -f "$D/index.html"   || { echo "❌ thiếu index.html"; exit 1; }
           test -f "$D/_headers"     || { echo "❌ _headers không vào dist"; exit 1; }
           test -f "$D/_redirects"   || { echo "❌ _redirects không vào dist"; exit 1; }
-          # Đích của luật `/.well-known/*  /404.html  404` trong _redirects. Thiếu
-          # file này thì luật thành no-op và SPA fallback nuốt lại `.well-known/`.
-          test -f "$D/404.html"     || { echo "❌ 404.html không vào dist"; exit 1; }
+          # ⚠️ GATE NGƯỢC — `404.html` PHẢI KHÔNG TỒN TẠI. Sự cố 2026-07-27: thêm
+          # `public/404.html` làm Cloudflare Pages lấy nó làm trang not-found TỰ
+          # ĐỘNG, thắng catch-all `/* /index.html 200`, và MỌI route ứng dụng trả
+          # 404 trên production (chỉ `/` sống). Hành vi nằm ở edge Cloudflare nên
+          # không test hermetic nào thấy — gate này là chỗ duy nhất chặn nó tái diễn.
+          ! test -f "$D/404.html" || { echo "❌ dist có 404.html — Pages sẽ lấy làm not-found và giết SPA fallback (sự cố 2026-07-27)"; exit 1; }
+          grep -q '^/\*[[:space:]]\+/index\.html[[:space:]]\+200' "$D/_redirects" \
+            || { echo "❌ _redirects mất catch-all SPA — route sâu sẽ 404"; exit 1; }
           # Bundler có thể bỏ qua thư mục bắt đầu bằng dấu chấm — kiểm tường minh.
           test -f "$D/.well-known/stellar.toml" || { echo "❌ stellar.toml không vào dist"; exit 1; }
           test -f "$D/.well-known/webauthn"     || { echo "❌ webauthn không vào dist"; exit 1; }
@@ -550,9 +555,20 @@ jobs:
           check_ct /.well-known/assetlinks.json            application/json
           check_ct /.well-known/stellar.toml               text/plain
 
-          # `.well-known/` thiếu file phải 404 THẬT — 200 nghĩa là catch-all còn nuốt.
-          C=$(curl -s -o /dev/null -m 10 -w '%{http_code}' "$SITE_ORIGIN/.well-known/khong-ton-tai")
-          echo "/.well-known/khong-ton-tai: $C (chờ 404)"
-          [ "$C" = "404" ] || { echo "   ❌ SPA fallback vẫn nuốt .well-known/"; fail=1; }
+          # ---- SPA fallback phải SỐNG (sự cố 2026-07-27) ----
+          # Đây là bước đã bắt được sự cố: sau khi thêm public/404.html, `/welcome`
+          # `/get-started` `/login` `/wallet/send` đều trả 404 trên production.
+          # Kiểm NHIỀU route, không chỉ một — và kèm cache-buster, vì Cloudflare
+          # cache cả 404 nên bản vá đúng vẫn hiện đỏ vài phút sau khi deploy.
+          for r in /welcome /get-started /login /wallet/send /recovery; do
+            C=$(curl -s -o /dev/null -m 10 -w '%{http_code}' "$SITE_ORIGIN$r?cb=$GITHUB_RUN_ID")
+            printf '%-42s %s\n' "$r" "$C"
+            [ "$C" = "200" ] || { echo "   ❌ route ứng dụng KHÔNG trả 200 — SPA fallback hỏng"; fail=1; }
+          done
+
+          # `.well-known/` thiếu file VẪN trả 200 + index.html — biết và chấp nhận
+          # (B-FE-8 còn mở). Bản vá cho nó đã thử một lần và làm sập site; đừng
+          # biến dòng dưới thành gate cho tới khi có cách verify TRƯỚC production.
+          echo "/.well-known/khong-ton-tai: $(curl -s -o /dev/null -m 10 -w '%{http_code}' "$SITE_ORIGIN/.well-known/khong-ton-tai") (biết: 200, xem B-FE-8)"
 
           [ "$fail" = "0" ] || exit 1
