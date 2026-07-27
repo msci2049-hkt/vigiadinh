@@ -1,5 +1,9 @@
 # Thừa kế — tài liệu cho NGƯỜI THỪA KẾ và người giữ hồ sơ
 
+> ⚠️ **2026-07-27: MỌI contract ID/tx trong file này thuộc ĐỢT CŨ — đã BỎ.**
+> Đợt hiện hành (redeploy sau vá B-SEC-1 + origin-verifier fail-closed):
+> `docs/security/AUDIT-2026-07-25.md` §8 + bảng `docs/DEPLOY.md`.
+
 > Viết cho tình huống thật: nhiều tháng, có khi nhiều năm sau, một người trong
 > gia đình cần mở lại ví này. Có thể lúc đó công ty làm ra ứng dụng không còn
 > tồn tại. Tài liệu này nói rõ điều gì vẫn chạy trong trường hợp đó.

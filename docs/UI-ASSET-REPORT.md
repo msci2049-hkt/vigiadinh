@@ -1,5 +1,9 @@
 # UI Asset Runtime Report — VíGiaĐình
 
+> ⚠️ **2026-07-27: MỌI contract ID/tx trong file này thuộc ĐỢT CŨ — đã BỎ.**
+> Đợt hiện hành (redeploy sau vá B-SEC-1 + origin-verifier fail-closed):
+> `docs/security/AUDIT-2026-07-25.md` §8 + bảng `docs/DEPLOY.md`.
+
 Ngày chạy: 2026-07-25
 
 Lệnh chuẩn: `corepack pnpm test:assets`

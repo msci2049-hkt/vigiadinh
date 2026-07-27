@@ -63,20 +63,26 @@ không cần). Sinh lại nếu mất: `openssl genrsa 2048 | openssl rsa -pubou
 
 | Contract | ID / hash | Trạng thái |
 |---|---|---|
-| recovery-registry **v2.1** | `CAFU4CZNPN5YWFV3QOCA4Y6FSJUB7IGI456MIGTQRJXA4DQLWUIHFMCO` | **ĐANG DÙNG** (env CONTRACT_ID_RECOVERY) — thêm `veto_registry_change` + `extend_ttl` + gia hạn TTL khi đọc |
-| recovery-registry v2.0 | `CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY` | BỎ (không có TTL keeper — entry archive sau vài tháng im lặng) |
-| recovery-registry v1 | `CCPGVSLRFSUOGRFH3LAOWXSHJ2Y3QBFEA2ZTV4PWIINVGJWVDFA5GT3V` | BỎ (classic-model, không xoay khoá — audit P0) |
-| smart-account wasm | hash `78e7521f391123c2dc119bdf2c3ecae1a4655fbf360e5c2a17fd12be028da170` | **ĐANG DÙNG** — registry cắm trong constructor + `extend_ttl` + đổi-registry có timelock |
-| smart-account wasm (P0 tạm) | hash `d86d927e4b900e56904676afb7df0253dd337d30f7ac9baa444952e96683572f` | BỎ (chưa có extend_ttl) |
-| smart-account wasm cũ hơn | hash `a67ea40eeca05bdd59b4f8bea87d40709415aac94978f8ef0630d9c919b92d25` | BỎ — **ví tạo bằng bản này KHÔNG khôi phục được** (registry chưa từng được cắm) |
-| smart-account wasm cũ | hash `87194f6100c81fd5c290ca6a28034bc9ef2f6e42b2f7e73eefae37d5ad3b02a8` | BỎ (không có hook) |
-| verifier-ed25519 | `CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT` | DÙNG cho e2e / khoá lạnh (không WebAuthn) |
-| origin-verifier DEV | `CCNS6O5HBTF7XOOVCNF4XLTKORQ4JB4PKUKUA6CX2MW7OXOKGKKC2O4N` | DEV localhost — thay bằng prod khi có domain |
-| web-auth (SEP-45) | `CAKV3MKK3WA2CJX56LA52YYAG7FDMQTD7ZYRT3FKXUOCOEXZIANG2SST` | DÙNG (đăng nhập ví) |
-| verifier-webauthn (spike) | `CBJ4JOO2H5GFZYI3RVGRWICYPZMTWVRW424U5YQHU34JKDMNZWGLG7WP` | spike gate-3 (SDK27), không nối app |
+| recovery-registry **v2.2** (2026-07-27) | `CDDOCXZ3OWM5TAQCRBKELETTIHQZD5NL3SF564VMD63MVJOGFV27F4Q3` | **ĐANG DÙNG** (env CONTRACT_ID_RECOVERY) — build từ main `1c9435e`, đủ B-SEC-1 + floors P0-2/P0-3 |
+| smart-account wasm (2026-07-27) | hash `2c19ee49d7f25a6a052e2dc16489e5b1b10afc322ff6a8a8483d0e408c796f35` | **ĐANG DÙNG** (VITE_ACCOUNT_WASM_HASH + BE ACCOUNT_WASM_HASH) |
+| origin-verifier PROD-pin (2026-07-27) | `CAYJGXLB5J23S6DYFWS5VTFRVCEN5NLIUJCTO6GTM6LDQOYB7J6EOYQS` | **ĐANG DÙNG** (VITE_WEBAUTHN_VERIFIER_ADDRESS) — rpId `familyhaven.mscilabs.com`, 3 origin web/api/extension, constructor fail-closed `InvalidOrigin=8` |
+| web-auth SEP-45 (2026-07-27) | `CCSIOPPEPX6ZGT2KWDVQK7WC27VSIIAXZFKKZVYGFI2N3D3ZVUN57F5O` | **ĐANG DÙNG** (SEP45_WEB_AUTH_CONTRACT_ID + GitHub var WEB_AUTH_CONTRACT_ID) |
+| verifier-ed25519 (2026-07-27) | `CBKTEIWOTZEEQWCJQRGGBWIJJX4DPDKPDF47VIOY3YORTSZVS5BPHDGK` | DÙNG cho e2e / khoá lạnh (không WebAuthn) |
 | SAC native (XLM) | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` | built-in giao thức (DÙNG cho send); mainnet id khác |
+| ~~recovery-registry v2.1 `CAFU4CZN…`~~ | ~~`CAFU4CZNPN5YWFV3QOCA4Y6FSJUB7IGI456MIGTQRJXA4DQLWUIHFMCO`~~ | BỎ 2026-07-27 (thiếu vá B-SEC-1 shape mới) |
+| ~~recovery-registry v2.0~~ | ~~`CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY`~~ | BỎ (không TTL keeper) |
+| ~~recovery-registry v1~~ | ~~`CCPGVSLRFSUOGRFH3LAOWXSHJ2Y3QBFEA2ZTV4PWIINVGJWVDFA5GT3V`~~ | BỎ (classic-model — audit P0) |
+| ~~smart-account wasm `78e7521f…`~~ | ~~hash `78e7521f391123c2dc119bdf2c3ecae1a4655fbf360e5c2a17fd12be028da170`~~ | BỎ 2026-07-27 (trước vá B-SEC-1) |
+| ~~smart-account wasm P0 tạm~~ | ~~hash `d86d927e4b900e56904676afb7df0253dd337d30f7ac9baa444952e96683572f`~~ | BỎ |
+| ~~smart-account wasm cũ hơn~~ | ~~hash `a67ea40eeca05bdd59b4f8bea87d40709415aac94978f8ef0630d9c919b92d25`~~ | BỎ — ví bản này KHÔNG khôi phục được |
+| ~~smart-account wasm cũ~~ | ~~hash `87194f6100c81fd5c290ca6a28034bc9ef2f6e42b2f7e73eefae37d5ad3b02a8`~~ | BỎ |
+| ~~verifier-ed25519 cũ~~ | ~~`CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT`~~ | BỎ 2026-07-27 (redeploy cùng wasm — dùng bản mới cho đồng bộ đợt) |
+| ~~origin-verifier DEV~~ | ~~`CCNS6O5HBTF7XOOVCNF4XLTKORQ4JB4PKUKUA6CX2MW7OXOKGKKC2O4N`~~ | BỎ 2026-07-27 — DEV localhost, đã thay bằng bản pin domain thật |
+| ~~web-auth cũ~~ | ~~`CAKV3MKK3WA2CJX56LA52YYAG7FDMQTD7ZYRT3FKXUOCOEXZIANG2SST`~~ | BỎ 2026-07-27 (redeploy đồng bộ đợt) |
+| ~~verifier-webauthn spike~~ | ~~`CBJ4JOO2H5GFZYI3RVGRWICYPZMTWVRW424U5YQHU34JKDMNZWGLG7WP`~~ | spike gate-3, không nối app |
 
-Bảng tx hash đầy đủ: `docs/evidence/TESTNET.md`.
+Bảng tx hash + ledger đợt 2026-07-27: `docs/security/AUDIT-2026-07-25.md` §8. Đợt cũ: `docs/evidence/TESTNET.md`
+(giữ nguyên làm bằng chứng lịch sử — MỌI ID trong đó đã BỎ, xem bảng trên).
 
 ## TTL / state archival (ĐÃ DỰNG 2026-07-24 — trước đó KHÔNG tồn tại ở đâu)
 

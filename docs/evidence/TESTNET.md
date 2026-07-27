@@ -1,5 +1,9 @@
 # Bằng chứng testnet — hạ tầng on-chain đã deploy
 
+> ⚠️ **2026-07-27: MỌI contract ID/tx trong file này thuộc ĐỢT CŨ — đã BỎ.**
+> Đợt hiện hành (redeploy sau vá B-SEC-1 + origin-verifier fail-closed):
+> `docs/security/AUDIT-2026-07-25.md` §8 + bảng `docs/DEPLOY.md`.
+
 > **Bảng contract ID hợp nhất (cái nào đang dùng): `docs/DEPLOY.md`.** File này giữ
 > chi tiết tx hash + link stellar.expert theo từng pha (§PHA 2.3 · §PHA 5.2 · §AUDIT P0 ·
 > §PHA 6 SEND). SAC native testnet: `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC`.
