@@ -39,6 +39,11 @@ pub enum OriginVerifierError {
     MalformedSigData = 6,
     /// `key_data` không đủ 65 byte pubkey — cùng lý do C2.
     MalformedPublicKey = 7,
+    /// Allow-list origin lúc deploy rỗng, có phần tử rỗng, hoặc chứa origin DEV
+    /// (`localhost` / `127.0.0.1`) — chết ngay ở `__constructor` thay vì sống
+    /// thành verifier vô dụng trên production. Trước bản vá, gác này chỉ nằm ở
+    /// deploy script (shell) — tầng contract phải tự fail-closed (audit §4.4).
+    InvalidOrigin = 8,
 }
 
 #[contracttype]
@@ -58,6 +63,19 @@ impl OriginWebauthnVerifier {
     pub fn __constructor(env: Env, rp_id_hash: BytesN<32>, allowed_origins: Vec<Bytes>) {
         if env.storage().instance().has(&DataKey::RpIdHash) {
             panic_with_error!(&env, OriginVerifierError::AlreadyInitialized);
+        }
+        // Fail-closed tại DEPLOY: list rỗng = không vỏ nào ký được (NotInitialized
+        // trá hình); phần tử rỗng = mọi origin khớp (lỗ needle-rỗng của `contains`);
+        // localhost/127.0.0.1 = config DEV lên production. Cả ba đều chết ở đây.
+        if allowed_origins.is_empty() {
+            panic_with_error!(&env, OriginVerifierError::InvalidOrigin);
+        }
+        let localhost = Bytes::from_slice(&env, b"localhost");
+        let loopback = Bytes::from_slice(&env, b"127.0.0.1");
+        for origin in allowed_origins.iter() {
+            if origin.is_empty() || contains(&origin, &localhost) || contains(&origin, &loopback) {
+                panic_with_error!(&env, OriginVerifierError::InvalidOrigin);
+            }
         }
         env.storage()
             .instance()

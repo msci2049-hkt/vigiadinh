@@ -276,6 +276,54 @@ fn auth_data_shorter_than_37_rejected_with_its_own_code() {
     );
 }
 
+/// Fail-closed tại DEPLOY (testnet 2026-07-27): constructor chối allow-list rỗng /
+/// phần tử rỗng / origin DEV. Trước bản vá gác này chỉ nằm ở deploy script (shell);
+/// tầng contract vẫn nhận config vô dụng và chỉ lộ ra khi có người ký thật.
+#[test]
+#[should_panic(expected = "Error(Contract, #8)")]
+fn constructor_rejects_empty_origin_list() {
+    let env = Env::default();
+    let rp_hash: [u8; 32] = Sha256::digest(RP_ID.as_bytes()).into();
+    env.register(
+        OriginWebauthnVerifier,
+        (BytesN::from_array(&env, &rp_hash), Vec::<Bytes>::new(&env)),
+    );
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #8)")]
+fn constructor_rejects_localhost_origin() {
+    let env = Env::default();
+    let rp_hash: [u8; 32] = Sha256::digest(RP_ID.as_bytes()).into();
+    let origins: Vec<Bytes> = vec![
+        &env,
+        Bytes::from_slice(&env, ORIGIN_WEB.as_bytes()),
+        Bytes::from_slice(&env, b"http://localhost:5173"),
+    ];
+    env.register(
+        OriginWebauthnVerifier,
+        (BytesN::from_array(&env, &rp_hash), origins),
+    );
+}
+
+#[test]
+#[should_panic(expected = "Error(Contract, #8)")]
+fn constructor_rejects_loopback_and_empty_origin() {
+    let env = Env::default();
+    let rp_hash: [u8; 32] = Sha256::digest(RP_ID.as_bytes()).into();
+    // 127.0.0.1 đứng trước phần tử rỗng — cả hai đều phải chết, hit cái nào trước
+    // cũng là #8 (cùng một cửa InvalidOrigin).
+    let origins: Vec<Bytes> = vec![
+        &env,
+        Bytes::from_slice(&env, b"http://127.0.0.1:4173"),
+        Bytes::new(&env),
+    ];
+    env.register(
+        OriginWebauthnVerifier,
+        (BytesN::from_array(&env, &rp_hash), origins),
+    );
+}
+
 #[test]
 fn config_readable() {
     let f = setup();
