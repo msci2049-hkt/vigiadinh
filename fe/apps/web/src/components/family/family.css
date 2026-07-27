@@ -622,15 +622,15 @@
   }
 }
 
-@media (display-mode: standalone) {
-  .product-shell__chrome {
-    padding-top: max(1rem, env(safe-area-inset-top));
-  }
-
-  .product-screen {
-    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
-  }
-}
+/* Ở ĐÂY từng có `@media (display-mode: standalone)` khai lại
+   `.product-shell__chrome { padding-top }` và `.product-screen { padding-bottom }`.
+   Gỡ 2026-07-27 vì nó là NO-OP hai lần:
+     1. Không có manifest (`pwa: true`) nên trình duyệt chưa bao giờ vào standalone;
+     2. Kể cả khi vào, hai khai báo đó GIỐNG HỆT luật nền ở `.product-shell__chrome`
+        (dòng ~85) và `.product-screen` (dòng ~140) — cùng `max()`, cùng `env()`.
+   Tức nó chưa từng đổi một pixel nào, ở bất kỳ chế độ hiển thị nào. Giờ manifest
+   đã bật, giữ lại khối rỗng đó chỉ mời người sau "sửa standalone" ở chỗ vô tác dụng.
+   Safe-area đã đúng sẵn cho standalone vì luật nền dùng `env()` không điều kiện. */
 
 @media (max-height: 40rem) and (pointer: coarse) {
   .product-screen:focus-within .primary-zone {

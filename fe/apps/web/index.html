@@ -12,6 +12,18 @@
       name="description"
       content="Your fingerprint is the key. Your family is the backup."
     />
+    <!-- ==== Cài lên màn hình chính (quyết định 2026-07-27) ====
+         `<link rel="manifest">` do vite-plugin-pwa TỰ CHÈN (nó biết tên file
+         băm). Ba thẻ dưới đây plugin KHÔNG chèn, và thiếu chúng thì trên iOS app
+         vẫn mở trong tab Safari có thanh địa chỉ — đúng cái ta vừa quyết định là
+         muốn tránh, mà lại hỏng im lặng vì Android thì chạy đúng.
+         `theme_color` của manifest chỉ Android đọc; iOS đọc thẻ meta này. -->
+    <meta name="theme-color" content="#fdfcf7" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <!-- iOS KHÔNG đọc icon từ manifest — chỉ đọc thẻ này. Sai/thiếu là màn hình
+         chính hiện ảnh chụp màn hình trang web thay cho icon. -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta property="og:type" content="website" />
     <!-- Cùng MỘT nguồn với <title> bên dưới. Trước 2026-07-27 chỗ này ghi cứng
          "FamilyWallet" trong khi tab hiện "FamilyHaven" — thẻ chia sẻ mạng xã hội

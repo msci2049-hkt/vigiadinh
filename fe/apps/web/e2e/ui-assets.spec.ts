@@ -758,8 +758,23 @@ test("Android Back returns send review to the intact entry form", async ({ page 
   await expect(page.getByRole("heading", { name: "Kiểm tra trước khi gửi" })).toHaveCount(0);
 });
 
-test("safe-area viewport shell honors simulated device insets", async ({ page }) => {
+// ⚠️ Đây là chromium EMULATE, KHÔNG phải iPhone thật (host Windows/WSL không có
+// iOS Safari — xem docs/UI-PLATFORM-REPORT.md mục QA #1, vẫn CHƯA CHẠY).
+// Nó chứng minh được đúng một điều, và đó là điều từng sai: khi trình duyệt vào
+// `display-mode: standalone` (tức app ĐÃ cài lên màn hình chính, có manifest từ
+// 2026-07-27) thì shell vẫn chừa safe-area và nút chính vẫn nằm trong màn hình.
+//
+// Bản trước của test này chỉ assert `hasStandaloneRule` — CSS có chứa chuỗi
+// "(display-mode: standalone)" hay không. Nó xanh trong khi khối CSS đó vừa
+// KHÔNG BAO GIỜ chạy (không manifest) vừa khai lại y hệt luật nền, tức xanh mà
+// không đo gì. Giờ ta bật đúng chế độ đó lên rồi mới đo.
+test("standalone (đã cài lên màn hình chính) vẫn chừa safe-area và giữ nút chính trong màn", async ({
+  page,
+}) => {
   const cdp = await page.context().newCDPSession(page);
+  await cdp.send("Emulation.setEmulatedMedia", {
+    features: [{ name: "display-mode", value: "standalone" }],
+  });
   await cdp.send("Emulation.setSafeAreaInsetsOverride", {
     insets: {
       top: 47,
@@ -783,11 +798,9 @@ test("safe-area viewport shell honors simulated device insets", async ({ page })
     const screen = document.querySelector<HTMLElement>(".product-screen");
     const viewport = document.querySelector<HTMLMetaElement>('meta[name="viewport"]');
     return {
-      hasStandaloneRule: Array.from(document.styleSheets).some((sheet) =>
-        Array.from(sheet.cssRules).some((rule) =>
-          rule.cssText.includes("(display-mode: standalone)"),
-        ),
-      ),
+      // Chế độ standalone THẬT SỰ đang bật — nếu emulate không ăn thì mọi khẳng
+      // định dưới đây chỉ nói về chế độ tab bình thường, tức test nói dối.
+      isStandalone: matchMedia("(display-mode: standalone)").matches,
       viewport: viewport?.content ?? "",
       shellMinHeight: shell ? Number.parseFloat(getComputedStyle(shell).minHeight) : 0,
       topPadding: chrome ? Number.parseFloat(getComputedStyle(chrome).paddingTop) : 0,
@@ -795,12 +808,26 @@ test("safe-area viewport shell honors simulated device insets", async ({ page })
     };
   });
 
-  expect(platform.hasStandaloneRule).toBe(true);
+  expect(platform.isStandalone).toBe(true);
   expect(platform.viewport).toContain("viewport-fit=cover");
   expect(platform.viewport).toContain("interactive-widget=resizes-content");
   expect(platform.shellMinHeight).toBeGreaterThanOrEqual(843);
   expect(platform.topPadding).toBeGreaterThanOrEqual(47);
   expect(platform.bottomPadding).toBeGreaterThanOrEqual(34);
+
+  // Nút gửi tiền phải nằm TRỌN trong màn kể cả khi đã cuộn hết cỡ — tức phần
+  // 34px của thanh gesture iPhone không được đè lên nó. Đây là hệ quả trực tiếp
+  // của `padding-bottom: max(1.5rem, env(safe-area-inset-bottom))` ở
+  // `.product-screen`; không có manifest thì chưa ai chạy được ca này bao giờ.
+  // Nút bị thanh gesture che một nửa = bấm không trúng = tưởng app treo, đúng
+  // lúc đang gửi tiền.
+  const submit = page.locator('button[type="submit"]').first();
+  await expect(submit).toBeVisible();
+  await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+  const box = await submit.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box?.y).toBeGreaterThanOrEqual(47);
+  expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(844 - 34);
 });
 
 for (const viewport of VISUAL_VIEWPORTS) {

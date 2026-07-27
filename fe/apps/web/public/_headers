@@ -68,6 +68,14 @@
 /*.html
   Cache-Control: public, max-age=0, must-revalidate
 
+# Manifest PWA: `.webmanifest` không nằm trong bảng đoán của Cloudflare → ra
+# `application/octet-stream`. Chrome vẫn cài được nhưng ghi cảnh báo trong
+# DevTools, và Safari khó tính hơn. Khai tường minh cho khỏi đoán.
+# max-age ngắn: đổi tên/icon app phải tới được máy người đã cài.
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+  Cache-Control: public, max-age=300
+
 # ============================================================================
 # `.well-known/` — MỌI file ở đây PHẢI có luật `Content-Type` tường minh.
 #

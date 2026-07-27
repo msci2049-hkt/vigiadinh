@@ -288,6 +288,44 @@ jobs:
               echo "❌ <title> vẫn là tên template / rỗng — VITE_APP_NAME chưa vào build"; exit 1;;
           esac
 
+          # ---- GATE: manifest PWA phải CÀI ĐƯỢC (quyết định 2026-07-27) ----
+          # Ba thứ dưới đây đều hỏng IM LẶNG: thiếu manifest thì trình duyệt chỉ
+          # không mời cài; icon khai mà file thiếu thì nút "Cài đặt" không hiện;
+          # `name` lệch `<title>` thì tên dưới icon trên màn hình chính khác tên
+          # trong app và trong hộp thoại vân tay (rpName) — không có log nào cả.
+          M="$D/manifest.webmanifest"
+          test -f "$M" || { echo "❌ manifest.webmanifest không vào dist — PWA không cài được"; exit 1; }
+          node -e '
+            const fs = require("fs");
+            const [manifestPath, distDir, html] = process.argv.slice(1);
+            const m = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+            const title = (fs.readFileSync(html, "utf8").match(/<title>([^<]*)<\/title>/) || [])[1];
+            if (!m.name) throw new Error("manifest thiếu name");
+            if (m.name !== title) {
+              throw new Error(`manifest.name "${m.name}" != <title> "${title}" — hai nguồn tên đã lệch`);
+            }
+            if (m.display !== "standalone") throw new Error(`display=${m.display}, cần standalone`);
+            const icons = m.icons || [];
+            for (const i of icons) {
+              if (!fs.existsSync(distDir + i.src)) throw new Error(`icon khai trong manifest nhưng thiếu file: ${i.src}`);
+            }
+            const big = icons.filter((i) => Number(String(i.sizes).split("x")[0]) >= 192);
+            if (big.length === 0) throw new Error("không có icon >= 192px — Chrome sẽ không cho cài");
+            if (!icons.some((i) => String(i.purpose || "").includes("maskable"))) {
+              throw new Error("không có icon maskable — Android sẽ tự cắt icon full-bleed");
+            }
+            console.log(`manifest: name="${m.name}" display=${m.display} icons=${icons.length}`);
+          ' "$M" "$D" "$D/index.html"
+
+          # iOS bỏ qua icon của manifest — nó chỉ đọc thẻ này. Thiếu/gãy đường dẫn
+          # là màn hình chính hiện ảnh chụp trang web thay cho icon.
+          ATI=$(grep -o 'rel="apple-touch-icon" href="[^"]*"' "$D/index.html" | sed 's/.*href="//;s/"//')
+          [ -n "$ATI" ] || { echo "❌ index.html thiếu <link rel=apple-touch-icon>"; exit 1; }
+          test -f "$D$ATI" || { echo "❌ apple-touch-icon trỏ tới file không có trong dist: $ATI"; exit 1; }
+          grep -q 'name="apple-mobile-web-app-capable" content="yes"' "$D/index.html" \
+            || { echo "❌ thiếu apple-mobile-web-app-capable — iOS vẫn mở trong tab Safari"; exit 1; }
+          echo "✅ PWA cài được: manifest + icon >= 192 + maskable + apple-touch-icon $ATI"
+
           # ---- Nội dung TRANG MẪU template không được lên production ----
           # Ngày 2026-07-27 phát hiện `/` ship nguyên trang mẫu khoe stack của template
           # ("FE mẫu React 19 + Vite — cắm thẳng BE Bun + Hono" + 6 thẻ tên thư viện).

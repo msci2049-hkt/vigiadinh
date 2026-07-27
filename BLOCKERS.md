@@ -799,6 +799,41 @@ Cách sửa khi cần: thêm luật cụ thể TRƯỚC dòng catch-all (Pages k
 `/.well-known/*  /404  404`, rồi khai báo riêng file `.well-known` nào có thật.
 **Chưa sửa** — nằm ngoài phạm vi phiên này, nhưng phải xử trước khi làm extension (B-EXT-1).
 
+## B-FE-10 · PWA đã CÀI ĐƯỢC (2026-07-27) — còn hở đúng một gate: iOS máy thật
+
+**Quyết định (người giao việc chốt 2026-07-27): CÓ hỗ trợ "cài lên màn hình chính".** Trước đó
+`VitePWA({ manifest: false })` — service worker VẪN chạy và precache, nên mọi dấu hiệu bề ngoài
+giống một PWA đầy đủ, nhưng không có manifest thì trình duyệt không bao giờ mời cài. Đã thêm:
+manifest thật (`name` lấy từ `VITE_APP_NAME`, cùng nguồn với `<title>` và `rpName`), 4 icon sinh
+từ linh vật (`scripts/make-app-icons.mjs`), 3 thẻ iOS trong `index.html`.
+
+Hai thứ đo được lúc làm, đáng ghi vì cả hai đều "xanh mà sai":
+
+1. **Khối `@media (display-mode: standalone)` trong `family.css` là NO-OP hai lần** — đã gỡ.
+   Không manifest nên chưa bao giờ chạy; và kể cả chạy thì hai khai báo trong đó GIỐNG HỆT luật
+   nền (`.product-shell__chrome` padding-top, `.product-screen` padding-bottom — cùng `max()`,
+   cùng `env()`). E2e cũ assert `hasStandaloneRule` (CSS có chứa CHUỖI đó không) nên xanh suốt
+   trong khi không đo gì cả. Test mới bật `display-mode: standalone` bằng CDP rồi mới đo.
+2. **`includeManifestIcons` của vite-plugin-pwa mặc định `true` và BỎ QUA `globPatterns`** — đo
+   thật trên dist: 3 icon PNG (231 KiB) vào precache dù `globPatterns` không có `png`. Đã tắt.
+   Precache 126 → 123 entry.
+
+### CÒN HỞ — iOS standalone máy thật
+
+`docs/UI-PLATFORM-REPORT.md` mục QA #1 vẫn **CHƯA CHẠY**: host Windows/WSL không có iPhone.
+E2e mới chạy chromium EMULATE `display-mode: standalone` + `Emulation.setSafeAreaInsetsOverride`
+(safe-area top 47 / bottom 34, nút submit nằm trọn trong màn) — đủ để bắt lỗi CSS, **không** thay
+được máy thật. Hai thứ chỉ iPhone thật mới nói được:
+
+- Icon + tên dưới icon trên màn hình chính iOS (`apple-touch-icon`, `apple-mobile-web-app-capable`
+  chỉ được kiểm là CÓ MẶT và trỏ đúng file, chưa ai thấy nó hiện ra).
+- **Storage partition:** PWA cài trên iOS có kho lưu trữ RIÊNG với Safari. Passkey nằm ở keychain
+  nên vẫn dùng chung được, nhưng **phiên đăng nhập thì không**. Người tạo ví trong Safari rồi cài
+  lên màn hình chính sẽ mở ra một app trông như chưa có gì. Chưa đo được từ đây, và đây là thứ
+  đáng sợ nhất trong mục này vì nó giống hệt "mất ví" dưới mắt người dùng.
+
+Cần: một iPhone thật, cài từ Safari, kiểm 2 gạch đầu dòng trên. Không có thì đừng ghi PWA là xong.
+
 ## B-CF-1 · Deploy FE cần 4 bước dashboard — CHƯA LÀM ĐƯỢC TỪ ĐÂY
 
 `.github/workflows/deploy-fe.yml` đã sẵn sàng nhưng **SKIP bước deploy** cho tới khi có secrets.
