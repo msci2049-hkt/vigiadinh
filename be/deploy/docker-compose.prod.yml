@@ -122,6 +122,12 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     command: ["bun", "run", "dist/workers/index.js"]
+    # B-INFRA-2: image khai HEALTHCHECK HTTP /health (Dockerfile) nhưng worker
+    # không mở cổng HTTP → thừa kế probe là "unhealthy" vĩnh viễn dù job chạy
+    # đúng (đo thật 2026-07-26: FailingStreak 3828 × 30s ≈ 32h). disable chỉ gỡ
+    # BÁO GIẢ — liveness thật cần worker phát heartbeat, là việc riêng chưa làm.
+    healthcheck:
+      disable: true
     env_file: .env.production
     environment:
       NODE_ENV: production
