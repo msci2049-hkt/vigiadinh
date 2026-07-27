@@ -44,36 +44,6 @@
     "banner": "正在以 {name} 的身份操作 — 所有操作都以该用户执行。",
     "stop": "停止代操作"
   },
-  "home": {
-    "description": "React 19 + Vite 前端模板 — 直接对接 Bun + Hono + Better Auth 后端。",
-    "ctaLogin": "登录",
-    "stack": {
-      "router": {
-        "title": "TanStack Router",
-        "desc": "基于文件、类型安全、Zod 搜索参数。"
-      },
-      "query": {
-        "title": "TanStack Query v5",
-        "desc": "服务端状态、查询键工厂、queryOptions。"
-      },
-      "auth": {
-        "title": "Better Auth",
-        "desc": "会话 Cookie，credentials:'include'。"
-      },
-      "sse": {
-        "title": "SSE",
-        "desc": "fetch-event-source + 补拉刷新（至多一次）。"
-      },
-      "styling": {
-        "title": "Tailwind v4 + shadcn",
-        "desc": "CSS 优先 OKLCH，组件代码归你所有。"
-      },
-      "forms": {
-        "title": "RHF + Zod",
-        "desc": "用 Zod 校验的类型安全表单。"
-      }
-    }
-  },
   "update": {
     "available": "有新版本可用",
     "reload": "重新加载"

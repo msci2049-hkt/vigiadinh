@@ -557,6 +557,41 @@ Không có route nào ở `/api/sep45` gốc.
   trỏ vào chính hai handler sẵn có, giữ path cũ làm alias để không phá FE.
 - **Chưa sửa**: nằm ngoài phạm vi việc deploy FE, và đụng vào cổng login thì phải có test riêng.
 
+## B-EXT-1 · Extension CHƯA CHẠY ĐƯỢC — 3 lỗi chặn, chưa từng load-unpacked (2026-07-27)
+
+Kết luận dứt khoát: **CHƯA DÙNG ĐƯỢC, và chưa ai thử load lần nào.** Không phải "chưa test" —
+có bằng chứng nó *không thể* load ở trạng thái hiện tại. Manifest V3 ✅, tên/mô tả KHÔNG phải rác
+template (`_locales` en/vi/zh_CN đầy đủ, "FamilyWallet"/"VíGiaĐình"/"家庭钱包"). Ba lỗi chặn:
+
+1. **Thiếu toàn bộ thư mục `icons/`.** `manifest.json` khai `icons` 16/48/128 + `action.default_title`,
+   nhưng `extension/` chỉ có `manifest.json` `popup.html` `popup.js` `service-worker.js` `_locales/`
+   `README.md`. Chrome từ chối load unpacked khi file icon khai báo không tồn tại ⇒ **chứng minh
+   extension chưa từng được load thành công**, nếu không lỗi này đã lộ ngay lần đầu.
+2. **Domain là placeholder, không phải BE thật.** `host_permissions: ["https://app.familywallet.example/*"]`
+   và `API_BASE = "https://app.familywallet.example"` ở CẢ `service-worker.js:10` LẪN `popup.js:4`
+   (popup còn mở `${API_BASE}/guardian` và `/login`). Domain đó không tồn tại. Phải là
+   `https://api.familyhaven.mscilabs.com` cho API và `https://familyhaven.mscilabs.com` cho tab —
+   **hai origin khác nhau**, hiện đang bị gộp làm một.
+3. **Tên lệch web app**: extension tên "FamilyWallet", web đã chốt "FamilyHaven".
+
+### Passkey: extension KHÔNG dùng chung được với web (chưa cấu hình)
+
+Origin của extension là `chrome-extension://aakakeieeijeflbnblolnlhmooibddmc` — **không phải
+subdomain** của `familyhaven.mscilabs.com`, nên `rpId = familyhaven.mscilabs.com` không phủ tới nó.
+Cơ chế duy nhất nối hai origin là **Related Origin Requests**: home domain phải phục vụ
+`/.well-known/webauthn` trả JSON `{"origins":[...]}`.
+
+Đo thật 2026-07-27: `curl https://familyhaven.mscilabs.com/.well-known/webauthn` → **HTTP 200 nhưng
+trả về `index.html`**. Đây TỆ HƠN 404: SPA fallback `/*  /index.html  200` nuốt mọi đường dẫn chưa
+có file, nên trình duyệt nhận HTML ở chỗ nó chờ JSON. ⇒ Related Origin Requests **chưa cấu hình**,
+passkey tạo trên web **không dùng được** trong extension và ngược lại.
+
+Muốn nối: thêm `fe/apps/web/public/.well-known/webauthn` (JSON, có `chrome-extension://<id>` trong
+`origins`) — cùng chỗ với `stellar.toml`, và nhớ luật `_headers` cho content-type.
+
+**KHÔNG sửa trong phiên này** — §6 của nhiệm vụ yêu cầu *kiểm và ghi*, không yêu cầu sửa; và
+extension là deliverable riêng, sửa nó cần load thử trên Chrome thật mới gọi là xong.
+
 ## B-CF-2 · CI deploy CHƯA NỐI — deploy FE hiện là TAY (2026-07-27)
 
 Bản production đang chạy được đẩy lên bằng `wrangler pages deploy` chạy tay, **không** qua
@@ -608,6 +643,119 @@ Hệ quả cụ thể:
 - `SIGNING_KEY` trong stellar.toml vẫn là G của khoá **testnet** dev (B-MAINNET-4).
 
 **Chốt trước khi cho ai thử ví thật.** Thứ tự sửa: MAINNET-CHECKLIST.md mục H3.
+
+### Badge "Mạng chính" đang NÓI TRƯỚC SỰ THẬT — quyết định 2026-07-27: GIỮ mainnet
+
+`components/family/product-shell.tsx:14` — `isTestnet = env.VITE_STELLAR_NETWORK_PASSPHRASE.startsWith("Test ")`,
+rồi header hiện `network.mainnet` = **"Mạng chính"** (en "Mainnet", zh "主网"). Đây là **hằng số lúc
+build**, nó chỉ nói *FE được cấu hình cho mạng nào*, KHÔNG nói chuỗi phía sau có sống không.
+Người dùng ví đọc badge đó là "ví này đang chạy trên mạng thật" — trong khi BE còn testnet và
+contract mainnet chưa tồn tại. Với UI của một cái ví tiền, hiển thị sai mạng nguy hiểm hơn lỗi UI
+thường.
+
+Hai lựa chọn đã cân, **chọn (B)**:
+- (A) Hạ FE về testnet cho khớp BE — bác bỏ: phải đảo ngược toàn bộ migration đã commit
+  (`a9b23db`→`d825aac`), CSP/`connect-src` và `stellar.toml` đều đang hình mainnet, và BE sẽ lên
+  mainnet chứ không ở lại testnet. Đảo chiều rồi đảo lại là tự chuốc hai lần rủi ro.
+- (B) **GIỮ mainnet**, ghi nợ tại đây: badge ĐÚNG so với cấu hình FE, SAI so với hệ thống. Nó chỉ
+  trở thành đúng khi B-CF-3 đóng (BE mainnet + contracts deploy).
+  Nếu cần cho người ngoài dùng thử TRƯỚC khi B-CF-3 đóng thì phải sửa badge trước — cách rẻ nhất là
+  cho nó phản ánh **khả năng gọi được chuỗi** (ping `/rpc`) chứ không phải hằng số passphrase.
+
+## B-FE-5 · TRANG MẪU TEMPLATE ĐÃ LÊN PRODUCTION ở `/` — vá 2026-07-27
+
+`https://familyhaven.mscilabs.com/` phục vụ nguyên **trang giới thiệu template**: tiêu đề + 6 thẻ
+khoe stack ("TanStack Router", "TanStack Query v5", "Better Auth", "SSE", "Tailwind v4 + shadcn",
+"RHF + Zod"), bản tiếng Việt ghi *"FE mẫu React 19 + Vite — cắm thẳng BE Bun + Hono + Better Auth."*
+Đây là thứ ĐẦU TIÊN người vào gốc domain nhìn thấy; `/welcome` mới là màn mở đầu thật.
+
+**Vì sao lọt qua mọi vòng kiểm** — đây mới là bài học, không phải cái lỗi:
+chuỗi hiển thị nằm trong `apps/web/src/locales/*/common.json` (khối `home.*`), KHÔNG nằm trong TSX.
+`index.tsx` chỉ có `t("home.description")` và `t(\`home.stack.${key}.title\`)` — **không một ký tự
+tiếng Việt nào**. Nên: grep theo tên biến → trượt; grep `"Mau Demo"` → trượt (chuỗi là "FE mẫu");
+gate dist theo `%VITE_*%`/`<title>` → trượt (title vẫn đúng "FamilyHaven"). Guard
+`scripts/check-user-copy.mjs` VỐN ĐÃ quét đúng file locale, chỉ là danh sách TOKENS không có cụm nào
+khớp. **Bắt theo chuỗi NGƯỜI DÙNG NHÌN THẤY, và bắt cả tiếng Việt.**
+
+Đã vá: `/` chuyển hướng `/welcome` bằng `redirect()` trong `beforeLoad` (không `<Navigate>` — tránh
+nháy một frame); xoá khối `home.*` khỏi cả 3 locale (parity 25 key giữ nguyên); `check-user-copy.mjs`
+thêm 7 token (`FE mẫu`, `cắm thẳng`, `TanStack`, `shadcn`, `tailwind`, `better auth`, `RHF`);
+`deploy-fe.yml` thêm gate dist theo 7 chuỗi ĐÃ ĐO.
+
+Guard mở rộng bắt được **3 lỗi cùng loại chưa ai thấy**: `admin.json` cả 3 locale ghi *"User metrics
+from the Better Auth admin API"* và *"…server-side via listUsers"* — tên thư viện + tên hàm nội bộ
+trong copy hiển thị cho admin. Đã viết lại thành tiếng người.
+
+⚠️ Gate dist cố ý HẸP. KHÔNG thêm `TanStack` trần: nó khớp comment trong chính `public/_redirects`
+("để TanStack Router tự route phía client") và khớp 67 file khác (tên chunk `vendor-tanstack-*.js`,
+manifest precache `sw.js`). Gate luôn-đỏ là gate sẽ bị tắt.
+
+## B-FE-6 · `font-src 'self'` CHẶN font mono trên production — vá 2026-07-27
+
+Quét production bằng chromium thật (23 màn): **mọi màn** log
+`Loading the font 'data:font/woff2;base64,d09GMgAB…' violates the following Content Security Policy`.
+Nguồn: `@font-face` của **JetBrains Mono Variable** trong `dist/assets/index-*.css` dùng
+`src:url(data:font/woff2;base64,…)` — Vite nhúng thẳng vì file nhỏ hơn `assetsInlineLimit`
+(ba font Fraunces to hơn nên vẫn là `/assets/fraunces-*`, không dính). Hậu quả: font mono bị chặn,
+rơi về font hệ thống, **im lặng** — không ai thấy trừ khi mở Console.
+
+Vá: `font-src 'self' data:` trong `public/_headers` **và** `deploy/nginx.conf` (hai file phải đồng bộ).
+Rủi ro thấp: font không thực thi được như script, và policy này vốn đã cho `data:` ở `img-src`.
+Siết lại được nếu muốn — hạ `assetsInlineLimit` để font không bao giờ inline, nhưng đó là đổi build,
+phải đo lại dist.
+
+## B-FE-7 · Cloudflare Web Analytics beacon bị CSP chặn — CẦN QUYẾT (chưa sửa)
+
+Cùng đợt quét: mọi màn cũng log
+`Loading the script 'https://static.cloudflareinsights.com/beacon.min.js/…' violates … CSP`
++ một `requestfailed … csp`. **Không phải script của ta** — Cloudflare Pages TỰ TIÊM khi bật Web
+Analytics. CSP `script-src 'self' 'sha256-…'` chặn nó, nên: console bẩn trên mọi trang, và
+**analytics không chạy** dù dashboard báo đã bật.
+
+Hai đường, người quyết:
+1. **Tắt auto-injection** ở Cloudflare (Web Analytics → tắt automatic setup cho site này). Khuyến
+   nghị — giữ `script-src` nguyên vẹn.
+2. Thêm `https://static.cloudflareinsights.com` vào `script-src` + `connect-src`. **Không tự làm**:
+   nới `script-src` cho một script bên thứ ba đi ngược đúng thứ CSP này sinh ra để chặn, và
+   `.gitleaks`/security rule của repo coi `script-src` là hàng rào chính chống XSS.
+
+## B-FE-9 · `sw.js` bị cache 4 GIỜ trên custom domain (KHÔNG phải trên pages.dev)
+
+`public/_headers` đặt `/sw.js → max-age=0, must-revalidate` và Cloudflare TÔN TRỌNG điều đó trên
+`*.pages.dev`. Nhưng trên **custom domain** thì không. Đo song song 2026-07-27:
+
+| đường dẫn | `familyhaven.pages.dev` | `familyhaven.mscilabs.com` |
+|---|---|---|
+| `/` | `max-age=0, must-revalidate` ✅ | `max-age=0, must-revalidate` ✅ |
+| `/assets/*.css` | `max-age=31536000, immutable` ✅ | `max-age=31536000, immutable` ✅ |
+| **`/sw.js`** | `max-age=0, must-revalidate` ✅ | **`max-age=14400, must-revalidate`** ❌ |
+
+14400s = 4 giờ = **đúng mặc định "Browser Cache TTL" của zone Cloudflare**. Zone áp nó cho tài
+nguyên tĩnh cacheable (`.js`), trong khi HTML được miễn và luật `immutable` của `/assets/*` sống sót
+— nên chỉ mỗi `sw.js` dính, và chỉ trên domain có proxy zone.
+
+Hậu quả: trình duyệt có thể phục vụ `sw.js` từ cache tới 4 giờ ⇒ update-toast (D-052) chậm tối đa
+4 giờ. KHÔNG phải "kẹt vĩnh viễn" (không có `immutable`, vẫn `must-revalidate`), nhưng đúng thứ luật
+`_headers` sinh ra để chống.
+
+**Cần làm trên dashboard (người dùng):** zone `mscilabs.com` → Caching → Configuration →
+**Browser Cache TTL = "Respect Existing Headers"**. Hoặc hẹp hơn: Cache Rule riêng cho `/sw.js`.
+Không sửa được từ `_headers` — zone override đứng trên nó.
+
+⚠️ Bài học đo lường: đây là lỗi **chỉ lộ trên custom domain**. Kiểm trên `*.pages.dev` rồi kết luận
+"header đúng" là sai — hai đường đi qua cấu hình khác nhau.
+
+## B-FE-8 · SPA fallback nuốt mọi file thiếu → không có 404 thật
+
+`public/_redirects` là catch-all `/*  /index.html  200`. Hệ quả đo được: `/nothing-here.png` trả
+**200 + HTML**, và `/.well-known/webauthn` cũng trả **200 + HTML** thay vì 404 (xem B-EXT-1 — đây là
+lý do Related Origin Requests hỏng im lặng). Với route ứng dụng thì đúng (router client tự xử, và
+`notFoundComponent` hiện "404 — Page not found" đàng hoàng). Với **file tĩnh và `.well-known/`** thì
+sai: client nào chờ JSON/ảnh sẽ nhận HTML.
+
+Cách sửa khi cần: thêm luật cụ thể TRƯỚC dòng catch-all (Pages khớp từ trên xuống), ví dụ
+`/.well-known/*  /404  404`, rồi khai báo riêng file `.well-known` nào có thật.
+**Chưa sửa** — nằm ngoài phạm vi phiên này, nhưng phải xử trước khi làm extension (B-EXT-1).
 
 ## B-CF-1 · Deploy FE cần 4 bước dashboard — CHƯA LÀM ĐƯỢC TỪ ĐÂY
 

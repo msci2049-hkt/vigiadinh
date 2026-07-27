@@ -21,6 +21,17 @@
 # làm vậy là vứt bỏ toàn bộ tác dụng chống XSS của CSP). Tính lại:
 #   node scripts/csp-script-hash.mjs
 #
+# ⚠️ `font-src` PHẢI có `data:` — đo trên production 2026-07-27 bằng chromium thật:
+# MỌI màn đều log `Loading the font 'data:font/woff2;base64,d09GMgAB…' violates the
+# following Content Security Policy`. Nguồn: `@font-face` của **JetBrains Mono
+# Variable** trong `dist/assets/index-*.css` có `src:url(data:font/woff2;base64,…)`
+# — Vite nhúng thẳng vì file nhỏ hơn `assetsInlineLimit` (ba font Fraunces to hơn nên
+# vẫn là `/assets/fraunces-*`, không dính). Thiếu `data:` = font mono bị chặn và rơi
+# về font hệ thống trên production, im lặng.
+# `data:` ở font-src rủi ro thấp (font không chạy được như script) và đã có tiền lệ
+# ngay trong policy này ở `img-src`. Muốn siết lại thì hạ `assetsInlineLimit` để font
+# không bao giờ được inline — ĐỔI BUILD, phải đo lại dist, đừng làm mù.
+#
 # ⚠️ `style-src` GIỮ 'unsafe-inline' — CÓ LÝ DO ĐO ĐƯỢC, không phải lười:
 # `grep -rn "style={{" apps/web/src | wc -l` = **0** (ta không có inline style),
 # NHƯNG `sonner` (toast — apps/web/package.json) TIÊM MỘT <style> LÚC CHẠY. Bỏ
@@ -28,7 +39,7 @@
 # phải chuyển sonner sang nonce/hash và VERIFY TRONG TRÌNH DUYỆT THẬT trước —
 # đừng siết mù khi không chạy được app (xem B-FE-1).
 /*
-  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; font-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-81loPoXAH2d7v6xD+o+5CuQ/gzjTzt45bNHddccOcTs='; connect-src 'self' __API_ORIGIN__
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; img-src 'self' data:; font-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'sha256-81loPoXAH2d7v6xD+o+5CuQ/gzjTzt45bNHddccOcTs='; connect-src 'self' __API_ORIGIN__
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin

@@ -9,7 +9,14 @@ const EnvSchema = z.object({
   VITE_API_URL: z.url({
     error: "VITE_API_URL must be a valid URL (e.g. http://localhost:3000)",
   }),
-  VITE_APP_NAME: z.string().min(1).default("Mau Demo FE"),
+  // Default là TÊN SẢN PHẨM, không phải tên template. Biến này không chỉ là nhãn:
+  // `features/wallet/lib/kit.ts` lấy nó làm `rpName` — chữ hiện trong hộp thoại vân
+  // tay/Face ID trên máy người dùng. Khi biến bị quên (đã xảy ra, 2026-07-27) thì
+  // default cũ "Mau Demo FE" đi thẳng vào hộp thoại xác thực của một cái ví tiền.
+  // Quên biến vẫn bị bắt: token `%VITE_APP_NAME%` trong index.html không được thay
+  // và gate "Verify dist" của deploy-fe.yml chặn — nên hạ default xuống tên đúng là
+  // giảm thiệt hại, KHÔNG phải giấu lỗi.
+  VITE_APP_NAME: z.string().min(1).default("FamilyHaven"),
   VITE_ENABLE_DEVTOOLS: z
     .enum(["true", "false"])
     .default("true")

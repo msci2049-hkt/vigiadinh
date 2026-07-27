@@ -249,6 +249,25 @@ jobs:
               echo "❌ <title> vẫn là tên template / rỗng — VITE_APP_NAME chưa vào build"; exit 1;;
           esac
 
+          # ---- Nội dung TRANG MẪU template không được lên production ----
+          # Ngày 2026-07-27 phát hiện `/` ship nguyên trang mẫu khoe stack của template
+          # ("FE mẫu React 19 + Vite — cắm thẳng BE Bun + Hono" + 6 thẻ tên thư viện).
+          # Nó sống sót vì chuỗi hiển thị nằm trong `locales/*/common.json`, không phải
+          # trong TSX — mọi lần grep trước đều tìm theo tên biến hoặc theo "Mau Demo".
+          #
+          # ⚠️ Danh sách dưới đây ĐÃ ĐO trên dist thật, cố ý HẸP. KHÔNG thêm `TanStack`
+          # hay `Tailwind` trần: `TanStack Router` nằm trong comment của chính
+          # `public/_redirects`, còn `TanStack` trần khớp 67 file (tên chunk
+          # vendor-tanstack-*.js + manifest precache của sw.js). Gate luôn-đỏ thì
+          # người ta tắt gate. Lưới rộng nằm ở `scripts/check-user-copy.mjs` (chạy
+          # trong pnpm validate) — nó quét NGUỒN locale, đúng chỗ sinh ra lỗi này.
+          for s in 'mau demo' 'mau-demo' 'FE mẫu' 'mẫu React' 'cắm thẳng' 'Tailwind v4 + shadcn' 'RHF + Zod'; do
+            if grep -rqiF "$s" "$D"; then
+              echo "❌ CÒN NỘI DUNG TEMPLATE trong dist: \"$s\""
+              grep -rliF "$s" "$D"; exit 1
+            fi
+          done
+
           # audit F5: giá trị giữ chỗ PENDING_MAINNET_DEPLOY ("chưa deploy
           # contracts") tuyệt đối không được vào dist — lọt là ship ví trỏ
           # contract không tồn tại. D1 đã chặn theo định dạng ở trước build;
