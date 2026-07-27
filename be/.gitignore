@@ -1,6 +1,9 @@
 # Bun
 node_modules/
 bun.lock-build/
+# Repo này install bằng bun — lockfile npm là artefact chạy nhầm `npm install`
+# (đã xảy ra 2026-07-27 trên Windows), gây lệch với bun.lock và phá cây sạch.
+package-lock.json
 
 # Env (NEVER commit real .env)
 # (.env.example + deploy/env.production.example IS committed — template placeholder)
