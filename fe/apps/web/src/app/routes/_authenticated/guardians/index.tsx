@@ -44,7 +44,10 @@ function GuardiansManageScreen() {
         <EmptyState message={t("guardians.list.noWallet")} />
       ) : null}
       {guardians.isSuccess && visible.length === 0 ? (
-        <EmptyState message={t("guardians.list.empty")} />
+        <EmptyState
+          message={t("guardians.list.empty")}
+          cta={{ label: t("guardians.list.emptyCta"), to: "/setup/choose-guardians" }}
+        />
       ) : null}
 
       <ul className="flex flex-col gap-3">

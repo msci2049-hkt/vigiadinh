@@ -134,10 +134,14 @@ describe("assertAddGuardianEntry — thêm đúng người vừa mời", () => {
 });
 
 describe("assertRegisterWalletEntry — đăng ký chỉ một lần, sai là hỏng vĩnh viễn", () => {
+  // Hai người bảo hộ hợp lệ nữa — registry đòi TỐI THIỂU 3 (lib.rs:69), nên
+  // bộ test phải có đủ 3 địa chỉ "chủ ví đã thấy" cho ca cho-ký.
+  const FRIEND_2 = "CADQOBYHA4DQOBYHA4DQOBYHA4DQOBYHA4DQOBYHA4DQOBYHA4DQP5KR";
+  const FRIEND_3 = "CAEQSCIJBEEQSCIJBEEQSCIJBEEQSCIJBEEQSCIJBEEQSCIJBEEQTD2L";
   const expected = {
     registry: REGISTRY,
     wallet: WALLET,
-    allowedGuardians: [FRIEND],
+    allowedGuardians: [FRIEND, FRIEND_2, FRIEND_3],
     threshold: 2,
     timelockSecs: 86_400,
   };
@@ -151,26 +155,42 @@ describe("assertRegisterWalletEntry — đăng ký chỉ một lần, sai là h�
     ]);
   }
 
-  it("đúng cấu hình đang hiện trên màn → cho ký", () => {
+  const THREE = [FRIEND, FRIEND_2, FRIEND_3];
+
+  it("đúng cấu hình đang hiện trên màn (đủ 3 người) → cho ký", () => {
     expect(() =>
-      assertRegisterWalletEntry(registerEntry([FRIEND], 2, 86_400), expected),
+      assertRegisterWalletEntry(registerEntry(THREE, 2, 86_400), expected),
     ).not.toThrow();
+  });
+
+  it("CA HỒI QUY bug '0 trên 2': 2 người — dưới sàn MIN_GUARDIANS=3 → chặn TRƯỚC sinh trắc học", () => {
+    // Trước bản vá guard chỉ chặn danh sách RỖNG; entry 2 người đi qua rồi
+    // contract panic #4 TooFewGuardians sau khi người dùng đã ký.
+    expect(() =>
+      assertRegisterWalletEntry(registerEntry([FRIEND, FRIEND_2], 2, 86_400), expected),
+    ).toThrow(BlindSignError);
+  });
+
+  it("1 người → chặn (cùng sàn)", () => {
+    expect(() => assertRegisterWalletEntry(registerEntry([FRIEND], 2, 86_400), expected)).toThrow(
+      BlindSignError,
+    );
   });
 
   it("nhét địa chỉ chủ ví CHƯA từng thấy vào danh sách → chặn", () => {
     expect(() =>
-      assertRegisterWalletEntry(registerEntry([FRIEND, ATTACKER], 2, 86_400), expected),
+      assertRegisterWalletEntry(registerEntry([FRIEND, FRIEND_2, ATTACKER], 2, 86_400), expected),
     ).toThrow(BlindSignError);
   });
 
   it("hạ ngưỡng xuống 1 → chặn", () => {
-    expect(() => assertRegisterWalletEntry(registerEntry([FRIEND], 1, 86_400), expected)).toThrow(
+    expect(() => assertRegisterWalletEntry(registerEntry(THREE, 1, 86_400), expected)).toThrow(
       BlindSignError,
     );
   });
 
   it("xoá thời gian chờ (timelock = 0) → chặn", () => {
-    expect(() => assertRegisterWalletEntry(registerEntry([FRIEND], 2, 0), expected)).toThrow(
+    expect(() => assertRegisterWalletEntry(registerEntry(THREE, 2, 0), expected)).toThrow(
       BlindSignError,
     );
   });

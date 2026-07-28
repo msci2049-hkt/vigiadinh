@@ -26,8 +26,11 @@ export function RecoverabilityBanner({ value }: { value: Recoverability }) {
   return (
     <div data-testid="recoverability-warning">
       <ErrorBanner type="warn" title={t("guardians.recoverability.notYetTitle")}>
+        {/* HAI con số, HAI khái niệm — trộn là ra bug "0 trên 2": required
+            (≥3) = số người phải NHẬN LỜI; threshold = số người KÝ khi cứu ví. */}
         {t("guardians.recoverability.notYetBody", {
           available: value.available,
+          required: value.required,
           threshold: value.threshold,
           missing: value.missing,
         })}

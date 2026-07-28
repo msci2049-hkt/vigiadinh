@@ -14,10 +14,21 @@ export function registeredCount(statuses: InviteStatus[]): number {
   return statuses.filter((s) => s === "registered").length;
 }
 
+/**
+ * Khớp `MIN_GUARDIANS` của registry (`recovery-registry/src/lib.rs:69`):
+ * `register_wallet` panic `#4 TooFewGuardians` dưới 3 người. Trước bản này,
+ * recoverability chỉ so với `threshold` (mặc định 2) → mời đúng 2 người là
+ * banner XANH "đã an toàn", nút Đăng ký mở, rồi contract chối ở bước cuối
+ * wizard — ca thứ BA của lớp bug "TS cho qua giá trị mà chain sẽ chối".
+ */
+export const MIN_GUARDIANS = 3;
+
 export type RecoverabilityView = {
   /** Số người bảo hộ đã lên chain. */
   available: number;
   threshold: number;
+  /** Số người TỐI THIỂU phải lên chain = max(MIN_GUARDIANS, threshold). */
+  required: number;
   /** Ví khôi phục được ngay bây giờ hay chưa. */
   recoverable: boolean;
   /** Còn thiếu bao nhiêu người nữa. */
@@ -25,7 +36,11 @@ export type RecoverabilityView = {
 };
 
 /**
- * Ví khôi phục được khi số người bảo hộ trên chain ≥ ngưỡng.
+ * Ví khôi phục được khi số người bảo hộ trên chain ≥ max(MIN_GUARDIANS, threshold).
+ *
+ * Hai con số là hai khái niệm — trộn chúng là nguồn của bug "0 trên 2":
+ * - `required` (≥ MIN_GUARDIANS=3): số người phải NHẬN LỜI để register được;
+ * - `threshold` (≥ 2): số người phải KÝ khi cần cứu ví.
  *
  * Đây là con số phải hiện ở hub kèm cảnh báo khi chưa đủ — người dùng tưởng
  * mình an toàn vì "đã mời 3 người" trong khi chưa ai nhận lời là kịch bản tệ
@@ -36,10 +51,12 @@ export function recoverability(input: {
   threshold: number;
 }): RecoverabilityView {
   const available = registeredCount(input.statuses);
-  const missing = Math.max(0, input.threshold - available);
+  const required = Math.max(MIN_GUARDIANS, input.threshold);
+  const missing = Math.max(0, required - available);
   return {
     available,
     threshold: input.threshold,
+    required,
     recoverable: missing === 0,
     missing,
   };

@@ -276,7 +276,17 @@ test.describe("khôi phục đa thiết bị — người nhà ký bằng passke
               guardian_address: a,
               expires_at: "2027-01-01T00:00:00Z",
             })),
-            recoverability: { available: 2, threshold: 2, recoverable: true, missing: 0 },
+            // ⚠️ Mock này giờ MÂU THUẪN với registry đã audit (MIN_GUARDIANS=3,
+            // MIN_TIMELOCK=86400): spec đăng ký 2 guardian + timelock 0 sẽ bị
+            // FE guard chặn rồi contract chối. Spec cần viết lại với registry
+            // test-only (sàn thấp) — ghi nợ, không sửa mù được ở đây.
+            recoverability: {
+              available: 2,
+              threshold: 2,
+              required: 3,
+              recoverable: true,
+              missing: 0,
+            },
           },
         },
       }),

@@ -169,6 +169,7 @@
     },
     "list": {
       "empty": "No trusted contacts yet. Invite family so your wallet can be recovered if you ever lose this device.",
+      "emptyCta": "Invite family",
       "itemLabel": "Trusted contact",
       "noWallet": "You don't have a wallet yet. Set one up first, then invite family to help look after it."
     },
@@ -177,7 +178,7 @@
       "title": "Your protectors"
     },
     "recoverability": {
-      "notYetBody": "{available} of {threshold} people have finished. {missing, plural, one {# more person needs} other {# more people need}} to accept before your wallet can be recovered.",
+      "notYetBody": "You need at least {required} people to accept — {available} so far, {missing, plural, one {# more to go} other {# more to go}}. To recover the wallet, {threshold} of them must approve together.",
       "notYetTitle": "Nobody can get you back in yet",
       "ok": "{count, plural, one {# person} other {# people}} can help you get back in."
     },
@@ -512,6 +513,7 @@
       "addressLabel": "Your wallet address",
       "description": "Balance, recent activity and protection status at a glance.",
       "historyCta": "History",
+      "inviteCta": "Invite family",
       "nightWatchCta": "Safety",
       "noWallet": "You do not have a wallet yet.",
       "receiveCta": "Receive",

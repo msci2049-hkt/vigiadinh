@@ -65,6 +65,13 @@ function WalletHomeScreen() {
 
       {chain.data ? <CooldownNotice cooldown={chain.data.cooldown} /> : null}
       {invites.data ? <RecoverabilityBanner value={invites.data.recoverability} /> : null}
+      {/* Cảnh báo mà không có lối đi = dead-end (bug M2): người thoát wizard
+          giữa chừng phải quay lại được luồng mời từ chính hub. */}
+      {wallet && invites.data && !invites.data.recoverability.recoverable ? (
+        <Button asChild>
+          <Link to="/setup/choose-guardians">{t("wallet.home.inviteCta")}</Link>
+        </Button>
+      ) : null}
       {!isLoading && !isError && !wallet ? (
         <div className="flex flex-col gap-3">
           <EmptyState message={t("wallet.home.noWallet")} />

@@ -169,6 +169,7 @@
     },
     "list": {
       "empty": "还没有受信任的联系人。邀请家人，这样万一你丢失此设备，钱包也能被恢复。",
+      "emptyCta": "邀请亲友",
       "itemLabel": "受信任的联系人",
       "noWallet": "你还没有钱包。请先设置钱包，然后邀请家人一起看护它。"
     },
@@ -177,7 +178,7 @@
       "title": "你的守护人"
     },
     "recoverability": {
-      "notYetBody": "{threshold} 位中已有 {available} 位完成。还需要 {missing} 位接受邀请，钱包才能恢复。",
+      "notYetBody": "至少需要 {required} 位亲友接受邀请——目前已有 {available} 位，还差 {missing} 位。恢复钱包时，其中 {threshold} 位需要共同确认。",
       "notYetTitle": "还没有人能帮你重新进入",
       "ok": "有 {count} 位家人可以帮你重新进入钱包。"
     },
@@ -512,6 +513,7 @@
       "addressLabel": "你的钱包地址",
       "description": "余额、近期动态和保护状态一目了然。",
       "historyCta": "历史",
+      "inviteCta": "邀请亲友",
       "nightWatchCta": "安全",
       "noWallet": "你还没有钱包。",
       "receiveCta": "接收",

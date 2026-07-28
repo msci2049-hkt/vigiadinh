@@ -169,6 +169,7 @@
     },
     "list": {
       "empty": "Chưa có người thân nào. Mời người thân để ví có thể khôi phục nếu bạn mất máy.",
+      "emptyCta": "Mời người thân",
       "itemLabel": "Người thân trông ví",
       "noWallet": "Bạn chưa có ví. Hãy tạo ví trước, rồi mời người thân cùng trông giúp."
     },
@@ -177,7 +178,7 @@
       "title": "Người bảo hộ của bạn"
     },
     "recoverability": {
-      "notYetBody": "{available} trên {threshold} người đã xong. Cần thêm {missing} người nhận lời thì ví mới khôi phục được.",
+      "notYetBody": "Cần ít nhất {required} người nhận lời — đã có {available}, còn thiếu {missing}. Khi cần cứu ví, {threshold} người trong số đó phải cùng đồng ý.",
       "notYetTitle": "Chưa ai giúp bạn vào lại được",
       "ok": "Có {count} người giúp bạn vào lại được ví."
     },
@@ -512,6 +513,7 @@
       "addressLabel": "Địa chỉ ví của bạn",
       "description": "Số dư, hoạt động gần đây và tình trạng bảo vệ trong một màn hình.",
       "historyCta": "Lịch sử",
+      "inviteCta": "Mời người thân",
       "nightWatchCta": "An toàn",
       "noWallet": "Bạn chưa có ví.",
       "receiveCta": "Nhận",

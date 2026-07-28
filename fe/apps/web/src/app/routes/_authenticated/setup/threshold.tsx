@@ -20,6 +20,7 @@ import { RecoverabilityBanner } from "@/features/family/components/recoverabilit
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { WizardNav } from "@/features/family/components/wizard-nav";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
+import { MIN_GUARDIANS } from "@/lib/auth-entry-guard";
 
 export const Route = createFileRoute("/_authenticated/setup/threshold")({
   component: SetupThresholdScreen,
@@ -91,13 +92,15 @@ function SetupThresholdScreen() {
         </CardContent>
       </Card>
 
-      {/* Cảnh báo theo ngưỡng ĐANG CHỌN, không theo ngưỡng đã lưu. */}
+      {/* Cảnh báo theo ngưỡng ĐANG CHỌN, không theo ngưỡng đã lưu. Cùng công
+          thức với BE recoverability(): sàn mời = max(MIN_GUARDIANS, threshold). */}
       <RecoverabilityBanner
         value={{
           available,
           threshold,
-          recoverable: available >= threshold,
-          missing: Math.max(0, threshold - available),
+          required: Math.max(MIN_GUARDIANS, threshold),
+          recoverable: available >= Math.max(MIN_GUARDIANS, threshold),
+          missing: Math.max(0, Math.max(MIN_GUARDIANS, threshold) - available),
         }}
       />
 

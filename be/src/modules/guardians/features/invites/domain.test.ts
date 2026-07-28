@@ -11,27 +11,51 @@ describe("guardian invites — khả năng khôi phục", () => {
     const view = recoverability({ statuses: ["sent", "sent", "sent"], threshold: 2 });
     expect(view.recoverable).toBe(false);
     expect(view.available).toBe(0);
-    expect(view.missing).toBe(2);
+    // required = max(MIN_GUARDIANS=3, threshold=2) — registry đòi 3 người,
+    // không phải 2 (bug "0 trên 2" cũ so với threshold).
+    expect(view.required).toBe(3);
+    expect(view.missing).toBe(3);
   });
 
   it("deployed vẫn CHƯA tính — khoá chưa lên chain thì chưa cứu được ai", () => {
     const view = recoverability({ statuses: ["registered", "deployed"], threshold: 2 });
     expect(view.recoverable).toBe(false);
+    expect(view.missing).toBe(2);
+  });
+
+  it("CA HỒI QUY bug '0 trên 2': đủ threshold=2 nhưng DƯỚI MIN_GUARDIANS=3 → vẫn CHƯA register được", () => {
+    // Trước bản vá: available=2 ≥ threshold=2 → recoverable=true → banner xanh
+    // "đã an toàn" → nút Đăng ký mở → contract panic #4 TooFewGuardians.
+    const view = recoverability({
+      statuses: ["registered", "registered"],
+      threshold: 2,
+    });
+    expect(view.recoverable).toBe(false);
     expect(view.missing).toBe(1);
   });
 
-  it("đủ ngưỡng → khôi phục được", () => {
+  it("đủ max(MIN_GUARDIANS, threshold) → khôi phục được", () => {
     const view = recoverability({
-      statuses: ["registered", "registered", "sent"],
+      statuses: ["registered", "registered", "registered", "sent"],
       threshold: 2,
     });
     expect(view.recoverable).toBe(true);
     expect(view.missing).toBe(0);
   });
 
-  it("thừa người bảo hộ không làm missing âm", () => {
+  it("threshold cao hơn MIN_GUARDIANS → required theo threshold", () => {
     const view = recoverability({
       statuses: ["registered", "registered", "registered"],
+      threshold: 4,
+    });
+    expect(view.required).toBe(4);
+    expect(view.recoverable).toBe(false);
+    expect(view.missing).toBe(1);
+  });
+
+  it("thừa người bảo hộ không làm missing âm", () => {
+    const view = recoverability({
+      statuses: ["registered", "registered", "registered", "registered"],
       threshold: 2,
     });
     expect(view.missing).toBe(0);

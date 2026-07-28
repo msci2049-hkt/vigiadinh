@@ -225,7 +225,13 @@ async function mockBackend(page: Page): Promise<void> {
         json({
           data: {
             invites: [],
-            recoverability: { available: 0, threshold: 2, recoverable: false, missing: 2 },
+            recoverability: {
+              available: 0,
+              threshold: 2,
+              required: 3,
+              recoverable: false,
+              missing: 3,
+            },
           },
         }),
       );

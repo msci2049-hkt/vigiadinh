@@ -15,6 +15,14 @@
 // của backend với bản gốc của backend thì luôn khớp và chẳng chứng minh gì.
 import { Address, scValToNative, xdr } from "@stellar/stellar-sdk";
 
+/**
+ * Sàn on-chain của registry (`recovery-registry/src/lib.rs:69`) — chép tay,
+ * KHÔNG đổi được từ TS. `register_wallet` panic `#4 TooFewGuardians` dưới 3.
+ * FE cấm import chéo be/ nên hằng số sống ở lib này (tầng thấp nhất mà cả
+ * guard lẫn features với tới); BE có bản của nó ở guardians/features/invites.
+ */
+export const MIN_GUARDIANS = 3;
+
 /** Entry không khớp thứ người dùng thấy → dừng TRƯỚC khi ký. */
 export class BlindSignError extends Error {
   readonly code: BlindSignCode;
@@ -222,7 +230,9 @@ export function assertRegisterWalletEntry(
   // chưa từng thấy lọt vào danh sách sắp đóng băng trên chain.
   const allowed = new Set(expected.allowedGuardians);
   const guardians = addressVecAt(call.args, 1);
-  if (guardians.length === 0) throw new BlindSignError("ENTRY_WRONG_GUARDIAN_SET");
+  // Dưới sàn on-chain là contract panic #4 TooFewGuardians — chặn TRƯỚC khi
+  // xin sinh trắc học, đừng để người dùng ký một entry chắc chắn chết.
+  if (guardians.length < MIN_GUARDIANS) throw new BlindSignError("ENTRY_WRONG_GUARDIAN_SET");
   if (guardians.some((g) => !allowed.has(g))) {
     throw new BlindSignError("ENTRY_WRONG_GUARDIAN_SET");
   }

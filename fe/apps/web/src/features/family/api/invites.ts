@@ -21,6 +21,8 @@ export type GuardianInvite = {
 export type Recoverability = {
   available: number;
   threshold: number;
+  /** Số người TỐI THIỂU phải lên chain = max(MIN_GUARDIANS=3, threshold). */
+  required: number;
   recoverable: boolean;
   missing: number;
 };
