@@ -169,6 +169,7 @@
       "lastConfirm": "最后一次当面确认",
       "lastSeen": "最后一次收到消息",
       "never": "尚未",
+      "noActivity": "还没有动态",
       "notFound": "此人已不在你的名单上。",
       "statusLabel": "连接",
       "title": "守护人详情"
@@ -341,6 +342,20 @@
     "walletUser": "家庭钱包",
     "working": "正在用你的设备解锁…"
   },
+  "protecting": {
+    "title": "我看护的钱包",
+    "description": "你正在帮家人看护的钱包。",
+    "empty": "你还没有看护任何钱包。家人邀请你时，邀请链接会把你带到这里。",
+    "item": {
+      "title": "{{name}}的钱包",
+      "unnamed": "家人",
+      "since": "自 {{date}} 起由你看护",
+      "activity": "最近活跃：{{when}}",
+      "noActivity": "还没有动态",
+      "recoveryOpen": "有一个恢复请求正在等你处理",
+      "reviewCta": "查看并决定"
+    }
+  },
   "recovery": {
     "cooldown": {
       "canDo": "你仍然可以收款，钱包里已有的钱是安全的。",
@@ -500,7 +515,6 @@
       "labelField": "你怎么称呼他们",
       "labelPlaceholder": "妈妈、哥哥、女儿…",
       "labelRequired": "输入称呼即可创建邀请。",
-      "linkHint": "把这个链接发给他们，7 天内有效。",
       "title": "邀请家人"
     },
     "review": {

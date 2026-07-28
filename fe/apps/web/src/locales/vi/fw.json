@@ -169,6 +169,7 @@
       "lastConfirm": "Lần xác nhận trực tiếp gần nhất",
       "lastSeen": "Lần gần nhất có tin",
       "never": "Chưa có",
+      "noActivity": "Chưa có hoạt động nào",
       "notFound": "Người này không còn trong danh sách của bạn.",
       "statusLabel": "Kết nối",
       "title": "Chi tiết người bảo hộ"
@@ -341,6 +342,20 @@
     "walletUser": "Ví gia đình",
     "working": "Đang mở khóa bằng thiết bị của bạn…"
   },
+  "protecting": {
+    "title": "Ví tôi đang gác",
+    "description": "Những ví của người thân mà bạn đang giúp trông giữ.",
+    "empty": "Bạn chưa trông giúp ví nào. Khi người thân mời, đường dẫn trong lời mời sẽ đưa bạn tới đây.",
+    "item": {
+      "title": "Ví của {{name}}",
+      "unnamed": "người thân",
+      "since": "Bạn là người bảo hộ từ {{date}}",
+      "activity": "hoạt động {{when}}",
+      "noActivity": "chưa có hoạt động nào",
+      "recoveryOpen": "Có yêu cầu khôi phục đang chờ bạn",
+      "reviewCta": "Xem và quyết định"
+    }
+  },
   "recovery": {
     "cooldown": {
       "canDo": "Bạn vẫn nhận được tiền, và tiền đang có trong ví vẫn an toàn.",
@@ -500,7 +515,6 @@
       "labelField": "Bạn gọi họ là gì",
       "labelPlaceholder": "Mẹ, anh Hai, con gái…",
       "labelRequired": "Nhập tên để tạo lời mời.",
-      "linkHint": "Gửi đường dẫn này cho họ. Dùng được trong 7 ngày.",
       "title": "Mời người thân"
     },
     "review": {

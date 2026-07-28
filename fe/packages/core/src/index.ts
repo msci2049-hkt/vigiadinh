@@ -19,7 +19,9 @@ export {
 export {
   type FormatDateTimeOptions,
   formatCountdown,
+  formatDate,
   formatDateTime,
+  formatRelativeTime,
   type TimelockView,
   timelockView,
 } from "./money/datetime";

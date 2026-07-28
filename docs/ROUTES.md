@@ -52,6 +52,7 @@
 | `/night-watch/waiting` | guardian-offline (chờ nối lại) | ux-v2 nhóm 4 | Y |
 | `/night-watch/guardian-view` | watch phía guardian | ux-v2 nhóm 4 | Y |
 | `/guardian` | guardian-request (inbox phía guardian) | ux-v2 nhóm 6 | Y |
+| `/protecting` | C7 — "Ví tôi đang gác" (danh sách ví user đang bảo hộ, lối vào từ UserMenu) | 2026-07-28 | Y |
 | `/guardian/approve` | guardian-approve | ux-v2 nhóm 6 | Y |
 | `/guardian/approve-warning` | guardian-approve (nhánh cảnh báo risk) | ux-v2 nhóm 6 | Y |
 | `/guardian/approved` | send-final / done (phía guardian) | ux-v2 nhóm 6 | Y |

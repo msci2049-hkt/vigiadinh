@@ -37,6 +37,7 @@ const IDLE_PRELOAD_PATHS = [
   "/guardians",
   "/block",
   "/guardian",
+  "/protecting",
   "/inheritance",
 ] as const;
 

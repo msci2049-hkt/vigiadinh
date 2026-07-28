@@ -169,6 +169,7 @@
       "lastConfirm": "Last confirmed in person",
       "lastSeen": "Last heard from",
       "never": "Not yet",
+      "noActivity": "No activity yet",
       "notFound": "This person isn't on your list anymore.",
       "statusLabel": "Connection",
       "title": "Protector details"
@@ -341,6 +342,20 @@
     "walletUser": "Family wallet",
     "working": "Unlocking with your device…"
   },
+  "protecting": {
+    "title": "Wallets I look after",
+    "description": "Wallets your family trusted you to help watch over.",
+    "empty": "You're not looking after any wallets yet. When family invites you, the invite link will bring you here.",
+    "item": {
+      "title": "{{name}}'s wallet",
+      "unnamed": "your family member",
+      "since": "Looking after it since {{date}}",
+      "activity": "active {{when}}",
+      "noActivity": "no activity yet",
+      "recoveryOpen": "A recovery request is waiting for you",
+      "reviewCta": "Review and decide"
+    }
+  },
   "recovery": {
     "cooldown": {
       "canDo": "You can receive money, and everything already in the wallet is safe.",
@@ -500,7 +515,6 @@
       "labelField": "What you call them",
       "labelPlaceholder": "Mum, my brother, my daughter…",
       "labelRequired": "Type a name to create an invite.",
-      "linkHint": "Send this link to them. It works for 7 days.",
       "title": "Invite them"
     },
     "review": {

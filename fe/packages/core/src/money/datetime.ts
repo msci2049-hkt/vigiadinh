@@ -19,6 +19,44 @@ export function formatDateTime(value: Date | string | number, opts: FormatDateTi
   }).format(date);
 }
 
+/** Ngày KHÔNG kèm giờ — mốc "bạn trông ví này từ 28 thg 7" (C7). */
+export function formatDate(value: Date | string | number, opts: FormatDateTimeOptions): string {
+  const date = value instanceof Date ? value : new Date(value);
+  return new Intl.DateTimeFormat(opts.locale, {
+    dateStyle: opts.dateStyle ?? "medium",
+    ...(opts.timeZone ? { timeZone: opts.timeZone } : {}),
+  }).format(date);
+}
+
+const REL_UNITS = [
+  ["year", 31_536_000_000],
+  ["month", 2_592_000_000],
+  ["week", 604_800_000],
+  ["day", 86_400_000],
+  ["hour", 3_600_000],
+  ["minute", 60_000],
+] as const;
+
+/**
+ * "2 giờ trước / 2 hours ago / 2小时前" — Intl.RelativeTimeFormat theo locale,
+ * KHÔNG dependency ngoài. Chọn đơn vị LỚN NHẤT vừa đủ; dưới 1 phút rơi về
+ * numeric:"auto" cho "bây giờ/now" thay vì "0 giây trước".
+ * `now` truyền vào được để test hermetic.
+ */
+export function formatRelativeTime(
+  value: Date | string | number,
+  opts: { locale: string; now?: Date },
+): string {
+  const date = value instanceof Date ? value : new Date(value);
+  const now = opts.now ?? new Date();
+  const diffMs = date.getTime() - now.getTime();
+  const rtf = new Intl.RelativeTimeFormat(opts.locale, { numeric: "auto" });
+  for (const [unit, size] of REL_UNITS) {
+    if (Math.abs(diffMs) >= size) return rtf.format(Math.trunc(diffMs / size), unit);
+  }
+  return rtf.format(0, "second");
+}
+
 const UNIT_MS = [
   ["day", 86_400_000],
   ["hour", 3_600_000],

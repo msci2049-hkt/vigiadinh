@@ -41,6 +41,11 @@ export function UserMenu() {
         </Button>
       ) : null}
       <span className="hidden text-sm sm:inline">{user.name ?? user.email}</span>
+      {/* C7 — lối vào duy nhất của màn "Ví tôi đang gác": không có mục này,
+          người bảo hộ nhận email lúc recovery không biết bấm vào đâu. */}
+      <Button asChild size="sm" variant="ghost">
+        <Link to="/protecting">{t("userMenu.protecting")}</Link>
+      </Button>
       <Button asChild size="sm" variant="ghost">
         <Link to="/settings">{t("userMenu.settings")}</Link>
       </Button>

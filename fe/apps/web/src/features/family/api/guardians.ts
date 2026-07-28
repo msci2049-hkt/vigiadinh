@@ -14,6 +14,9 @@ export type Guardian = {
   lastSeenAt: string | null;
   lastManualConfirmAt: string | null;
   createdAt: string;
+  /** Tên gợi nhớ chủ ví đặt ("Mẹ", "Anh Hai") — BE join từ guardian_invites;
+   * null với dữ liệu cũ → màn rơi về chuỗi i18n, không để trống. */
+  label: string | null;
 };
 
 export const guardianKeys = {
