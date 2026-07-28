@@ -23,6 +23,12 @@ describe("cấu hình khôi phục", () => {
     expect(validateRecoveryConfig({ ...base, threshold: 0 })).toBe("THRESHOLD_OUT_OF_RANGE");
   });
 
+  it("ngưỡng 1 bị chối — registry đòi MIN_THRESHOLD=2, một người bảo hộ đơn lẻ không tự quyết được", () => {
+    // Trước bản vá, 1 lọt qua đây rồi mới panic `#3 InvalidThreshold` ở
+    // `register_wallet` — tức hỏng ở BƯỚC CUỐI wizard, sau ceremony passkey.
+    expect(validateRecoveryConfig({ ...base, threshold: 1 })).toBe("THRESHOLD_OUT_OF_RANGE");
+  });
+
   it("ngưỡng vượt MAX_GUARDIANS bị chối sớm thay vì để contract chối", () => {
     expect(validateRecoveryConfig({ ...base, threshold: 11 })).toBe("THRESHOLD_OUT_OF_RANGE");
   });
@@ -32,9 +38,16 @@ describe("cấu hình khôi phục", () => {
     expect(validateRecoveryConfig({ ...base, timelockSecs: 12345 })).toBe("TIMELOCK_NOT_ALLOWED");
   });
 
-  it("nhận cả 3 lựa chọn: 1 giờ / 24 giờ / 3 ngày", () => {
-    for (const secs of [3600, 86400, 259200]) {
+  it("1 giờ bị chối — DƯỚI sàn MIN_TIMELOCK_SECS=86_400 mà registry cưỡng chế on-chain", () => {
+    // Đây là ca hồi quy của bug thật: 3600 từng nằm trong danh sách, UI render
+    // nút "1 giờ", contract panic `#17 TimelockTooShort` ở bước cuối wizard.
+    expect(validateRecoveryConfig({ ...base, timelockSecs: 3600 })).toBe("TIMELOCK_NOT_ALLOWED");
+  });
+
+  it("nhận cả 3 lựa chọn: 24 giờ / 3 ngày / 7 ngày — đều ≥ sàn on-chain", () => {
+    for (const secs of [86400, 259200, 604800]) {
       expect(validateRecoveryConfig({ ...base, timelockSecs: secs })).toBeNull();
+      expect(secs).toBeGreaterThanOrEqual(86400);
     }
   });
 });

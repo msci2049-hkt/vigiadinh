@@ -483,7 +483,7 @@
       "choice": {
         "day1": "1 day (recommended)",
         "day3": "3 days",
-        "hour1": "1 hour"
+        "day7": "7 days"
       },
       "description": "If someone starts a recovery you did not ask for, this is how long you have to stop it.",
       "nextCta": "Next: check everything",

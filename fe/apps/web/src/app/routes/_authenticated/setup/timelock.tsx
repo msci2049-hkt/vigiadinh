@@ -2,8 +2,13 @@
 // mà họ không hề yêu cầu (thay stub).
 //
 // Handoff chốt 24h cố định; ux-v2 cho chọn. Chọn: CHO CHỌN, mặc định 24h —
-// contract để `timelock_secs` tự do nên không mất gì, và đánh đổi ở đây là thật
-// (chờ lâu = an toàn hơn nhưng cứu ví chậm hơn), người dùng nên tự cân.
+// đánh đổi ở đây là thật (chờ lâu = an toàn hơn nhưng cứu ví chậm hơn), người
+// dùng nên tự cân.
+//
+// CHỈ được cho chọn TỪ 24h TRỞ LÊN. Registry cưỡng chế sàn `MIN_TIMELOCK_SECS`
+// = 86_400 on-chain (vá audit P0-2) — thấp hơn là `register_wallet` panic
+// `#17 TimelockTooShort` ở bước CUỐI wizard, sau khi người dùng đã làm xong
+// ceremony passkey. Danh sách lấy từ `TIMELOCK_CHOICES_SECS`, đừng thêm tay.
 //
 // Ba lựa chọn khớp `TIMELOCK_CHOICES_SECS` của BE — BE là nơi cưỡng chế; danh
 // sách ở đây chỉ để dựng nút.

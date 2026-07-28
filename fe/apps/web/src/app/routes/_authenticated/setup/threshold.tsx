@@ -25,7 +25,11 @@ export const Route = createFileRoute("/_authenticated/setup/threshold")({
   component: SetupThresholdScreen,
 });
 
-const CHOICES = [1, 2, 3, 4, 5];
+// Bắt đầu từ 2, KHÔNG phải 1: registry đòi `MIN_THRESHOLD = 2`
+// (`recovery-registry/src/lib.rs:71`) — một người bảo hộ đơn lẻ không bao giờ
+// tự quyết được. Ngưỡng 1 lọt qua đây là `register_wallet` panic
+// `#3 InvalidThreshold` ở bước cuối wizard.
+const CHOICES = [2, 3, 4, 5];
 
 function SetupThresholdScreen() {
   const { t } = useTranslation("fw");

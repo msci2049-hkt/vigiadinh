@@ -483,7 +483,7 @@
       "choice": {
         "day1": "1 ngày (nên chọn)",
         "day3": "3 ngày",
-        "hour1": "1 giờ"
+        "day7": "7 ngày"
       },
       "description": "Nếu ai đó mở khôi phục mà bạn không hề yêu cầu, đây là khoảng thời gian bạn kịp chặn lại.",
       "nextCta": "Tiếp: xem lại",

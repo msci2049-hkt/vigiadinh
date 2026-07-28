@@ -27,17 +27,21 @@ export const walletsOptions = queryOptions({
   },
 });
 
-/** Lựa chọn thời gian chờ — khớp `TIMELOCK_CHOICES_SECS` của BE. */
-export const TIMELOCK_CHOICES_SECS = [3600, 86400, 259200] as const;
+/**
+ * Lựa chọn thời gian chờ — khớp `TIMELOCK_CHOICES_SECS` của BE, và qua đó khớp
+ * sàn `MIN_TIMELOCK_SECS` (86_400) mà registry cưỡng chế on-chain. Thêm giá trị
+ * thấp hơn ở đây = mời người dùng vào một wizard chắc chắn panic ở bước cuối.
+ */
+export const TIMELOCK_CHOICES_SECS = [86400, 259200, 604800] as const;
 
 /**
  * Số giây → key i18n. Trả literal (không ghép chuỗi runtime) vì key i18n của
  * repo có kiểu chặt: union hữu hạn, template literal không qua được tsc.
  */
 export const TIMELOCK_LABEL_KEY = {
-  3600: "setup.timelock.choice.hour1",
   86400: "setup.timelock.choice.day1",
   259200: "setup.timelock.choice.day3",
+  604800: "setup.timelock.choice.day7",
 } as const;
 
 export type TimelockLabelKey = (typeof TIMELOCK_LABEL_KEY)[keyof typeof TIMELOCK_LABEL_KEY];
