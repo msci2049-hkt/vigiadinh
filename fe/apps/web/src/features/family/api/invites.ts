@@ -45,14 +45,28 @@ export const invitesOptions = (walletId: string) =>
     },
   });
 
+/**
+ * Trang nhận lời mời CÔNG KHAI đọc qua đây — BE chỉ trả trường an toàn (nhãn,
+ * tên hiển thị chủ ví, hạn, trạng thái; KHÔNG email/địa chỉ/số dư). Mọi field
+ * ngoài label/status là optional: BE bản cũ chưa trả — FE phải chịu được cả
+ * hai shape vì FE deploy được trước BE (root VPS hay đóng).
+ */
+export type PublicInvite = {
+  label: string;
+  status: InviteStatus;
+  owner_name?: string | null;
+  /** BE cũ chỉ trả 200 khi CÒN DÙNG ĐƯỢC → thiếu field này coi như true. */
+  usable?: boolean;
+  reason?: "expired" | "used";
+  expires_at?: string;
+};
+
 /** Người được mời mở link — chỉ đọc nhãn, chưa cần đăng nhập. */
 export const inviteByTokenOptions = (token: string) =>
   queryOptions({
     queryKey: inviteKeys.byToken(token),
     queryFn: async () => {
-      const res = await apiClient.get<{ data: { label: string; status: InviteStatus } }>(
-        `/api/guardians/invites/${token}`,
-      );
+      const res = await apiClient.get<{ data: PublicInvite }>(`/api/guardians/invites/${token}`);
       return res.data;
     },
     retry: false,

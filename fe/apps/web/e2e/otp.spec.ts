@@ -61,6 +61,81 @@ test("verify-email without an email param redirects to sign-up", async ({ page }
   await expect(page).toHaveURL(/\/sign-up$/);
 });
 
+// A.4.3 (28/07): người thân mở link mời guardian đa số CHƯA có tài khoản.
+// ?redirect phải sống qua CẢ chuỗi đăng ký → OTP, không được rơi về /wallet.
+test("sign-up với ?redirect giữ token qua OTP — về đúng trang nhận lời mời", async ({ page }) => {
+  await mockAuth(page);
+  await page.route("**/api/guardians/invites/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: {
+          label: "Mẹ",
+          owner_name: "Chủ Ví",
+          status: "sent",
+          usable: true,
+          expires_at: "2027-01-01T00:00:00Z",
+        },
+      }),
+    }),
+  );
+
+  await page.goto("/sign-up?redirect=%2Fguardian%2Faccept%3Ftoken%3Dtok1");
+  await page.getByLabel("Tên").fill("Test User");
+  await page.getByLabel("Email").fill("user@example.com");
+  await page.getByLabel("Mật khẩu").fill("SuperSecret123!");
+  await page.getByRole("button", { name: "Đăng ký" }).click();
+
+  // redirect đi kèm qua trang verify…
+  await expect(page).toHaveURL(/\/verify-email\?.*redirect=/);
+  await fillOtp(page, "123456");
+  await page.getByRole("button", { name: "Xác minh" }).click();
+
+  // …và OTP xong quay về ĐÚNG trang nhận lời mời, không rơi về /wallet.
+  await expect(page).toHaveURL(/\/guardian\/accept\?token=tok1/);
+});
+
+// Trang nhận lời mời giờ CÔNG KHAI: chưa đăng nhập phải thấy GIẢI THÍCH,
+// không bị đá thẳng vào ô mật khẩu (hình dạng phishing — bug A 28/07).
+test("mở link mời khi CHƯA đăng nhập → thấy trang giải thích, không nhảy vào /login", async ({
+  page,
+}) => {
+  // KHÔNG mockAuth session — get-session trả null như người lạ thật.
+  await page.route("**/api/auth/get-session", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: "null" }),
+  );
+  await page.route("**/api/config/validation", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ data: {} }),
+    }),
+  );
+  await page.route("**/api/guardians/invites/**", (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        data: {
+          label: "Mẹ",
+          owner_name: "Chủ Ví",
+          status: "sent",
+          usable: true,
+          expires_at: "2027-01-01T00:00:00Z",
+        },
+      }),
+    }),
+  );
+
+  await page.goto("/guardian/accept?token=tok1");
+  // Vẫn Ở NGUYÊN trang accept — không bị guard đá sang /login.
+  await expect(page).toHaveURL(/\/guardian\/accept\?token=tok1/);
+  // Có tên người mời + nút đồng ý dẫn sang đăng nhập (giữ redirect).
+  await expect(page.getByText(/Chủ Ví/)).toBeVisible();
+  await expect(page.getByTestId("guardian-accept-login")).toBeVisible();
+});
+
 test("forgot-password redirects to reset-password carrying the email", async ({ page }) => {
   await mockAuth(page);
   await page.goto("/forgot-password");

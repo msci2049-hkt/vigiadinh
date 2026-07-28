@@ -20,7 +20,13 @@ import { z } from "zod";
 import { requireAuth } from "@/middlewares/auth";
 import { rateLimit } from "@/middlewares/rate-limit";
 import * as repo from "../../infra/invites.repository";
-import { INVITE_TTL_MS, type InviteStatus, isUsable, recoverability } from "./domain";
+import {
+  INVITE_TTL_MS,
+  type InviteStatus,
+  isUsable,
+  publicInviteView,
+  recoverability,
+} from "./domain";
 
 const createBody = z.object({
   wallet_id: z.string().length(26),
@@ -99,16 +105,29 @@ export const guardianInvitesRoute = new Hono()
     });
   })
 
-  /** PUBLIC — người được mời mở link, chỉ thấy nhãn + tên ví, không thấy gì khác. */
+  /**
+   * PUBLIC — trang nhận lời mời đọc TRƯỚC khi đăng nhập (nguyên tắc: giải
+   * thích trước, mật khẩu sau — link lạ đòi mật khẩu ngay là hình dạng của
+   * trang lừa đảo). Trả CHỈ trường an toàn: nhãn gợi nhớ, tên hiển thị chủ
+   * ví, hạn dùng, trạng thái. CẤM email / địa chỉ ví / số dư đi qua đây.
+   *
+   * 404 = token không tồn tại. Hết hạn / đã dùng = 200 + usable:false +
+   * reason — màn phải nói đúng câu ("hết hạn ngày X" ≠ "đã dùng rồi"), gộp
+   * chung 404 là người thân không biết phải xin lại link hay thôi.
+   */
   .get("/invites/:token", publicLimit, async (c) => {
     const invite = await repo.findByToken(c.req.param("token"));
-    if (
-      !invite ||
-      !isUsable({ status: invite.status as InviteStatus, expiresAt: invite.expiresAt }, new Date())
-    ) {
-      throw new HTTPException(404, { message: "INVITE_NOT_USABLE" });
-    }
-    return c.json({ data: { label: invite.label, status: invite.status } });
+    if (!invite) throw new HTTPException(404, { message: "INVITE_NOT_FOUND" });
+
+    const now = new Date();
+    const shape = {
+      label: invite.label,
+      status: invite.status as InviteStatus,
+      expiresAt: invite.expiresAt,
+    };
+    // owner_name chỉ tra khi link còn sống — link chết không cần biết thêm gì.
+    const ownerName = isUsable(shape, now) ? await repo.findOwnerName(invite.walletId) : null;
+    return c.json({ data: publicInviteView(shape, ownerName, now) });
   })
 
   /**

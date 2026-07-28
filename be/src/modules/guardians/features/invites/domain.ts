@@ -78,3 +78,47 @@ export function isUsable(invite: { status: InviteStatus; expiresAt: Date }, now:
   if (invite.status !== "sent") return false;
   return invite.expiresAt.getTime() > now.getTime();
 }
+
+/** Shape response của trang nhận lời mời CÔNG KHAI — nguồn duy nhất. */
+export type PublicInviteView = {
+  label: string;
+  status: InviteStatus;
+  usable: boolean;
+  reason?: "expired" | "used";
+  owner_name?: string | null;
+  expires_at: Date;
+};
+
+/**
+ * Dựng response public từ một lời mời — THUẦN, để test hermetic chứng minh
+ * đường public không rò gì (A-Q3): hàm chỉ NHẬN label/status/expiresAt +
+ * ownerName, về mặt kiểu không có chỗ cho email/địa chỉ ví/số dư lọt ra.
+ *
+ * Hết hạn vs đã dùng là HAI câu khác nhau trên màn ("xin link mới" ≠ "báo
+ * người mời") — `sent`/`expired` quá hạn là expired, còn lại là used.
+ * owner_name CHỈ kèm khi link còn sống: link chết không cần biết thêm gì.
+ */
+export function publicInviteView(
+  invite: { label: string; status: InviteStatus; expiresAt: Date },
+  ownerName: string | null,
+  now: Date,
+): PublicInviteView {
+  const usable = isUsable(invite, now);
+  if (!usable) {
+    const reason = invite.status === "sent" || invite.status === "expired" ? "expired" : "used";
+    return {
+      label: invite.label,
+      status: invite.status,
+      usable,
+      reason,
+      expires_at: invite.expiresAt,
+    };
+  }
+  return {
+    label: invite.label,
+    status: invite.status,
+    usable,
+    owner_name: ownerName,
+    expires_at: invite.expiresAt,
+  };
+}

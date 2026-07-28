@@ -28,7 +28,13 @@ import { makeVerifyOtpSchema, type VerifyOtpInput } from "../schemas/otp-schema"
 
 const RESEND_COOLDOWN_S = 60;
 
-export function VerifyEmailForm({ email }: { email: string }) {
+export function VerifyEmailForm({
+  email,
+  redirectTo,
+}: {
+  email: string;
+  redirectTo?: string | undefined;
+}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useTranslation("auth");
@@ -56,13 +62,15 @@ export function VerifyEmailForm({ email }: { email: string }) {
       toast.error(error.message ?? t("verify.errorToast"));
       return;
     }
-    // verifyEmail (autoSignInAfterVerification) tạo session → vào luôn app
-    // (admin → /admin, user thường → /wallet — KHÔNG rơi về "/" = /welcome).
+    // verifyEmail (autoSignInAfterVerification) tạo session → vào luôn app.
+    // ?redirect tường minh (đã sanitize ở route) THẮNG — người nhận lời mời
+    // guardian quay về ĐÚNG trang lời mời; không có thì admin → /admin,
+    // user thường → /wallet (KHÔNG rơi về "/" = /welcome).
     queryClient.removeQueries({ queryKey: sessionQueryKey });
     const { data } = await getSession().catch(() => ({ data: null }));
     setSubmitting(false);
     toast.success(t("verify.successToast"));
-    await navigate({ to: postAuthPath(data?.user?.role) });
+    await navigate({ to: redirectTo ?? postAuthPath(data?.user?.role) });
   }
 
   async function onResend() {

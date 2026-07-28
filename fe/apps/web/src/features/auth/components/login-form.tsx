@@ -119,7 +119,11 @@ export function LoginForm({ redirectTo }: { redirectTo?: string | undefined }) {
             </Link>
             <p>
               {t("login.noAccount")}{" "}
-              <Link to="/sign-up" className="text-primary underline-offset-4 hover:underline">
+              <Link
+                to="/sign-up"
+                search={{ redirect: redirectTo }}
+                className="text-primary underline-offset-4 hover:underline"
+              >
                 {t("login.signUpLink")}
               </Link>
             </p>

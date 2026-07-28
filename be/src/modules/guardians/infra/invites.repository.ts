@@ -2,6 +2,7 @@
 // TẦNG SCHEMA (cùng khuôn recovery.repository) — FK/JOIN cần chính table object.
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
+import { user } from "@/db/schema";
 import { wallets } from "../../wallets/infra/wallets.schema";
 import { type GuardianInvite, guardianInvites } from "./guardian-invites.schema";
 
@@ -28,6 +29,21 @@ export async function insertInvite(data: {
 
 export async function listByWallet(walletId: string): Promise<GuardianInvite[]> {
   return db.select().from(guardianInvites).where(eq(guardianInvites.walletId, walletId));
+}
+
+/**
+ * Tên HIỂN THỊ của chủ ví — cho trang nhận lời mời CÔNG KHAI ("<Tên> mời bạn
+ * làm người bảo hộ"). CHỈ select cột name: email/địa chỉ ví/số dư không bao
+ * giờ được đi qua đường public này (A-Q3).
+ */
+export async function findOwnerName(walletId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ name: user.name })
+    .from(wallets)
+    .innerJoin(user, eq(wallets.userId, user.id))
+    .where(eq(wallets.id, walletId))
+    .limit(1);
+  return row?.name ?? null;
 }
 
 export async function findByToken(token: string): Promise<GuardianInvite | null> {

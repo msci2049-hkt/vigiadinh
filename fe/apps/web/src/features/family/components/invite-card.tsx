@@ -12,6 +12,17 @@ import { Icon } from "@/components/family/icons";
 import { WalletQrCode } from "@/components/family/illustrations";
 import { Button } from "@/components/family/ui";
 import { inviteAcceptUrl } from "../api/invites";
+import { renderInviteCardPng, slugifyLabel } from "../lib/invite-image";
+
+/** Web Share Level 2 (chia sẻ FILE) — desktop đa số không có → ẩn nút. */
+function canShareFiles(): boolean {
+  try {
+    const probe = new File([], "probe.png", { type: "image/png" });
+    return navigator.canShare?.({ files: [probe] }) === true;
+  } catch {
+    return false;
+  }
+}
 
 /** Link hiện rút gọn (token giữa bị cắt) — clipboard luôn nhận bản ĐẦY ĐỦ. */
 function shortenUrl(url: string, token: string): string {
@@ -22,9 +33,52 @@ function shortenUrl(url: string, token: string): string {
 export function InviteCard({ label, token }: { label: string; token: string }) {
   const { t } = useTranslation("fw");
   const [copied, setCopied] = useState(false);
+  const [rendering, setRendering] = useState(false);
   const url = inviteAcceptUrl(token);
   // Không hỗ trợ Web Share API → ẨN nút, không hiện nút chết.
   const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+  const canShareImage = typeof navigator !== "undefined" && canShareFiles();
+
+  async function makePng(): Promise<{ blob: Blob; name: string }> {
+    const blob = await renderInviteCardPng({
+      url,
+      label,
+      // Chữ trên ảnh theo NGÔN NGỮ ĐANG CHỌN — thiệp tiếng Trung ra chữ Trung.
+      title: t("setup.invite.card.imageTitle"),
+      subtitle: t("setup.invite.card.imageSubtitle"),
+    });
+    return { blob, name: `loi-moi-${slugifyLabel(label)}.png` };
+  }
+
+  async function downloadImage() {
+    setRendering(true);
+    try {
+      const { blob, name } = await makePng();
+      const href = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = href;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(href);
+    } catch {
+      toast.error(t("setup.invite.card.imageFailed"));
+    } finally {
+      setRendering(false);
+    }
+  }
+
+  async function shareImage() {
+    setRendering(true);
+    try {
+      const { blob, name } = await makePng();
+      const file = new File([blob], name, { type: "image/png" });
+      await navigator.share({ files: [file], title: t("setup.invite.card.imageTitle") });
+    } catch {
+      // Người dùng đóng hộp chia sẻ — không phải lỗi.
+    } finally {
+      setRendering(false);
+    }
+  }
 
   async function copy() {
     try {
@@ -77,7 +131,14 @@ export function InviteCard({ label, token }: { label: string; token: string }) {
           <Icon name={copied ? "checkCircle" : "copy"} />
           {copied ? t("wallet.receive.copied") : t("setup.invite.copyCta")}
         </Button>
-        {canShare ? (
+        <Button size="sm" variant="outline" loading={rendering} onClick={() => void downloadImage()}>
+          {t("setup.invite.card.downloadCta")}
+        </Button>
+        {canShareImage ? (
+          <Button size="sm" variant="outline" loading={rendering} onClick={() => void shareImage()}>
+            {t("setup.invite.card.shareImageCta")}
+          </Button>
+        ) : canShare ? (
           <Button size="sm" variant="outline" onClick={() => void share()}>
             {t("setup.invite.card.shareCta")}
           </Button>

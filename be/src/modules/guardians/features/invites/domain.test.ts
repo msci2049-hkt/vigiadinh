@@ -1,5 +1,11 @@
 import { describe, expect, it } from "bun:test";
-import { type InviteStatus, isUsable, recoverability, registeredCount } from "./domain";
+import {
+  type InviteStatus,
+  isUsable,
+  publicInviteView,
+  recoverability,
+  registeredCount,
+} from "./domain";
 
 describe("guardian invites — khả năng khôi phục", () => {
   it("CHỈ đếm người đã lên chain, không đếm lời mời đã gửi", () => {
@@ -98,5 +104,50 @@ describe("guardian invites — lời mời còn dùng được", () => {
     expect(isUsable({ status: "accepted", expiresAt: new Date("2026-08-01T00:00:00Z") }, now)).toBe(
       false,
     );
+  });
+});
+
+describe("publicInviteView — trang nhận lời mời công khai KHÔNG rò dữ liệu (A-Q3)", () => {
+  const now = new Date("2026-07-28T00:00:00Z");
+  const future = new Date("2026-08-01T00:00:00Z");
+  const past = new Date("2026-07-01T00:00:00Z");
+
+  it("còn sống → usable + owner_name; KHÔNG có email/địa chỉ ví/số dư trong shape", () => {
+    const view = publicInviteView(
+      { label: "Mẹ", status: "sent", expiresAt: future },
+      "Chủ Ví",
+      now,
+    );
+    expect(view.usable).toBe(true);
+    expect(view.owner_name).toBe("Chủ Ví");
+    // Chốt danh sách key — thêm trường mới vào đường public là test này ĐỎ,
+    // buộc người sửa tự trả lời "trường này có an toàn không".
+    expect(Object.keys(view).sort()).toEqual([
+      "expires_at",
+      "label",
+      "owner_name",
+      "status",
+      "usable",
+    ]);
+  });
+
+  it("sent nhưng quá hạn → reason=expired, KHÔNG kèm owner_name", () => {
+    const view = publicInviteView({ label: "Mẹ", status: "sent", expiresAt: past }, "Chủ Ví", now);
+    expect(view.usable).toBe(false);
+    expect(view.reason).toBe("expired");
+    expect("owner_name" in view).toBe(false);
+  });
+
+  it("đã nhận lời (accepted/deployed/registered) → reason=used, hai câu khác nhau trên màn", () => {
+    for (const status of ["accepted", "deployed", "registered"] as const) {
+      const view = publicInviteView({ label: "Mẹ", status, expiresAt: future }, "Chủ Ví", now);
+      expect(view.usable).toBe(false);
+      expect(view.reason).toBe("used");
+    }
+  });
+
+  it("status=expired → reason=expired", () => {
+    const view = publicInviteView({ label: "Mẹ", status: "expired", expiresAt: future }, null, now);
+    expect(view.reason).toBe("expired");
   });
 });

@@ -23,7 +23,7 @@ import { signUp } from "@/lib/auth-client";
 import { useValidationLimits } from "@/lib/validation-limits";
 import { makeSignupSchema, type SignupInput } from "../schemas/signup-schema";
 
-export function SignupForm() {
+export function SignupForm({ redirectTo }: { redirectTo?: string | undefined }) {
   const navigate = useNavigate();
   const { t } = useTranslation("auth");
   const limits = useValidationLimits();
@@ -53,7 +53,11 @@ export function SignupForm() {
     // emailOTP override). Điều hướng sang trang verify, mang email theo.
     setSubmitting(false);
     toast.success(t("signup.successToast"));
-    await navigate({ to: "/verify-email", search: { email: values.email } });
+    // redirect đi tiếp qua verify (A.4.3) — token lời mời guardian sống trọn luồng.
+    await navigate({
+      to: "/verify-email",
+      search: { email: values.email, redirect: redirectTo },
+    });
   }
 
   return (
