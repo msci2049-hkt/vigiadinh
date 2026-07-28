@@ -43,13 +43,16 @@ concurrency:
 env:
   # Nguồn sự thật DUY NHẤT cho các giá trị production. Đổi ở đây, không rải rác.
   API_ORIGIN: https://api.familyhaven.mscilabs.com
-  # MAINNET (migration 2026-07-26): FE gọi Stellar RPC qua proxy BE POST /rpc —
-  # không gọi thẳng provider (key nằm server-side). PHẢI = API_ORIGIN + "/rpc"
+  # FE gọi Stellar RPC qua proxy BE POST /rpc (migration 2026-07-26) — không gọi
+  # thẳng provider (key nằm server-side). PHẢI = API_ORIGIN + "/rpc"
   # (env block GitHub không nối được từ env khác — đổi API_ORIGIN thì đổi theo).
   RPC_URL: https://api.familyhaven.mscilabs.com/rpc
-  # Passphrase MAINNET — chính xác từng ký tự. env.ts đã fail-closed (hết
-  # default testnet) nên thiếu/sai biến này là app throw ngay lúc boot.
-  STELLAR_NETWORK_PASSPHRASE: "Public Global Stellar Network ; September 2015"
+  # ĐỢT TESTNET 2026-07-27: production chạy TESTNET đồng bộ ba tầng (contracts +
+  # BE VPS + FE) — AUDIT-2026-07-25 §8. Passphrase chính xác từng ký tự; env.ts
+  # fail-closed nên thiếu/sai là app throw ngay lúc boot. Lên MAINNET = đổi dòng
+  # này + 5 GitHub vars (bộ id mainnet) CÙNG MỘT ĐỢT:
+  #   "Public Global Stellar Network ; September 2015"
+  STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
   SITE_ORIGIN: https://familyhaven.mscilabs.com
   # Tên hiển thị. KHÔNG bỏ trống được, và đây là lý do đo được (2026-07-27):
   #   1. `apps/web/index.html` dùng token `%VITE_APP_NAME%`. Vite 8 thay token theo
@@ -112,12 +115,12 @@ jobs:
       - name: Audit (high/critical)
         run: pnpm audit --audit-level=high
 
-      # ---- GATE D1: đủ 5 biến mainnet TRƯỚC khi build ----
+      # ---- GATE D1: đủ 5 biến chain TRƯỚC khi build ----
       # Cố ý FAIL Ồ ẠT khi GitHub vars chưa điền (khác triết lý skip-deploy của
-      # Cloudflare secrets bên dưới): thiếu contract id mainnet mà vẫn ship là
-      # ship ví không tạo được / stellar.toml chở template. Điền theo bảng
-      # "GitHub vars phải điền" trong MAINNET-CHECKLIST.md rồi chạy lại.
-      - name: Gate mainnet vars (D1)
+      # Cloudflare secrets bên dưới): thiếu contract id mà vẫn ship là
+      # ship ví không tạo được / stellar.toml chở template. Đợt TESTNET 2026-07-27:
+      # giá trị = AUDIT-2026-07-25 §8; đợt mainnet sau: MAINNET-CHECKLIST.md H1.
+      - name: Gate chain vars (D1)
         env:
           VITE_ACCOUNT_WASM_HASH: ${{ vars.VITE_ACCOUNT_WASM_HASH }}
           VITE_WEBAUTHN_VERIFIER_ADDRESS: ${{ vars.VITE_WEBAUTHN_VERIFIER_ADDRESS }}
@@ -148,7 +151,7 @@ jobs:
             echo "❌ D1: VITE_ACCOUNT_WASM_HASH sai định dạng wasm hash (cần ^[0-9a-f]{64}\$)"; bad=1
           fi
           if [ "$bad" != "0" ]; then exit 1; fi
-          echo "✅ D1: đủ 5 biến mainnet, đúng định dạng"
+          echo "✅ D1: đủ 5 biến chain, đúng định dạng"
 
       # ---- BUILD ----
       # Vite nướng VITE_* vào bundle LÚC BUILD. Đặt ở đây, KHÔNG ở dashboard
@@ -364,7 +367,7 @@ jobs:
           grep -rq 'api\.familyhaven\.mscilabs\.com' "$D/assets" \
             || { echo "❌ API URL không có trong bundle — VITE_API_URL chưa vào build"; exit 1; }
 
-          # ---- GATES MAINNET D2→D5 (MAINNET-CHECKLIST.md) ----
+          # ---- GATES CHAIN D2→D5 (MAINNET-CHECKLIST.md; D4/D5 network-aware) ----
           # Minifier (esbuild) đổi nháy đơn/kép thành BACKTICK khi có lợi — đo
           # thật trên dist 2026-07-26: rpId nằm dạng `familyhaven.mscilabs.com`.
           # Char class phủ cả ba loại nháy, nếu không D2 false-negative.
@@ -385,47 +388,72 @@ jobs:
             exit 1
           fi
 
-          # D4: KHÔNG còn dấu vết testnet trong bundle mainnet — ba tầng.
+          # D4: bundle KHÔNG được lẫn dấu vết của network KIA. Network của đợt đọc
+          # từ env STELLAR_NETWORK_PASSPHRASE (nguồn sự thật duy nhất đầu file) —
+          # gate tự đảo chiều khi flip mainnet, không phải sửa tay lần nữa.
           # Miễn trừ DUY NHẤT theo TÊN FILE chunk vendor `/vendor-stellar-`
           # (manualChunks trong packages/config/vite.preset.mjs — chỉ chứa
           # node_modules/@stellar + smart-account-kit, không chứa code app):
-          # stellar-sdk LUÔN chở hằng Networks.TESTNET + helper requestAirdrop
-          # (friendbot) trong code THƯ VIỆN (đo thật trên dist 2026-07-26) —
-          # không phải config của ta. Mọi chunk chứa code app đều bị quét đủ.
-          # (1) `soroban-testnet` quét TOÀN BỘ assets: URL RPC là config của ta,
-          #     xuất hiện ở đâu cũng là misconfig.
-          if grep -rq 'soroban-testnet' "$D/assets"; then
-            echo "❌ D4: còn soroban-testnet trong bundle:"
-            grep -ro '.{30}soroban-testnet.{30}' "$D/assets" | head -5
-            exit 1
-          fi
-          # (2) `Test SDF Network|friendbot` — mọi chunk trừ vendor-stellar-*.
-          #     Code app DÁN chuỗi passphrase testnet sẽ nằm ở chunk app → bắt.
-          D4_HITS=$(grep -rlE 'Test SDF Network|friendbot' "$D/assets" | grep -v '/vendor-stellar-' || true)
-          if [ -n "$D4_HITS" ]; then
-            echo "❌ D4: dấu vết testnet/friendbot NGOÀI chunk vendor-stellar:"
-            echo "$D4_HITS"
-            grep -roE '.{30}(Test SDF Network|friendbot).{30}' $D4_HITS | head -5
-            exit 1
-          fi
-          # (3) `.TESTNET` (audit F4) — mọi chunk trừ vendor-stellar-*. Bắt ca
-          #     tầng (2) MÙ: app code dùng `Networks.TESTNET` thì chuỗi
-          #     passphrase nằm bên chunk vendor (được miễn trừ), chunk app chỉ
-          #     còn property access `.TESTNET` sau minify — quét đúng dấu vết đó.
-          D4_PROP_HITS=$(grep -rlE '\.TESTNET\b' "$D/assets" | grep -v '/vendor-stellar-' || true)
-          if [ -n "$D4_PROP_HITS" ]; then
-            echo "❌ D4: truy cập .TESTNET (Networks.TESTNET) NGOÀI chunk vendor-stellar:"
-            echo "$D4_PROP_HITS"
-            grep -roE '.{40}\.TESTNET.{20}' $D4_PROP_HITS | head -5
-            exit 1
+          # stellar-sdk LUÔN chở hằng Networks.TESTNET + Networks.PUBLIC + helper
+          # requestAirdrop (friendbot) trong code THƯ VIỆN (đo thật trên dist
+          # 2026-07-26) — không phải config của ta. Chunk app bị quét đủ.
+          case "$STELLAR_NETWORK_PASSPHRASE" in
+            "Public Global Stellar Network ; September 2015") NET=mainnet;;
+            "Test SDF Network ; September 2015") NET=testnet;;
+            *) echo "❌ D4: STELLAR_NETWORK_PASSPHRASE lạ — không phải testnet/mainnet"; exit 1;;
+          esac
+          echo "D4: network của đợt = $NET"
+          if [ "$NET" = "mainnet" ]; then
+            # (1) `soroban-testnet` quét TOÀN BỘ assets: URL RPC là config của ta,
+            #     xuất hiện ở đâu cũng là misconfig.
+            if grep -rq 'soroban-testnet' "$D/assets"; then
+              echo "❌ D4: còn soroban-testnet trong bundle:"
+              grep -ro '.{30}soroban-testnet.{30}' "$D/assets" | head -5
+              exit 1
+            fi
+            # (2) `Test SDF Network|friendbot` — mọi chunk trừ vendor-stellar-*.
+            #     Code app DÁN chuỗi passphrase testnet sẽ nằm ở chunk app → bắt.
+            D4_HITS=$(grep -rlE 'Test SDF Network|friendbot' "$D/assets" | grep -v '/vendor-stellar-' || true)
+            if [ -n "$D4_HITS" ]; then
+              echo "❌ D4: dấu vết testnet/friendbot NGOÀI chunk vendor-stellar:"
+              echo "$D4_HITS"
+              grep -roE '.{30}(Test SDF Network|friendbot).{30}' $D4_HITS | head -5
+              exit 1
+            fi
+            # (3) `.TESTNET` (audit F4) — mọi chunk trừ vendor-stellar-*. Bắt ca
+            #     tầng (2) MÙ: app code dùng `Networks.TESTNET` thì chuỗi
+            #     passphrase nằm bên chunk vendor (được miễn trừ), chunk app chỉ
+            #     còn property access `.TESTNET` sau minify — quét đúng dấu vết đó.
+            D4_PROP_HITS=$(grep -rlE '\.TESTNET\b' "$D/assets" | grep -v '/vendor-stellar-' || true)
+            if [ -n "$D4_PROP_HITS" ]; then
+              echo "❌ D4: truy cập .TESTNET (Networks.TESTNET) NGOÀI chunk vendor-stellar:"
+              echo "$D4_PROP_HITS"
+              grep -roE '.{40}\.TESTNET.{20}' $D4_PROP_HITS | head -5
+              exit 1
+            fi
+          else
+            # Chiều testnet KHÔNG quét "vắng mặt mainnet" được: app chứa literal
+            # mainnet passphrase HỢP LỆ làm mốc so sánh (stellar-explorer.ts chọn
+            # segment stellar.expert theo network) — quét absence là false-positive
+            # chắc chắn. Thay bằng kiểm SỰ HIỆN DIỆN của passphrase đợt: chứng minh
+            # env testnet đã bake vào bundle (cùng triết lý gate API URL ở trên).
+            grep -rqF 'Test SDF Network ; September 2015' "$D/assets" \
+              || { echo "❌ D4: passphrase testnet không có trong bundle — VITE_STELLAR_NETWORK_PASSPHRASE chưa vào build"; exit 1; }
           fi
 
-          # D5: stellar.toml mainnet — có passphrase mainnet, sạch template + testnet.
+          # D5: stellar.toml khớp ĐÚNG passphrase của đợt, sạch template, không
+          # chở passphrase network kia (client SEP-45 đọc file này để chọn network
+          # — lệch là mọi challenge chết từ vòng gửi xe).
           T="$D/.well-known/stellar.toml"
-          grep -q 'Public Global Stellar Network ; September 2015' "$T" \
-            || { echo "❌ D5: stellar.toml thiếu passphrase mainnet"; exit 1; }
-          if grep -qE '__WEB_AUTH_CONTRACT_ID__|Test SDF' "$T"; then
-            echo "❌ D5: stellar.toml còn template/testnet"; exit 1
+          grep -qF "$STELLAR_NETWORK_PASSPHRASE" "$T" \
+            || { echo "❌ D5: stellar.toml thiếu passphrase của đợt ($NET)"; exit 1; }
+          grep -q '__WEB_AUTH_CONTRACT_ID__' "$T" \
+            && { echo "❌ D5: stellar.toml còn template"; exit 1; }
+          if [ "$NET" = "mainnet" ] && grep -q 'Test SDF' "$T"; then
+            echo "❌ D5: stellar.toml còn passphrase testnet"; exit 1
+          fi
+          if [ "$NET" = "testnet" ] && grep -q 'Public Global Stellar Network' "$T"; then
+            echo "❌ D5: stellar.toml chở passphrase mainnet"; exit 1
           fi
 
           # Gate cứng localhost-quoted KHÔNG thêm được: guard fail-closed trong

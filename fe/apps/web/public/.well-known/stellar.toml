@@ -1,12 +1,13 @@
 # stellar.toml — SEP-1, phục vụ ở HOME DOMAIN (https://familyhaven.mscilabs.com).
 # Client SEP-45 đọc file này để biết gọi đâu và tin chữ ký của ai.
 #
-# MAINNET (migration 2026-07-26). WEB_AUTH_CONTRACT_ID là TEMPLATE
+# ĐỢT TESTNET 2026-07-27 (mainnet flip sau, cùng đợt với 4 contract id).
+# WEB_AUTH_CONTRACT_ID là TEMPLATE
 # (token WEB-AUTH-CONTRACT-ID hai gạch dưới): deploy-fe.yml sed bằng GitHub vars
 # WEB_AUTH_CONTRACT_ID sau khi build (cùng cơ chế token API-ORIGIN của _headers).
 # Gate D1 chặn build khi vars trống; gate D5 chặn ship khi template còn sót.
 # Contract id gắn chặt với network — GIÁ TRỊ PHẢI là contract web-auth đã deploy
-# MAINNET, không tái dùng id testnet.
+# trên ĐÚNG network của NETWORK_PASSPHRASE dưới đây, không trộn testnet/mainnet.
 #
 # ⚠️ Xem BLOCKERS B-SEP45-1: backend hiện tách GET/POST ra HAI đường
 # (/api/sep45/challenge và /api/sep45/token) trong khi spec đòi MỘT endpoint
@@ -16,12 +17,12 @@
 
 VERSION = "2.7.0"
 
-NETWORK_PASSPHRASE = "Public Global Stellar Network ; September 2015"
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 
 # Endpoint xác thực ví-hợp-đồng (SEP-45).
 WEB_AUTH_FOR_CONTRACTS_ENDPOINT = "https://api.familyhaven.mscilabs.com/api/sep45"
 
-# Contract web_auth_verify MAINNET (contracts/web-auth) — template, xem đầu file.
+# Contract web_auth_verify (contracts/web-auth) — template, xem đầu file.
 # Khớp BE env SEP45_WEB_AUTH_CONTRACT_ID — lệch là mọi challenge bị từ chối.
 WEB_AUTH_CONTRACT_ID = "__WEB_AUTH_CONTRACT_ID__"
 
