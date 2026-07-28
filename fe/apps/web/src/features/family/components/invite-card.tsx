@@ -1,5 +1,11 @@
 // Thẻ lời mời (§3 luồng chuẩn màn mời) — thứ NGƯỜI DÙNG THẬT SỰ GỬI ĐI.
 //
+// LƯU Ý VẬN HÀNH (sự cố 28/07): chunk hash cũ `invite-card-2L654P-a.js` bị
+// edge Cloudflare cache NHẦM bản HTML fallback với `immutable, max-age=1y`
+// (request trúng cửa sổ propagate giữa hai run deploy chồng nhau). Không tự
+// lành — file này được sửa để đổi hash, URL độc thành mồ côi. Nếu tái diễn:
+// đổi nội dung file của chunk dính là đường vá không cần quyền purge CF.
+//
 // Trước bản này, tạo lời mời xong không hiện gì (choose-guardians) hoặc chỉ
 // hiện link trần cái CUỐI (invite) — người dùng bế tắc ngay bước quyết định
 // ví có cứu được hay không. Thẻ này: QR (quét bằng camera máy người thân) +
