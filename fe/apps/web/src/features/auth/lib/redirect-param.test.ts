@@ -3,9 +3,7 @@ import { sanitizeRedirect } from "./redirect-param";
 
 describe("sanitizeRedirect — chống open redirect, giữ đường nội bộ", () => {
   it("đường nội bộ có query (link mời guardian) đi qua NGUYÊN VẸN", () => {
-    expect(sanitizeRedirect("/guardian/accept?token=abc123")).toBe(
-      "/guardian/accept?token=abc123",
-    );
+    expect(sanitizeRedirect("/guardian/accept?token=abc123")).toBe("/guardian/accept?token=abc123");
   });
 
   it("URL tuyệt đối ra ngoài bị bỏ", () => {

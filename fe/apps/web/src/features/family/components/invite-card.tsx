@@ -131,7 +131,12 @@ export function InviteCard({ label, token }: { label: string; token: string }) {
           <Icon name={copied ? "checkCircle" : "copy"} />
           {copied ? t("wallet.receive.copied") : t("setup.invite.copyCta")}
         </Button>
-        <Button size="sm" variant="outline" loading={rendering} onClick={() => void downloadImage()}>
+        <Button
+          size="sm"
+          variant="outline"
+          loading={rendering}
+          onClick={() => void downloadImage()}
+        >
           {t("setup.invite.card.downloadCta")}
         </Button>
         {canShareImage ? (
