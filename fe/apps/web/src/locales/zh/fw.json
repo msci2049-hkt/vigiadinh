@@ -129,6 +129,7 @@
     "accept": {
       "addressLabel": "你的身份",
       "agreeCta": "我同意，继续",
+      "alreadyBody": "你已是 {owner} 的钱包守护人。",
       "badBody": "可能已过期或已被使用。请让他们重新发一个链接给你。",
       "badTitle": "此链接无法使用",
       "cant2": "你看不到他们的余额和动态。",
@@ -150,6 +151,11 @@
       "point1": "你不会保管他们的钱，也无法动用。",
       "point2": "如果他们丢了手机，你和另一位家人可以让他们重新进入。",
       "point3": "你的密钥留在这台设备上。任何人都复制不走，包括我们。",
+      "reviewHelp": "回顾你能帮上什么",
+      "selfBody": "请把这个链接发给你的家人。",
+      "selfTitle": "你不能做自己钱包的守护人。",
+      "signedInAs": "你当前登录的是 {email}。",
+      "switchAccount": "不是你？切换账户",
       "title": "有人请你帮忙",
       "usedBody": "每个邀请只能使用一次。如果不是你本人，请告知邀请你的人。",
       "usedTitle": "该邀请已被使用",
@@ -170,7 +176,10 @@
     "inviteList": {
       "addCta": "添加到钱包",
       "addFailed": "添加失败，没有任何改动，请再试一次。",
+      "addFailedAlready": "这位已经是你的守护人了，请邀请其他人。",
+      "addFailedSelf": "你不能做自己钱包的守护人。",
       "adding": "正在添加…",
+      "alreadyAdded": "已是守护人",
       "status": {
         "accepted": "他们已打开链接",
         "deployed": "他们已完成——请添加到你的钱包",

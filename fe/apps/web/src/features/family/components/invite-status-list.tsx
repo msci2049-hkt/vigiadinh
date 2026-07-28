@@ -12,20 +12,36 @@ import { StatusPill } from "@/components/family/status-pill";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import type { GuardianInvite } from "../api/invites";
 
+/** Ba câu lỗi của "Thêm vào ví" — literal union để i18next kiểm key lúc compile. */
+export type AddGuardianErrorKey =
+  | "guardians.inviteList.addFailed"
+  | "guardians.inviteList.addFailedAlready"
+  | "guardians.inviteList.addFailedSelf";
+
 export function InviteStatusList({
   invites,
   onAdd,
   pending,
-  failed,
+  errorKey,
 }: {
   invites: GuardianInvite[];
   onAdd: (invite: GuardianInvite) => void;
   pending: boolean;
-  failed: boolean;
+  /** i18n key của câu lỗi ĐÚNG NGUYÊN NHÂN (null = không lỗi) — một câu chung
+   * cho mọi nguyên nhân là bug 28/07, người dùng không biết phải làm gì. */
+  errorKey: AddGuardianErrorKey | null;
 }) {
   const { t } = useTranslation("fw");
 
   if (invites.length === 0) return null;
+
+  // Danh tính đã được thêm rồi → các dòng khác mang CÙNG địa chỉ không được
+  // hiện nút "Thêm vào ví" nữa: bấm được rồi mới báo lỗi là bẫy.
+  const addedKeys = new Set(
+    invites
+      .filter((i) => i.status === "registered" && i.guardian_address)
+      .map((i) => i.guardian_address),
+  );
 
   return (
     <Card>
@@ -50,21 +66,30 @@ export function InviteStatusList({
               </div>
             </div>
             {invite.status === "deployed" ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                loading={pending}
-                onClick={() => onAdd(invite)}
-                data-testid={`add-guardian-${invite.id}`}
-              >
-                {pending ? t("guardians.inviteList.adding") : t("guardians.inviteList.addCta")}
-              </Button>
+              invite.guardian_address && addedKeys.has(invite.guardian_address) ? (
+                <p
+                  className="shrink-0 text-muted-foreground text-xs"
+                  data-testid={`already-guardian-${invite.id}`}
+                >
+                  {t("guardians.inviteList.alreadyAdded")}
+                </p>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  loading={pending}
+                  onClick={() => onAdd(invite)}
+                  data-testid={`add-guardian-${invite.id}`}
+                >
+                  {pending ? t("guardians.inviteList.adding") : t("guardians.inviteList.addCta")}
+                </Button>
+              )
             ) : null}
           </div>
         ))}
-        {failed ? (
+        {errorKey ? (
           <p className="text-destructive text-sm" role="alert">
-            {t("guardians.inviteList.addFailed")}
+            {t(errorKey)}
           </p>
         ) : null}
       </CardContent>

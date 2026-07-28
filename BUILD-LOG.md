@@ -1079,3 +1079,31 @@ dừng ở suy luận). Commit `audit: F1…F5`, `audit: S5`, `audit: T6`, `audi
 - **V2–V7 = runbook paste-ready cho root** (MAINNET-CHECKLIST mục L3: backup, delta
   THÊM/SỬA/XOÁ, gate, vgd-deploy.sh, verify 6 mục kèm output kỳ vọng, rollback
   revert-merge + khôi phục env). CHỐT CHẶN giữ nguyên: chỉ chạy sau khi main chứa code mới.
+
+## 2026-07-28 · Vá luồng người bảo hộ (bug A trang accept + bug B "Thêm vào ví")
+
+- **Chẩn đoán bug B = H4 (thứ tự luồng), có bằng chứng**: log `vgd-app-1` 19:37 —
+  `POST /api/recovery/addGuardian` → 409 `SIMULATION_FAILED: Error(Contract, #2)` =
+  `RegistryError::NotRegistered` (ví `CD5QX3…` CHƯA `register_wallet`). DB: 2 invite
+  `deployed` do 2 user KHÁC nhau, 2 địa chỉ KHÁC nhau, không ai là chủ ví (loại H1/H2);
+  bảng `guardians` RỖNG vì không code nào ghi — bước `register` (đọc
+  `activeGuardianKeys`) vì thế cũng kẹt (deadlock: add_guardian đòi registered,
+  register đòi guardians).
+- **Vá BE**: `/invites/registered` giờ ghi dòng `guardians` (tx, chống đua theo status)
+  + mã lỗi riêng `GUARDIAN_ALREADY_ADDED`/`GUARDIAN_IS_OWNER`; accept chặn chủ ví tự
+  nhận (`GUARDIAN_IS_OWNER`); GET theo token thêm `viewer{is_owner,accepted_by_me}`
+  CHỈ khi có phiên (shape công khai giữ nguyên — test key-list còn nguyên hàng rào).
+- **Vá FE**: trang accept 4 trạng thái (chưa đăng nhập / đã đăng nhập + giới thiệu thu
+  gọn + "Bạn đang đăng nhập là <email>" / đã nhận lời / chủ ví bị chặn); "Thêm vào ví"
+  rẽ nhánh theo chain-truth: ví chưa đăng ký registry → chốt DB (KHÔNG gọi
+  add_guardian), đủ 3 người thì màn Xác nhận gom `register_wallet`; mỗi mã lỗi một câu;
+  dòng trùng danh tính ẩn nút. i18n đủ en/vi/zh.
+- **⚠️ Cho người test**: contract đòi 3 danh tính KHÁC NHAU → cần 3 tài khoản email
+  khác nhau trên 3 trình duyệt/profile tách biệt (thường/ẩn danh/trình duyệt khác),
+  mỗi cái passkey riêng. Nhận nhiều lời mời bằng MỘT tài khoản không tính là nhiều người.
+- **Nợ ghi nhận**: N1 email mời tự động chưa có · chưa thu hồi được lời mời đã gửi ·
+  list API không trả lại token (đúng chủ đích chống rò — nhưng reload là mất QR) ·
+  `_headers`/cache Cloudflare đã từng đầu độc chunk (phải verify bằng `?v=`) · chưa có
+  unique index `(wallet_id, onchain_key)` trong bảng `guardians` (đua 2 invite cùng địa
+  chỉ vẫn lách được kiểm trùng — cần migration riêng) · sau `register_wallet` cần đối
+  chiếu indexer mirror trạng thái guardian.

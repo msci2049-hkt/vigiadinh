@@ -1,10 +1,11 @@
 // Import schema xuyên module bằng đường dẫn TƯƠNG ĐỐI: ngoại lệ có chủ đích cho
 // TẦNG SCHEMA (cùng khuôn recovery.repository) — FK/JOIN cần chính table object.
-import { and, eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import { wallets } from "../../wallets/infra/wallets.schema";
 import { type GuardianInvite, guardianInvites } from "./guardian-invites.schema";
+import { guardians } from "./guardians.schema";
 
 /** Ví của CHÍNH user (chống chủ ví A mời hộ ví của B). */
 export async function walletOwnedBy(walletId: string, userId: string) {
@@ -87,10 +88,46 @@ export async function markDeployed(input: {
   return rows.length > 0;
 }
 
-/** Sau khi chủ ví ký `add_guardian` on-chain thành công. */
-export async function markRegistered(id: string, now: Date): Promise<void> {
-  await db
-    .update(guardianInvites)
-    .set({ status: "registered", registeredAt: now })
-    .where(eq(guardianInvites.id, id));
+/** Ví đã có người bảo hộ mang đúng địa chỉ này chưa (loại `removed`). */
+export async function guardianByKey(walletId: string, onchainKey: string) {
+  const [row] = await db
+    .select({ id: guardians.id })
+    .from(guardians)
+    .where(
+      and(
+        eq(guardians.walletId, walletId),
+        eq(guardians.onchainKey, onchainKey),
+        ne(guardians.status, "removed"),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * Chủ ví "Thêm vào ví" — chốt invite `registered` VÀ ghi dòng `guardians` trong
+ * MỘT transaction. Trước bản này KHÔNG AI ghi bảng `guardians` cả: bước
+ * `register` (đọc `activeGuardianKeys`) vì thế không bao giờ đủ khoá — bug
+ * 28/07. So-và-đặt trên status `deployed` để hai request đua nhau chỉ một
+ * người ghi; người thua nhận `"already"` (idempotent, không phải lỗi).
+ */
+export async function registerInviteAsGuardian(input: {
+  invite: GuardianInvite;
+  now: Date;
+}): Promise<"ok" | "already"> {
+  return db.transaction(async (tx) => {
+    const rows = await tx
+      .update(guardianInvites)
+      .set({ status: "registered", registeredAt: input.now })
+      .where(and(eq(guardianInvites.id, input.invite.id), eq(guardianInvites.status, "deployed")))
+      .returning({ id: guardianInvites.id });
+    if (rows.length === 0) return "already";
+    await tx.insert(guardians).values({
+      walletId: input.invite.walletId,
+      userId: input.invite.acceptedByUserId,
+      onchainKey: input.invite.guardianAddress,
+      status: "active",
+    });
+    return "ok";
+  });
 }

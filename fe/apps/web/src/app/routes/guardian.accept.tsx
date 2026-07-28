@@ -8,33 +8,135 @@
 // gì / KHÔNG làm được gì, rồi mới đưa người ta đi đăng nhập (giữ token qua cả
 // đăng ký + OTP bằng ?redirect).
 //
-// Ngôn ngữ ở màn này là "danh tính bảo mật", KHÔNG phải "ví crypto của bạn":
-// người bảo hộ là mẹ, là anh chị — họ đang giúp người thân, không mở tài khoản
-// tiền số. (Kỹ thuật bên dưới vẫn là một smart account đầy đủ.)
+// BỐN TRẠNG THÁI (bug A lần hai, 28/07 — trước đây chỉ đổi mỗi nhãn nút):
+//   1 CHƯA đăng nhập      → giới thiệu đầy đủ + [đồng ý] / [không biết người này]
+//   2 ĐÃ đăng nhập        → giới thiệu THU GỌN + "Bạn đang đăng nhập là <email>"
+//                           + nút tạo danh tính
+//   3 ĐÃ nhận lời (chính tài khoản này — BE trả viewer.accepted_by_me)
+//                         → màn xác nhận, không hiện lại nút tạo
+//   4 CHÍNH CHỦ VÍ mở link của mình (viewer.is_owner)
+//                         → chặn: tự làm guardian của mình là mất máy mất luôn
+//                           "người cứu". BE chặn thật (GUARDIAN_IS_OWNER),
+//                           màn này chỉ nói câu tử tế.
 //
-// BẤT BIẾN: khoá sinh ra và Ở LẠI máy này. Thứ duy nhất gửi lên server là ĐỊA
-// CHỈ hợp đồng — công khai, ai cũng đọc được trên chain. Server không bao giờ
-// sinh khoá hộ và không bao giờ nhận khoá bí mật.
+// Ngôn ngữ ở màn này là "danh tính bảo mật", KHÔNG phải "ví crypto của bạn".
+// BẤT BIẾN: khoá sinh ra và Ở LẠI máy này; thứ duy nhất gửi lên server là ĐỊA
+// CHỈ hợp đồng (công khai trên chain).
 
 import { formatDateTime } from "@repo/core";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icons";
 import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
+import { Button } from "@/components/family/ui";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { acceptInvite, inviteByTokenOptions } from "@/features/family/api/invites";
+import { GuardianAcceptIntro } from "@/features/family/components/guardian-accept-intro";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { createGuardianIdentity } from "@/features/wallet/api/guardian-identity";
+import { ApiError } from "@/lib/api-client";
 
 export const Route = createFileRoute("/guardian/accept")({
   validateSearch: z.object({ token: z.string().min(1).catch("") }),
   component: GuardianAcceptScreen,
 });
+
+/** "Bạn đang đăng nhập là <email>" + đường đổi tài khoản — trạng thái 2 và 3. */
+function SignedInAs({ email, token }: { email: string; token: string }) {
+  const { t } = useTranslation("fw");
+  return (
+    <p className="text-copy text-muted-foreground" data-testid="guardian-accept-signed-in">
+      {t("guardians.accept.signedInAs", { email })}{" "}
+      <Link
+        to="/login"
+        search={{ redirect: `/guardian/accept?token=${encodeURIComponent(token)}` }}
+        className="underline"
+      >
+        {t("guardians.accept.switchAccount")}
+      </Link>
+    </p>
+  );
+}
+
+/** Màn "link này không đi tiếp được" — token hỏng / hết hạn / đã dùng / tự mình. */
+function ClosedScreen({
+  title,
+  body,
+  children,
+}: {
+  title: string;
+  body: string;
+  children: ReactNode;
+}) {
+  return (
+    <ProductScreen className="justify-center">
+      <ScreenHeader title={title} description={body} />
+      <PrimaryZone>{children}</PrimaryZone>
+    </ProductScreen>
+  );
+}
+
+/** Trạng thái 3 — nhận lời xong (vừa xong tại chỗ, hoặc mở lại link cũ). */
+function DoneScreen({
+  ownerName,
+  address,
+  email,
+  token,
+}: {
+  ownerName?: string | null | undefined;
+  address?: string;
+  email: string;
+  token: string;
+}) {
+  const { t } = useTranslation("fw");
+  return (
+    <ProductScreen className="justify-center">
+      <ProductImage
+        src="/assets/mascot/mascot-wave.png"
+        webpSrc="/assets/mascot/mascot-wave.webp"
+        avifSrc="/assets/mascot/mascot-wave.avif"
+        alt=""
+        width={640}
+        height={640}
+        priority
+        className="mx-auto h-40 w-40 object-contain"
+      />
+      <ScreenHeader
+        title={t("guardians.accept.doneTitle")}
+        description={
+          address
+            ? t("guardians.accept.doneBody")
+            : ownerName
+              ? t("guardians.accept.alreadyBody", { owner: ownerName })
+              : t("guardians.accept.doneBody")
+        }
+      />
+      {address ? (
+        <div
+          className="rounded-card border border-dashed bg-paper-2 p-4"
+          data-testid="guardian-identity-address"
+        >
+          <p className="text-muted-foreground text-xs">{t("guardians.accept.addressLabel")}</p>
+          <code className="break-all text-xs">{address}</code>
+        </div>
+      ) : null}
+      <ErrorBanner type="info" title={t("guardians.accept.doneTitle")}>
+        {t("guardians.accept.waitingOwner")}
+      </ErrorBanner>
+      {email ? <SignedInAs email={email} token={token} /> : null}
+      <PrimaryZone>
+        <Button asChild>
+          <Link to="/wallet">{t("guardians.accept.homeCta")}</Link>
+        </Button>
+      </PrimaryZone>
+    </ProductScreen>
+  );
+}
 
 function GuardianAcceptScreen() {
   const { t, i18n } = useTranslation("fw");
@@ -54,88 +156,69 @@ function GuardianAcceptScreen() {
   // ---- Token sai / không tồn tại — câu tử tế, không mã lỗi trần.
   if (token.length === 0 || invite.isError) {
     return (
-      <ProductScreen className="justify-center">
-        <ScreenHeader
-          title={t("guardians.accept.badTitle")}
-          description={t("guardians.accept.badBody")}
-        />
-        <PrimaryZone>
-          <Button asChild variant="secondary">
-            <Link to="/">{t("guardians.accept.declineCta")}</Link>
-          </Button>
-        </PrimaryZone>
-      </ProductScreen>
+      <ClosedScreen title={t("guardians.accept.badTitle")} body={t("guardians.accept.badBody")}>
+        <Button asChild variant="secondary">
+          <Link to="/">{t("guardians.accept.declineCta")}</Link>
+        </Button>
+      </ClosedScreen>
     );
   }
 
-  // ---- Hết hạn / đã dùng — hai câu KHÁC NHAU (người thân cần biết nên xin
-  // link mới hay thôi). BE cũ 404 các ca này → rơi vào nhánh isError ở trên.
-  if (invite.data && invite.data.usable === false) {
-    const expired = invite.data.reason === "expired";
+  const data = invite.data;
+  const viewer = data?.viewer;
+  const email = user?.email ?? "";
+
+  // ---- Trạng thái 4 — chủ ví mở link của CHÍNH mình: chặn, không nút tạo.
+  if (viewer?.is_owner) {
     return (
-      <ProductScreen className="justify-center">
-        <ScreenHeader
-          title={t(expired ? "guardians.accept.expiredTitle" : "guardians.accept.usedTitle")}
-          description={
-            expired
-              ? t("guardians.accept.expiredBody", {
-                  date: invite.data.expires_at
-                    ? formatDateTime(invite.data.expires_at, { locale: i18n.language })
-                    : "",
-                })
-              : t("guardians.accept.usedBody")
-          }
-        />
-        <PrimaryZone>
-          <Button asChild variant="secondary">
-            <Link to="/">{t("guardians.accept.declineCta")}</Link>
-          </Button>
-        </PrimaryZone>
-      </ProductScreen>
+      <ClosedScreen title={t("guardians.accept.selfTitle")} body={t("guardians.accept.selfBody")}>
+        <Button asChild variant="secondary">
+          <Link to="/wallet">{t("guardians.accept.homeCta")}</Link>
+        </Button>
+      </ClosedScreen>
     );
   }
 
-  // ---- Nhận lời XONG — xác nhận rõ ràng, không im lặng.
+  // ---- Trạng thái 3 — vừa nhận lời xong tại chỗ.
   if (accept.isSuccess) {
+    return <DoneScreen address={accept.data.address} email={email} token={token} />;
+  }
+
+  // ---- Hết hạn / đã dùng — nhưng "đã dùng bởi CHÍNH tôi" là màn xác nhận
+  // (trạng thái 3), không phải câu "link chết" lạnh lùng.
+  if (data && data.usable === false) {
+    if (data.reason === "used" && viewer?.accepted_by_me) {
+      return <DoneScreen ownerName={data.owner_name} email={email} token={token} />;
+    }
+    const expired = data.reason === "expired";
     return (
-      <ProductScreen className="justify-center">
-        <ProductImage
-          src="/assets/mascot/mascot-wave.png"
-          webpSrc="/assets/mascot/mascot-wave.webp"
-          avifSrc="/assets/mascot/mascot-wave.avif"
-          alt=""
-          width={640}
-          height={640}
-          priority
-          className="mx-auto h-40 w-40 object-contain"
-        />
-        <ScreenHeader
-          title={t("guardians.accept.doneTitle")}
-          description={t("guardians.accept.doneBody")}
-        />
-        <div
-          className="rounded-card border border-dashed bg-paper-2 p-4"
-          data-testid="guardian-identity-address"
-        >
-          <p className="text-muted-foreground text-xs">{t("guardians.accept.addressLabel")}</p>
-          <code className="break-all text-xs">{accept.data.address}</code>
-        </div>
-        <ErrorBanner type="info" title={t("guardians.accept.doneTitle")}>
-          {t("guardians.accept.waitingOwner")}
-        </ErrorBanner>
-        <PrimaryZone>
-          <Button asChild>
-            <Link to="/wallet">{t("guardians.accept.homeCta")}</Link>
-          </Button>
-        </PrimaryZone>
-      </ProductScreen>
+      <ClosedScreen
+        title={t(expired ? "guardians.accept.expiredTitle" : "guardians.accept.usedTitle")}
+        body={
+          expired
+            ? t("guardians.accept.expiredBody", {
+                date: data.expires_at
+                  ? formatDateTime(data.expires_at, { locale: i18n.language })
+                  : "",
+              })
+            : t("guardians.accept.usedBody")
+        }
+      >
+        <Button asChild variant="secondary">
+          <Link to="/">{t("guardians.accept.declineCta")}</Link>
+        </Button>
+      </ClosedScreen>
     );
   }
 
-  const ownerName = invite.data?.owner_name;
+  // ---- Trạng thái 1 (chưa đăng nhập) / 2 (đã đăng nhập, giới thiệu thu gọn).
+  const ownerName = data?.owner_name;
   const signedIn = user !== null;
-  // Giữ token qua đăng nhập/đăng ký + OTP — sanitize ở từng route đích.
   const redirectBack = `/guardian/accept?token=${encodeURIComponent(token)}`;
+  const acceptErrorCode =
+    accept.error instanceof ApiError
+      ? (accept.error.data as { error?: { code?: string } } | undefined)?.error?.code
+      : undefined;
 
   return (
     <ProductScreen className="justify-center">
@@ -150,7 +233,7 @@ function GuardianAcceptScreen() {
         className="mx-auto h-48 w-full max-w-xs object-contain"
       />
       {invite.isLoading || sessionPending ? <LoadingRows /> : null}
-      {invite.data ? (
+      {data ? (
         <>
           <ScreenHeader
             title={
@@ -159,60 +242,32 @@ function GuardianAcceptScreen() {
                 : t("guardians.accept.title")
             }
           />
-          <p className="product-copy">
-            {t("guardians.accept.description", { label: invite.data.label })}
-          </p>
+          <p className="product-copy">{t("guardians.accept.description", { label: data.label })}</p>
 
-          {/* Hai khối tách bạch — khối "KHÔNG làm được gì" quan trọng ngang
-              khối kia: nó dập tan đúng nỗi lo "mình cầm tiền của nó à?". */}
-          <Card className="bg-paper-2">
-            <CardHeader>
-              <CardTitle className="text-base">{t("guardians.accept.helpTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {(["guardians.accept.point2", "guardians.accept.point3"] as const).map((key) => (
-                  <li key={key} className="flex gap-3 text-copy">
-                    <Icon name="checkCircle" size={20} className="mt-0.5 shrink-0" />
-                    <span>{t(key)}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
+          <GuardianAcceptIntro collapsed={signedIn} />
 
-          <Card className="bg-paper-2">
-            <CardHeader>
-              <CardTitle className="text-base">{t("guardians.accept.cantTitle")}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-3">
-                {(
-                  [
-                    "guardians.accept.point1",
-                    "guardians.accept.cant2",
-                    "guardians.accept.cant3",
-                  ] as const
-                ).map((key) => (
-                  <li key={key} className="flex gap-3 text-copy">
-                    <Icon name="xCircle" size={20} className="mt-0.5 shrink-0" />
-                    <span>{t(key)}</span>
-                  </li>
-                ))}
-              </ul>
-            </CardContent>
-          </Card>
-
-          <p className="text-copy text-muted-foreground">{t("guardians.accept.needLine")}</p>
-          {invite.data.expires_at ? (
+          {signedIn ? (
+            <SignedInAs email={email} token={token} />
+          ) : (
+            <p className="text-copy text-muted-foreground">{t("guardians.accept.needLine")}</p>
+          )}
+          {data.expires_at ? (
             <p className="text-muted-foreground text-xs">
               {t("guardians.accept.expiryLine", {
-                date: formatDateTime(invite.data.expires_at, { locale: i18n.language }),
+                date: formatDateTime(data.expires_at, { locale: i18n.language }),
               })}
             </p>
           ) : null}
 
-          {accept.isError ? <ErrorState /> : null}
+          {accept.isError ? (
+            acceptErrorCode === "GUARDIAN_IS_OWNER" ? (
+              <ErrorBanner type="error" title={t("guardians.accept.selfTitle")}>
+                {t("guardians.accept.selfBody")}
+              </ErrorBanner>
+            ) : (
+              <ErrorState />
+            )
+          ) : null}
 
           <PrimaryZone>
             {signedIn ? (

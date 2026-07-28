@@ -19,15 +19,34 @@ import {
   invitesOptions,
   markInviteRegistered,
 } from "@/features/family/api/invites";
+import { chainTruthOptions } from "@/features/family/api/recovery";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { InviteCard } from "@/features/family/components/invite-card";
-import { InviteStatusList } from "@/features/family/components/invite-status-list";
+import {
+  type AddGuardianErrorKey,
+  InviteStatusList,
+} from "@/features/family/components/invite-status-list";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { signRecoveryEntries } from "@/features/wallet/lib/sign-recovery-entries";
+import { ApiError } from "@/lib/api-client";
 import { assertAddGuardianEntry, BlindSignError } from "@/lib/auth-entry-guard";
 import { env } from "@/lib/env";
+
+/**
+ * Mỗi mã lỗi MỘT câu (bug 28/07: "Chưa có gì thay đổi" che cả 5 nguyên nhân) —
+ * người dùng phải biết việc tiếp theo là gì, không phải "thử lại" vô vọng.
+ */
+function addGuardianErrorKey(err: unknown): AddGuardianErrorKey {
+  const code =
+    err instanceof ApiError
+      ? (err.data as { error?: { code?: string } } | undefined)?.error?.code
+      : undefined;
+  if (code === "GUARDIAN_ALREADY_ADDED") return "guardians.inviteList.addFailedAlready";
+  if (code === "GUARDIAN_IS_OWNER") return "guardians.inviteList.addFailedSelf";
+  return "guardians.inviteList.addFailed";
+}
 
 export const Route = createFileRoute("/_authenticated/setup/invite")({
   component: SetupInviteScreen,
@@ -61,6 +80,16 @@ function SetupInviteScreen() {
     mutationFn: async (invite: GuardianInvite) => {
       const walletId = wallet?.id ?? "";
       const guardianAddress = invite.guardian_address ?? "";
+      // Ví CHƯA đăng ký registry → contract chối `add_guardian` bằng
+      // `#2 NotRegistered` (bug 28/07). Giai đoạn này "Thêm vào ví" chỉ CHỐT
+      // trong DB; bước "Đăng ký lên blockchain" (màn Xác nhận) sẽ gom CẢ danh
+      // sách vào một lệnh `register_wallet`. Sau khi ví đã đăng ký, người thêm
+      // sau mới đi đường `add_guardian` on-chain như dưới.
+      const truth = await queryClient.fetchQuery(chainTruthOptions(walletId));
+      if (!truth.registered) {
+        await markInviteRegistered(invite.id);
+        return;
+      }
       const built = await buildRecoveryAction({
         action: "addGuardian",
         walletId,
@@ -138,7 +167,7 @@ function SetupInviteScreen() {
           invites={invites.data.invites}
           onAdd={(invite) => addGuardian.mutate(invite)}
           pending={addGuardian.isPending}
-          failed={addGuardian.isError}
+          errorKey={addGuardian.isError ? addGuardianErrorKey(addGuardian.error) : null}
         />
       ) : null}
 

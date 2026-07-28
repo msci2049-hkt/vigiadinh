@@ -129,6 +129,7 @@
     "accept": {
       "addressLabel": "Your identity",
       "agreeCta": "I agree — continue",
+      "alreadyBody": "You are a guardian of {owner}'s wallet.",
       "badBody": "It may have expired or already been used. Ask them to send you a new one.",
       "badTitle": "This link does not work",
       "cant2": "You cannot see their balance or their activity.",
@@ -150,6 +151,11 @@
       "point1": "You will not hold their money, and you cannot spend it.",
       "point2": "If they ever lose their phone, you and one other person can let them back in.",
       "point3": "Your key stays on this device. Nobody, not even us, can copy it.",
+      "reviewHelp": "Review how you help",
+      "selfBody": "Send this link to a family member instead.",
+      "selfTitle": "You cannot be a guardian of your own wallet.",
+      "signedInAs": "You are signed in as {email}.",
+      "switchAccount": "Not you? Switch account",
       "title": "Someone asked you to help",
       "usedBody": "Each invite works only once. If this wasn't you, tell the person who invited you.",
       "usedTitle": "This invite was already used",
@@ -170,7 +176,10 @@
     "inviteList": {
       "addCta": "Add to my wallet",
       "addFailed": "We could not add them. Nothing changed — please try again.",
+      "addFailedAlready": "They are already one of your guardians. Invite someone else.",
+      "addFailedSelf": "You cannot be a guardian of your own wallet.",
       "adding": "Adding…",
+      "alreadyAdded": "Already a guardian",
       "status": {
         "accepted": "They opened the link",
         "deployed": "Ready — add them to your wallet",

@@ -59,6 +59,12 @@ export type PublicInvite = {
   usable?: boolean;
   reason?: "expired" | "used";
   expires_at?: string;
+  /**
+   * CHỈ có khi request mang phiên (BE gắn thêm ngoài shape công khai):
+   * - is_owner: link này của CHÍNH ví tôi → trang chặn tự-làm-guardian;
+   * - accepted_by_me: token đã dùng bởi TÔI → màn "xong rồi" thay vì "đã dùng".
+   */
+  viewer?: { is_owner: boolean; accepted_by_me: boolean };
 };
 
 /** Người được mời mở link — chỉ đọc nhãn, chưa cần đăng nhập. */

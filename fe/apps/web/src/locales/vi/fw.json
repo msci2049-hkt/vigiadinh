@@ -129,6 +129,7 @@
     "accept": {
       "addressLabel": "Danh tính của bạn",
       "agreeCta": "Tôi đồng ý, tiếp tục",
+      "alreadyBody": "Bạn là người bảo hộ ví của {owner}.",
       "badBody": "Có thể nó đã hết hạn hoặc đã dùng rồi. Bạn nhờ họ gửi lại đường dẫn mới nhé.",
       "badTitle": "Đường dẫn này không dùng được",
       "cant2": "Bạn không xem được số dư hay hoạt động của họ.",
@@ -150,6 +151,11 @@
       "point1": "Bạn không giữ tiền của họ, và không tiêu được tiền đó.",
       "point2": "Nếu họ mất máy, bạn cùng một người nữa có thể cho họ vào lại.",
       "point3": "Khoá của bạn nằm lại trên máy này. Không ai chép được, kể cả chúng tôi.",
+      "reviewHelp": "Xem lại bạn giúp được gì",
+      "selfBody": "Hãy gửi đường dẫn này cho người thân của bạn.",
+      "selfTitle": "Bạn không thể tự làm người bảo hộ cho ví của chính mình.",
+      "signedInAs": "Bạn đang đăng nhập là {email}.",
+      "switchAccount": "Không phải bạn? Đổi tài khoản",
       "title": "Có người nhờ bạn giúp",
       "usedBody": "Mỗi lời mời chỉ dùng được một lần. Nếu không phải bạn, hãy báo cho người mời biết.",
       "usedTitle": "Lời mời này đã được dùng rồi",
@@ -170,7 +176,10 @@
     "inviteList": {
       "addCta": "Thêm vào ví",
       "addFailed": "Chưa thêm được. Chưa có gì thay đổi — bạn thử lại giúp nhé.",
+      "addFailedAlready": "Người này đã là người bảo hộ của bạn rồi. Mời một người khác nhé.",
+      "addFailedSelf": "Bạn không thể tự làm người bảo hộ cho ví của mình.",
       "adding": "Đang thêm…",
+      "alreadyAdded": "Đã là người bảo hộ",
       "status": {
         "accepted": "Họ đã mở đường dẫn",
         "deployed": "Xong phần họ — thêm vào ví của bạn",

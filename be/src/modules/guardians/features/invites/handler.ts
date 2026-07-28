@@ -6,8 +6,12 @@
 //   2. người được mời mở link      → GET  /invites/:token   (public, chỉ đọc nhãn)
 //   3. họ tạo passkey + deploy ví CỦA HỌ trên máy HỌ, nộp ĐỊA CHỈ
 //                                   → POST /invites/:token/accept
-//   4. chủ ví ký `add_guardian`    → recovery /add-guardian + /submit (tx riêng)
-//   5. đánh dấu đã lên chain       → POST /invites/:id/registered
+//   4. chủ ví "Thêm vào ví":
+//      · ví CHƯA đăng ký registry → chỉ bước 5 (chốt DB); `register_wallet`
+//        (màn Xác nhận) gom cả danh sách lên chain MỘT lượt — gọi
+//        `add_guardian` lúc này là contract chối `#2 NotRegistered` (bug 28/07)
+//      · ví ĐÃ đăng ký            → recovery /addGuardian + /submit (tx riêng)
+//   5. chốt trạng thái + ghi dòng `guardians` → POST /invites/registered
 //
 // BẤT BIẾN (cưỡng chế ở đây, ghi trong THREAT-MODEL):
 //   · Backend KHÔNG BAO GIỜ sinh khoá hộ người bảo hộ.
@@ -125,9 +129,27 @@ export const guardianInvitesRoute = new Hono()
       status: invite.status as InviteStatus,
       expiresAt: invite.expiresAt,
     };
-    // owner_name chỉ tra khi link còn sống — link chết không cần biết thêm gì.
-    const ownerName = isUsable(shape, now) ? await repo.findOwnerName(invite.walletId) : null;
-    return c.json({ data: publicInviteView(shape, ownerName, now) });
+    // `viewer` CHỈ khi có phiên — response công khai giữ NGUYÊN shape (test
+    // key-list của publicInviteView vẫn là hàng rào chống rò). Trang accept cần
+    // hai câu trả lời mà đường public không được phép mang: "link này của CHÍNH
+    // ví tôi à?" (chặn tự-làm-guardian) và "token đã dùng bởi TÔI à?" (màn
+    // "xong rồi" thay vì "link đã dùng" lạnh lùng).
+    const viewer = c.get("user");
+    const acceptedByMe = viewer !== null && invite.acceptedByUserId === viewer.id;
+    // owner_name: link sống — như cũ; link đã dùng bởi CHÍNH người xem — vẫn cần
+    // tên để nói "bạn là người bảo hộ ví của <tên>".
+    const ownerName =
+      isUsable(shape, now) || acceptedByMe ? await repo.findOwnerName(invite.walletId) : null;
+    const data = publicInviteView(shape, ownerName, now);
+    if (!viewer) return c.json({ data });
+    const isOwner = (await repo.walletOwnedBy(invite.walletId, viewer.id)) !== null;
+    return c.json({
+      data: {
+        ...data,
+        ...(acceptedByMe && ownerName ? { owner_name: ownerName } : {}),
+        viewer: { is_owner: isOwner, accepted_by_me: acceptedByMe },
+      },
+    });
   })
 
   /**
@@ -144,6 +166,13 @@ export const guardianInvitesRoute = new Hono()
     ) {
       throw new HTTPException(404, { message: "INVITE_NOT_USABLE" });
     }
+    // Chủ ví tự nhận lời mời của chính mình = tự làm người bảo hộ cho mình —
+    // mất máy là mất luôn "người cứu". Contract chỉ chặn được ĐỊA CHỈ trùng ví,
+    // mà danh tính guardian tạo mới là địa chỉ KHÁC, nên phải chặn theo NGƯỜI
+    // tại đây. BE là lớp thật; FE chỉ hiện câu tử tế.
+    if ((await repo.walletOwnedBy(invite.walletId, user.id)) !== null) {
+      throw new HTTPException(409, { message: "GUARDIAN_IS_OWNER" });
+    }
     // Người thắng cuộc đua là người ghi ĐẦU TIÊN, quyết ở tầng DB. Kiểm trạng
     // thái phía trên chỉ để trả lỗi đẹp — nó không chống được hai request
     // đồng thời (cả hai cùng đọc thấy `sent`).
@@ -157,16 +186,30 @@ export const guardianInvitesRoute = new Hono()
     return c.json({ data: { status: "deployed" } });
   })
 
-  /** Chủ ví xác nhận đã ký `add_guardian` xong — mirror trạng thái cuối. */
+  /**
+   * Chủ ví "Thêm vào ví" — chốt invite + ghi dòng `guardians` (nguồn khoá cho
+   * `register_wallet`). Mỗi nguyên nhân từ chối một MÃ RIÊNG: một câu lỗi chung
+   * cho nhiều nguyên nhân là người dùng không biết phải làm gì (bug 28/07).
+   */
   .post("/invites/registered", requireAuth, zv("json", registeredBody), async (c) => {
     const user = requireUser(c);
     const { invite_id } = c.req.valid("json");
     const invite = await repo.findById(invite_id);
     if (!invite) throw new HTTPException(404, { message: "INVITE_NOT_FOUND" });
-    await ownedWallet(invite.walletId, user.id);
-    if (invite.status !== "deployed") {
+    const wallet = await ownedWallet(invite.walletId, user.id);
+    if (invite.status !== "deployed" || !invite.acceptedByUserId || !invite.guardianAddress) {
       throw new HTTPException(409, { message: "INVITE_NOT_DEPLOYED" });
     }
-    await repo.markRegistered(invite.id, new Date());
+    // Vòng chặn tự-mình thứ hai (accept đã chặn; dữ liệu cũ có thể lọt qua trước
+    // khi vòng một tồn tại): theo NGƯỜI lẫn theo ĐỊA CHỈ trùng ví.
+    if (invite.acceptedByUserId === user.id || invite.guardianAddress === wallet.stellarAddress) {
+      throw new HTTPException(409, { message: "GUARDIAN_IS_OWNER" });
+    }
+    // Cùng một danh tính không được đếm hai lần — contract cũng sẽ chối
+    // `DuplicateGuardian`, nhưng chặn ở đây mới nói được câu đúng cho người dùng.
+    if ((await repo.guardianByKey(wallet.id, invite.guardianAddress)) !== null) {
+      throw new HTTPException(409, { message: "GUARDIAN_ALREADY_ADDED" });
+    }
+    await repo.registerInviteAsGuardian({ invite, now: new Date() });
     return c.json({ data: { status: "registered" } });
   });
