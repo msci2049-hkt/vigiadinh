@@ -1,10 +1,11 @@
 // Thẻ lời mời (§3 luồng chuẩn màn mời) — thứ NGƯỜI DÙNG THẬT SỰ GỬI ĐI.
 //
-// LƯU Ý VẬN HÀNH (sự cố 28/07): chunk hash cũ `invite-card-2L654P-a.js` bị
-// edge Cloudflare cache NHẦM bản HTML fallback với `immutable, max-age=1y`
-// (request trúng cửa sổ propagate giữa hai run deploy chồng nhau). Không tự
-// lành — file này được sửa để đổi hash, URL độc thành mồ côi. Nếu tái diễn:
-// đổi nội dung file của chunk dính là đường vá không cần quyền purge CF.
+// LƯU Ý VẬN HÀNH (sự cố 28/07): chunk hash `invite-card-2L654P-a.js` bị edge
+// Cloudflare cache NHẦM bản HTML fallback với `immutable, max-age=1y` (request
+// trúng cửa sổ propagate giữa hai run deploy chồng nhau). Không tự lành —
+// phải đổi HASH chunk để URL độc thành mồ côi. Bài học trả giá 2 lần: sửa
+// COMMENT không đủ (minifier strip sạch → output y hệt → hash y hệt); phải là
+// thay đổi SỐNG SÓT qua minify — đó là lý do `data-rev` tồn tại ở div dưới.
 //
 // Trước bản này, tạo lời mời xong không hiện gì (choose-guardians) hoặc chỉ
 // hiện link trần cái CUỐI (invite) — người dùng bế tắc ngay bước quyết định
@@ -118,6 +119,7 @@ export function InviteCard({ label, token }: { label: string; token: string }) {
   return (
     <div
       data-testid="invite-card"
+      data-rev="2"
       className="flex flex-col items-center gap-3 rounded-card border border-dashed bg-card p-4"
     >
       <p className="font-semibold text-foreground">{label}</p>
