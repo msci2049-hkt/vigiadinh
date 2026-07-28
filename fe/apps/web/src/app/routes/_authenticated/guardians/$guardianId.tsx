@@ -37,7 +37,10 @@ function GuardiansDetailScreen() {
     iso ? formatDateTime(iso, { locale: i18n.language }) : t("guardians.detail.never");
 
   return (
-    <ProductScreen>
+    // data-rev: xoay hash chunk sau sự cố cache độc edge 28/07 (xem ghi chú ở
+    // invite-card.tsx) — URL `_guardianId-CJcYEO3X.js` đang bị cache HTML
+    // fallback immutable 1 năm; đổi nội dung SỐNG SÓT qua minify là đường vá.
+    <ProductScreen data-rev="2">
       <ScreenHeader
         title={t("guardians.detail.title")}
         description={t("guardians.detail.description")}
