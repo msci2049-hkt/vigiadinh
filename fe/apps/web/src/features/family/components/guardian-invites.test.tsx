@@ -46,7 +46,13 @@ describe("InviteStatusList", () => {
   it("câu lỗi theo ĐÚNG mã — trùng danh tính không còn là 'chưa có gì thay đổi'", () => {
     render(
       <InviteStatusList
-        invites={[invite({ id: "01TEST000000000000000000I1", status: "deployed", guardian_address: ADDR_A })]}
+        invites={[
+          invite({
+            id: "01TEST000000000000000000I1",
+            status: "deployed",
+            guardian_address: ADDR_A,
+          }),
+        ]}
         onAdd={vi.fn()}
         pending={false}
         errorKey="guardians.inviteList.addFailedAlready"
@@ -61,9 +67,24 @@ describe("InviteStatusList", () => {
     render(
       <InviteStatusList
         invites={[
-          invite({ id: "01TEST000000000000000000I2", label: "Chị", status: "registered", guardian_address: ADDR_A }),
-          invite({ id: "01TEST000000000000000000I3", label: "Chị lần 2", status: "deployed", guardian_address: ADDR_A }),
-          invite({ id: "01TEST000000000000000000I4", label: "Anh", status: "deployed", guardian_address: ADDR_B }),
+          invite({
+            id: "01TEST000000000000000000I2",
+            label: "Chị",
+            status: "registered",
+            guardian_address: ADDR_A,
+          }),
+          invite({
+            id: "01TEST000000000000000000I3",
+            label: "Chị lần 2",
+            status: "deployed",
+            guardian_address: ADDR_A,
+          }),
+          invite({
+            id: "01TEST000000000000000000I4",
+            label: "Anh",
+            status: "deployed",
+            guardian_address: ADDR_B,
+          }),
         ]}
         onAdd={vi.fn()}
         pending={false}
