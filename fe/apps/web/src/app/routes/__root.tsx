@@ -36,7 +36,9 @@ function RootLayout() {
   }, [i18n.resolvedLanguage]);
   if (isProductPath(pathname)) {
     return (
-      <ProductShell>
+      // menu = UserMenu (C17): trước đây chrome sản phẩm không có đường đăng
+      // xuất/cài đặt nào — hàm signOut tồn tại mà không nút nào gọi được từ hub.
+      <ProductShell menu={<UserMenu />}>
         <Outlet />
         {env.VITE_ENABLE_DEVTOOLS ? <TanStackRouterDevtools position="bottom-right" /> : null}
       </ProductShell>
@@ -90,6 +92,7 @@ function isProductPath(pathname: string): boolean {
     "/block",
     "/night-watch",
     "/inheritance",
+    "/settings",
   ].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 

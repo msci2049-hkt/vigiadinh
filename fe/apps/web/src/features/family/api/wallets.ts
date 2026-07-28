@@ -17,6 +17,7 @@ export type FamilyWallet = {
 
 export const walletKeys = {
   all: ["family", "wallets"] as const,
+  balance: (walletId: string) => [...walletKeys.all, walletId, "balance"] as const,
 };
 
 export const walletsOptions = queryOptions({
@@ -26,6 +27,29 @@ export const walletsOptions = queryOptions({
     return res.data;
   },
 });
+
+export type WalletBalance = {
+  wallet_id: string;
+  address: string;
+  /** Stroops dạng CHUỖI (i128 on-chain — qua Number là mất chữ số câm lặng). */
+  balance: string;
+  asset: string;
+};
+
+/**
+ * GET /api/wallets/:id/balance — đường ĐỌC thuần (BE tách khỏi pipeline send,
+ * audit 2026-07-25 §8). BE trả Cache-Control: no-store; staleTime 30s ở đây chỉ
+ * chống refetch dồn dập khi điều hướng qua lại, không phải cache tiền lâu.
+ */
+export const walletBalanceOptions = (walletId: string) =>
+  queryOptions({
+    queryKey: walletKeys.balance(walletId),
+    queryFn: async () => {
+      const res = await apiClient.get<{ data: WalletBalance }>(`/api/wallets/${walletId}/balance`);
+      return res.data;
+    },
+    staleTime: 30_000,
+  });
 
 /**
  * Lựa chọn thời gian chờ — khớp `TIMELOCK_CHOICES_SECS` của BE, và qua đó khớp

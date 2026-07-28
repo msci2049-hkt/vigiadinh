@@ -15,7 +15,8 @@
   "userMenu": {
     "login": "登录",
     "logout": "退出登录",
-    "panel": "控制面板"
+    "panel": "控制面板",
+    "settings": "设置"
   },
   "health": {
     "checking": "后端：检查中…",

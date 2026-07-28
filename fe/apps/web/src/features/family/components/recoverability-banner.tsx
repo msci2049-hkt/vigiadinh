@@ -7,10 +7,15 @@
 
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
+import { MIN_GUARDIANS } from "@/lib/auth-entry-guard";
 import type { Recoverability } from "../api/invites";
 
 export function RecoverabilityBanner({ value }: { value: Recoverability }) {
   const { t } = useTranslation("fw");
+  // Fallback cùng công thức BE: BE bản cũ chưa trả `required` (deploy BE cần
+  // root, có thể đi SAU FE) — thiếu fallback là banner hiện "undefined người".
+  const required = value.required ?? Math.max(MIN_GUARDIANS, value.threshold);
+  const missing = value.missing || Math.max(0, required - value.available);
 
   if (value.recoverable) {
     return (
@@ -30,9 +35,9 @@ export function RecoverabilityBanner({ value }: { value: Recoverability }) {
             (≥3) = số người phải NHẬN LỜI; threshold = số người KÝ khi cứu ví. */}
         {t("guardians.recoverability.notYetBody", {
           available: value.available,
-          required: value.required,
+          required,
           threshold: value.threshold,
-          missing: value.missing,
+          missing,
         })}
       </ErrorBanner>
     </div>

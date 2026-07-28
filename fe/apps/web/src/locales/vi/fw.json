@@ -313,8 +313,8 @@
     "protectedBy": "Được 3 người thân bảo vệ",
     "recoveryCta": "Mất điện thoại? Khôi phục ví",
     "signInCta": "Tôi đã có ví — mở khóa",
-    "tryAgainTitle": "Chưa nhận được. Bạn thử lại nhé?",
     "title": "Mở khóa bằng thiết bị của bạn",
+    "tryAgainTitle": "Chưa nhận được. Bạn thử lại nhé?",
     "unsupported": "Thiết bị này chưa hỗ trợ mở khóa bằng khuôn mặt hay vân tay. Bạn vẫn có thể tiếp tục trên điện thoại khác, hoặc trình duyệt mới hơn.",
     "walletUser": "Ví gia đình",
     "working": "Đang mở khóa bằng thiết bị của bạn…"
@@ -335,18 +335,18 @@
       "note": "Khoảng chờ này tồn tại để chủ ví kịp chặn khôi phục mà họ không yêu cầu. Nếu đó chính là bạn — không cần làm gì, chỉ cần chờ.",
       "protectionTitle": "Vì sao cần khoảng chờ",
       "title": "Sắp xong",
-      "windowLabel": "Khoảng bảo vệ",
-      "window": "Còn {countdown} (đến {absolute})"
+      "window": "Còn {countdown} (đến {absolute})",
+      "windowLabel": "Khoảng bảo vệ"
     },
     "done": {
       "connectCta": "Mở ví của tôi trên máy này",
       "cooldownNote": "Ngay sau khôi phục, ví sẽ từ chối mọi thao tác trong một lúc ngắn. Đó là tính năng an toàn, không phải lỗi.",
+      "cooldownTitle": "Sau đó có một khoảng nghỉ an toàn ngắn",
       "description": "Ví của bạn giờ nằm trên thiết bị này.",
+      "errorTitle": "Thiết bị này chưa sẵn sàng",
       "errors": {
         "noDraft": "Máy này chưa lưu chìa khoá khôi phục nào. Hãy bắt đầu lại từ đầu trên máy này."
       },
-      "cooldownTitle": "Sau đó có một khoảng nghỉ an toàn ngắn",
-      "errorTitle": "Thiết bị này chưa sẵn sàng",
       "openWalletCta": "Đến trang đăng nhập ví",
       "sameAddress": "Vẫn địa chỉ ví cũ. Tiền của bạn chưa từng di chuyển.",
       "title": "Chào mừng trở lại"
@@ -355,11 +355,11 @@
       "creating": "Đang tạo chìa khoá mới…",
       "cta": "Tạo chìa khoá mới và nhờ người thân",
       "description": "Cho chúng tôi biết cách tìm ví bạn muốn khôi phục.",
+      "errorTitle": "Chưa thể bắt đầu khôi phục",
       "errors": {
         "notConfigured": "Ứng dụng chưa kết nối mạng. Thử lại sau hoặc liên hệ hỗ trợ.",
         "notSent": "Chưa kết nối được mạng. Chưa có gì được gửi — bạn có thể thử lại."
       },
-      "errorTitle": "Chưa thể bắt đầu khôi phục",
       "invalid": "Đây chưa phải địa chỉ ví. Địa chỉ bắt đầu bằng C và dài 56 ký tự.",
       "label": "Địa chỉ ví của bạn",
       "passkeyNote": "Tiếp theo, máy sẽ hỏi vân tay hoặc khuôn mặt để tạo chìa khoá mới.",
@@ -371,8 +371,8 @@
       "countdownCta": "Xem khoảng chờ",
       "description": "Xem những ai đã xác nhận.",
       "doneCta": "Hoàn tất trên máy này",
-      "missingTitle": "Trước hết, hãy cho biết ví nào",
       "missingAddressCta": "Nhập địa chỉ ví trước đã",
+      "missingTitle": "Trước hết, hãy cho biết ví nào",
       "state": {
         "executed": "Xong — ví của bạn giờ nghe theo chìa khoá mới.",
         "none": "Chưa có khôi phục nào được mở. Người thân của bạn có thể vẫn đang xác minh.",
@@ -381,8 +381,8 @@
         "vetoed": "Khôi phục này đã bị chặn. Nếu đúng là bạn yêu cầu, hãy liên hệ người thân."
       },
       "title": "Đang chờ xác nhận",
-      "waitingCta": "Đang chờ người thân",
-      "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có"
+      "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có",
+      "waitingCta": "Đang chờ người thân"
     },
     "sent": {
       "description": "Người bảo hộ của bạn đã được đề nghị xác nhận đúng là bạn.",
@@ -403,6 +403,22 @@
       "step3": "Khi đủ người đồng ý và hết khoảng chờ, ví của bạn nghe theo chìa khoá mới. Địa chỉ giữ nguyên, tiền không di chuyển.",
       "title": "Lấy lại ví của bạn"
     }
+  },
+  "settings": {
+    "about": {
+      "mainnet": "Đang chạy trên mạng chính thức Stellar.",
+      "testnet": "Đang chạy trên mạng thử Stellar — tiền ở đây không phải tiền thật.",
+      "title": "Về ứng dụng"
+    },
+    "account": {
+      "changePassword": "Đổi mật khẩu (qua mã email)",
+      "title": "Tài khoản"
+    },
+    "description": "Ngôn ngữ, tài khoản và thông tin ứng dụng.",
+    "language": {
+      "title": "Ngôn ngữ"
+    },
+    "title": "Cài đặt"
   },
   "setup": {
     "assistant": {
@@ -511,6 +527,8 @@
     },
     "home": {
       "addressLabel": "Địa chỉ ví của bạn",
+      "balanceLabel": "Số dư",
+      "balanceRetry": "Thử lại",
       "description": "Số dư, hoạt động gần đây và tình trạng bảo vệ trong một màn hình.",
       "historyCta": "Lịch sử",
       "inviteCta": "Mời người thân",

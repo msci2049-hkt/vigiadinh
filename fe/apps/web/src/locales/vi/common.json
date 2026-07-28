@@ -15,7 +15,8 @@
   "userMenu": {
     "login": "Đăng nhập",
     "logout": "Đăng xuất",
-    "panel": "Bảng điều khiển"
+    "panel": "Bảng điều khiển",
+    "settings": "Cài đặt"
   },
   "health": {
     "checking": "BE: đang kiểm tra…",

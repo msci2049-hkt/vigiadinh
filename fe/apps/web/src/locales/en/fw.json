@@ -313,8 +313,8 @@
     "protectedBy": "Protected by 3 family members",
     "recoveryCta": "Lost your phone? Recover wallet",
     "signInCta": "I already have a wallet — unlock",
-    "tryAgainTitle": "Didn't catch that. Try again?",
     "title": "Unlock with your device",
+    "tryAgainTitle": "Didn't catch that. Try again?",
     "unsupported": "This device is too old for face or fingerprint unlock. You can still continue on another phone, or on a newer browser.",
     "walletUser": "Family wallet",
     "working": "Unlocking with your device…"
@@ -335,18 +335,18 @@
       "note": "This waiting period exists so the wallet owner can stop a recovery they did not ask for. If that is you — do nothing, just wait.",
       "protectionTitle": "Why there is a waiting period",
       "title": "Almost there",
-      "windowLabel": "Protection window",
-      "window": "Time left: {countdown} (until {absolute})"
+      "window": "Time left: {countdown} (until {absolute})",
+      "windowLabel": "Protection window"
     },
     "done": {
       "connectCta": "Open my wallet on this device",
       "cooldownNote": "For a short while right after recovery, the wallet refuses every action. That is a safety feature, not an error.",
+      "cooldownTitle": "A short safety pause follows",
       "description": "Your wallet is on this device now.",
+      "errorTitle": "This device is not ready",
       "errors": {
         "noDraft": "This device has no recovery key saved. Start the recovery from the beginning on this device."
       },
-      "cooldownTitle": "A short safety pause follows",
-      "errorTitle": "This device is not ready",
       "openWalletCta": "Go to wallet sign-in",
       "sameAddress": "Same wallet address. Your money never moved.",
       "title": "Welcome back"
@@ -355,11 +355,11 @@
       "creating": "Creating your new key…",
       "cta": "Create new key and ask family",
       "description": "Tell us how to find the wallet you want to recover.",
+      "errorTitle": "We could not start recovery",
       "errors": {
         "notConfigured": "This app is not connected to the network yet. Try again later or contact support.",
         "notSent": "Could not reach the network. Nothing was sent — you can try again."
       },
-      "errorTitle": "We could not start recovery",
       "invalid": "That does not look like a wallet address. It starts with C and has 56 characters.",
       "label": "Your wallet address",
       "passkeyNote": "Next, this device will ask for your fingerprint or face to create the new key.",
@@ -371,8 +371,8 @@
       "countdownCta": "See the waiting period",
       "description": "See who has confirmed so far.",
       "doneCta": "Finish on this device",
-      "missingTitle": "First, tell us which wallet",
       "missingAddressCta": "Enter your wallet address first",
+      "missingTitle": "First, tell us which wallet",
       "state": {
         "executed": "Done — your wallet now answers to your new key.",
         "none": "No recovery has been started yet. Your family members may still be verifying it is you.",
@@ -381,8 +381,8 @@
         "vetoed": "This recovery was stopped. If you really asked for it, contact your family members."
       },
       "title": "Waiting for approvals",
-      "waitingCta": "Waiting for family",
-      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed"
+      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
+      "waitingCta": "Waiting for family"
     },
     "sent": {
       "description": "Your protectors have been asked to confirm it's really you.",
@@ -403,6 +403,22 @@
       "step3": "When enough of them agree and the waiting period passes, your wallet answers to the new key. Same address, nothing moves.",
       "title": "Get your wallet back"
     }
+  },
+  "settings": {
+    "about": {
+      "mainnet": "Running on the Stellar public network.",
+      "testnet": "Running on the Stellar test network — funds here are not real money.",
+      "title": "About"
+    },
+    "account": {
+      "changePassword": "Change password (via email code)",
+      "title": "Account"
+    },
+    "description": "Language, account and app info.",
+    "language": {
+      "title": "Language"
+    },
+    "title": "Settings"
   },
   "setup": {
     "assistant": {
@@ -511,6 +527,8 @@
     },
     "home": {
       "addressLabel": "Your wallet address",
+      "balanceLabel": "Balance",
+      "balanceRetry": "Try again",
       "description": "Balance, recent activity and protection status at a glance.",
       "historyCta": "History",
       "inviteCta": "Invite family",

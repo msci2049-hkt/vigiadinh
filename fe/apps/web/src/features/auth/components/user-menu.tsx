@@ -41,6 +41,9 @@ export function UserMenu() {
         </Button>
       ) : null}
       <span className="hidden text-sm sm:inline">{user.name ?? user.email}</span>
+      <Button asChild size="sm" variant="ghost">
+        <Link to="/settings">{t("userMenu.settings")}</Link>
+      </Button>
       <Button size="sm" variant="ghost" onClick={handleSignOut}>
         {t("userMenu.logout")}
       </Button>

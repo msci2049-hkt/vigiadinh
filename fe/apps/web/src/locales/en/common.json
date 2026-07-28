@@ -15,7 +15,8 @@
   "userMenu": {
     "login": "Sign in",
     "logout": "Sign out",
-    "panel": "Control panel"
+    "panel": "Control panel",
+    "settings": "Settings"
   },
   "health": {
     "checking": "BE: checking…",
