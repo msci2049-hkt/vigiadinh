@@ -38,8 +38,8 @@ test("open redirect via protocol-relative URL is blocked", async ({ page }) => {
   await page.goto("/login?redirect=//evil.com");
   await submitLogin(page);
 
-  // Sanitized to the internal default "/", never navigated off-origin.
-  await expect(page).toHaveURL("http://localhost:4174/");
+  // Sanitized away → falls back to postAuthPath = /wallet. Never off-origin.
+  await expect(page).toHaveURL(/\/wallet$/);
 });
 
 test("open redirect via absolute URL is blocked", async ({ page }) => {
@@ -47,5 +47,5 @@ test("open redirect via absolute URL is blocked", async ({ page }) => {
   await page.goto("/login?redirect=https://evil.com");
   await submitLogin(page);
 
-  await expect(page).toHaveURL("http://localhost:4174/");
+  await expect(page).toHaveURL(/\/wallet$/);
 });

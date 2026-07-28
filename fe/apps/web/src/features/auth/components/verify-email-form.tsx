@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { defaultPanelPath, sessionQueryKey } from "@repo/auth";
+import { postAuthPath, sessionQueryKey } from "@repo/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -56,12 +56,13 @@ export function VerifyEmailForm({ email }: { email: string }) {
       toast.error(error.message ?? t("verify.errorToast"));
       return;
     }
-    // verifyEmail (autoSignInAfterVerification) tạo session → vào luôn app.
+    // verifyEmail (autoSignInAfterVerification) tạo session → vào luôn app
+    // (admin → /admin, user thường → /wallet — KHÔNG rơi về "/" = /welcome).
     queryClient.removeQueries({ queryKey: sessionQueryKey });
     const { data } = await getSession().catch(() => ({ data: null }));
     setSubmitting(false);
     toast.success(t("verify.successToast"));
-    await navigate({ to: defaultPanelPath(data?.user?.role) });
+    await navigate({ to: postAuthPath(data?.user?.role) });
   }
 
   async function onResend() {

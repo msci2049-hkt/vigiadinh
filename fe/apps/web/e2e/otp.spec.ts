@@ -51,8 +51,8 @@ test("verify-email accepts the OTP and lands in the app", async ({ page }) => {
   await fillOtp(page, "123456");
   await page.getByRole("button", { name: "Xác minh" }).click();
 
-  // autoSignInAfterVerification → getSession → defaultPanelPath("user") = "/".
-  await expect(page).toHaveURL("http://localhost:4174/");
+  // autoSignInAfterVerification → getSession → postAuthPath("user") = "/wallet".
+  await expect(page).toHaveURL(/\/wallet$/);
 });
 
 test("verify-email without an email param redirects to sign-up", async ({ page }) => {

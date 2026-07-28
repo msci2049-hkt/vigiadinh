@@ -22,7 +22,7 @@ export const Route = createFileRoute("/login")({
 
 function LoginPage() {
   const { redirect } = Route.useSearch();
-  // No explicit redirect → LoginForm lands on the role's default panel
-  // (defaultPanelPath) after sign-in; plain users go to "/".
+  // No explicit redirect → LoginForm lands on the role's post-auth home
+  // (postAuthPath) after sign-in; plain users go to "/wallet".
   return <LoginForm redirectTo={redirect} />;
 }

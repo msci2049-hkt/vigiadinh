@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { defaultPanelPath, sessionQueryKey } from "@repo/auth";
+import { postAuthPath, sessionQueryKey } from "@repo/auth";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -51,12 +51,12 @@ export function LoginForm({ redirectTo }: { redirectTo?: string | undefined }) {
     // Session changed → drop the router-guard cache so beforeLoad re-checks.
     queryClient.removeQueries({ queryKey: sessionQueryKey });
 
-    // Explicit ?redirect wins; otherwise land on the role's default panel
-    // (admin → /admin, plain user → /). Session read is fresh post-login.
+    // Explicit ?redirect wins; otherwise land on the role's post-auth home
+    // (admin → /admin, plain user → /wallet). Session read is fresh post-login.
     let target = redirectTo;
     if (!target) {
       const { data } = await getSession().catch(() => ({ data: null }));
-      target = defaultPanelPath(data?.user?.role);
+      target = postAuthPath(data?.user?.role);
     }
 
     setSubmitting(false);

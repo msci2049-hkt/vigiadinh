@@ -56,6 +56,17 @@ export function defaultPanelPath(role?: string | null): string {
   return panelsForRole(role)[0]?.basePath ?? "/";
 }
 
+/**
+ * Đích SAU KHI XÁC THỰC thành công (login / verify OTP / `/` có phiên).
+ * Khác defaultPanelPath ở fallback: user thường KHÔNG có panel → phải vào hub
+ * ví, không phải "/" (= /welcome, màn dành cho khách chưa đăng nhập — rơi về
+ * đó là user không bao giờ vào được app). defaultPanelPath giữ nguyên cho
+ * UserMenu/guard (chỗ cần "panel hoặc không gì cả").
+ */
+export function postAuthPath(role?: string | null): string {
+  return panelsForRole(role)[0]?.basePath ?? "/wallet";
+}
+
 export function panelByKey(key: string): PanelDef | undefined {
   return PANELS.find((p) => p.key === key);
 }

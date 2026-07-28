@@ -13,5 +13,6 @@ export {
   type PanelNavItem,
   panelByKey,
   panelsForRole,
+  postAuthPath,
 } from "./panels";
 export { sessionQueryKey, sessionQueryOptions } from "./session";
