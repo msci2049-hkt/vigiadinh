@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from "@/components/family/ui";
 import { createInvite, inviteKeys, invitesOptions } from "@/features/family/api/invites";
+import { InviteCard } from "@/features/family/components/invite-card";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { WizardNav } from "@/features/family/components/wizard-nav";
@@ -26,12 +27,20 @@ function SetupChooseGuardiansScreen() {
   const queryClient = useQueryClient();
   const { wallet, isLoading: walletLoading, isError: walletError } = useActiveWallet();
   const [label, setLabel] = useState("");
+  // Lời mời tạo TRONG PHIÊN — giữ CẢ DANH SÁCH, không chỉ cái cuối. Token chỉ
+  // có trong response lúc tạo (API danh sách không trả lại — chống rò), nên
+  // rời màn là hết đường hiện lại QR; ghi nợ BE nếu cần re-show sau reload.
+  const [created, setCreated] = useState<Array<{ label: string; token: string }>>([]);
 
   const invites = useQuery({ ...invitesOptions(wallet?.id ?? ""), enabled: wallet !== null });
 
   const create = useMutation({
     mutationFn: () => createInvite({ walletId: wallet?.id ?? "", label: label.trim() }),
-    onSuccess: async () => {
+    onSuccess: async (res) => {
+      // BUG CŨ (chẩn đoán b): chỗ này từng CHỈ xoá ô + invalidate — lời mời
+      // nằm trong DB mà người dùng không có gì để gửi đi. Giờ: thẻ mới nhất
+      // lên đầu, ô tên tự xoá để nhập người tiếp theo.
+      setCreated((cards) => [{ label: res.label, token: res.token }, ...cards]);
       setLabel("");
       await queryClient.invalidateQueries({ queryKey: inviteKeys.byWallet(wallet?.id ?? "") });
     },
@@ -69,11 +78,23 @@ function SetupChooseGuardiansScreen() {
           >
             {create.isPending ? t("setup.invite.creating") : t("setup.invite.createCta")}
           </Button>
+          {/* Nút tắt phải NÓI LÝ DO (chẩn đoán a) — giữ disabled để không
+              submit rỗng, thêm dòng phụ thay vì để người dùng tự đoán. */}
+          {label.trim().length === 0 ? (
+            <p className="text-muted-foreground text-xs">{t("setup.invite.labelRequired")}</p>
+          ) : null}
+          {create.isError ? (
+            <p className="text-destructive text-xs">{t("setup.invite.createFailed")}</p>
+          ) : null}
           <Button asChild variant="outline" size="sm">
             <Link to="/setup/invite">{t("setup.chooseGuardians.manageCta")}</Link>
           </Button>
         </CardContent>
       </Card>
+
+      {created.map((card) => (
+        <InviteCard key={card.token} label={card.label} token={card.token} />
+      ))}
 
       {/* Đi tiếp được kể cả khi chưa ai nhận lời — luồng tăng dần. */}
       <PrimaryZone>

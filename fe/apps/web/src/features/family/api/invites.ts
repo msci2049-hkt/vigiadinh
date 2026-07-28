@@ -61,12 +61,25 @@ export const inviteByTokenOptions = (token: string) =>
 export async function createInvite(input: {
   walletId: string;
   label: string;
-}): Promise<{ id: string; token: string }> {
-  const res = await apiClient.post<{ data: { id: string; token: string } }>(
+}): Promise<{ id: string; token: string; label: string }> {
+  const res = await apiClient.post<{ data: { id: string; token: string; label: string } }>(
     "/api/guardians/invites",
     { wallet_id: input.walletId, label: input.label },
   );
   return res.data;
+}
+
+/**
+ * Link nhận lời mời ĐẦY ĐỦ — một chỗ dựng duy nhất. BE chỉ trả token trần;
+ * domain ghép ở client từ origin đang chạy. Throw sớm khi thiếu mảnh nào:
+ * link cụt (không domain / không token) mà vẫn đưa cho người dùng copy là
+ * đúng kiểu bug im lặng chỉ lộ ra khi người thân bấm không mở được.
+ */
+export function inviteAcceptUrl(token: string, origin?: string): string {
+  const base = origin ?? window.location.origin;
+  if (!token) throw new Error("INVITE_TOKEN_EMPTY");
+  if (!base || base === "null") throw new Error("INVITE_ORIGIN_EMPTY");
+  return `${base}/guardian/accept?token=${encodeURIComponent(token)}`;
 }
 
 /** Nộp ĐỊA CHỈ ví của người bảo hộ. Chỉ public key material rời khỏi máy họ. */

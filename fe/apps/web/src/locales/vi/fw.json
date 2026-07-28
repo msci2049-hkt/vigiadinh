@@ -457,6 +457,13 @@
     },
     "invite": {
       "addTitle": "Thêm một người",
+      "card": {
+        "hint": "Gửi link này cho người thân. Họ phải mở TRÊN MÁY CỦA HỌ để nhận lời.",
+        "copiedToast": "Đã chép link — gửi cho họ ngay nhé.",
+        "shareCta": "Chia sẻ",
+        "expiry": "Link dùng một lần, hết hạn sau 7 ngày.",
+        "qrLabel": "Mã QR lời mời cho {label}"
+      },
       "copyCta": "Chép đường dẫn",
       "createCta": "Tạo đường dẫn",
       "createFailed": "Chưa tạo được đường dẫn. Bạn thử lại giúp nhé.",
@@ -465,6 +472,7 @@
       "doneCta": "Về ví của tôi",
       "labelField": "Bạn gọi họ là gì",
       "labelPlaceholder": "Mẹ, anh Hai, con gái…",
+      "labelRequired": "Nhập tên để tạo lời mời.",
       "linkHint": "Gửi đường dẫn này cho họ. Dùng được trong 7 ngày.",
       "title": "Mời người thân"
     },

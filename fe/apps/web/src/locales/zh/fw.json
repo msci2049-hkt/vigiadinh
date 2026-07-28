@@ -457,6 +457,13 @@
     },
     "invite": {
       "addTitle": "添加一个人",
+      "card": {
+        "hint": "把这个链接发给你的亲友。他们必须在自己的设备上打开才能接受。",
+        "copiedToast": "链接已复制——现在发给他们吧。",
+        "shareCta": "分享",
+        "expiry": "一次性链接，7 天后过期。",
+        "qrLabel": "{label} 的邀请二维码"
+      },
       "copyCta": "复制链接",
       "createCta": "创建链接",
       "createFailed": "链接创建失败，请再试一次。",
@@ -465,6 +472,7 @@
       "doneCta": "返回我的钱包",
       "labelField": "你怎么称呼他们",
       "labelPlaceholder": "妈妈、哥哥、女儿…",
+      "labelRequired": "输入称呼即可创建邀请。",
       "linkHint": "把这个链接发给他们，7 天内有效。",
       "title": "邀请家人"
     },

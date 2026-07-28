@@ -457,6 +457,13 @@
     },
     "invite": {
       "addTitle": "Add someone",
+      "card": {
+        "hint": "Send this link to your family member. They must open it ON THEIR OWN device to accept.",
+        "copiedToast": "Link copied — send it to them now.",
+        "shareCta": "Share",
+        "expiry": "One-time link, expires in 7 days.",
+        "qrLabel": "Invite QR code for {label}"
+      },
       "copyCta": "Copy link",
       "createCta": "Create a link",
       "createFailed": "We could not create the link. Please try again.",
@@ -465,6 +472,7 @@
       "doneCta": "Back to my wallet",
       "labelField": "What you call them",
       "labelPlaceholder": "Mum, my brother, my daughter…",
+      "labelRequired": "Type a name to create an invite.",
       "linkHint": "Send this link to them. It works for 7 days.",
       "title": "Invite them"
     },

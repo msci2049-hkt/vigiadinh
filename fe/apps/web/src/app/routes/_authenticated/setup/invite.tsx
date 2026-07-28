@@ -20,6 +20,7 @@ import {
   markInviteRegistered,
 } from "@/features/family/api/invites";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
+import { InviteCard } from "@/features/family/components/invite-card";
 import { InviteStatusList } from "@/features/family/components/invite-status-list";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
@@ -37,14 +38,18 @@ function SetupInviteScreen() {
   const queryClient = useQueryClient();
   const { wallet, isLoading: walletLoading, isError: walletError } = useActiveWallet();
   const [label, setLabel] = useState("");
-  const [lastLink, setLastLink] = useState<string | null>(null);
+  // Giữ CẢ DANH SÁCH lời mời tạo trong phiên (trước đây chỉ giữ link CUỐI —
+  // tạo người thứ hai là mất đường gửi cho người thứ nhất). Token chỉ có ở
+  // response lúc tạo; API danh sách không trả lại (chống rò) — nợ BE nếu cần
+  // hiện lại QR sau reload.
+  const [created, setCreated] = useState<Array<{ label: string; token: string }>>([]);
 
   const invites = useQuery({ ...invitesOptions(wallet?.id ?? ""), enabled: wallet !== null });
 
   const create = useMutation({
     mutationFn: () => createInvite({ walletId: wallet?.id ?? "", label: label.trim() }),
     onSuccess: async (res) => {
-      setLastLink(`${window.location.origin}/guardian/accept?token=${res.token}`);
+      setCreated((cards) => [{ label: res.label, token: res.token }, ...cards]);
       setLabel("");
       await queryClient.invalidateQueries({ queryKey: inviteKeys.byWallet(wallet?.id ?? "") });
     },
@@ -114,24 +119,19 @@ function SetupInviteScreen() {
           >
             {create.isPending ? t("setup.invite.creating") : t("setup.invite.createCta")}
           </Button>
+          {/* Nút tắt phải nói lý do — cùng khuôn choose-guardians. */}
+          {label.trim().length === 0 ? (
+            <p className="text-muted-foreground text-xs">{t("setup.invite.labelRequired")}</p>
+          ) : null}
           {create.isError ? (
             <ErrorBanner type="error" title={t("setup.invite.createFailed")} />
           ) : null}
-          {lastLink ? (
-            <div className="flex flex-col gap-3 rounded-card border border-dashed bg-card p-4">
-              <p className="text-muted-foreground text-xs">{t("setup.invite.linkHint")}</p>
-              <code className="break-all text-xs">{lastLink}</code>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => void navigator.clipboard.writeText(lastLink)}
-              >
-                {t("setup.invite.copyCta")}
-              </Button>
-            </div>
-          ) : null}
         </CardContent>
       </Card>
+
+      {created.map((card) => (
+        <InviteCard key={card.token} label={card.label} token={card.token} />
+      ))}
 
       {invites.data ? (
         <InviteStatusList
