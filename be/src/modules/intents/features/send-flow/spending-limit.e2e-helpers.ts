@@ -1,6 +1,6 @@
 // Helpers cho spending-limit.e2e (LÔ 3) — trích từ onchain.e2e.test.ts, tham
 // số hoá để tái dùng: deploy ví bằng chứng từ wasm smart-account ĐÃ upload
-// (mặc định bản pin production 2c19ee49…), nạp XLM qua SAC transfer.
+// (mặc định bản pin production c1b28d42…), nạp XLM qua SAC transfer.
 // CHỈ import từ file e2e (guard RUN_TESTNET_E2E) — không đi vào bundle app.
 import {
   Address,
@@ -20,7 +20,7 @@ import { transferArgs } from "../../domain/transfer";
 const SMART_ACCOUNT_WASM =
   process.env.E2E_SMART_ACCOUNT_WASM ??
   env.ACCOUNT_WASM_HASH ??
-  "2c19ee49d7f25a6a052e2dc16489e5b1b10afc322ff6a8a8483d0e408c796f35";
+  "c1b28d42da1b7b091307c9acb0d72b88f45cc29d404b4d3c30bca0250a9d565f";
 
 export async function friendbot(kp: Keypair): Promise<void> {
   const res = await fetch(`https://friendbot.stellar.org?addr=${kp.publicKey()}`);

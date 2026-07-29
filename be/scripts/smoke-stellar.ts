@@ -7,7 +7,7 @@ import { argsToScVal } from "@/modules/sep45/entries";
 import { buildInvokeTx, feeWallet } from "@/services/stellar/stellar.service";
 
 // web-auth đợt 2026-07-27 (AUDIT-2026-07-25 §8) — bản CAKV3MKK… cũ đã bỏ.
-const WEB_AUTH_CONTRACT = "CCSIOPPEPX6ZGT2KWDVQK7WC27VSIIAXZFKKZVYGFI2N3D3ZVUN57F5O";
+const WEB_AUTH_CONTRACT = "CBWMHVEEXEOSOSWULYNYN62EYVMWJT55NKRPUI2MXSYHVVZ6NIMRJBWD";
 
 const built = await buildInvokeTx({
   contractId: WEB_AUTH_CONTRACT,
