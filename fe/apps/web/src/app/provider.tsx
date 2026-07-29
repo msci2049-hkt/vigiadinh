@@ -5,6 +5,7 @@ import { RouterProvider } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Toaster, useThemeInit } from "@/components/family/ui";
 import { UpdateToast } from "@/components/update-toast";
+import { unauthorizedNavigation } from "@/features/auth/lib/redirect-param";
 import { attachSentryRouterTracing } from "@/instrument";
 import { setUnauthorizedHandler } from "@/lib/api-client";
 import { env } from "@/lib/env";
@@ -31,8 +32,12 @@ export function AppProvider() {
     // a stale "authenticated" entry.
     setUnauthorizedHandler(() => {
       queryClient.removeQueries({ queryKey: sessionQueryKey });
-      const redirect = window.location.pathname + window.location.search;
-      void router.navigate({ to: "/login", search: { redirect } });
+      // Quyết định nằm ở hàm THUẦN (test được, không cần router): đang đứng trên
+      // trang auth mà nhận 401 thì Ở LẠI — đá tiếp chỉ lồng thêm một tầng
+      // `?redirect=` vào chính nó (sự cố 29/07).
+      const nav = unauthorizedNavigation(window.location);
+      if (!nav.navigate) return;
+      void router.navigate({ to: "/login", search: { redirect: nav.redirect } });
     });
   }, []);
 

@@ -2,6 +2,7 @@ import { sessionQueryOptions } from "@repo/auth";
 import { createFileRoute, Outlet, redirect, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useRealtimeUpdates } from "@/app/use-realtime-updates";
+import { sanitizeRedirect } from "@/features/auth/lib/redirect-param";
 import { authClient } from "@/lib/auth-client";
 import i18n from "@/lib/i18n";
 
@@ -18,7 +19,9 @@ export const Route = createFileRoute("/_authenticated")({
   beforeLoad: async ({ context, location }) => {
     const session = await context.queryClient.ensureQueryData(sessionQueryOptions(authClient));
     if (!session?.user) {
-      throw redirect({ to: "/login", search: { redirect: location.href } });
+      // `location.href` của TanStack Router là đường TƯƠNG ĐỐI (vd `/login?redirect=/`),
+      // nên nếu không lọc thì nó tự lồng vào chính nó — đúng vòng lặp 29/07.
+      throw redirect({ to: "/login", search: { redirect: sanitizeRedirect(location.href) } });
     }
     return { session };
   },
