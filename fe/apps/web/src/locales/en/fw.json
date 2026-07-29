@@ -488,7 +488,12 @@
     "language": {
       "title": "Language"
     },
-    "title": "Settings"
+    "title": "Settings",
+    "safety": {
+      "title": "Safety",
+      "body": "Your wallet's daily spending limit is enforced by a smart contract on the Stellar network — not by our servers. Even if our systems were taken over, nobody can raise this limit but you.",
+      "changeNote": "Changing the limit is signed with your passkey on your device (coming soon)."
+    }
   },
   "setup": {
     "assistant": {
@@ -647,7 +652,8 @@
         "network": "Could not reach the network. Try again shortly.",
         "notSent": "Nothing was sent. You can try again safely.",
         "tampered": "We stopped this payment. The order we were about to approve did not match the amount and recipient you entered, so nothing was signed and nothing was sent. Do not retry on this device — check your connection and contact support.",
-        "walletLocked": "Your wallet is locked on this device. Open it first, then try again."
+        "walletLocked": "Your wallet is locked on this device. Open it first, then try again.",
+        "spendingLimit": "This is over your wallet's on-chain daily limit. The limit lives in the smart contract itself — nobody but you can change it, not even our system. Try a smaller amount, or try again tomorrow."
       },
       "guardian": {
         "description": "This amount needs a trusted contact to agree first. We've asked them — you'll be notified when it's approved.",

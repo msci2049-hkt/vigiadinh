@@ -2026,6 +2026,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "spending-limit-policy"
+version = "0.1.0"
+dependencies = [
+ "soroban-sdk 26.1.1",
+ "stellar-accounts",
+]
+
+[[package]]
 name = "spin"
 version = "0.9.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"

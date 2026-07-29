@@ -91,6 +91,14 @@ const EnvSchema = z.object({
     .regex(/^C[A-Z2-7]{55}$/, "phải là contract ID (C...)")
     .optional()
     .or(z.literal("").transform(() => undefined)),
+  // Spending-limit policy contract (LÔ 3) — vỏ OZ spending_limit đã deploy.
+  // Có set → Cài đặt hiện thẻ "hạn mức on-chain" + link explorer. Trống → ẩn
+  // (ví production CHƯA gắn policy — gắn là bước onboarding ký bằng passkey chủ ví).
+  VITE_SPENDING_LIMIT_POLICY: z
+    .string()
+    .regex(/^C[A-Z2-7]{55}$/, "phải là contract ID (C...)")
+    .optional()
+    .or(z.literal("").transform(() => undefined)),
 });
 
 export type Env = z.infer<typeof EnvSchema>;

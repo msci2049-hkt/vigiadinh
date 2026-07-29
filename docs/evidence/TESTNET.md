@@ -220,3 +220,46 @@ hộ KHÔNG BAO GIỜ là signer trên ví chủ; họ bỏ phiếu ở registry
 
 Chạy lại: `RUN_TESTNET_E2E=1 pnpm --filter @repo/web exec playwright test e2e/multi-device
 --project=chromium` (cần preview `:4174`). Kết quả máy: `docs/evidence/multi-device-latest.json`.
+
+---
+
+## LÔ 3 — HẠN MỨC ON-CHAIN (spending-limit policy, 2026-07-29)
+
+Chứng minh "backend sập cũng không ai vượt được hạn mức": policy contract (vỏ mỏng
+quanh OZ `stellar_accounts::policies::spending_limit` 0.7.2) gắn vào ví hợp đồng qua
+`add_context_rule(CallContract(SAC))` và chối chi tiêu ngay trong `__check_auth`.
+
+| Gì | Giá trị | Link |
+|---|---|---|
+| Policy contract `spending-limit-policy` (vỏ OZ) | `CABZ6H4DPPTUGAAN7TI74AWMMWF54IHHDNUXXN2GDZZVTMFDWWJLXBK2` | [contract](https://stellar.expert/explorer/testnet/contract/CABZ6H4DPPTUGAAN7TI74AWMMWF54IHHDNUXXN2GDZZVTMFDWWJLXBK2) |
+| Wasm hash (build local = deploy) | `7ce822b190e41201b0a4e6ee80c509b846fffe837584b435ba61efafe6332248` | — |
+| Ví bằng chứng (deploy từ wasm smart-account `2c19ee49…`) | `CDENRYUMJFE66INGJFBMPCOSU6U3TJV2FZCM2LC4JILKFYFOR2BWDEMW` | [contract](https://stellar.expert/explorer/testnet/contract/CDENRYUMJFE66INGJFBMPCOSU6U3TJV2FZCM2LC4JILKFYFOR2BWDEMW) |
+| Cấu hình policy | hạn mức **50 XLM** / cửa sổ **60 ledger** (~5 phút) | — |
+
+Chạy lại: `RUN_TESTNET_E2E=1 bun test src/modules/intents/features/send-flow/spending-limit.e2e`
+(cần `FEE_WALLET_SECRET` + `CONTRACT_ID_SAC_NATIVE`).
+
+### 4 ca bằng chứng (+ 1 ca đo nợ)
+
+| # | Ca | Kỳ vọng | Kết quả | tx / ledger |
+|---|---|---|---|---|
+| gắn | `add_context_rule(CallContract(SAC))` chở policy (ký rule 0) | rule 1 có policy | ✅ `get_context_rule(1).policies = [CABZ…BK2]` | [tx](https://stellar.expert/explorer/testnet/tx/b9c4158eed081402808ad3a2e13dff7044ef7b36d77b417be8fe06c0003699c4) |
+| 1 | Gửi **10 XLM** dưới hạn mức, ký rule 1 | Pass, người nhận nhận đủ | ✅ pass | [tx](https://stellar.expert/explorer/testnet/tx/a357db938fbd09daa48f0a64e2cbdc69f90bdb5c6096a90da705d20858819a04) |
+| 2 | Gửi **60 XLM** vượt một lệnh | **Bị chối on-chain** | ✅ `Error(Auth, InvalidAction)` — enforce panic #3221 trong `__check_auth` | @ledger 3853678 |
+| 3 | Cộng dồn: +20 XLM pass (tổng 30) rồi +25 XLM (tổng sẽ 55 > 50) | Lệnh thứ hai **bị chối** | ✅ 3a pass; 3b `Error(Auth, InvalidAction)` #3221 | [3a](https://stellar.expert/explorer/testnet/tx/785e3a1c4bbe81b08f60b442547efb221db082a0a4178ab0ab8e9ff12dac199c) · @ledger 3853680 |
+| 4 | Chờ qua cửa sổ (~60 ledger), gửi lại **25 XLM** | Pass trở lại (entry cũ evict) | ✅ pass | [tx](https://stellar.expert/explorer/testnet/tx/919342e1e502f577940b3cbaa1514cbd464104668960a80ca040ffc7b46c494a) |
+| 5 ⚠️ | Cùng **60 XLM** nhưng ký **rule 0** (Default, không policy) | — (đo nợ) | ⚠️ **PASS** — policy không chạy trên rule Default | [tx](https://stellar.expert/explorer/testnet/tx/37940d9303f7b885145c361d6242e9da9fa938ee4428fff70dcc8c1d4af1f9a1) |
+
+State on-chain sau ca 4 (đọc thật): `get_spending_limit_data(1, ví)` =
+`{spending_limit: 500000000, period_ledgers: 60, cached_total_spent: 250000000}`.
+
+### ⚠️ NỢ TRUNG THỰC (ca 5) — hạn mức ràng buộc THEO ĐƯỜNG KÝ, chưa tuyệt đối
+
+OZ `spending_limit::install` CHỈ nhận rule kiểu `CallContract(token)` (mã 3227) — KHÔNG
+gắn được vào rule 0 (Default "owner"). Ví vẫn còn rule 0 không policy, mà `do_check_auth`
+của OZ cho phép người ký CHỌN rule 0 cho một SAC transfer (Default match mọi context).
+Nên hạn mức chặn tuyệt đối **chỉ khi** ví không còn rule Default nào phủ được transfer.
+Chặn tuyệt đối = viết policy riêng cho rule Default (hoặc bỏ rule Default, thay bằng rule
+`CallContract` cho mọi token) — **nợ, không làm trong LÔ 3**. Đây là bằng chứng đúng-sự-thật,
+không giấu: hạn mức on-chain đã CHẶN THẬT trên đường ký chuẩn (rule có policy), và ta nói
+rõ đường vòng còn lại.

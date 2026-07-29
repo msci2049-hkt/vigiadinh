@@ -488,7 +488,12 @@
     "language": {
       "title": "Ngôn ngữ"
     },
-    "title": "Cài đặt"
+    "title": "Cài đặt",
+    "safety": {
+      "title": "An toàn",
+      "body": "Hạn mức chi tiêu ngày của ví được cưỡng chế bằng hợp đồng thông minh trên mạng Stellar — không phải bằng máy chủ của chúng tôi. Kể cả khi hệ thống bị chiếm, ngoài bạn không ai nâng được hạn mức này.",
+      "changeNote": "Đổi hạn mức được ký bằng passkey ngay trên máy của bạn (sắp có)."
+    }
   },
   "setup": {
     "assistant": {
@@ -647,7 +652,8 @@
         "network": "Chưa kết nối được mạng. Thử lại sau chút.",
         "notSent": "Chưa có gì được gửi đi. Bạn có thể thử lại an toàn.",
         "tampered": "Chúng tôi đã dừng giao dịch này. Lệnh sắp được duyệt không khớp số tiền và người nhận bạn vừa nhập, nên không có gì được ký và không có gì được gửi đi. Đừng thử lại trên máy này — hãy kiểm tra kết nối và liên hệ hỗ trợ.",
-        "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại."
+        "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại.",
+        "spendingLimit": "Khoản này vượt hạn mức ngày của ví. Hạn mức được ghi trong hợp đồng thông minh — ngoài bạn, không ai đổi được, kể cả hệ thống. Hãy thử số nhỏ hơn hoặc quay lại vào ngày mai."
       },
       "guardian": {
         "description": "Số tiền này cần một người thân đồng ý trước. Chúng tôi đã hỏi họ — bạn sẽ được báo khi được duyệt.",

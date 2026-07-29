@@ -43,6 +43,7 @@ type SendErrorKey =
   | "wallet.send.errors.walletLocked"
   | "wallet.send.errors.network"
   | "wallet.send.errors.tampered"
+  | "wallet.send.errors.spendingLimit"
   | "wallet.send.errors.notSent";
 
 function sendErrorKey(err: unknown): { key: SendErrorKey; shortfall?: string | undefined } {
@@ -70,6 +71,10 @@ function sendErrorKey(err: unknown): { key: SendErrorKey; shortfall?: string | u
       } catch {
         return { key: "wallet.send.errors.insufficient" };
       }
+    }
+    // Hạn mức ON-CHAIN chối (LÔ 3) — hợp đồng nói "không", không phải lỗi mạng.
+    if (msg.startsWith("SPENDING_LIMIT_EXCEEDED")) {
+      return { key: "wallet.send.errors.spendingLimit" };
     }
     if (msg.startsWith("BAD_RECIPIENT") || msg.startsWith("SELF_TRANSFER")) {
       return { key: "wallet.send.errors.badRecipient" };

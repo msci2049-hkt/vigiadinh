@@ -64,6 +64,29 @@ function SettingsScreen() {
         </CardContent>
       </Card>
 
+      {/* An toàn — hạn mức chi tiêu cưỡng chế TRÊN CHUỖI (LÔ 3). Chỉ hiện khi
+          đã cấu hình policy: nói thẳng "ghi trong hợp đồng, ngoài bạn không ai
+          đổi", link explorer thật, và ghi rõ đổi hạn mức là bước ký sắp tới. */}
+      {env.VITE_SPENDING_LIMIT_POLICY ? (
+        <Card className="bg-paper-2">
+          <CardHeader>
+            <CardTitle className="text-base">{t("settings.safety.title")}</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2 text-copy">
+            <p className="text-sm">{t("settings.safety.body")}</p>
+            <a
+              href={`https://stellar.expert/explorer/${isTestnet ? "testnet" : "public"}/contract/${env.VITE_SPENDING_LIMIT_POLICY}`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-12 items-center break-all font-mono text-muted-foreground text-xs underline"
+            >
+              {env.VITE_SPENDING_LIMIT_POLICY}
+            </a>
+            <p className="text-muted-foreground text-xs">{t("settings.safety.changeNote")}</p>
+          </CardContent>
+        </Card>
+      ) : null}
+
       {/* Về app — tên + mạng đang chạy. Nói THẲNG là mạng thử: tiền ở đây
           không phải tiền thật, người dùng phải biết điều đó ở màn cài đặt. */}
       <Card className="bg-paper-2">

@@ -86,6 +86,12 @@ function mapError(err: unknown): never {
     if (err.message === "FEE_WALLET_NOT_CONFIGURED") {
       throw new HTTPException(503, { message: err.message });
     }
+    // Hạn mức ON-CHAIN chối (OZ SpendingLimitExceeded = 3221, LÔ 3): đây là
+    // policy contract nói "không" ở __check_auth — 409 mã đọc được cho FE dịch
+    // thành câu tiếng người, KHÔNG phải sự cố mạng 502.
+    if (err.message.includes("#3221")) {
+      throw new HTTPException(409, { message: "SPENDING_LIMIT_EXCEEDED" });
+    }
     logger.warn({ err: err.message }, "send.stellar-error");
     throw new HTTPException(502, { message: "STELLAR_UNAVAILABLE" });
   }
