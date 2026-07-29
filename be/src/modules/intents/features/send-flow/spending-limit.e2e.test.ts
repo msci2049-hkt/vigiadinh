@@ -7,9 +7,9 @@
 //
 // 5 ca:  1. dưới hạn mức → pass · 2. một lệnh vượt → CHỐI (#3221)
 //        3. cộng dồn vượt → CHỐI (#3221) · 4. qua cửa sổ → pass lại
-//        5. ⚠️ BYPASS ĐO ĐƯỢC: ký cùng lệnh bằng RULE 0 (Default) → pass —
-//           hạn mức hiện ràng buộc THEO ĐƯỜNG KÝ (nợ đã khai trong
-//           docs/AUDIT §2.3; chặn tuyệt đối cần policy cho rule Default).
+//        5. ⚠️ BYPASS ĐO ĐƯỢC (29/07 ĐÃ VÁ — xem spending-limit-default.e2e):
+//           ví KHÔNG gắn policy vào rule 0 thì ký rule 0 vẫn qua — ví nào đã
+//           add_policy(rule 0, DefaultInstallParams) thì đường này bị chặn #3221.
 //
 // Ví bằng chứng: signer External(verifier-ed25519) như onchain.e2e — cùng
 // đường __check_auth với passkey, chạy được không cần authenticator.
@@ -46,7 +46,7 @@ const SAC = env.CONTRACT_ID_SAC_NATIVE ?? "";
 /** Policy đã deploy (LÔ 3): vỏ OZ spending_limit — xem docs/evidence/TESTNET.md. */
 const POLICY =
   process.env.E2E_SPENDING_LIMIT_POLICY ??
-  "CABZ6H4DPPTUGAAN7TI74AWMMWF54IHHDNUXXN2GDZZVTMFDWWJLXBK2";
+  "CCIN4CP4HAFNDBSS7ZILGKBTUNC2TDAMFCLSI7E2TW44SJ7R7FTSFJZK";
 /** 50 XLM / 60 ledger (~5 phút) — cửa sổ ngắn để ca 4 chạy được trong test.
  * Khuyến nghị ví thật: 17280 ledger (~1 ngày), docs/AUDIT §2.3. */
 const LIMIT_STROOPS = 500_000_000n;
@@ -64,7 +64,7 @@ function signerScVal(kp: Keypair): xdr.ScVal {
   return externalSignerScVal({
     verifier:
       process.env.E2E_VERIFIER_ED25519 ??
-      "CAIPS7XW727UO75DFOWOG6PALED53KPYXYUELZZ7MLG7ZLS6OX72LLBT",
+      "CC7L7IGJ7ZBUQCYUTV6J6KLKMKYKAZIV5FMRISPNIZZW63664TWOVDEE",
     keyBase64: kp.rawPublicKey().toString("base64"),
   });
 }

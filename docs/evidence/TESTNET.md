@@ -253,13 +253,38 @@ Chạy lại: `RUN_TESTNET_E2E=1 bun test src/modules/intents/features/send-flow
 State on-chain sau ca 4 (đọc thật): `get_spending_limit_data(1, ví)` =
 `{spending_limit: 500000000, period_ledgers: 60, cached_total_spent: 250000000}`.
 
-### ⚠️ NỢ TRUNG THỰC (ca 5) — hạn mức ràng buộc THEO ĐƯỜNG KÝ, chưa tuyệt đối
+### ~~⚠️ NỢ TRUNG THỰC (ca 5) — hạn mức ràng buộc THEO ĐƯỜNG KÝ, chưa tuyệt đối~~ → **ĐÃ VÁ 2026-07-29 (LÔ 2.5)**
 
-OZ `spending_limit::install` CHỈ nhận rule kiểu `CallContract(token)` (mã 3227) — KHÔNG
-gắn được vào rule 0 (Default "owner"). Ví vẫn còn rule 0 không policy, mà `do_check_auth`
-của OZ cho phép người ký CHỌN rule 0 cho một SAC transfer (Default match mọi context).
-Nên hạn mức chặn tuyệt đối **chỉ khi** ví không còn rule Default nào phủ được transfer.
-Chặn tuyệt đối = viết policy riêng cho rule Default (hoặc bỏ rule Default, thay bằng rule
-`CallContract` cho mọi token) — **nợ, không làm trong LÔ 3**. Đây là bằng chứng đúng-sự-thật,
-không giấu: hạn mức on-chain đã CHẶN THẬT trên đường ký chuẩn (rule có policy), và ta nói
-rõ đường vòng còn lại.
+~~OZ `spending_limit::install` CHỈ nhận rule kiểu `CallContract(token)` (mã 3227) — KHÔNG
+gắn được vào rule 0 (Default "owner")… nợ, không làm trong LÔ 3.~~
+
+**Vá:** vỏ policy (`contracts/spending-limit-policy`) thêm đường install riêng cho rule
+Default — `DefaultInstallParams {spending_limit, period_ledgers, token}` chở token TƯỜNG
+MINH (OZ không cho vì rule Default không nói token). `enforce` trên rule Default: gọi đúng
+token đo → OZ đo nguyên bản (vượt = 3221; `approve`/fn khác trên token = 3223, đóng đường
+lách allowance); context khác (quản trị ví, contract ngoài) → cho qua — sub-invocation
+không thoát được vì Soroban đưa MỌI context của cây auth vào `__check_auth`. Bản
+Default-capable deploy từ release `v0.1.1`, **StellarExpert verified**.
+
+## LÔ 2.5 — RULE DEFAULT ĐÃ VÁ (2026-07-29)
+
+Chạy lại: `RUN_TESTNET_E2E=1 bun test src/modules/intents/features/send-flow/spending-limit-default.e2e`
+
+| Gì | Giá trị | Link |
+|---|---|---|
+| Policy Default-capable (release v0.1.1, wasm `13fab007…`, ✅ verified) | `CCIN4CP4HAFNDBSS7ZILGKBTUNC2TDAMFCLSI7E2TW44SJ7R7FTSFJZK` | [contract](https://stellar.expert/explorer/testnet/contract/CCIN4CP4HAFNDBSS7ZILGKBTUNC2TDAMFCLSI7E2TW44SJ7R7FTSFJZK) |
+| Ví bằng chứng (wasm `c1b28d42…` — bản artifact v0.1.0) | `CCMZOTRPZKEFMKBCKBK72AX2WIWZX77VLGVIXTWP626XG5UFFPKYJT7U` | [contract](https://stellar.expert/explorer/testnet/contract/CCMZOTRPZKEFMKBCKBK72AX2WIWZX77VLGVIXTWP626XG5UFFPKYJT7U) · [deploy](https://stellar.expert/explorer/testnet/tx/4eee54864ac544e4da8f79ccdca147fbbd36206a4f252c8e6f794ed37b4763ce) · [fund](https://stellar.expert/explorer/testnet/tx/f1b1ae6b0a09158372851a48a5c7e51da9c3db7e06274f227fffb5b5c2191197) |
+| Cấu hình | hạn mức **50 XLM** / **60 ledger**, token đo = SAC native | — |
+
+| # | Ca | Kỳ vọng | Kết quả | tx / ledger |
+|---|---|---|---|---|
+| 6 | `add_policy(rule 0, DefaultInstallParams{50 XLM, 60 ledger, SAC})` ký rule 0 | rule 0 chở policy | ✅ `get_context_rule(0).policies=[CCIN…FJZK]` · `get_metered_token(0)=SAC` | [tx](https://stellar.expert/explorer/testnet/tx/7ed6d24db28d80d8c0e77950afaab4b5b575e7baeba5eb901d1b9f007482d3ce) |
+| 7 | **10 XLM** ký RULE 0 | pass và BỊ ĐO | ✅ pass, `cached_total_spent=100000000` (đọc on-chain) | [tx](https://stellar.expert/explorer/testnet/tx/886b56531ea227311229288ffdae8839954a1aedd842feb8a66422b9211e906c) |
+| 8 | **60 XLM** ký RULE 0 — chính đường bypass ca 5 | **BỊ CHỐI** | ✅ `Error(Auth, InvalidAction)` — enforce panic **#3221** trong `__check_auth` (simulation reject, không submit — cùng khuôn ca 2/3) | @ledger ≈ 3855740 (2026-07-29 ~03:57 UTC) |
+| 9 | Admin op (`add_context_rule`) ký RULE 0 sau khi gắn policy | pass — policy không khoá quản trị | ✅ pass, tổng chi KHÔNG đổi (100000000) | [tx](https://stellar.expert/explorer/testnet/tx/d62c90deada173659f806e6906c925222458284afcb4fc2240f3f9aeefd0c54d) |
+
+⇒ Trên ví đã `add_policy(rule 0)`: **không còn đường ký nào vượt hạn mức** — rule 1
+(CallContract) lẫn rule 0 (Default) đều bị đo cùng một sổ. Phạm vi trung thực còn lại:
+(a) hạn mức đo MỘT token (thiết kế OZ) — ví giữ token khác ngoài SAC thì token đó không
+bị đo; (b) ví TẠO TRƯỚC 29/07 (vd `CD5QX3…`) chưa gắn policy vào rule 0 — gắn cần chủ ví
+ký `add_policy` qua app (nợ wiring FE, chưa làm ở lô này).
