@@ -4,6 +4,18 @@
 > (v0.2, 23/07/2026). Mọi kết luận có `file:dòng` hoặc output lệnh; không thấy thì ghi **KHÔNG THẤY**.
 > Chuyện verify contract có file riêng: `docs/VERIFY-CONTRACT.md`.
 
+> **CẬP NHẬT 2026-07-29 (sau 3 lô sửa — audit gốc bên dưới GIỮ NGUYÊN làm mốc):**
+> - **A5 (báo guardian) ⛔→✅**: intent vào `awaiting_guardian` giờ báo từng guardian (email+sse),
+>   có endpoint `GET /api/intents/pending-approvals` + màn duyệt/từ chối trong `/protecting`.
+> - **A6 (huỷ + TTL) 🟡→✅**: `POST /api/intents/:id/cancel` (owner, race-safe); TTL phiếu = TTL intent;
+>   sweeper hết hạn báo cả hai bên.
+> - **A1 (ngưỡng) ✅ (đã hợp lý hoá)**: `SEND_PER_TX_LIMIT_XLM` env default 100 XLM (bỏ 20M cứng).
+> - **Hạn mức on-chain (§2.3 P-Q4) ✅ chứng minh**: crate `spending-limit-policy` (vỏ OZ) deploy testnet,
+>   4 ca tx thật chặn/cho đúng — `docs/evidence/TESTNET.md §LÔ 3`. Nợ trung thực: bypass qua rule Default.
+> - **Verify contract**: workflow attest đã chạy xanh; hash lệch (nhánh B) — `docs/VERIFY-CONTRACT.md §8`.
+> - Nợ CÒN NGUYÊN (chưa làm, đúng phạm vi): S1 guardian không ký phiếu on-chain · care mode · C4–C6
+>   inheritance on-chain · blacklist/danh bạ · export thuế · FCM chưa cấu hình · before/after_hash · audit guardian-admin.
+
 ---
 
 ## 0 · TÓM TẮT MỘT TRANG
