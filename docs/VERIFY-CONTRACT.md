@@ -120,6 +120,47 @@ version qua input của workflow nếu cần (xem tài liệu workflow khi làm)
 
 ---
 
+## §8 · CẬP NHẬT 2026-07-29 — đã chạy workflow, kết quả: NHÁNH B (hash lệch)
+
+Đã làm: `.github/workflows/release.yml` (5 job, stellar-expert/soroban-build-workflow) +
+tag `v0.1.0` push lên mirror. Run `30412251488`: **cả 5 job build success**, 5 release
++ attestation đã tạo, hash đã POST lên StellarExpert validation API.
+
+**So hash — LỆCH TOÀN BỘ (nhánh B):**
+
+| Contract | On-chain (đang chạy) | Release v0.1.0 | Khớp |
+|---|---|---|---|
+| recovery-registry | `02d83265…` | `f45bbdb3…` | ✗ |
+| web-auth | `e44a1fcb…` | `4c0ad10d…` | ✗ |
+| origin-verifier | `f08df141…` | `5f414626…` | ✗ |
+| verifier-ed25519 | `ca426cd3…` | `369a1f5c…` | ✗ |
+| smart-account (wasm) | `2c19ee49…` | `c1b28d42…` | ✗ |
+
+**Lệch vì gì (đọc từ chính workflow của StellarExpert, không đoán):**
+1. Workflow build `stellar contract build --optimize` — bản deploy KHÔNG optimize.
+2. Workflow nhúng `--meta source_repo=github:msci2049-hkt/vigiadinh` — wasm on-chain
+   không có meta này (đã xác nhận ở §2: meta chỉ có rsver/rssdkver/cliver).
+3. Workflow `rustup update` → Rust stable mới nhất; bản deploy build bằng rsver 1.97.1.
+   (CLI thì workflow pin đúng 27.0.0 — không phải nguồn lệch.)
+
+⇒ Badge KHÔNG tự gắn cho contract đang chạy. **DỪNG theo luật phiên — không tự redeploy.**
+
+**Phương án cho Gin quyết:**
+- **B1 (khuyến nghị):** redeploy 4 contract hạ tầng TỪ artifact release v0.1.0 (đúng khuyến
+  cáo README của workflow: deploy từ chính artifact đã attest). Thời điểm hiện tại chi phí
+  gần đáy: ví thật `is_registered=false` — chưa có đăng ký guardian on-chain để mất.
+  Việc kèm theo: cập nhật ID mới ở BE env (`CONTRACT_ID_RECOVERY`, `CONTRACT_ID_ORIGIN_VERIFIER`),
+  FE vars (web-auth trong stellar.toml, verifier), upload wasm smart-account bản release +
+  đổi `VITE_ACCOUNT_WASM_HASH`/`ACCOUNT_WASM_HASH` (ví tạo MỚI dùng bản verified; ví cũ giữ
+  wasm cũ — không đổi được code ví đang tồn tại). Ước lượng: 0.5–1 ngày.
+- **B2:** giữ nguyên, không badge; tài liệu nói thẳng "build tái lập tự chứng minh
+  (hash khớp 100% khi build cùng cấu hình), badge chờ đợt redeploy kế".
+
+**Câu trung thực bắt buộc khi có badge (README StellarExpert nói rõ):** *"Build Verified
+nghĩa là GitHub Action đã attest việc build ra đúng wasm này — KHÔNG phải xác minh chất
+lượng mã nguồn, không phải security audit."*
+
 *Kết luận cho ban giám khảo (một câu, trung thực): "Toàn bộ contract build tái lập được —
-hash on-chain khớp source công khai 100%; badge verify của StellarExpert đang trong lộ trình,
-cần một workflow release + tag (~nửa ngày), không chặn demo."*
+hash on-chain khớp source công khai 100% khi build cùng cấu hình; workflow attest của
+StellarExpert đã chạy xanh, badge sẽ gắn khi redeploy từ artifact đã attest (quyết định
+vận hành, không chặn demo)."*
