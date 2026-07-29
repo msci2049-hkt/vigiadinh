@@ -14,8 +14,16 @@
 // bảo hộ tự nạp XLM để giúp người thân.
 import { createWalletMinimal } from "./create-wallet";
 
-/** Tạo passkey + deploy hợp đồng của người bảo hộ → địa chỉ C… công khai. */
-export async function createGuardianIdentity(): Promise<{ address: string }> {
-  const created = await createWalletMinimal();
+/**
+ * Tạo passkey + deploy hợp đồng của người bảo hộ → địa chỉ C… công khai.
+ *
+ * `ownerLabel` = email người bảo hộ, để passkey trong trình quản lý mật khẩu có
+ * tên phân biệt được (một người có thể vừa là chủ ví của mình, vừa là người bảo
+ * hộ cho hai ba ví khác — bốn khoá cùng tên là không dùng được).
+ */
+export async function createGuardianIdentity(opts?: {
+  ownerLabel?: string | undefined;
+}): Promise<{ address: string }> {
+  const created = await createWalletMinimal(opts);
   return { address: created.stellarAddress };
 }

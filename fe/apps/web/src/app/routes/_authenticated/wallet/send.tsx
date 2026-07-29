@@ -15,15 +15,24 @@ import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { guardiansOptions } from "@/features/family/api/guardians";
+import { invitesOptions } from "@/features/family/api/invites";
 import { prepareSend, type SendReview } from "@/features/family/api/send";
 import {
   type RecipientContact,
   RecipientField,
 } from "@/features/family/components/recipient-field";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
+import { SendErrorBanner } from "@/features/family/components/send-error-banner";
+import { lockCtaTo, WalletLockedNotice } from "@/features/family/components/wallet-locked";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { DefiniteSubmitFailure, useSendMachine } from "@/features/family/hooks/use-send-machine";
 import { isSendableAddress } from "@/features/family/lib/address";
+import {
+  mapSendApiError,
+  SEND_FALLBACK,
+  type SendErrorView,
+} from "@/features/family/lib/send-error";
+import { walletSendLock } from "@/features/family/lib/wallet-lock";
 import { ensureWalletConnected } from "@/features/wallet/lib/kit";
 import { signWalletEntries, WalletSignError } from "@/features/wallet/lib/sign-wallet-entries";
 import { BlindSignError } from "@/lib/auth-entry-guard";
@@ -41,53 +50,27 @@ export const Route = createFileRoute("/_authenticated/wallet/send")({
 
 const SEND_REVIEW_HISTORY_KEY = "__familyWalletSendReview";
 
-type SendErrorKey =
-  | "wallet.send.errors.insufficient"
-  | "wallet.send.errors.badRecipient"
-  | "wallet.send.errors.delayed"
-  | "wallet.send.errors.walletLocked"
-  | "wallet.send.errors.network"
-  | "wallet.send.errors.tampered"
-  | "wallet.send.errors.spendingLimit"
-  | "wallet.send.errors.notSent";
-
-function sendErrorKey(err: unknown): { key: SendErrorKey; shortfall?: string | undefined } {
+/**
+ * Lỗi → câu người đọc. Ba lớp lỗi CỦA RIÊNG MÀN NÀY xử ở đây (chúng là class
+ * của FE, không đi qua HTTP); còn lại giao cho bảng map dùng chung.
+ *
+ * Trước 29/07 hàm này gộp mọi 4xx vào một câu "Chưa có gì được gửi đi" — kể cả
+ * `403 WALLET_NOT_REGISTERED_FOR_SPONSORSHIP` vốn nói rõ nguyên nhân. Người dùng
+ * thử lại đúng như câu đó bảo và hỏng y hệt, mãi mãi.
+ */
+function sendErrorView(err: unknown): SendErrorView {
   // Lệnh sắp ký KHÁC thứ người dùng nhập → dừng và nói thẳng, không gộp vào
   // "gửi không thành công": đây là dấu hiệu bị can thiệp, không phải lỗi mạng.
-  if (err instanceof BlindSignError) return { key: "wallet.send.errors.tampered" };
+  if (err instanceof BlindSignError) return { title: "wallet.send.errors.tampered", action: null };
   // BE xác nhận nộp trượt (qua audit) — tiền chưa rời ví, làm lại từ đầu an toàn.
-  if (err instanceof DefiniteSubmitFailure) return { key: "wallet.send.errors.notSent" };
+  if (err instanceof DefiniteSubmitFailure) return SEND_FALLBACK;
   if (err instanceof WalletSignError) {
-    return {
-      key:
-        err.message === "WALLET_NOT_CONNECTED"
-          ? "wallet.send.errors.walletLocked"
-          : "wallet.send.errors.notSent",
-    };
+    return err.message === "WALLET_NOT_CONNECTED"
+      ? { title: "wallet.send.errors.walletLocked", action: null }
+      : { ...SEND_FALLBACK, code: err.message };
   }
-  if (err instanceof ApiError) {
-    const data = err.data as { error?: { message?: string } } | null;
-    const msg = data?.error?.message ?? "";
-    if (msg.startsWith("INSUFFICIENT_BALANCE")) {
-      // message dạng "INSUFFICIENT_BALANCE:{...json}"
-      try {
-        const detail = JSON.parse(msg.slice(msg.indexOf(":") + 1)) as { shortfall?: string };
-        return { key: "wallet.send.errors.insufficient", shortfall: detail.shortfall };
-      } catch {
-        return { key: "wallet.send.errors.insufficient" };
-      }
-    }
-    // Hạn mức ON-CHAIN chối (LÔ 3) — hợp đồng nói "không", không phải lỗi mạng.
-    if (msg.startsWith("SPENDING_LIMIT_EXCEEDED")) {
-      return { key: "wallet.send.errors.spendingLimit" };
-    }
-    if (msg.startsWith("BAD_RECIPIENT") || msg.startsWith("SELF_TRANSFER")) {
-      return { key: "wallet.send.errors.badRecipient" };
-    }
-    if (msg.startsWith("POLICY_DELAY")) return { key: "wallet.send.errors.delayed" };
-    if (err.status >= 500) return { key: "wallet.send.errors.network" };
-  }
-  return { key: "wallet.send.errors.notSent" };
+  if (err instanceof ApiError) return mapSendApiError(err);
+  return SEND_FALLBACK;
 }
 
 function WalletSendScreen() {
@@ -110,6 +93,15 @@ function WalletSendScreen() {
   const contacts: RecipientContact[] = (guardians.data ?? [])
     .filter((g) => g.label !== null && g.onchainKey !== null)
     .map((g) => ({ label: g.label as string, address: g.onchainKey as string }));
+
+  // Ví đã mở đường gửi chưa. Hub đã chặn bằng popup TRƯỚC khi vào đây; màn này
+  // vẫn phải tự chặn vì người dùng có thể mở thẳng bằng link/bookmark.
+  // CHỈ dùng nguồn RẺ (số người đã nhận lời, một query DB) — không kéo thêm
+  // chain-truth vào đây: nó poll 20s và mỗi lượt tốn 3 lần simulate trên RPC.
+  // Ca "đủ người nhưng chưa đăng ký" rơi xuống lưới thứ hai (map lỗi 403).
+  const invites = useQuery({ ...invitesOptions(wallet?.id ?? ""), enabled: wallet !== null });
+  const lock = walletSendLock({ recoverability: invites.data?.recoverability });
+  const protectTo = lockCtaTo(lock.locked ? lock.step : "invite");
 
   const machine = useSendMachine({
     walletId: wallet?.id ?? null,
@@ -183,6 +175,16 @@ function WalletSendScreen() {
   if (isError) return <Shell>{<ErrorState />}</Shell>;
   if (!wallet) return <Shell>{<EmptyState message={t("wallet.send.noWallet")} />}</Shell>;
 
+  // CHẶN SỚM: ví chưa mở đường gửi thì KHÔNG mở form. Nói đủ ba tầng tại chỗ —
+  // để người dùng không gõ số tiền, chọn người nhận rồi mới biết là vô ích.
+  if (lock.locked && step === "enter") {
+    return (
+      <Shell>
+        <WalletLockedNotice lock={lock} />
+      </Shell>
+    );
+  }
+
   if (machine.phase === "settled") return <SendDoneScreen txHash={machine.txHash} />;
   if (machine.phase === "awaiting_guardian") {
     return (
@@ -194,7 +196,7 @@ function WalletSendScreen() {
   }
 
   if (step === "review" && review) {
-    const err = machine.error !== null ? sendErrorKey(machine.error) : null;
+    const err = machine.error !== null ? sendErrorView(machine.error) : null;
     const startOver = machine.error instanceof DefiniteSubmitFailure;
     const progressKey =
       machine.phase === "confirming"
@@ -235,7 +237,7 @@ function WalletSendScreen() {
             </div>
             {progressKey ? <ErrorBanner type="pending" title={t(progressKey)} /> : null}
             {err ? (
-              <ErrorBanner type="error" title={t(err.key, { shortfall: err.shortfall ?? "" })} />
+              <SendErrorBanner view={err} protectTo={protectTo} onStartOver={leaveReview} />
             ) : null}
             <PrimaryZone>
               {startOver ? (
@@ -264,7 +266,7 @@ function WalletSendScreen() {
     );
   }
 
-  const err = prepare.isError ? sendErrorKey(prepare.error) : null;
+  const err = prepare.isError ? sendErrorView(prepare.error) : null;
   return (
     <Shell>
       <ScreenHeader title={t("wallet.send.title")} description={t("wallet.send.description")} />
@@ -280,9 +282,7 @@ function WalletSendScreen() {
           <AmountInput id="send-amount" value={rawAmount} onChange={setRawAmount} assetCode="XLM" />
         </label>
         <RecipientField value={recipient} onChange={setRecipient} contacts={contacts} />
-        {err ? (
-          <ErrorBanner type="error" title={t(err.key, { shortfall: err.shortfall ?? "" })} />
-        ) : null}
+        {err ? <SendErrorBanner view={err} protectTo={protectTo} /> : null}
         <Button type="submit" loading={prepare.isPending} disabled={!parsed.ok || !recipientValid}>
           {prepare.isPending ? t("wallet.send.checking") : t("wallet.send.cta")}
         </Button>

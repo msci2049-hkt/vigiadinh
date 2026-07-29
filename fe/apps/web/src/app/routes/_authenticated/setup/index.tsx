@@ -11,6 +11,7 @@ import { Icon } from "@/components/family/icons";
 import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
+import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { walletKeys } from "@/features/family/api/wallets";
 import { createWalletMinimal } from "@/features/wallet/api/create-wallet";
 import { WalletNotConfiguredError } from "@/features/wallet/lib/kit";
@@ -21,9 +22,12 @@ function SetupIntroScreen() {
   const { t } = useTranslation("fw");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  // Email đi vào TÊN passkey — không có nó thì mọi khoá trong trình quản lý mật
+  // khẩu đều tên giống hệt nhau và không ai phân biệt nổi (xem create-wallet.ts).
+  const { user } = useCurrentUser();
 
   const create = useMutation({
-    mutationFn: createWalletMinimal,
+    mutationFn: () => createWalletMinimal({ ownerLabel: user?.email }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: walletKeys.all });
       await navigate({ to: "/setup/done" });

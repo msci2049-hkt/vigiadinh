@@ -16,9 +16,18 @@ import { walletBalanceOptions } from "@/features/family/api/wallets";
 import { CooldownNotice } from "@/features/family/components/cooldown-notice";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
+import { WalletLockedDialog } from "@/features/family/components/wallet-locked";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
+import { type WalletLock, walletSendLock } from "@/features/family/lib/wallet-lock";
+
+type LockedWallet = Extract<WalletLock, { locked: true }>;
 
 export const Route = createFileRoute("/_authenticated/wallet/")({ component: WalletHomeScreen });
+
+const TILE_PRIMARY =
+  "flex min-h-16 items-center gap-3 rounded-card bg-primary px-5 text-left font-bold text-primary-foreground shadow-[var(--shadow-button)] transition-transform hover:-translate-y-px";
+const TILE_PLAIN =
+  "flex min-h-16 items-center gap-3 rounded-card border bg-card px-5 text-left font-semibold text-foreground shadow-sm transition-transform hover:-translate-y-px";
 
 function WalletLink({
   to,
@@ -32,17 +41,36 @@ function WalletLink({
   primary?: boolean;
 }) {
   return (
-    <Link
-      to={to}
-      className={
-        primary
-          ? "flex min-h-16 items-center gap-3 rounded-card bg-primary px-5 font-bold text-primary-foreground shadow-[var(--shadow-button)] transition-transform hover:-translate-y-px"
-          : "flex min-h-16 items-center gap-3 rounded-card border bg-card px-5 font-semibold text-foreground shadow-sm transition-transform hover:-translate-y-px"
-      }
-    >
+    <Link to={to} className={primary ? TILE_PRIMARY : TILE_PLAIN}>
       <Icon name={icon} />
       <span>{children}</span>
     </Link>
+  );
+}
+
+/**
+ * Ô "Gửi" khi ví CHƯA mở khoá — nút thật, bấm được, bật popup giải thích.
+ *
+ * Cố tình KHÔNG `disabled`: nút xám câm không nói được vì sao, và người dùng chỉ
+ * biết là app hỏng. Nhãn phụ nói trước cái sẽ chặn; popup nói đủ ba tầng.
+ */
+function LockedSendTile({ lock, onOpen }: { lock: LockedWallet; onOpen: () => void }) {
+  const { t } = useTranslation("fw");
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={TILE_PRIMARY}
+      data-testid="wallet-send-locked"
+    >
+      <Icon name="lock" />
+      <span className="flex flex-col">
+        <span>{t("wallet.home.sendCta")}</span>
+        <span className="font-medium text-xs opacity-90">
+          {t(lock.step === "invite" ? "wallet.locked.sendHint" : "wallet.locked.sendHintRegister")}
+        </span>
+      </span>
+    </button>
   );
 }
 
@@ -56,6 +84,15 @@ function WalletHomeScreen() {
   const invites = useQuery({ ...invitesOptions(wallet?.id ?? ""), enabled: wallet !== null });
   const balance = useQuery({ ...walletBalanceOptions(wallet?.id ?? ""), enabled: wallet !== null });
   const [copied, setCopied] = useState(false);
+  const [lockOpen, setLockOpen] = useState(false);
+
+  // Ví gửi tiền ra ngoài được chưa — hỏi TRƯỚC khi người dùng bấm, không phải
+  // sau khi họ đã gõ số tiền (sự cố 29/07). Hai nguồn: số người đã nhận lời
+  // (DB, rẻ) + ví đã đăng ký trên chain chưa (chain-truth, hub vốn đã gọi sẵn).
+  const lock = walletSendLock({
+    recoverability: invites.data?.recoverability,
+    registeredOnchain: chain.data?.registered,
+  });
 
   async function copyAddress(address: string) {
     // Clipboard nhận địa chỉ ĐẦY ĐỦ — màn hình vẫn hiện rút gọn (bug Q18: trước
@@ -145,9 +182,13 @@ function WalletHomeScreen() {
           </Card>
 
           <div className="grid grid-cols-2 gap-3">
-            <WalletLink to="/wallet/send" icon="send" primary>
-              {t("wallet.home.sendCta")}
-            </WalletLink>
+            {lock.locked ? (
+              <LockedSendTile lock={lock} onOpen={() => setLockOpen(true)} />
+            ) : (
+              <WalletLink to="/wallet/send" icon="send" primary>
+                {t("wallet.home.sendCta")}
+              </WalletLink>
+            )}
             <WalletLink to="/wallet/receive" icon="qrCode">
               {t("wallet.home.receiveCta")}
             </WalletLink>
@@ -159,6 +200,10 @@ function WalletHomeScreen() {
             </WalletLink>
           </div>
         </>
+      ) : null}
+
+      {lock.locked ? (
+        <WalletLockedDialog lock={lock} open={lockOpen} onOpenChange={setLockOpen} />
       ) : null}
     </ProductScreen>
   );

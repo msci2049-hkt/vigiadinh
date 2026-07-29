@@ -17,8 +17,20 @@ export type CreatedWallet = { id: string; stellarAddress: string };
 /**
  * Deploy ví + mirror về BE. autoSubmit để kit chờ contract lên mạng rồi mới trả
  * contractId; timezone lấy từ trình duyệt (cron ping 12:00 chạy theo giờ này).
+ *
+ * `ownerLabel` (email người dùng) đi vào TÊN PASSKEY hiện trong trình quản lý mật
+ * khẩu của máy. Trước bản này mọi passkey đều tên "FamilyHaven owner", nên chủ ví
+ * có 4 khoá trùng tên và không biết cái nào của ví nào — lúc cần xoá bớt là đoán mò.
+ *
+ * GIỚI HẠN CÓ THẬT: không nhét được ĐỊA CHỈ VÍ vào tên. Địa chỉ hợp đồng được
+ * DẪN XUẤT TỪ chính credentialId của passkey (`deriveContractAddress`), nên tại
+ * thời điểm đặt tên nó chưa tồn tại. WebAuthn cũng không cho đổi tên khoá sau khi
+ * tạo. Đường "gõ cửa máy mới" (`device-recovery`) thì có địa chỉ sẵn và đã đặt
+ * kèm địa chỉ từ trước.
  */
-export async function createWalletMinimal(): Promise<CreatedWallet> {
+export async function createWalletMinimal(opts?: {
+  ownerLabel?: string | undefined;
+}): Promise<CreatedWallet> {
   const kit = getWalletKit();
   // Ném TRƯỚC khi tạo passkey: người dùng không nên phải chạm sinh trắc học rồi
   // mới biết cấu hình thiếu — và tuyệt đối không được đẻ ra ví không cứu được.
@@ -28,7 +40,8 @@ export async function createWalletMinimal(): Promise<CreatedWallet> {
   // (D4), Cài đặt sẽ nhắc bật sau qua đường ví-cũ.
   const spendingLimit = spendingLimitConstructorPolicy();
   if (spendingLimit) policies.push(spendingLimit);
-  const userName = `${env.VITE_APP_NAME} owner`;
+  const label = opts?.ownerLabel?.trim();
+  const userName = label ? `${label} · ${env.VITE_APP_NAME}` : `${env.VITE_APP_NAME} owner`;
   const result = await kit.createWallet(env.VITE_APP_NAME, userName, {
     autoSubmit: true,
     policies,

@@ -36,10 +36,11 @@ import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/sc
 import { Button } from "@/components/family/ui";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { acceptInvite, inviteByTokenOptions } from "@/features/family/api/invites";
+import { AcceptErrorBanner } from "@/features/family/components/accept-error-banner";
 import { GuardianAcceptIntro } from "@/features/family/components/guardian-accept-intro";
-import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
+import { LoadingRows } from "@/features/family/components/screen-state";
+import { mapAcceptError } from "@/features/family/lib/accept-error";
 import { createGuardianIdentity } from "@/features/wallet/api/guardian-identity";
-import { ApiError } from "@/lib/api-client";
 
 export const Route = createFileRoute("/guardian/accept")({
   validateSearch: z.object({ token: z.string().min(1).catch("") }),
@@ -147,7 +148,9 @@ function GuardianAcceptScreen() {
 
   const accept = useMutation({
     mutationFn: async () => {
-      const identity = await createGuardianIdentity();
+      // Email vào TÊN passkey — một người có thể vừa có ví của mình, vừa làm
+      // người bảo hộ cho vài ví khác; khoá trùng tên là không dùng được.
+      const identity = await createGuardianIdentity({ ownerLabel: user?.email });
       await acceptInvite({ token, guardianAddress: identity.address });
       return identity;
     },
@@ -215,10 +218,10 @@ function GuardianAcceptScreen() {
   const ownerName = data?.owner_name;
   const signedIn = user !== null;
   const redirectBack = `/guardian/accept?token=${encodeURIComponent(token)}`;
-  const acceptErrorCode =
-    accept.error instanceof ApiError
-      ? (accept.error.data as { error?: { code?: string } } | undefined)?.error?.code
-      : undefined;
+  // Lỗi ở bước cuối KHÔNG còn gộp một câu: bốn nguyên nhân dưới đây đòi bốn việc
+  // khác hẳn nhau (đăng nhập lại · xin link mới · thôi · tạo lại passkey), mà câu
+  // chung "Chưa tải được mục này" thì không nói được cái nào.
+  const acceptError = accept.isError ? mapAcceptError(accept.error) : null;
 
   return (
     <ProductScreen className="justify-center">
@@ -259,14 +262,8 @@ function GuardianAcceptScreen() {
             </p>
           ) : null}
 
-          {accept.isError ? (
-            acceptErrorCode === "GUARDIAN_IS_OWNER" ? (
-              <ErrorBanner type="error" title={t("guardians.accept.selfTitle")}>
-                {t("guardians.accept.selfBody")}
-              </ErrorBanner>
-            ) : (
-              <ErrorState />
-            )
+          {acceptError ? (
+            <AcceptErrorBanner view={acceptError} redirectBack={redirectBack} />
           ) : null}
 
           <PrimaryZone>
