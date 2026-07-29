@@ -60,15 +60,28 @@ fn setup() -> Setup {
     let account = Address::generate(&e);
     let sac = Address::generate(&e);
     let signer = Address::generate(&e);
-    Setup { e, client_addr, account, sac, signer }
+    Setup {
+        e,
+        client_addr,
+        account,
+        sac,
+        signer,
+    }
 }
 
 #[test]
 fn install_then_enforce_within_limit_and_cumulative_block() {
     let s = setup();
     let client = SpendingLimitPolicyClient::new(&s.e, &s.client_addr);
-    let r = rule(&s.e, ContextRuleType::CallContract(s.sac.clone()), &s.signer);
-    let params = SpendingLimitAccountParams { spending_limit: 500, period_ledgers: 100 };
+    let r = rule(
+        &s.e,
+        ContextRuleType::CallContract(s.sac.clone()),
+        &s.signer,
+    );
+    let params = SpendingLimitAccountParams {
+        spending_limit: 500,
+        period_ledgers: 100,
+    };
 
     client.install(&params, &r, &s.account);
     let data = client.get_spending_limit_data(&r.id, &s.account);
@@ -84,7 +97,12 @@ fn install_then_enforce_within_limit_and_cumulative_block() {
     signers.push_back(Signer::Delegated(s.signer.clone()));
     client.enforce(&transfer_ctx(&s.e, &s.sac, 100), &signers, &r, &s.account);
     client.enforce(&transfer_ctx(&s.e, &s.sac, 300), &signers, &r, &s.account);
-    assert_eq!(client.get_spending_limit_data(&r.id, &s.account).cached_total_spent, 400);
+    assert_eq!(
+        client
+            .get_spending_limit_data(&r.id, &s.account)
+            .cached_total_spent,
+        400
+    );
 
     // Thêm 200 → 600 > 500: CHẾT đúng mã 3221 (SpendingLimitExceeded).
     let res = client.try_enforce(&transfer_ctx(&s.e, &s.sac, 200), &signers, &r, &s.account);
@@ -93,7 +111,12 @@ fn install_then_enforce_within_limit_and_cumulative_block() {
     // Qua cửa sổ (period 100 ledger) → entry cũ bị evict, chi lại được.
     s.e.ledger().with_mut(|l| l.sequence_number += 200);
     client.enforce(&transfer_ctx(&s.e, &s.sac, 450), &signers, &r, &s.account);
-    assert_eq!(client.get_spending_limit_data(&r.id, &s.account).cached_total_spent, 450);
+    assert_eq!(
+        client
+            .get_spending_limit_data(&r.id, &s.account)
+            .cached_total_spent,
+        450
+    );
 }
 
 #[test]
@@ -103,7 +126,13 @@ fn install_on_default_rule_rejected() {
     let s = setup();
     let client = SpendingLimitPolicyClient::new(&s.e, &s.client_addr);
     let r = rule(&s.e, ContextRuleType::Default, &s.signer);
-    let params = SpendingLimitAccountParams { spending_limit: 500, period_ledgers: 100 };
+    let params = SpendingLimitAccountParams {
+        spending_limit: 500,
+        period_ledgers: 100,
+    };
     let res = client.try_install(&params, &r, &s.account);
-    assert!(res.is_err(), "install lên rule Default phải bị chối (OnlyCallContractAllowed)");
+    assert!(
+        res.is_err(),
+        "install lên rule Default phải bị chối (OnlyCallContractAllowed)"
+    );
 }
