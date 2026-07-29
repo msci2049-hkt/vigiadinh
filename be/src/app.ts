@@ -16,6 +16,7 @@ import { ulid } from "ulid";
 import { db } from "@/db";
 import { env } from "@/env";
 import { auth } from "@/lib/auth";
+import { CORS_ALLOW_HEADERS } from "@/lib/cors-headers";
 import { logger } from "@/lib/logger";
 import { rateLimitConnection } from "@/lib/redis";
 import { VALIDATION_LIMITS } from "@/lib/validation-limits";
@@ -39,29 +40,16 @@ import { walletsRoutes } from "@/modules/wallets/routes";
 export const app = new Hono();
 
 // 1) CORS — credentials: true bắt buộc cho cookie auth.
-// sentry-trace + baggage: FE (@sentry/react browserTracing) gắn 2 header này
-// vào request để NỐI distributed trace FE→BE. Thiếu chúng trong allowHeaders,
-// preflight từ chối → browser bỏ header → trace đứt (không lỗi, chỉ mất trace).
-// x-client-name + x-client-version: @stellar/stellar-sdk gắn CẶP header nhận
-// diện client vào MỌI request RPC (lib/esm/rpc/axios.js) — FE gọi /rpc qua
-// SmartAccountKit nên preflight mang cả hai. Thiếu MỘT trong hai là preflight
-// đỏ → "Tạo ví" chết ngay cửa (browser chỉ báo tên header đầu tiên nó gặp).
-// exposeHeaders set-auth-token: bearer() plugin trả session token qua header
-// này; không expose thì vỏ WebView/extension (PHA 8-9) đọc không thấy.
+// Danh sách allowHeaders (kèm lý do TỪNG header) nằm ở `lib/cors-headers.ts` —
+// tách ra để test khoá được mà không phải boot cả app. exposeHeaders
+// set-auth-token: bearer() plugin trả session token qua header này; không expose
+// thì vỏ WebView/extension (PHA 8-9) đọc không thấy.
 app.use(
   "*",
   cors({
     origin: env.TRUSTED_ORIGINS,
     credentials: true,
-    allowHeaders: [
-      "Content-Type",
-      "Authorization",
-      "X-Request-Id",
-      "sentry-trace",
-      "baggage",
-      "x-client-name",
-      "x-client-version",
-    ],
+    allowHeaders: [...CORS_ALLOW_HEADERS],
     allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     exposeHeaders: ["set-auth-token"],
   }),
