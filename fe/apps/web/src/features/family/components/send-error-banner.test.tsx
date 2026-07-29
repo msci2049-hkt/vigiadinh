@@ -74,7 +74,10 @@ describe("SendErrorBanner", () => {
 
   it("mã chưa map → câu chung + DÒNG MÃ KỸ THUẬT (để chẩn đoán từ ảnh chụp màn hình)", () => {
     render(
-      <SendErrorBanner view={view({ code: "SOME_NEW_CODE" })} protectTo="/setup/choose-guardians" />,
+      <SendErrorBanner
+        view={view({ code: "SOME_NEW_CODE" })}
+        protectTo="/setup/choose-guardians"
+      />,
     );
     expect(screen.getByTestId("send-error-code")).toHaveTextContent("SOME_NEW_CODE");
   });

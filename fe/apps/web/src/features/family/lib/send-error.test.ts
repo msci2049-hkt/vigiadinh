@@ -86,7 +86,9 @@ describe("mapSendApiError — mã chưa map", () => {
   });
 
   it("BE bản cũ chỉ có `message` (không có `code`) vẫn map được", () => {
-    const err = new ApiError("x", 403, { error: { message: "WALLET_NOT_REGISTERED_FOR_SPONSORSHIP" } });
+    const err = new ApiError("x", 403, {
+      error: { message: "WALLET_NOT_REGISTERED_FOR_SPONSORSHIP" },
+    });
     expect(mapSendApiError(err).title).toBe("wallet.send.errors.notProtectedTitle");
   });
 });
