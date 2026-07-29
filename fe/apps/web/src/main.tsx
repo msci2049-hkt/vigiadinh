@@ -13,6 +13,22 @@ import "@/instrument";
 // Dấu hiệu nhận ra lần sau (10 giây):
 //   curl -sI https://<site>/assets/index-<hash>.js | grep -i content-type
 //   → `text/html` là dính; so với cùng URL kèm `?v=1` sẽ ra `application/javascript`.
+//
+// ⚠️ Comment KHÔNG đổi được hash: bundler xoá sạch comment, chunk ra byte y hệt.
+// Muốn đổi hash phải đổi thứ CHẠY ĐƯỢC — đó là lý do có `BUILD_TAG` ngay dưới.
+
+/**
+ * Dấu vết bản phát hành, in ra `<html data-build="…">`.
+ *
+ * Hai việc, cả hai đều đã tốn thời gian thật:
+ * 1. Từ trình duyệt biết NGAY máy đang chạy bản nào — trước đây phải đoán qua tên
+ *    file chunk xem deploy đã tới chưa.
+ * 2. Đổi giá trị này là đổi nội dung chunk VÀO ⇒ đổi hash ⇒ index.html trỏ sang
+ *    đường dẫn mới, lối thoát khi một đường dẫn asset bị cache biên đóng băng
+ *    (sự cố ở trên). Comment không làm được việc đó.
+ */
+const BUILD_TAG = "2026-07-29.2";
+document.documentElement.dataset.build = BUILD_TAG;
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
