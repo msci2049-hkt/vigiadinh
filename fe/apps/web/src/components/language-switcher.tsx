@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/family/ui";
+import { changeAppLanguage } from "@/lib/locale-sync";
 
 // Vòng ngôn ngữ en → vi → zh → en. Lựa chọn được language detector lưu localStorage.
 // Nhãn nút = ngôn ngữ KẾ TIẾP (bấm để đổi sang nó).
@@ -16,7 +17,7 @@ export function LanguageSwitcher() {
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => void i18n.changeLanguage(next)}
+      onClick={() => void changeAppLanguage(next)}
       aria-label={t("language.label")}
     >
       {LABEL[next]}

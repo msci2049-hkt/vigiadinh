@@ -16,6 +16,10 @@ const GENERIC: Record<string, { title: string; body: string }> = {
     title: "Cập nhật ví",
     body: "Ví gia đình của bạn có thay đổi. Mở ứng dụng để xem chi tiết.",
   },
+  zh: {
+    title: "钱包动态",
+    body: "您的家庭钱包有新变化。请打开应用查看详情。",
+  },
 };
 
 export type RenderedNotification = { title: string; body: string; locale: string };

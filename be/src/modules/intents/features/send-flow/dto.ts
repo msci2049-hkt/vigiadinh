@@ -24,6 +24,8 @@ export const signSendBody = z.object({
 export const guardianApproveBody = z.object({
   intent_id: z.string().length(26),
   verified_call: z.boolean(),
+  // default "approved" — client cũ (chưa gửi trường này) giữ nguyên hành vi duyệt.
+  decision: z.enum(["approved", "rejected"]).default("approved"),
 });
 
 export type PrepareSendBody = z.infer<typeof prepareSendBody>;

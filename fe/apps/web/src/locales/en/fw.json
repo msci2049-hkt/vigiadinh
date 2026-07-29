@@ -123,6 +123,33 @@
       "signing": "Waiting for your confirmation…",
       "title": "Start recovery for this wallet?",
       "verifyNote": "Call the wallet owner. Ask them to read the key ID from their new device — it must match this one exactly. If it does not, stop here."
+    },
+    "approveIntent": {
+      "title": "A transfer needs your OK",
+      "description": "A family member wants to send money to a new address. Check with them, then decide.",
+      "unnamedOwner": "your family member",
+      "amountLabel": "{{name}} wants to send",
+      "toLabel": "To",
+      "expiresLabel": "Expires",
+      "reasons": {
+        "unknownRecipient": "The recipient is a new address this wallet has never sent to.",
+        "overTxLimit": "The amount is over the per-transfer limit.",
+        "overDailyLimit": "The amount would exceed today's spending limit.",
+        "blacklisted": "The recipient is on your family's block list.",
+        "other": "The wallet's safety rules asked for a family check."
+      },
+      "verifyTitle": "Call before you approve",
+      "verifyNote": "Call {{name}} and make sure they really created this transfer. If anything feels off, reject it — no money moves.",
+      "verifiedCall": "I called and confirmed this is really their transfer",
+      "approveCta": "Approve transfer",
+      "rejectCta": "Reject",
+      "backCta": "Back",
+      "gone": "This request is no longer waiting — it may have been decided, cancelled, or expired.",
+      "errors": {
+        "alreadyDecided": "This request was already decided.",
+        "expired": "This request changed or expired — nothing was sent.",
+        "notSent": "Couldn't send your decision. Check your connection and try again."
+      }
     }
   },
   "guardians": {
@@ -353,6 +380,12 @@
       "activity": "active {{when}}",
       "noActivity": "no activity yet",
       "recoveryOpen": "A recovery request is waiting for you",
+      "reviewCta": "Review and decide"
+    },
+    "approvals": {
+      "title": "Waiting for your decision",
+      "item": "{{name}} wants to send {{amount}} to {{recipient}}",
+      "expires": "Expires {{when}}",
       "reviewCta": "Review and decide"
     }
   },
@@ -618,7 +651,12 @@
       },
       "guardian": {
         "description": "This amount needs a trusted contact to agree first. We've asked them — you'll be notified when it's approved.",
-        "title": "Waiting for your family"
+        "title": "Waiting for your family",
+        "cancelCta": "Cancel this transfer",
+        "confirmBody": "Cancel this transfer? No money has left your wallet.",
+        "confirmYes": "Yes, cancel it",
+        "confirmNo": "Keep waiting",
+        "cancelFailed": "Couldn't cancel. It may have just been approved — check the transfer status."
       },
       "noWallet": "You do not have a wallet yet.",
       "progress": {

@@ -3,6 +3,7 @@
 // passkey, ví phí ký ENVELOPE. Đường ký = passkey → __check_auth → verifier →
 // transfer trong MỘT tx (chuỗi hai-nửa, đóng rủi ro kỹ thuật lớn nhất còn lại).
 import type { xdr } from "@stellar/stellar-sdk";
+import { env } from "@/env";
 import { assertSponsorshipAllowed, FEE_CAP_STROOPS } from "@/services/stellar/fee-policy";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
 import type { IntentState } from "@/shared-contract/intent";
@@ -16,14 +17,14 @@ import {
   transferArgs,
   validateSignedTransfer,
 } from "../../domain/transfer";
-import { expiresAtFrom } from "../../domain/ttl";
+import { DRAFT_TTL_SECONDS, expiresAtFrom } from "../../domain/ttl";
 import * as repo from "../../infra/intents.repository";
+import { notifyGuardiansApprovalRequested, notifyOwnerGuardianDecision } from "./notify";
 
-/** Hạn mức MỘT giao dịch (stroops) → vượt là đòi guardian. 20 triệu XLM.
- * Hạn mức per-ví là tính năng sau; hằng số này là chính sách mặc định hiện tại. */
-export const SEND_PER_TX_LIMIT_STROOPS = 20_000_000n * 10_000_000n;
-/** TTL phiếu duyệt guardian cho một intent (giây) — 48h. */
-const APPROVAL_TTL_SECONDS = 48 * 3600;
+/** Hạn mức MỘT giao dịch (stroops) → vượt là đòi guardian. Đọc từ env
+ * SEND_PER_TX_LIMIT_XLM (default 100 XLM) — đổi số không cần deploy code.
+ * Đây là gate UX ở BE; hạn mức cưỡng chế thật nằm on-chain (LÔ 3). */
+export const SEND_PER_TX_LIMIT_STROOPS = BigInt(env.SEND_PER_TX_LIMIT_XLM) * 10_000_000n;
 
 export class SendServiceError extends Error {
   constructor(
@@ -216,7 +217,9 @@ export async function confirmSend(
       policyVersion: policy.policyVersion,
       policyReasons: policy.reasons,
     });
-    const expiresAt = expiresAtFrom(new Date(), APPROVAL_TTL_SECONDS);
+    // TTL phiếu = TTL intent (A6): phiếu KHÔNG được sống lâu hơn lệnh — bản cũ
+    // phiếu 48h > intent 24h nghĩa là guardian còn thấy phiếu của lệnh đã chết.
+    const expiresAt = intent.expiresAt ?? expiresAtFrom(new Date(), DRAFT_TTL_SECONDS);
     const challengeHash = computeChallengeHash({
       intentHash: intent.intentHash ?? "",
       amount: intent.amount,
@@ -237,6 +240,14 @@ export async function confirmSend(
       kind: "intent.awaiting_guardian",
       actorType: "system",
       payload: { intentId: intent.id, reasons: policy.reasons },
+    });
+    // A5 — chỗ đứt cũ nằm ngay đây: ghi DB + audit xong rồi return im lặng.
+    // Giờ báo từng guardian (email + sse). Fire-and-forget — notify tự nuốt lỗi.
+    await notifyGuardiansApprovalRequested({
+      walletId: wallet.id,
+      amount: intent.amount,
+      recipient: intent.recipient,
+      expiresAt,
     });
     return { intentId: intent.id, status: "awaiting_guardian", reasons: policy.reasons };
   }
@@ -310,6 +321,8 @@ export async function guardianApproveIntent(input: {
   intentId: string;
   userId: string;
   verifiedCall: boolean;
+  /** Mặc định "approved" — DTO đã default, client cũ không gửi trường này. */
+  decision?: "approved" | "rejected";
 }): Promise<{ nextStatus: string; reasons: string[] }> {
   const intent = await repo.intentById(input.intentId);
   if (!intent) throw new SendServiceError(404, "INTENT_NOT_FOUND");
@@ -320,6 +333,27 @@ export async function guardianApproveIntent(input: {
   if (!link) throw new SendServiceError(403, "NOT_GUARDIAN_OF_INTENT");
   if (link.approval.decision !== "pending") {
     throw new SendServiceError(409, "ALREADY_DECIDED");
+  }
+
+  // TỪ CHỐI: không cần K5 binding (chối luôn an toàn — tiền không đi đâu),
+  // nhưng vẫn đi qua state machine: awaiting_guardian → rejected (guardian).
+  if (input.decision === "rejected") {
+    assertTransition(
+      intent.status as Parameters<typeof assertTransition>[0],
+      "guardian",
+      "guardian_reject",
+    );
+    await repo.markApproval(link.approval.id, "rejected", input.verifiedCall);
+    await repo.updateIntent(intent.id, { status: "rejected" });
+    await repo.appendIntentAudit({
+      walletId: intent.walletId,
+      kind: "intent.guardian_rejected",
+      actorType: "guardian",
+      actorId: input.userId,
+      payload: { intentId: intent.id },
+    });
+    await notifyOwnerGuardianDecision({ walletId: intent.walletId, decision: "rejected" });
+    return { nextStatus: "rejected", reasons: [] };
   }
 
   const outcome = acceptGuardianApproval({
@@ -365,6 +399,11 @@ export async function guardianApproveIntent(input: {
     actorId: input.userId,
     payload: { intentId: intent.id, nextStatus: outcome.nextStatus },
   });
+  // Đủ duyệt → chủ ví ký được rồi — báo họ (approval.approved). Re-eval bật
+  // ngược về awaiting_guardian thì KHÔNG báo "đã duyệt" (chưa xong).
+  if (outcome.nextStatus === "awaiting_signature") {
+    await notifyOwnerGuardianDecision({ walletId: intent.walletId, decision: "approved" });
+  }
   return { nextStatus: outcome.nextStatus, reasons: outcome.reasons };
 }
 

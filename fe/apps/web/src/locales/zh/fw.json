@@ -123,6 +123,33 @@
       "signing": "正在等待你的确认…",
       "title": "为该钱包发起恢复？",
       "verifyNote": "给钱包主人打电话。请他们读出新设备上的钥匙 ID — 必须与这个完全一致。如果不一致，请到此为止。"
+    },
+    "approveIntent": {
+      "title": "一笔转账需要您确认",
+      "description": "您的家人想向一个新地址转账。请先与对方确认，再做决定。",
+      "unnamedOwner": "您的家人",
+      "amountLabel": "{{name}} 想转出",
+      "toLabel": "收款方",
+      "expiresLabel": "过期时间",
+      "reasons": {
+        "unknownRecipient": "收款方是新地址，这个钱包从未给它转过账。",
+        "overTxLimit": "金额超过单笔转账限额。",
+        "overDailyLimit": "金额将超过今日支出限额。",
+        "blacklisted": "收款方在家庭黑名单中。",
+        "other": "钱包的安全规则要求家人复核。"
+      },
+      "verifyTitle": "同意前请先打电话",
+      "verifyNote": "请打电话给 {{name}}，确认这笔转账确实是本人发起。如有任何异常，请拒绝——资金不会离开钱包。",
+      "verifiedCall": "我已打电话确认，这确实是他们的转账",
+      "approveCta": "同意转账",
+      "rejectCta": "拒绝",
+      "backCta": "返回",
+      "gone": "该请求已不在等待中——可能已被处理、取消或过期。",
+      "errors": {
+        "alreadyDecided": "该请求已被处理。",
+        "expired": "请求已变更或过期——没有任何资金被转出。",
+        "notSent": "未能提交您的决定。请检查网络后重试。"
+      }
     }
   },
   "guardians": {
@@ -353,6 +380,12 @@
       "activity": "最近活跃：{{when}}",
       "noActivity": "还没有动态",
       "recoveryOpen": "有一个恢复请求正在等你处理",
+      "reviewCta": "查看并决定"
+    },
+    "approvals": {
+      "title": "等待您决定",
+      "item": "{{name}} 想向 {{recipient}} 转 {{amount}}",
+      "expires": "{{when}}过期",
       "reviewCta": "查看并决定"
     }
   },
@@ -618,7 +651,12 @@
       },
       "guardian": {
         "description": "这笔金额需要一位受信任的联系人先同意。我们已经询问他们 — 获批后会通知你。",
-        "title": "正在等待你的家人"
+        "title": "正在等待你的家人",
+        "cancelCta": "取消这笔转账",
+        "confirmBody": "确定取消这笔转账吗？资金尚未离开您的钱包。",
+        "confirmYes": "是的，取消",
+        "confirmNo": "继续等待",
+        "cancelFailed": "取消失败。可能刚被家人批准——请查看转账状态。"
       },
       "noWallet": "你还没有钱包。",
       "progress": {

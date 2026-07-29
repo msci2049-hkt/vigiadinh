@@ -2,13 +2,16 @@
 // route chính dưới trần 300 dòng. Tiền tố `-` = TanStack Router bỏ qua file
 // này khi sinh route tree (co-located, không phải route).
 
+import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icons";
 import { ProductImage } from "@/components/family/product-image";
 import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
+import { cancelSend } from "@/features/family/api/send";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
 
 export function Shell({ children }: { children: React.ReactNode }) {
@@ -47,8 +50,27 @@ export function SendDoneScreen({ txHash }: { txHash: string | null }) {
   );
 }
 
-export function SendGuardianWaitScreen() {
+/**
+ * Màn chờ người thân duyệt — LÔ 1 A6 thêm nút HUỶ LỆNH: trước đây lệnh vào đây
+ * là chủ ví hết đường rút lại, chỉ còn chờ 24h cho sweeper cho hết hạn.
+ * Huỷ có bước xác nhận (không phải hộp thoại hệ thống — inline cho mobile).
+ */
+export function SendGuardianWaitScreen({
+  intentId,
+  onCancelled,
+}: {
+  intentId: string | null;
+  onCancelled: () => void;
+}) {
   const { t } = useTranslation("fw");
+  const [confirming, setConfirming] = useState(false);
+  const cancel = useMutation({
+    mutationFn: () => {
+      if (!intentId) throw new Error("NO_INTENT");
+      return cancelSend(intentId);
+    },
+    onSuccess: onCancelled,
+  });
   return (
     <Shell>
       <div className="flex flex-col items-center gap-4 text-center">
@@ -66,6 +88,36 @@ export function SendGuardianWaitScreen() {
           description={t("wallet.send.guardian.description")}
           className="text-center"
         />
+        {cancel.isError ? (
+          <ErrorBanner type="error" title={t("wallet.send.guardian.cancelFailed")} />
+        ) : null}
+        {intentId ? (
+          confirming ? (
+            <div className="flex w-full flex-col gap-2 rounded-card border border-dashed bg-card p-4">
+              <p className="text-muted-foreground text-sm">
+                {t("wallet.send.guardian.confirmBody")}
+              </p>
+              <Button
+                variant="destructive"
+                loading={cancel.isPending}
+                onClick={() => cancel.mutate()}
+              >
+                {t("wallet.send.guardian.confirmYes")}
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={cancel.isPending}
+                onClick={() => setConfirming(false)}
+              >
+                {t("wallet.send.guardian.confirmNo")}
+              </Button>
+            </div>
+          ) : (
+            <Button variant="outline" onClick={() => setConfirming(true)}>
+              {t("wallet.send.guardian.cancelCta")}
+            </Button>
+          )
+        ) : null}
       </div>
     </Shell>
   );

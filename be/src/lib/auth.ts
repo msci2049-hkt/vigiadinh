@@ -67,6 +67,15 @@ export const auth = betterAuth({
         defaultValue: "user",
         required: false,
       },
+      // Locale hiển thị của NGƯỜI NHẬN — notification-dispatch render email/push
+      // theo cột này (fix "cảnh báo an ninh tiếng Anh cho người Việt"). input:true
+      // có chủ đích: user tự đổi qua /api/auth/update-user khi bấm đổi ngôn ngữ
+      // trên FE; không phải trường nhạy cảm (khác role).
+      locale: {
+        type: "string",
+        input: true,
+        required: false,
+      },
     },
   },
 

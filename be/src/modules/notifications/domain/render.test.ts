@@ -11,13 +11,23 @@ describe("notification renderer (ICU theo locale người nhận)", () => {
     expect(en.body).toContain("BLOCKED");
   });
 
-  it("ICU plural chạy đúng: 1 minute / 15 minutes (en)", () => {
-    expect(renderNotification("approval.requested", "en", { minutes: 1 }).body).toContain(
-      "1 minute",
+  it("ICU plural chạy đúng: 1 hour / 15 hours (en) — template approval.requested LÔ 1", () => {
+    const base = { ownerName: "Huy", amount: "10", recipient: "CDBX…3PBT" };
+    expect(renderNotification("approval.requested", "en", { ...base, hours: 1 }).body).toContain(
+      "1 hour",
     );
-    expect(renderNotification("approval.requested", "en", { minutes: 15 }).body).toContain(
-      "15 minutes",
-    );
+    const many = renderNotification("approval.requested", "en", { ...base, hours: 15 }).body;
+    expect(many).toContain("15 hours");
+    expect(many).toContain("Huy");
+    expect(many).toContain("10 XLM");
+    expect(many).toContain("CDBX…3PBT");
+  });
+
+  it("approval.requested có đủ 3 locale, ownerName unknown → chuỗi trung tính theo locale", () => {
+    const params = { ownerName: "unknown", amount: "10", recipient: "CDBX…3PBT", hours: 24 };
+    expect(renderNotification("approval.requested", "vi", params).body).toContain("Một người thân");
+    expect(renderNotification("approval.requested", "zh", params).body).toContain("一位家人");
+    expect(renderNotification("approval.requested", "zh", params).locale).toBe("zh");
   });
 
   it("ICU select: có tên hiện tên, không tên hiện chung chung", () => {

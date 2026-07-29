@@ -123,6 +123,33 @@
       "signing": "Đang chờ bạn xác nhận…",
       "title": "Bắt đầu khôi phục ví này?",
       "verifyNote": "Gọi cho chủ ví. Nhờ họ đọc mã chìa khoá trên thiết bị mới của họ — phải TRÙNG KHỚP từng ký tự với mã này. Không khớp thì dừng lại."
+    },
+    "approveIntent": {
+      "title": "Một khoản chuyển cần bạn duyệt",
+      "description": "Người thân của bạn muốn gửi tiền tới một địa chỉ mới. Hãy hỏi lại họ rồi quyết định.",
+      "unnamedOwner": "người thân của bạn",
+      "amountLabel": "{{name}} muốn gửi",
+      "toLabel": "Tới",
+      "expiresLabel": "Hết hạn",
+      "reasons": {
+        "unknownRecipient": "Người nhận là địa chỉ mới, ví này chưa gửi cho họ bao giờ.",
+        "overTxLimit": "Số tiền vượt hạn mức một lần chuyển.",
+        "overDailyLimit": "Số tiền sẽ vượt hạn mức chi trong ngày.",
+        "blacklisted": "Người nhận nằm trong sổ đen của gia đình.",
+        "other": "Quy tắc an toàn của ví yêu cầu người nhà kiểm tra."
+      },
+      "verifyTitle": "Gọi điện trước khi đồng ý",
+      "verifyNote": "Hãy gọi cho {{name}} để chắc chắn chính họ tạo khoản chuyển này. Thấy bất thường thì cứ từ chối — tiền không đi đâu cả.",
+      "verifiedCall": "Tôi đã gọi và xác nhận đúng là khoản chuyển của họ",
+      "approveCta": "Đồng ý chuyển",
+      "rejectCta": "Từ chối",
+      "backCta": "Quay lại",
+      "gone": "Yêu cầu này không còn chờ nữa — có thể đã được quyết định, bị huỷ hoặc hết hạn.",
+      "errors": {
+        "alreadyDecided": "Yêu cầu này đã được quyết định rồi.",
+        "expired": "Yêu cầu đã thay đổi hoặc hết hạn — chưa có gì được gửi đi.",
+        "notSent": "Chưa gửi được quyết định của bạn. Kiểm tra mạng rồi thử lại nhé."
+      }
     }
   },
   "guardians": {
@@ -353,6 +380,12 @@
       "activity": "hoạt động {{when}}",
       "noActivity": "chưa có hoạt động nào",
       "recoveryOpen": "Có yêu cầu khôi phục đang chờ bạn",
+      "reviewCta": "Xem và quyết định"
+    },
+    "approvals": {
+      "title": "Chờ bạn quyết định",
+      "item": "{{name}} muốn gửi {{amount}} tới {{recipient}}",
+      "expires": "Hết hạn {{when}}",
       "reviewCta": "Xem và quyết định"
     }
   },
@@ -618,7 +651,12 @@
       },
       "guardian": {
         "description": "Số tiền này cần một người thân đồng ý trước. Chúng tôi đã hỏi họ — bạn sẽ được báo khi được duyệt.",
-        "title": "Đang chờ người thân"
+        "title": "Đang chờ người thân",
+        "cancelCta": "Huỷ lệnh này",
+        "confirmBody": "Huỷ lệnh chuyển này? Tiền chưa rời ví của bạn.",
+        "confirmYes": "Đúng, huỷ lệnh",
+        "confirmNo": "Tiếp tục chờ",
+        "cancelFailed": "Chưa huỷ được. Có thể lệnh vừa được duyệt — hãy xem lại trạng thái."
       },
       "noWallet": "Bạn chưa có ví.",
       "progress": {

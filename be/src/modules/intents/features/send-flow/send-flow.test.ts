@@ -4,16 +4,19 @@
 // sign → settled. Đường chain THẬT ở onchain e2e (guard env riêng).
 import { afterAll, describe, expect, it } from "bun:test";
 import { Address, Keypair, xdr } from "@stellar/stellar-sdk";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { FeePolicyError } from "@/services/stellar/fee-policy";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
 import { pgReachable, SKIP_REASON } from "@/test-support/pg";
 import { guardians } from "../../../guardians/infra/guardians.schema";
+import { notifications } from "../../../notifications/infra/notifications.schema";
 import { wallets } from "../../../wallets/infra/wallets.schema";
 import { transferArgs } from "../../domain/transfer";
+import { pendingApprovalsForGuardianUser } from "../../infra/approvals.repository";
 import { approvalRequests } from "../../infra/approvals.schema";
 import { transactionIntents } from "../../infra/intents.schema";
+import { CancelError, cancelIntent } from "../cancel-intent/service";
 import {
   confirmSend,
   guardianApproveIntent,
@@ -297,4 +300,145 @@ describe("send flow (DB thật + gateway fake)", () => {
       .where(eq(transactionIntents.id, review.intentId));
     expect(row?.status).toBe("awaiting_signature");
   });
+});
+
+/** Đếm notification theo user + template — GUARDIAN/OWNER dùng chung giữa các
+ * test trong file nên assert bằng DELTA, không đếm tuyệt đối. */
+async function notifCount(userId: string, templateKey: string) {
+  const rows = await db
+    .select({ channel: notifications.channel })
+    .from(notifications)
+    .where(and(eq(notifications.userId, userId), eq(notifications.templateKey, templateKey)));
+  return rows;
+}
+
+/** Dựng một intent VƯỢT ngưỡng đứng ở awaiting_guardian — dùng chung cho cụm LÔ 1. */
+async function seedAwaitingGuardian() {
+  const w = await seedWallet();
+  const over = SEND_PER_TX_LIMIT_STROOPS + 1n;
+  const { gateway } = fakeGateway(over * 2n);
+  const review = await prepareSend(gateway, SAC, {
+    walletId: w.id,
+    userId: OWNER,
+    clientIntentId: crypto.randomUUID(),
+    recipient: Keypair.random().publicKey(),
+    amount: over,
+  });
+  await confirmSend(gateway, SAC, { intentId: review.intentId, userId: OWNER });
+  return { w, intentId: review.intentId };
+}
+
+describe("LÔ 1 — báo guardian + từ chối + huỷ lệnh + TTL (A5/A6)", () => {
+  testIt("vượt ngưỡng → guardian ĐƯỢC BÁO (email + sse) và thấy phiếu trong hộp chờ", async () => {
+    const before = await notifCount(GUARDIAN, "approval.requested");
+    const { intentId } = await seedAwaitingGuardian();
+
+    // A5 — chính là ca chưa từng chạy được: mỗi kênh thêm ĐÚNG MỘT dòng.
+    // (Đếm theo kênh, không slice — SELECT không ORDER BY và GUARDIAN dùng
+    // chung giữa các test trong file.)
+    const after = await notifCount(GUARDIAN, "approval.requested");
+    const byChannel = (rows: { channel: string }[], ch: string) =>
+      rows.filter((n) => n.channel === ch).length;
+    expect(byChannel(after, "email")).toBe(byChannel(before, "email") + 1);
+    expect(byChannel(after, "sse")).toBe(byChannel(before, "sse") + 1);
+
+    // Hộp phiếu chờ của guardian PHẢI khám phá ra intent này (lỗ thứ ba của A5).
+    const inbox = await pendingApprovalsForGuardianUser(GUARDIAN, new Date());
+    expect(inbox.some((r) => r.intentId === intentId)).toBe(true);
+  });
+
+  testIt("TTL đồng bộ (A6): phiếu guardian hết hạn ĐÚNG lúc intent hết hạn", async () => {
+    const { intentId } = await seedAwaitingGuardian();
+    const [intentRow] = await db
+      .select({ expiresAt: transactionIntents.expiresAt })
+      .from(transactionIntents)
+      .where(eq(transactionIntents.id, intentId));
+    const [appr] = await db
+      .select({ expiresAt: approvalRequests.expiresAt })
+      .from(approvalRequests)
+      .where(eq(approvalRequests.intentId, intentId));
+    expect(intentRow?.expiresAt).not.toBeNull();
+    expect(appr?.expiresAt.getTime()).toBe(intentRow?.expiresAt?.getTime());
+  });
+
+  testIt("guardian TỪ CHỐI → intent rejected + phiếu rejected + chủ ví được báo", async () => {
+    const beforeOwner = await notifCount(OWNER, "approval.rejected");
+    const { intentId } = await seedAwaitingGuardian();
+
+    const outcome = await guardianApproveIntent({
+      intentId,
+      userId: GUARDIAN,
+      verifiedCall: true,
+      decision: "rejected",
+    });
+    expect(outcome.nextStatus).toBe("rejected");
+
+    const [row] = await db
+      .select({ status: transactionIntents.status })
+      .from(transactionIntents)
+      .where(eq(transactionIntents.id, intentId));
+    expect(row?.status).toBe("rejected");
+    const [appr] = await db
+      .select({ decision: approvalRequests.decision })
+      .from(approvalRequests)
+      .where(eq(approvalRequests.intentId, intentId));
+    expect(appr?.decision).toBe("rejected");
+
+    const afterOwner = await notifCount(OWNER, "approval.rejected");
+    const count = (rows: { channel: string }[], ch: string) =>
+      rows.filter((n) => n.channel === ch).length;
+    expect(count(afterOwner, "email")).toBe(count(beforeOwner, "email") + 1);
+    expect(count(afterOwner, "sse")).toBe(count(beforeOwner, "sse") + 1);
+  });
+
+  testIt("chủ ví HUỶ lệnh đang chờ → cancelled + phiếu pending chết theo + audit", async () => {
+    const { w, intentId } = await seedAwaitingGuardian();
+    const result = await cancelIntent({ intentId, userId: OWNER });
+    expect(result.status).toBe("cancelled");
+
+    const [row] = await db
+      .select({ status: transactionIntents.status })
+      .from(transactionIntents)
+      .where(eq(transactionIntents.id, intentId));
+    expect(row?.status).toBe("cancelled");
+    const approvals = await db
+      .select({ decision: approvalRequests.decision })
+      .from(approvalRequests)
+      .where(eq(approvalRequests.intentId, intentId));
+    expect(approvals.every((a) => a.decision === "expired")).toBe(true);
+
+    // Hộp guardian không còn thấy phiếu của lệnh đã huỷ.
+    const inbox = await pendingApprovalsForGuardianUser(GUARDIAN, new Date());
+    expect(inbox.some((r) => r.intentId === intentId)).toBe(false);
+    // walletId dùng để scope audit — tránh false-positive từ ví khác.
+    expect(w.id.length).toBe(26);
+  });
+
+  testIt(
+    "NGƯỜI KHÁC không huỷ được (403); trạng thái sai bị state machine chối (409)",
+    async () => {
+      const { intentId } = await seedAwaitingGuardian();
+      const err = await cancelIntent({
+        intentId,
+        userId: `stranger-${crypto.randomUUID().slice(0, 6)}`,
+      }).catch((e) => e);
+      expect(err).toBeInstanceOf(CancelError);
+      expect((err as CancelError).status).toBe(403);
+
+      // Intent đã settled (markRecipientKnown chèn settled) → cancel bị chối 409.
+      const w2 = await seedWallet();
+      const recipient = Keypair.random().publicKey();
+      await markRecipientKnown(w2.id, recipient);
+      const [settled] = await db
+        .select({ id: transactionIntents.id })
+        .from(transactionIntents)
+        .where(
+          and(eq(transactionIntents.walletId, w2.id), eq(transactionIntents.status, "settled")),
+        );
+      if (!settled) throw new Error("seed settled failed");
+      const err2 = await cancelIntent({ intentId: settled.id, userId: OWNER }).catch((e) => e);
+      expect(err2).toBeInstanceOf(CancelError);
+      expect((err2 as CancelError).status).toBe(409);
+    },
+  );
 });

@@ -82,14 +82,21 @@ export const TEMPLATES: Catalog = {
       body: "Một yêu cầu chiếm quyền ví đã bị CHẶN. Nếu không phải bạn chặn, hãy kiểm tra hoạt động của ví ngay.",
     },
   },
+  // Params LUÔN đủ khi enqueue (notify.ts): ownerName ("unknown" nếu chưa đặt
+  // tên), amount (XLM đã format), recipient (đã rút gọn), hours (số giờ còn
+  // lại). KHÔNG chở secret: không token, không challenge_hash, không địa chỉ đầy đủ.
   "approval.requested": {
     en: {
       title: "Your confirmation is needed",
-      body: "A transfer from a family wallet is waiting for you to review. It expires in {minutes, plural, one {# minute} other {# minutes}} — please check it soon.",
+      body: "{ownerName, select, unknown {A family member} other {{ownerName}}} wants to send {amount} XLM to {recipient}. Please review it — the request expires in {hours, plural, one {# hour} other {# hours}}.",
     },
     vi: {
       title: "Cần bạn xác nhận",
-      body: "Một khoản chuyển từ ví gia đình đang chờ bạn xem. Yêu cầu hết hạn sau {minutes, plural, other {# phút}} — bạn xem sớm giúp nhé.",
+      body: "{ownerName, select, unknown {Một người thân} other {{ownerName}}} muốn gửi {amount} XLM tới {recipient}. Nhờ bạn xem giúp — yêu cầu hết hạn sau {hours, plural, other {# giờ}}.",
+    },
+    zh: {
+      title: "需要您确认",
+      body: "{ownerName, select, unknown {一位家人} other {{ownerName}}} 想向 {recipient} 转账 {amount} XLM。请尽快查看——该请求将在 {hours, plural, other {# 小时}} 后过期。",
     },
   },
   "approval.approved": {
@@ -100,6 +107,52 @@ export const TEMPLATES: Catalog = {
     vi: {
       title: "Khoản chuyển đã được xác nhận",
       body: "Người thân đã xác nhận khoản chuyển của bạn. Giờ bạn có thể hoàn tất bằng khuôn mặt hoặc vân tay.",
+    },
+    zh: {
+      title: "转账已确认",
+      body: "家人已确认您的转账。现在您可以用面容或指纹完成付款。",
+    },
+  },
+  "approval.rejected": {
+    en: {
+      title: "Transfer declined",
+      body: "A trusted contact declined your transfer after checking it. No money left your wallet. If you think this is a mistake, talk to them directly.",
+    },
+    vi: {
+      title: "Người thân đã từ chối khoản chuyển",
+      body: "Sau khi kiểm tra, người thân đã từ chối khoản chuyển này. Tiền chưa rời ví. Nếu bạn nghĩ có nhầm lẫn, hãy trao đổi trực tiếp với họ.",
+    },
+    zh: {
+      title: "转账被拒绝",
+      body: "家人核实后拒绝了这笔转账。资金未离开您的钱包。如有疑问，请直接与家人沟通。",
+    },
+  },
+  "intent.expired": {
+    en: {
+      title: "Transfer request expired",
+      body: "A transfer waiting for family confirmation expired before it was approved. No money left your wallet — you can create it again anytime.",
+    },
+    vi: {
+      title: "Yêu cầu chuyển tiền đã hết hạn",
+      body: "Một khoản chuyển chờ người thân xác nhận đã hết hạn trước khi được duyệt. Tiền chưa rời ví — bạn có thể tạo lại bất cứ lúc nào.",
+    },
+    zh: {
+      title: "转账请求已过期",
+      body: "一笔等待家人确认的转账在获批前已过期。资金未离开您的钱包——您可以随时重新发起。",
+    },
+  },
+  "approval.expired": {
+    en: {
+      title: "A request expired",
+      body: "A transfer that was waiting for your confirmation has expired. Nothing happened and no money moved — you don't need to do anything.",
+    },
+    vi: {
+      title: "Một yêu cầu đã hết hạn",
+      body: "Khoản chuyển chờ bạn xác nhận đã hết hạn. Không có gì xảy ra, tiền không di chuyển — bạn không cần làm gì thêm.",
+    },
+    zh: {
+      title: "一个请求已过期",
+      body: "等待您确认的转账已过期。资金没有变动——您无需进行任何操作。",
     },
   },
   "transaction.settled": {

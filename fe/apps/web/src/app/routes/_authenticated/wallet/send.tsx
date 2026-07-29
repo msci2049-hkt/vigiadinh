@@ -163,7 +163,11 @@ function WalletSendScreen() {
   if (!wallet) return <Shell>{<EmptyState message={t("wallet.send.noWallet")} />}</Shell>;
 
   if (machine.phase === "settled") return <SendDoneScreen txHash={machine.txHash} />;
-  if (machine.phase === "awaiting_guardian") return <SendGuardianWaitScreen />;
+  if (machine.phase === "awaiting_guardian") {
+    return (
+      <SendGuardianWaitScreen intentId={review?.intentId ?? null} onCancelled={returnToEntry} />
+    );
+  }
   if (machine.phase === "unconfirmed") {
     return <SendUnconfirmedScreen pollExhausted={machine.pollExhausted} />;
   }

@@ -64,6 +64,15 @@ export async function getSignable(intentId: string): Promise<{
   return res.data;
 }
 
+/** Chủ ví RÚT LẠI lệnh khi tiền chưa đi (LÔ 1 A6) — hợp lệ tới trước submitting. */
+export async function cancelSend(intentId: string): Promise<{ intentId: string; status: string }> {
+  const res = await apiClient.post<{ data: { intentId: string; status: string } }>(
+    `/api/intents/${intentId}/cancel`,
+    {},
+  );
+  return res.data;
+}
+
 export async function signSend(input: {
   intentId: string;
   signedEntriesXdr: string[];

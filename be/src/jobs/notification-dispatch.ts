@@ -120,11 +120,12 @@ async function claimBatch(): Promise<ClaimedRow[]> {
   return (rows as unknown as RawRow[]).map(toClaimed);
 }
 
-/** Email người nhận. Soft-ref sang bảng `user` của Better Auth (id kiểu text). */
-async function recipientEmail(userId: string): Promise<string | null> {
-  const rows = await db.execute(sql`SELECT email FROM "user" WHERE id = ${userId} LIMIT 1`);
-  const first = (rows as unknown as { email?: string }[])[0];
-  return first?.email ?? null;
+/** Email + locale người nhận. Soft-ref sang bảng `user` của Better Auth (id text).
+ * locale do chính người nhận chọn (FE ghi qua update-user) — NULL = chưa chọn → en. */
+async function recipientProfile(userId: string): Promise<{ email: string | null; locale: string }> {
+  const rows = await db.execute(sql`SELECT email, locale FROM "user" WHERE id = ${userId} LIMIT 1`);
+  const first = (rows as unknown as { email?: string; locale?: string | null }[])[0];
+  return { email: first?.email ?? null, locale: first?.locale ?? "en" };
 }
 
 async function pushTokens(userId: string): Promise<string[]> {
@@ -137,9 +138,9 @@ async function pushTokens(userId: string): Promise<string[]> {
 }
 
 async function deliver(row: ClaimedRow): Promise<void> {
-  // Locale: bảng `user` của Better Auth chưa có cột locale → "en". renderNotification
-  // đã tự fallback en và KHÔNG throw khi template/param lệch (thông báo generic
-  // còn hơn nuốt mất sự kiện an ninh).
+  // Locale THEO NGƯỜI NHẬN — cột user.locale (FE ghi khi đổi ngôn ngữ), thiếu →
+  // en. renderNotification tự fallback en khi template thiếu bản dịch và KHÔNG
+  // throw khi param lệch (thông báo generic còn hơn nuốt mất sự kiện an ninh).
   // `params` là jsonb → `unknown`. Thu hẹp thật (object không-null, không mảng)
   // thay vì cast bừa: một row có params kiểu lạ không được phép làm chết worker
   // và kéo theo mọi thông báo an ninh phía sau nó trong hàng đợi.
@@ -147,13 +148,13 @@ async function deliver(row: ClaimedRow): Promise<void> {
     typeof row.params === "object" && row.params !== null && !Array.isArray(row.params)
       ? (row.params as Record<string, unknown>)
       : null;
-  const { title, body } = renderNotification(row.templateKey, "en", params);
+  const profile = await recipientProfile(row.userId);
+  const { title, body } = renderNotification(row.templateKey, profile.locale, params);
 
   switch (row.channel) {
     case "email": {
-      const to = await recipientEmail(row.userId);
-      if (!to) throw new PermanentDispatchError("NO_EMAIL_FOR_USER");
-      await sendEmail({ to, subject: title, text: body });
+      if (!profile.email) throw new PermanentDispatchError("NO_EMAIL_FOR_USER");
+      await sendEmail({ to: profile.email, subject: title, text: body });
       return;
     }
     case "push": {

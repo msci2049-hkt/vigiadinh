@@ -4,6 +4,7 @@
 // double-tap KÝ ở PHA 5 — không thay được unique index).
 import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
+import { enqueueNotificationTx } from "@/modules/notifications";
 import { guardians } from "../../guardians/infra/guardians.schema";
 import { auditLog } from "../../indexer/infra/audit-log.schema";
 import { type Wallet, wallets } from "../../wallets/infra/wallets.schema";
@@ -228,7 +229,9 @@ export const SWEEPABLE_STATES = [
 ] as const;
 
 /** Quét TTL (A4): mọi intent quá expires_at ở state quét được → expired.
- * Mỗi intent hết hạn ghi MỘT dòng audit (actor system) — cùng transaction. */
+ * Mỗi intent hết hạn ghi MỘT dòng audit (actor system) — cùng transaction.
+ * LÔ 1 A6: hết hạn PHẢI báo — chủ ví ("tiền không rời ví") + guardian còn
+ * phiếu pending ("không cần làm gì nữa"), email + sse, cùng transaction. */
 export async function sweepExpired(now: Date): Promise<number> {
   return db.transaction(async (tx) => {
     const expired = await tx
@@ -250,6 +253,44 @@ export async function sweepExpired(now: Date): Promise<number> {
           payload: { intentId: row.id },
         })),
       );
+      // Đích thông báo — GOM TRƯỚC khi flip phiếu (sau flip không còn biết ai
+      // đang pending). Dedupe theo user: một lượt quét nhiều intent vẫn 1 thư/người.
+      const walletIds = [...new Set(expired.map((r) => r.walletId))];
+      const owners = await tx
+        .select({ userId: wallets.userId })
+        .from(wallets)
+        .where(inArray(wallets.id, walletIds));
+      const pendingGuardians = await tx
+        .select({ userId: guardians.userId })
+        .from(approvalRequests)
+        .innerJoin(guardians, eq(approvalRequests.guardianId, guardians.id))
+        .where(
+          and(
+            inArray(
+              approvalRequests.intentId,
+              expired.map((r) => r.id),
+            ),
+            eq(approvalRequests.decision, "pending"),
+          ),
+        );
+      const targets: { userId: string; templateKey: string }[] = [];
+      for (const uid of new Set(owners.map((o) => o.userId))) {
+        targets.push({ userId: uid, templateKey: "intent.expired" });
+      }
+      for (const uid of new Set(
+        pendingGuardians.map((g) => g.userId).filter((u): u is string => Boolean(u)),
+      )) {
+        targets.push({ userId: uid, templateKey: "approval.expired" });
+      }
+      for (const t of targets) {
+        for (const channel of ["email", "sse"] as const) {
+          await enqueueNotificationTx(tx, {
+            userId: t.userId,
+            templateKey: t.templateKey,
+            channel,
+          });
+        }
+      }
     }
     // approval_requests pending quá hạn → expired (cùng lượt quét).
     await tx

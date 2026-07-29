@@ -162,6 +162,13 @@ export const envShape = {
     .string()
     .regex(/^C[A-Z2-7]{55}$/)
     .optional(),
+  // Ngưỡng MỘT lệnh gửi (XLM nguyên) — vượt là đòi người thân duyệt. Đây là
+  // gate UX ở BE (policy engine v1); hạn mức cưỡng chế thật nằm on-chain
+  // (spending-limit policy, LÔ 3). Đổi số không cần deploy lại code.
+  SEND_PER_TX_LIMIT_XLM: z
+    .string()
+    .regex(/^[1-9][0-9]{0,12}$/, "XLM nguyên, không lẻ")
+    .default("100"),
 
   // === Webhook secrets (optional) ===
   // Chỉ điền cho provider thực sự dùng. verify.ts throw rõ ràng nếu code

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { env } from "@/lib/env";
+import { changeAppLanguage } from "@/lib/locale-sync";
 
 // Export cho màn Cài đặt tái dùng — một danh sách ngôn ngữ, không hai bản chép.
 export const LANGUAGES = [
@@ -29,7 +30,7 @@ export function ProductShell({ children, menu }: { children: ReactNode; menu?: R
                 type="button"
                 className="product-shell__language"
                 aria-pressed={active === language.code}
-                onClick={() => void i18n.changeLanguage(language.code)}
+                onClick={() => void changeAppLanguage(language.code)}
               >
                 {language.label}
               </button>

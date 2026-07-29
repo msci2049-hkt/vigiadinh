@@ -8,6 +8,7 @@ import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { env } from "@/lib/env";
+import { changeAppLanguage } from "@/lib/locale-sync";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsScreen,
@@ -41,7 +42,7 @@ function SettingsScreen() {
                 role="radio"
                 aria-checked={active === language.code}
                 variant={active === language.code ? "secondary" : "ghost"}
-                onClick={() => void i18n.changeLanguage(language.code)}
+                onClick={() => void changeAppLanguage(language.code)}
               >
                 {language.label}
               </Button>

@@ -157,6 +157,7 @@ export const sendFlowRoute = new Hono()
         intentId: body.intent_id,
         userId: user.id,
         verifiedCall: body.verified_call,
+        decision: body.decision,
       }).catch(mapError);
       return c.json({ data: result });
     },

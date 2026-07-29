@@ -6,8 +6,11 @@ import { afterAll, describe, expect, it } from "bun:test";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { pgReachable, SKIP_REASON } from "@/test-support/pg";
+import { guardians } from "../../guardians/infra/guardians.schema";
 import { auditLog } from "../../indexer/infra/audit-log.schema";
+import { notifications } from "../../notifications/infra/notifications.schema";
 import { wallets } from "../../wallets/infra/wallets.schema";
+import { approvalRequests } from "./approvals.schema";
 import { createIdempotent, sweepExpired } from "./intents.repository";
 import { transactionIntents } from "./intents.schema";
 
@@ -116,4 +119,66 @@ describe("intents repository (Postgres thật)", () => {
     expect(audits.filter((a) => a.kind === "intent.expired")).toHaveLength(2);
     expect(audits.every((a) => a.actorType === "system")).toBe(true);
   });
+
+  testIt(
+    "LÔ 1 A6: sweep hết hạn PHẢI báo — chủ ví (intent.expired) + guardian còn phiếu pending (approval.expired), email + sse",
+    async () => {
+      const walletId = await makeWallet();
+      const guardianUser = `it-swp-guard-${crypto.randomUUID().slice(0, 8)}`;
+      const past = new Date(Date.now() - 60_000);
+
+      const [g] = await db
+        .insert(guardians)
+        .values({
+          walletId,
+          userId: guardianUser,
+          onchainKey: `G${"B".repeat(55)}`,
+          status: "active",
+        })
+        .returning({ id: guardians.id });
+      const [intent] = await db
+        .insert(transactionIntents)
+        .values({
+          walletId,
+          clientIntentId: crypto.randomUUID(),
+          status: "awaiting_guardian",
+          operations: [{ type: "sac_transfer" }],
+          recipient: `C${"D".repeat(55)}`,
+          amount: 100_000_000n,
+          expiresAt: past,
+        })
+        .returning({ id: transactionIntents.id });
+      if (!g || !intent) throw new Error("seed failed");
+      await db.insert(approvalRequests).values({
+        intentId: intent.id,
+        intentVersion: 1,
+        guardianId: g.id,
+        challengeHash: "c".repeat(64),
+        expiresAt: past,
+      });
+
+      await sweepExpired(new Date());
+
+      const forGuardian = await db
+        .select({ channel: notifications.channel })
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, guardianUser),
+            eq(notifications.templateKey, "approval.expired"),
+          ),
+        );
+      expect(new Set(forGuardian.map((n) => n.channel))).toEqual(new Set(["email", "sse"]));
+
+      // Chủ ví (USER dùng chung trong file) có ÍT NHẤT một cặp intent.expired.
+      const forOwner = await db
+        .select({ channel: notifications.channel })
+        .from(notifications)
+        .where(
+          and(eq(notifications.userId, USER), eq(notifications.templateKey, "intent.expired")),
+        );
+      expect(forOwner.length).toBeGreaterThanOrEqual(2);
+      expect(new Set(forOwner.map((n) => n.channel))).toEqual(new Set(["email", "sse"]));
+    },
+  );
 });
