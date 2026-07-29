@@ -127,7 +127,7 @@ export function WalletLockedNotice({ lock }: { lock: LockedInfo }) {
       data-testid="wallet-locked-notice"
     >
       <div className="flex items-start gap-3">
-        <Icon name="lock" size={28} />
+        <Icon name="lock" size={32} />
         <div className="min-w-0">
           <h2 className="font-semibold text-foreground">{t("wallet.locked.title")}</h2>
           <p className="text-copy text-muted-foreground">{t("wallet.locked.intro")}</p>
