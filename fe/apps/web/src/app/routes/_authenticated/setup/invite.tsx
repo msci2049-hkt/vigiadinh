@@ -23,11 +23,13 @@ import { chainTruthOptions } from "@/features/family/api/recovery";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { InviteCard } from "@/features/family/components/invite-card";
 import {
+  type AddAllProgress,
   type AddGuardianErrorKey,
   InviteStatusList,
 } from "@/features/family/components/invite-status-list";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
+import { runSequential } from "@/features/family/lib/sequential-add";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { signRecoveryEntries } from "@/features/wallet/lib/sign-recovery-entries";
 import { ApiError } from "@/lib/api-client";
@@ -75,49 +77,85 @@ function SetupInviteScreen() {
   });
 
   // Ghép ở tầng app/: build (family) → ký bằng passkey chủ ví (wallet) → submit.
-  // MỘT giao dịch cho MỘT người — không gom, không chờ ai.
-  const addGuardian = useMutation({
-    mutationFn: async (invite: GuardianInvite) => {
-      const walletId = wallet?.id ?? "";
-      const guardianAddress = invite.guardian_address ?? "";
-      // Ví CHƯA đăng ký registry → contract chối `add_guardian` bằng
-      // `#2 NotRegistered` (bug 28/07). Giai đoạn này "Thêm vào ví" chỉ CHỐT
-      // trong DB; bước "Đăng ký lên blockchain" (màn Xác nhận) sẽ gom CẢ danh
-      // sách vào một lệnh `register_wallet`. Sau khi ví đã đăng ký, người thêm
-      // sau mới đi đường `add_guardian` on-chain như dưới.
-      const truth = await queryClient.fetchQuery(chainTruthOptions(walletId));
-      if (!truth.registered) {
-        await markInviteRegistered(invite.id);
-        return;
-      }
-      const built = await buildRecoveryAction({
-        action: "addGuardian",
-        walletId,
-        guardianAddress,
-      });
-      // CHỐNG KÝ MÙ: entry phải thêm ĐÚNG địa chỉ vừa gửi đi. Không chốt thì
-      // backend tráo một địa chỉ khác là chủ ví tự tay ký cho người lạ vào làm
-      // người bảo hộ — trong khi màn hình vẫn chỉ hiện tên gọi thân mật.
-      if (!env.VITE_RECOVERY_REGISTRY_ADDRESS) throw new BlindSignError("ENTRY_WRONG_CONTRACT");
-      if (!wallet) throw new BlindSignError("ENTRY_WRONG_SOURCE");
-      for (const entryXdr of built.auth_entries_xdr) {
-        assertAddGuardianEntry(entryXdr, {
-          registry: env.VITE_RECOVERY_REGISTRY_ADDRESS,
-          wallet: wallet.stellarAddress,
-          guardian: guardianAddress,
-        });
-      }
-      const signed = await signRecoveryEntries({
-        entriesXdr: built.auth_entries_xdr,
-        latestLedger: built.latest_ledger,
-      });
-      await submitRecoveryAction({ walletId, signedEntriesXdr: signed });
+  // MỘT giao dịch cho MỘT người — không gom, không chờ ai. Dùng chung cho nút
+  // lẻ lẫn "Thêm tất cả" (vòng tuần tự bên dưới).
+  const addOneGuardian = async (invite: GuardianInvite) => {
+    const walletId = wallet?.id ?? "";
+    const guardianAddress = invite.guardian_address ?? "";
+    // Ví CHƯA đăng ký registry → contract chối `add_guardian` bằng
+    // `#2 NotRegistered` (bug 28/07). Giai đoạn này "Thêm vào ví" chỉ CHỐT
+    // trong DB; bước "Đăng ký lên blockchain" (màn Xác nhận) sẽ gom CẢ danh
+    // sách vào một lệnh `register_wallet`. Sau khi ví đã đăng ký, người thêm
+    // sau mới đi đường `add_guardian` on-chain như dưới.
+    const truth = await queryClient.fetchQuery(chainTruthOptions(walletId));
+    if (!truth.registered) {
       await markInviteRegistered(invite.id);
-    },
+      return;
+    }
+    const built = await buildRecoveryAction({
+      action: "addGuardian",
+      walletId,
+      guardianAddress,
+    });
+    // CHỐNG KÝ MÙ: entry phải thêm ĐÚNG địa chỉ vừa gửi đi. Không chốt thì
+    // backend tráo một địa chỉ khác là chủ ví tự tay ký cho người lạ vào làm
+    // người bảo hộ — trong khi màn hình vẫn chỉ hiện tên gọi thân mật.
+    if (!env.VITE_RECOVERY_REGISTRY_ADDRESS) throw new BlindSignError("ENTRY_WRONG_CONTRACT");
+    if (!wallet) throw new BlindSignError("ENTRY_WRONG_SOURCE");
+    for (const entryXdr of built.auth_entries_xdr) {
+      assertAddGuardianEntry(entryXdr, {
+        registry: env.VITE_RECOVERY_REGISTRY_ADDRESS,
+        wallet: wallet.stellarAddress,
+        guardian: guardianAddress,
+      });
+    }
+    const signed = await signRecoveryEntries({
+      entriesXdr: built.auth_entries_xdr,
+      latestLedger: built.latest_ledger,
+    });
+    await submitRecoveryAction({ walletId, signedEntriesXdr: signed });
+    await markInviteRegistered(invite.id);
+  };
+
+  const addGuardian = useMutation({
+    mutationFn: addOneGuardian,
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: inviteKeys.byWallet(wallet?.id ?? "") });
     },
   });
+
+  // "Thêm tất cả": vòng tuần tự tách ở lib/sequential-add (có test riêng cho
+  // "một người lỗi không dừng loạt"); route chỉ nối state + invalidate.
+  const [addAll, setAddAll] = useState<AddAllProgress>({
+    running: false,
+    currentId: null,
+    results: {},
+  });
+  const runAddAll = async (targets: GuardianInvite[]) => {
+    if (addAll.running || addGuardian.isPending) return;
+    setAddAll({ running: true, currentId: null, results: {} });
+    // Đánh dấu dòng đang chạy TRƯỚC mỗi người — runSequential gọi onStep SAU.
+    let queue = [...targets];
+    const next = () => {
+      const head = queue[0];
+      setAddAll((s) => ({ ...s, currentId: head ? head.id : null }));
+    };
+    next();
+    await runSequential({
+      targets,
+      runOne: addOneGuardian,
+      errorOf: addGuardianErrorKey,
+      onStep: async (_invite, _result, results) => {
+        queue = queue.slice(1);
+        setAddAll((s) => ({ ...s, results }));
+        next();
+        // Cập nhật danh sách sau TỪNG người: dòng xong đổi pill ngay, và các
+        // dòng trùng danh tính mất nút "Thêm vào ví" trước khi loạt tới chúng.
+        await queryClient.invalidateQueries({ queryKey: inviteKeys.byWallet(wallet?.id ?? "") });
+      },
+    });
+    setAddAll((s) => ({ ...s, running: false, currentId: null }));
+  };
 
   const loading = walletLoading || invites.isLoading;
 
@@ -166,8 +204,10 @@ function SetupInviteScreen() {
         <InviteStatusList
           invites={invites.data.invites}
           onAdd={(invite) => addGuardian.mutate(invite)}
+          onAddAll={(targets) => void runAddAll(targets)}
           pending={addGuardian.isPending}
           errorKey={addGuardian.isError ? addGuardianErrorKey(addGuardian.error) : null}
+          addAll={addAll}
         />
       ) : null}
 

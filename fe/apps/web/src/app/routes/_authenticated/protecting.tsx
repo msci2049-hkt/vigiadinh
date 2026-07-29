@@ -97,17 +97,9 @@ function ProtectingScreen() {
               <Card className={hasOpenRecovery ? "border-primary bg-accent" : "bg-paper-2"}>
                 <CardContent className="flex flex-col gap-3 p-4">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="flex min-w-0 items-center gap-3">
-                      <span
-                        aria-hidden
-                        className="grid size-12 shrink-0 place-items-center rounded-full bg-primary font-semibold text-lg text-primary-foreground"
-                      >
-                        {name.charAt(0).toUpperCase()}
-                      </span>
-                      <span className="truncate font-semibold text-foreground text-sm">
-                        {t("protecting.item.title", { name })}
-                      </span>
-                    </div>
+                    <span className="truncate font-semibold text-foreground text-sm">
+                      {t("protecting.item.title", { name })}
+                    </span>
                     <GuardianStatusBadge status={item.status} />
                   </div>
                   <p className="text-muted-foreground text-xs">

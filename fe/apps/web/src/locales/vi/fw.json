@@ -128,7 +128,7 @@
       "title": "Một khoản chuyển cần bạn duyệt",
       "description": "Người thân của bạn muốn gửi tiền tới một địa chỉ mới. Hãy hỏi lại họ rồi quyết định.",
       "unnamedOwner": "người thân của bạn",
-      "amountLabel": "{{name}} muốn gửi",
+      "amountLabel": "{name} muốn gửi",
       "toLabel": "Tới",
       "expiresLabel": "Hết hạn",
       "reasons": {
@@ -139,7 +139,7 @@
         "other": "Quy tắc an toàn của ví yêu cầu người nhà kiểm tra."
       },
       "verifyTitle": "Gọi điện trước khi đồng ý",
-      "verifyNote": "Hãy gọi cho {{name}} để chắc chắn chính họ tạo khoản chuyển này. Thấy bất thường thì cứ từ chối — tiền không đi đâu cả.",
+      "verifyNote": "Hãy gọi cho {name} để chắc chắn chính họ tạo khoản chuyển này. Thấy bất thường thì cứ từ chối — tiền không đi đâu cả.",
       "verifiedCall": "Tôi đã gọi và xác nhận đúng là khoản chuyển của họ",
       "approveCta": "Đồng ý chuyển",
       "rejectCta": "Từ chối",
@@ -203,6 +203,8 @@
     },
     "inviteList": {
       "addCta": "Thêm vào ví",
+      "addAllCta": "Thêm tất cả ({count})",
+      "addAllProgress": "Đang thêm {done}/{total}…",
       "addFailed": "Chưa thêm được. Chưa có gì thay đổi — bạn thử lại giúp nhé.",
       "addFailedAlready": "Người này đã là người bảo hộ của bạn rồi. Mời một người khác nhé.",
       "addFailedSelf": "Bạn không thể tự làm người bảo hộ cho ví của mình.",
@@ -370,22 +372,22 @@
     "working": "Đang mở khóa bằng thiết bị của bạn…"
   },
   "protecting": {
-    "title": "Ví tôi đang gác",
-    "description": "Những ví của người thân mà bạn đang giúp trông giữ.",
-    "empty": "Bạn chưa trông giúp ví nào. Khi người thân mời, đường dẫn trong lời mời sẽ đưa bạn tới đây.",
+    "title": "Ví tôi bảo vệ",
+    "description": "Những ví của người thân mà bạn đang bảo vệ.",
+    "empty": "Bạn chưa bảo vệ ví nào. Khi người thân mời, đường dẫn trong lời mời sẽ đưa bạn tới đây.",
     "item": {
-      "title": "Ví của {{name}}",
+      "title": "Ví của {name}",
       "unnamed": "người thân",
-      "since": "Bạn là người bảo hộ từ {{date}}",
-      "activity": "hoạt động {{when}}",
+      "since": "Bạn là người bảo hộ từ {date}",
+      "activity": "hoạt động {when}",
       "noActivity": "chưa có hoạt động nào",
       "recoveryOpen": "Có yêu cầu khôi phục đang chờ bạn",
       "reviewCta": "Xem và quyết định"
     },
     "approvals": {
       "title": "Chờ bạn quyết định",
-      "item": "{{name}} muốn gửi {{amount}} tới {{recipient}}",
-      "expires": "Hết hạn {{when}}",
+      "item": "{name} muốn gửi {amount} tới {recipient}",
+      "expires": "Hết hạn {when}",
       "reviewCta": "Xem và quyết định"
     }
   },

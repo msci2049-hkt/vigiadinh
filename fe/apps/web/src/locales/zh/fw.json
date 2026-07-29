@@ -128,7 +128,7 @@
       "title": "一笔转账需要您确认",
       "description": "您的家人想向一个新地址转账。请先与对方确认，再做决定。",
       "unnamedOwner": "您的家人",
-      "amountLabel": "{{name}} 想转出",
+      "amountLabel": "{name} 想转出",
       "toLabel": "收款方",
       "expiresLabel": "过期时间",
       "reasons": {
@@ -139,7 +139,7 @@
         "other": "钱包的安全规则要求家人复核。"
       },
       "verifyTitle": "同意前请先打电话",
-      "verifyNote": "请打电话给 {{name}}，确认这笔转账确实是本人发起。如有任何异常，请拒绝——资金不会离开钱包。",
+      "verifyNote": "请打电话给 {name}，确认这笔转账确实是本人发起。如有任何异常，请拒绝——资金不会离开钱包。",
       "verifiedCall": "我已打电话确认，这确实是他们的转账",
       "approveCta": "同意转账",
       "rejectCta": "拒绝",
@@ -203,6 +203,8 @@
     },
     "inviteList": {
       "addCta": "添加到钱包",
+      "addAllCta": "全部添加（{count}）",
+      "addAllProgress": "正在添加 {done}/{total}…",
       "addFailed": "添加失败，没有任何改动，请再试一次。",
       "addFailedAlready": "这位已经是你的守护人了，请邀请其他人。",
       "addFailedSelf": "你不能做自己钱包的守护人。",
@@ -370,22 +372,22 @@
     "working": "正在用你的设备解锁…"
   },
   "protecting": {
-    "title": "我看护的钱包",
-    "description": "你正在帮家人看护的钱包。",
-    "empty": "你还没有看护任何钱包。家人邀请你时，邀请链接会把你带到这里。",
+    "title": "我守护的钱包",
+    "description": "你正在帮家人守护的钱包。",
+    "empty": "你还没有守护任何钱包。家人邀请你时，邀请链接会把你带到这里。",
     "item": {
-      "title": "{{name}}的钱包",
+      "title": "{name}的钱包",
       "unnamed": "家人",
-      "since": "自 {{date}} 起由你看护",
-      "activity": "最近活跃：{{when}}",
+      "since": "自 {date} 起由你守护",
+      "activity": "最近活跃：{when}",
       "noActivity": "还没有动态",
       "recoveryOpen": "有一个恢复请求正在等你处理",
       "reviewCta": "查看并决定"
     },
     "approvals": {
       "title": "等待您决定",
-      "item": "{{name}} 想向 {{recipient}} 转 {{amount}}",
-      "expires": "{{when}}过期",
+      "item": "{name} 想向 {recipient} 转 {amount}",
+      "expires": "{when}过期",
       "reviewCta": "查看并决定"
     }
   },

@@ -128,7 +128,7 @@
       "title": "A transfer needs your OK",
       "description": "A family member wants to send money to a new address. Check with them, then decide.",
       "unnamedOwner": "your family member",
-      "amountLabel": "{{name}} wants to send",
+      "amountLabel": "{name} wants to send",
       "toLabel": "To",
       "expiresLabel": "Expires",
       "reasons": {
@@ -139,7 +139,7 @@
         "other": "The wallet's safety rules asked for a family check."
       },
       "verifyTitle": "Call before you approve",
-      "verifyNote": "Call {{name}} and make sure they really created this transfer. If anything feels off, reject it — no money moves.",
+      "verifyNote": "Call {name} and make sure they really created this transfer. If anything feels off, reject it — no money moves.",
       "verifiedCall": "I called and confirmed this is really their transfer",
       "approveCta": "Approve transfer",
       "rejectCta": "Reject",
@@ -203,6 +203,8 @@
     },
     "inviteList": {
       "addCta": "Add to my wallet",
+      "addAllCta": "Add all ({count})",
+      "addAllProgress": "Adding {done}/{total}…",
       "addFailed": "We could not add them. Nothing changed — please try again.",
       "addFailedAlready": "They are already one of your guardians. Invite someone else.",
       "addFailedSelf": "You cannot be a guardian of your own wallet.",
@@ -370,22 +372,22 @@
     "working": "Unlocking with your device…"
   },
   "protecting": {
-    "title": "Wallets I look after",
-    "description": "Wallets your family trusted you to help watch over.",
-    "empty": "You're not looking after any wallets yet. When family invites you, the invite link will bring you here.",
+    "title": "Wallets I protect",
+    "description": "Wallets your family trusted you to protect.",
+    "empty": "You're not protecting any wallets yet. When family invites you, the invite link will bring you here.",
     "item": {
-      "title": "{{name}}'s wallet",
+      "title": "{name}'s wallet",
       "unnamed": "your family member",
-      "since": "Looking after it since {{date}}",
-      "activity": "active {{when}}",
+      "since": "Protecting it since {date}",
+      "activity": "active {when}",
       "noActivity": "no activity yet",
       "recoveryOpen": "A recovery request is waiting for you",
       "reviewCta": "Review and decide"
     },
     "approvals": {
       "title": "Waiting for your decision",
-      "item": "{{name}} wants to send {{amount}} to {{recipient}}",
-      "expires": "Expires {{when}}",
+      "item": "{name} wants to send {amount} to {recipient}",
+      "expires": "Expires {when}",
       "reviewCta": "Review and decide"
     }
   },
