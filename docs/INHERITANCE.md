@@ -95,7 +95,7 @@ mã cùng với tài liệu này.
 | Mục | Giá trị |
 |---|---|
 | Địa chỉ ví (`C…`) | _(điền)_ |
-| Registry khôi phục | _(điền — testnet hiện tại: `CDDOCXZ3OWM5TAQCRBKELETTIHQZD5NL3SF564VMD63MVJOGFV27F4Q3`, đợt 2026-07-27; bản `CAFU4CZN…` cũ ĐÃ BỎ)_ |
+| Registry khôi phục | _(điền — testnet hiện tại: `CDGBHEXSPNO4CJHYSSV4FZBN3C7XXQOPZPDATR65SH5QHRCDB2WL4JIR`, đợt artifact 2026-07-29 verified; các bản `CDDOCXZ3…`/`CAFU4CZN…` cũ ĐÃ BỎ)_ |
 | Số người bảo hộ cần | _(mặc định 2)_ |
 | Thời gian chờ | _(mặc định 24 giờ)_ |
 | Người bảo hộ 1 — tên · địa chỉ `C…` | _(điền)_ |

@@ -632,7 +632,7 @@ SEP-45 đòi `stellar.toml` ở home domain, chứa `WEB_AUTH_FOR_CONTRACTS_ENDP
 
 Giá trị đã có sẵn để điền (BE `.env`):
 ~~`SEP45_WEB_AUTH_CONTRACT_ID=CAKV3MKK3WA2CJX56LA52YYAG7FDMQTD7ZYRT3FKXUOCOEXZIANG2SST`~~ (đợt cũ —
-ĐÃ BỎ 2026-07-27; bản hiện hành `CCSIOPPEPX6ZGT2KWDVQK7WC27VSIIAXZFKKZVYGFI2N3D3ZVUN57F5O`, xem AUDIT-2026-07-25 §8).
+ĐÃ BỎ 2026-07-27; bản hiện hành `CBWMHVEEXEOSOSWULYNYN62EYVMWJT55NKRPUI2MXSYHVVZ6NIMRJBWD` (đợt artifact 2026-07-29, verified — VERIFY-CONTRACT §9).
 
 **Chưa làm trong phiên này** — hết ngân sách context, và cần chốt luôn home domain
 production (`familyhaven.mscilabs.com`) + endpoint (`https://api.familyhaven.mscilabs.com/api/sep45`)
