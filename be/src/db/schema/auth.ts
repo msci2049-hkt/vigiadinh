@@ -35,6 +35,10 @@ export const session = pgTable(
       .notNull()
       .references(() => user.id, { onDelete: "cascade" }),
     impersonatedBy: text("impersonated_by"),
+    // session.additionalFields.activeWalletId (lib/auth.ts) — session sinh từ
+    // passkey scope theo ví đã ký; NULL = session email/OTP (không scope).
+    // Thêm tay khớp additionalFields, cùng tiền lệ các cột admin plugin ở trên.
+    activeWalletId: text("active_wallet_id"),
   },
   (table) => [index("session_userId_idx").on(table.userId)],
 );

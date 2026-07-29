@@ -12,6 +12,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { env } from "@/env";
 import { logger } from "@/lib/logger";
+import { assertWalletScope } from "@/lib/wallet-scope";
 import { requireAuth } from "@/middlewares/auth";
 import { rateLimit } from "@/middlewares/rate-limit";
 import { zv } from "@/middlewares/validator";
@@ -58,6 +59,8 @@ export const recoveryConfigRoute = new Hono().patch(
   async (c) => {
     const user = c.get("user");
     if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
+    // Scope session passkey: đổi ngưỡng khôi phục của ví B bằng chìa ví A bị chối.
+    assertWalletScope(c.get("session"), c.req.param("id"));
     const wallet = await repo.findByIdForUser(c.req.param("id"), user.id);
     if (!wallet) throw new HTTPException(404, { message: "WALLET_NOT_FOUND" });
 

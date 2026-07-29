@@ -22,6 +22,7 @@ import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { publishDomainEvent } from "@/lib/domain-events";
+import { assertWalletScope, type WalletScopedSession } from "@/lib/wallet-scope";
 import { requireAuth } from "@/middlewares/auth";
 import { rateLimit } from "@/middlewares/rate-limit";
 import * as repo from "../../infra/invites.repository";
@@ -57,7 +58,10 @@ function requireUser(c: { get(key: "user"): { id: string } | null }): { id: stri
   return user;
 }
 
-async function ownedWallet(walletId: string, userId: string) {
+/** Scope: session passkey chỉ mời/chốt guardian cho ĐÚNG ví đã ký
+ * (lib/wallet-scope) — gửi lời mời nhân danh ví B bằng chìa ví A là mạo danh. */
+async function ownedWallet(walletId: string, userId: string, session: WalletScopedSession) {
+  assertWalletScope(session, walletId);
   const wallet = await repo.walletOwnedBy(walletId, userId);
   if (!wallet) throw new HTTPException(404, { message: "WALLET_NOT_FOUND" });
   return wallet;
@@ -76,7 +80,7 @@ export const guardianInvitesRoute = new Hono()
   .post("/invites", requireAuth, zv("json", createBody), async (c) => {
     const user = requireUser(c);
     const body = c.req.valid("json");
-    await ownedWallet(body.wallet_id, user.id);
+    await ownedWallet(body.wallet_id, user.id, c.get("session"));
     const invite = await repo.insertInvite({
       walletId: body.wallet_id,
       token: newToken(),
@@ -91,7 +95,7 @@ export const guardianInvitesRoute = new Hono()
   /** Danh sách lời mời + câu trả lời "ví khôi phục được chưa". */
   .get("/invites/wallet/:walletId", requireAuth, async (c) => {
     const user = requireUser(c);
-    const wallet = await ownedWallet(c.req.param("walletId"), user.id);
+    const wallet = await ownedWallet(c.req.param("walletId"), user.id, c.get("session"));
     const invites = await repo.listByWallet(wallet.id);
     return c.json({
       data: {
@@ -203,7 +207,7 @@ export const guardianInvitesRoute = new Hono()
     const { invite_id } = c.req.valid("json");
     const invite = await repo.findById(invite_id);
     if (!invite) throw new HTTPException(404, { message: "INVITE_NOT_FOUND" });
-    const wallet = await ownedWallet(invite.walletId, user.id);
+    const wallet = await ownedWallet(invite.walletId, user.id, c.get("session"));
     if (invite.status !== "deployed" || !invite.acceptedByUserId || !invite.guardianAddress) {
       throw new HTTPException(409, { message: "INVITE_NOT_DEPLOYED" });
     }

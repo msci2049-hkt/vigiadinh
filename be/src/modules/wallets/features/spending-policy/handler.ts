@@ -7,6 +7,7 @@
 // DELETE /:id/policy/pending  — huỷ đề nghị nâng bất kỳ lúc nào trong 24h
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { assertWalletScope, type WalletScopedSession } from "@/lib/wallet-scope";
 import { requireAuth } from "@/middlewares/auth";
 import { rateLimit } from "@/middlewares/rate-limit";
 import { zv } from "@/middlewares/validator";
@@ -29,8 +30,11 @@ const writeLimit = rateLimit({
 });
 
 /** Ownership từ DB, không từ claim — ví không thuộc người gọi → 404 (không xác
- * nhận ví tồn tại; khuôn get-balance). */
-async function requireOwnedWallet(userId: string, walletId: string) {
+ * nhận ví tồn tại; khuôn get-balance). Scope: session passkey chỉ được đổi
+ * chính sách của ĐÚNG ví đã ký — hạ hạn mức ví B bằng chìa ví A là grief
+ * (lib/wallet-scope, lô passkey-là-chìa-khoá 29/07). */
+async function requireOwnedWallet(userId: string, walletId: string, session: WalletScopedSession) {
+  assertWalletScope(session, walletId);
   const wallet = await walletRepo.findByIdForUser(walletId, userId);
   if (!wallet) throw new HTTPException(404, { message: "WALLET_NOT_FOUND" });
   return wallet;
@@ -40,7 +44,7 @@ export const spendingPolicyRoute = new Hono()
   .get("/:id/policy", requireAuth, zv("param", walletIdParam), async (c) => {
     const user = c.get("user");
     if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
-    const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id);
+    const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id, c.get("session"));
     // Materialize bản default cho ví cũ ngay lần đọc đầu — GET xong là PUT có
     // bản active để so nâng/hạ, không còn nhánh "ví chưa có chính sách".
     const active = await policyRepo.ensureActivePolicy(wallet.id, user.id);
@@ -62,7 +66,7 @@ export const spendingPolicyRoute = new Hono()
     async (c) => {
       const user = c.get("user");
       if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
-      const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id);
+      const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id, c.get("session"));
       const body = c.req.valid("json");
       const next = {
         perTxLimit: BigInt(body.per_tx_limit),
@@ -158,7 +162,7 @@ export const spendingPolicyRoute = new Hono()
   .delete("/:id/policy/pending", requireAuth, writeLimit, zv("param", walletIdParam), async (c) => {
     const user = c.get("user");
     if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
-    const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id);
+    const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id, c.get("session"));
     const cancelled = await policyRepo.cancelPending(wallet.id);
     if (!cancelled) throw new HTTPException(404, { message: "NO_PENDING_POLICY" });
     await appendPolicyAudit({

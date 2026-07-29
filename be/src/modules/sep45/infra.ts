@@ -25,6 +25,22 @@ export async function walletJwtVersion(walletAddress: string): Promise<number | 
   return row?.v ?? null;
 }
 
+/**
+ * Danh tính của ví theo địa chỉ on-chain — cho cửa đổi JWT ví → session app
+ * (lib/sep45-session-plugin). Cùng ngoại lệ tầng schema với walletJwtVersion ở
+ * trên: một truy vấn hạ tầng hai cột, không phải nghiệp vụ ví.
+ */
+export async function walletIdentityByAddress(
+  walletAddress: string,
+): Promise<{ walletId: string; userId: string } | null> {
+  const [row] = await db
+    .select({ walletId: wallets.id, userId: wallets.userId })
+    .from(wallets)
+    .where(eq(wallets.stellarAddress, walletAddress))
+    .limit(1);
+  return row ?? null;
+}
+
 // Dùng rateLimitConnection (enableOfflineQueue=false, fail-fast): nonce auth cùng
 // profile với rate-limit — Dragonfly chết thì trả lỗi ngay, không treo request.
 export const redisNonceStore: NonceStore = {

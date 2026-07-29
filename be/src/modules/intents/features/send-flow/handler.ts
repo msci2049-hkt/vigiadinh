@@ -62,6 +62,17 @@ function requireUser(c: { get(k: "user"): { id: string } | null }): { id: string
   return user;
 }
 
+/**
+ * Scope ví của session passkey (lô passkey-là-chìa-khoá 29/07): session sinh từ
+ * sep45/exchange mang `activeWalletId` = ví ĐÃ ký; passkey ví A không được gửi
+ * tiền từ ví B của cùng tài khoản. NULL = session email/OTP → không scope.
+ */
+function sessionWalletScope(c: {
+  get(k: "session"): { activeWalletId?: string | null } | null;
+}): string | null {
+  return c.get("session")?.activeWalletId ?? null;
+}
+
 /** Map lỗi domain/chain → HTTP; chi tiết an toàn (shortfall) đi kèm, không leak XDR. */
 function mapError(err: unknown): never {
   if (err instanceof SendServiceError) {
@@ -116,6 +127,7 @@ export const sendFlowRoute = new Hono()
       clientIntentId: body.client_intent_id,
       recipient: body.recipient,
       amount: BigInt(body.amount),
+      sessionWalletScope: sessionWalletScope(c),
     }).catch(mapError);
     return c.json({ data: result });
   })
@@ -125,6 +137,7 @@ export const sendFlowRoute = new Hono()
     const result = await confirmSend(gateway, sacContractId(), {
       intentId: body.intent_id,
       userId: user.id,
+      sessionWalletScope: sessionWalletScope(c),
     }).catch(mapError);
     return c.json({ data: result });
   })
@@ -133,6 +146,7 @@ export const sendFlowRoute = new Hono()
     const result = await getSignable(gateway, sacContractId(), {
       intentId: c.req.param("intentId"),
       userId: user.id,
+      sessionWalletScope: sessionWalletScope(c),
     }).catch(mapError);
     return c.json({ data: result });
   })
@@ -147,6 +161,7 @@ export const sendFlowRoute = new Hono()
         intentId: body.intent_id,
         userId: user.id,
         signedEntriesXdr: body.signed_entries,
+        sessionWalletScope: sessionWalletScope(c),
       },
     ).catch(mapError);
     return c.json({ data: result });

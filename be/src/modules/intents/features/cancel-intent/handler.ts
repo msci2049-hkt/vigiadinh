@@ -25,7 +25,11 @@ export const cancelIntentRoute = new Hono().post(
     const user = c.get("user");
     if (!user) throw new HTTPException(401, { message: "UNAUTHENTICATED" });
     const { intentId } = c.req.valid("param");
-    const result = await cancelIntent({ intentId, userId: user.id }).catch((err) => {
+    const result = await cancelIntent({
+      intentId,
+      userId: user.id,
+      sessionWalletScope: c.get("session")?.activeWalletId ?? null,
+    }).catch((err) => {
       if (err instanceof CancelError) throw new HTTPException(err.status, { message: err.message });
       throw err;
     });

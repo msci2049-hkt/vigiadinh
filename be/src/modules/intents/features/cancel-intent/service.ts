@@ -27,11 +27,17 @@ export class CancelError extends Error {
 export async function cancelIntent(input: {
   intentId: string;
   userId: string;
+  /** Scope ví của session passkey — huỷ lệnh của ví B bằng chìa ví A bị chối
+   * (lib/wallet-scope, lô passkey-là-chìa-khoá 29/07). null = không scope. */
+  sessionWalletScope?: string | null;
 }): Promise<{ intentId: string; status: "cancelled" }> {
   const intent = await repo.intentById(input.intentId);
   if (!intent) throw new CancelError(404, "INTENT_NOT_FOUND");
   const owned = await repo.walletOwnedBy(intent.walletId, input.userId);
   if (!owned) throw new CancelError(403, "NOT_OWNER");
+  if (input.sessionWalletScope && input.sessionWalletScope !== intent.walletId) {
+    throw new CancelError(403, "WALLET_OUT_OF_SCOPE");
+  }
 
   try {
     assertTransition(intent.status as Parameters<typeof assertTransition>[0], "owner", "cancel");

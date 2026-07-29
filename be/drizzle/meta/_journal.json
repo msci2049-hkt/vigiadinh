@@ -99,6 +99,13 @@
       "when": 1785312266957,
       "tag": "0013_silly_gravity",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1785332378184,
+      "tag": "0014_first_silvermane",
+      "breakpoints": true
     }
   ]
 }

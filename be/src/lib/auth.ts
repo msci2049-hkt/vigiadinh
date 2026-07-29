@@ -25,6 +25,7 @@ import { hashPassword, verifyPassword } from "@/lib/password-hash";
 // Audit 2026-07-25 (§7): PHẢI là connection fail-fast, KHÔNG phải bullConnection
 // (retry vô hạn + offline queue) — lý do đầy đủ ở lib/redis.ts.
 import { authStoreConnection as redis } from "@/lib/redis";
+import { sep45SessionPlugin } from "@/lib/sep45-session-plugin";
 import { enforcePublicSignupRole } from "@/lib/signup-role-guard";
 import { VALIDATION_LIMITS } from "@/lib/validation-limits";
 
@@ -130,6 +131,14 @@ export const auth = betterAuth({
     // cookieCache: session ký HMAC ở cookie → giảm DB query mỗi request.
     // maxAge ngắn (5 phút) để revoke session không bị stale lâu.
     cookieCache: { enabled: true, maxAge: 5 * 60 },
+    additionalFields: {
+      // Session sinh từ PASSKEY (sep45/exchange) gắn với ĐÚNG ví đã ký — tài
+      // khoản có 2 ví thì passkey ví A không thành giấy thông hành hành động
+      // trên ví B (các cửa GHI theo ví kiểm qua lib/wallet-scope). NULL = session
+      // email/OTP, không scope (hành vi cũ, giữ nguyên). input:false — client
+      // không bao giờ tự khai được scope; chỉ cửa đổi server-side đặt nó.
+      activeWalletId: { type: "string", required: false, input: false },
+    },
   },
 
   rateLimit: {
@@ -152,6 +161,10 @@ export const auth = betterAuth({
       "/email-otp/request-password-reset": { window: 300, max: 3 },
       // Đổi mật khẩu bằng OTP: giới hạn số lần thử submit OTP + mật khẩu mới.
       "/email-otp/reset-password": { window: 300, max: 5 },
+      // Đổi JWT ví → session (plugin sep45-session). Cùng nhịp với các cửa
+      // sep45 khác (challenge/token đều 10/60) — mỗi lần đổi đòi một lần ký
+      // passkey thật nên 10/phút là trần rộng cho người, chặt cho máy.
+      "/sep45/exchange": { window: 60, max: 10 },
     },
   },
 
@@ -192,6 +205,11 @@ export const auth = betterAuth({
     // `Authorization: Bearer` — sign-in trả token qua header `set-auth-token`.
     // Cookie web vẫn hoạt động song song (plugin không tắt cookie).
     bearer(),
+    // Passkey là chìa khoá thật (lô 29/07 tối): đổi JWT ví SEP-45 (đã chứng minh
+    // sở hữu ví qua __check_auth + nonce + footprint + ver) lấy session app của
+    // CHỦ VÍ, scope theo ví (activeWalletId). Không có cửa này thì email mới là
+    // chìa khoá thật và guardian không cứu nổi ai. Chi tiết + hàng rào: file plugin.
+    sep45SessionPlugin(),
     admin({
       ac,
       roles,

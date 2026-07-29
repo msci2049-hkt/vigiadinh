@@ -60,10 +60,20 @@ export type SendGateway = {
   read(input: { contractId: string; method: string; args: xdr.ScVal[] }): Promise<unknown>;
 };
 
-async function requireOwnedWallet(walletId: string, userId: string) {
+/**
+ * @param scopeWalletId scope của session passkey (`activeWalletId`) — session ký
+ * bằng passkey ví A không được HÀNH ĐỘNG trên ví B của cùng tài khoản (lô
+ * passkey-là-chìa-khoá 29/07, xem lib/wallet-scope). `null`/`undefined` = session
+ * email/OTP, không scope — hành vi cũ giữ nguyên, test cũ không phải đổi.
+ */
+async function requireOwnedWallet(walletId: string, userId: string, scopeWalletId?: string | null) {
   const wallet = await repo.walletById(walletId);
   if (!wallet) throw new SendServiceError(404, "WALLET_NOT_FOUND");
   if (wallet.userId !== userId) throw new SendServiceError(403, "NOT_OWNER");
+  if (scopeWalletId && scopeWalletId !== wallet.id) {
+    // 403 mã riêng: người này LÀ chủ ví, chỉ cầm nhầm chìa của ví khác.
+    throw new SendServiceError(403, "WALLET_OUT_OF_SCOPE");
+  }
   return wallet;
 }
 
@@ -110,9 +120,11 @@ export async function prepareSend(
     clientIntentId: string;
     recipient: string;
     amount: bigint;
+    /** Scope ví của session passkey — xem requireOwnedWallet. */
+    sessionWalletScope?: string | null;
   },
 ): Promise<ReviewResult> {
-  const wallet = await requireOwnedWallet(input.walletId, input.userId);
+  const wallet = await requireOwnedWallet(input.walletId, input.userId, input.sessionWalletScope);
   if (!isStellarAddress(input.recipient)) throw new SendServiceError(400, "BAD_RECIPIENT");
   if (input.recipient === wallet.stellarAddress) throw new SendServiceError(400, "SELF_TRANSFER");
   if (input.amount <= 0n) throw new SendServiceError(400, "BAD_AMOUNT");
@@ -189,11 +201,11 @@ export type ConfirmResult =
 export async function confirmSend(
   gateway: SendGateway,
   sacContractId: string,
-  input: { intentId: string; userId: string },
+  input: { intentId: string; userId: string; sessionWalletScope?: string | null },
 ): Promise<ConfirmResult> {
   const intent = await repo.intentById(input.intentId);
   if (!intent) throw new SendServiceError(404, "INTENT_NOT_FOUND");
-  const wallet = await requireOwnedWallet(intent.walletId, input.userId);
+  const wallet = await requireOwnedWallet(intent.walletId, input.userId, input.sessionWalletScope);
   if (intent.recipient === null || intent.amount === null) {
     throw new SendServiceError(400, "NOT_A_TRANSFER");
   }
@@ -312,11 +324,11 @@ async function buildTransfer(
 export async function getSignable(
   gateway: SendGateway,
   sacContractId: string,
-  input: { intentId: string; userId: string },
+  input: { intentId: string; userId: string; sessionWalletScope?: string | null },
 ): Promise<{ intentId: string } & BuiltInvoke> {
   const intent = await repo.intentById(input.intentId);
   if (!intent) throw new SendServiceError(404, "INTENT_NOT_FOUND");
-  const wallet = await requireOwnedWallet(intent.walletId, input.userId);
+  const wallet = await requireOwnedWallet(intent.walletId, input.userId, input.sessionWalletScope);
   if (intent.status !== "awaiting_signature") {
     throw new SendServiceError(409, "NOT_AWAITING_SIGNATURE");
   }
@@ -466,11 +478,16 @@ export async function signAndSubmit(
    * tầng này vẫn thuần/test được (luật module: service không đụng env).
    */
   registryContractId: string,
-  input: { intentId: string; userId: string; signedEntriesXdr: string[] },
+  input: {
+    intentId: string;
+    userId: string;
+    signedEntriesXdr: string[];
+    sessionWalletScope?: string | null;
+  },
 ): Promise<{ intentId: string; status: string; hash: string }> {
   const intent = await repo.intentById(input.intentId);
   if (!intent) throw new SendServiceError(404, "INTENT_NOT_FOUND");
-  const wallet = await requireOwnedWallet(intent.walletId, input.userId);
+  const wallet = await requireOwnedWallet(intent.walletId, input.userId, input.sessionWalletScope);
   if (intent.recipient === null || intent.amount === null) {
     throw new SendServiceError(400, "NOT_A_TRANSFER");
   }

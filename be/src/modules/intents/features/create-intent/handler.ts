@@ -3,6 +3,7 @@
 // (unique index DB là chốt; test integration bắn song song thật).
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
+import { assertWalletScope } from "@/lib/wallet-scope";
 import { requireAuth } from "@/middlewares/auth";
 import { zv } from "@/middlewares/validator";
 import * as repo from "../../infra/intents.repository";
@@ -21,6 +22,9 @@ export const createIntentRoute = new Hono().post(
     if (!(await repo.walletOwnedBy(input.wallet_id, user.id))) {
       throw new HTTPException(403, { message: "NOT_OWNER" });
     }
+    // Scope session passkey: tạo lệnh cho ví B bằng chìa ví A bị chối
+    // (lib/wallet-scope, lô passkey-là-chìa-khoá 29/07).
+    assertWalletScope(c.get("session"), input.wallet_id);
 
     const { intent, deduplicated } = await repo.createIdempotent({
       walletId: input.wallet_id,

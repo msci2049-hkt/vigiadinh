@@ -13,6 +13,7 @@ import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
 import { env } from "@/env";
 import { logger } from "@/lib/logger";
+import { assertWalletScope, type WalletScopedSession } from "@/lib/wallet-scope";
 import { requireAuth } from "@/middlewares/auth";
 import { rateLimit } from "@/middlewares/rate-limit";
 import { zv } from "@/middlewares/validator";
@@ -63,7 +64,11 @@ function requiredEnv(): { policy: string; sac: string; registry: string } {
   };
 }
 
-async function requireOwnedWallet(userId: string, walletId: string) {
+/** Scope: session passkey chỉ đụng được policy on-chain của ĐÚNG ví đã ký
+ * (lib/wallet-scope) — dù bước ký cuối vẫn cần passkey của ví đó, không cho
+ * session lạc chìa build/gửi hộ. */
+async function requireOwnedWallet(userId: string, walletId: string, session: WalletScopedSession) {
+  assertWalletScope(session, walletId);
   const wallet = await walletRepo.findByIdForUser(walletId, userId);
   if (!wallet) throw new HTTPException(404, { message: "WALLET_NOT_FOUND" });
   return wallet;
@@ -92,7 +97,7 @@ function mapChainError(err: unknown): never {
 export const onchainPolicyRoute = new Hono()
   .get("/:id/onchain-policy", requireAuth, zv("param", walletIdParam), async (c) => {
     const user = requireUser(c);
-    const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id);
+    const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id, c.get("session"));
     const { policy } = requiredEnv();
     // Đọc THẲNG chain (khuôn recovery-config): mirror DB không có tiếng nói ở
     // câu hỏi "trần cứng có thật không".
@@ -121,7 +126,7 @@ export const onchainPolicyRoute = new Hono()
     zv("param", walletIdParam),
     async (c) => {
       const user = requireUser(c);
-      const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id);
+      const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id, c.get("session"));
       const { policy, sac } = requiredEnv();
       try {
         const built = await buildInvokeTx({
@@ -143,7 +148,7 @@ export const onchainPolicyRoute = new Hono()
     zv("json", submitBody),
     async (c) => {
       const user = requireUser(c);
-      const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id);
+      const wallet = await requireOwnedWallet(user.id, c.req.valid("param").id, c.get("session"));
       const { policy, sac, registry } = requiredEnv();
       const body = c.req.valid("json");
       try {
