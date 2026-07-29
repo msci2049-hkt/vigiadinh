@@ -164,3 +164,30 @@ lượng mã nguồn, không phải security audit."*
 hash on-chain khớp source công khai 100% khi build cùng cấu hình; workflow attest của
 StellarExpert đã chạy xanh, badge sẽ gắn khi redeploy từ artifact đã attest (quyết định
 vận hành, không chặn demo)."*
+
+---
+
+## §9 · CẬP NHẬT 2026-07-29 (chiều) — ĐÃ CHẠY B1: redeploy từ artifact → CÓ TÍCH XANH
+
+Gin duyệt B1. Tải 5 wasm từ chính release `v0.1.0` (run `30412251488`) trên mirror,
+`sha256sum` khớp bảng §8 cột "Release v0.1.0", deploy **nguyên artifact** (không build
+local) bằng `vgd-deployer-tn`:
+
+| Contract | CONTRACT_ID mới | Tx deploy | Wasm hash (= release) | Validation |
+|---|---|---|---|---|
+| recovery-registry | `CDGBHEXSPNO4CJHYSSV4FZBN3C7XXQOPZPDATR65SH5QHRCDB2WL4JIR` | `45d75db039fd4225…` | `f45bbdb3…` | ✅ `verified` |
+| origin-verifier (rpId `familyhaven.mscilabs.com`, 3 origin web+api+ext) | `CBFCNHIOQN3N5IVSIVW4TTKYXZ73YQI4DZPADC6UCWF2XU35W4GVVWGW` | `b04c43451619af82…` | `5f414626…` | ✅ `verified` |
+| web-auth (SEP-45) | `CBWMHVEEXEOSOSWULYNYN62EYVMWJT55NKRPUI2MXSYHVVZ6NIMRJBWD` | `e5f174fe52cbc1f5…` | `4c0ad10d…` | ✅ `verified` |
+| verifier-ed25519 | `CC7L7IGJ7ZBUQCYUTV6J6KLKMKYKAZIV5FMRISPNIZZW63664TWOVDEE` | `abd3872d010e1a90…` | `369a1f5c…` | ✅ `verified` |
+| smart-account (upload wasm, instance per-hộ) | wasm hash `c1b28d42…565f` | `941513f0fdc5e56a…` | `c1b28d42…` | badge gắn theo instance ví tạo mới |
+| spending-limit-policy (Default-rule capable, release `v0.1.1` run `30419730474`, wasm `13fab007…`) | `CCIN4CP4HAFNDBSS7ZILGKBTUNC2TDAMFCLSI7E2TW44SJ7R7FTSFJZK` | `ca4d8bece7444686…` | `13fab007…` | ✅ `verified` |
+
+`"validation":{"status":"verified","repository":"https://github.com/msci2049-hkt/vigiadinh",…}`
+trả về từ `api.stellar.expert/explorer/testnet/contract/<ID>` cho **cả 5 contract instance
++ policy**. Ghi chú verifier-ed25519: badge không nhảy sau POST v0.1.0, nhảy ngay sau khi
+run v0.1.1 POST lại cùng hash (`369a1f5c…`) — nghi POST đầu rơi, không cần làm gì thêm.
+
+Ví thật `CD5QX3…E7AJT` KHÔNG đổi được registry từ CLI: rule 0 chỉ có passkey External
+(pin verifier cũ `CAYJGXLB…` — vẫn sống on-chain nên ví cũ vẫn ký được), đổi registry cần
+chủ ví ký `propose_recovery_registry` qua app + timelock 24h + cửa veto. `is_registered=false`
+nên không có đăng ký guardian on-chain nào để mất; ví demo/ví mới dùng trọn bộ ID verified.

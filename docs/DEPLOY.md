@@ -63,12 +63,13 @@ không cần). Sinh lại nếu mất: `openssl genrsa 2048 | openssl rsa -pubou
 
 | Contract | ID / hash | Trạng thái |
 |---|---|---|
-| recovery-registry **v2.2** (2026-07-27) | `CDDOCXZ3OWM5TAQCRBKELETTIHQZD5NL3SF564VMD63MVJOGFV27F4Q3` | **ĐANG DÙNG** (env CONTRACT_ID_RECOVERY) — build từ main `1c9435e`, đủ B-SEC-1 + floors P0-2/P0-3 |
-| smart-account wasm (2026-07-27) | hash `2c19ee49d7f25a6a052e2dc16489e5b1b10afc322ff6a8a8483d0e408c796f35` | **ĐANG DÙNG** (VITE_ACCOUNT_WASM_HASH + BE ACCOUNT_WASM_HASH) |
-| origin-verifier PROD-pin (2026-07-27) | `CAYJGXLB5J23S6DYFWS5VTFRVCEN5NLIUJCTO6GTM6LDQOYB7J6EOYQS` | **ĐANG DÙNG** (VITE_WEBAUTHN_VERIFIER_ADDRESS) — rpId `familyhaven.mscilabs.com`, 3 origin web/api/extension, constructor fail-closed `InvalidOrigin=8` |
-| web-auth SEP-45 (2026-07-27) | `CCSIOPPEPX6ZGT2KWDVQK7WC27VSIIAXZFKKZVYGFI2N3D3ZVUN57F5O` | **ĐANG DÙNG** (SEP45_WEB_AUTH_CONTRACT_ID + GitHub var WEB_AUTH_CONTRACT_ID) |
-| verifier-ed25519 (2026-07-27) | `CBKTEIWOTZEEQWCJQRGGBWIJJX4DPDKPDF47VIOY3YORTSZVS5BPHDGK` | DÙNG cho e2e / khoá lạnh (không WebAuthn) |
+| recovery-registry **v2.2** (2026-07-29, artifact release v0.1.0 — ✅ StellarExpert verified) | `CDGBHEXSPNO4CJHYSSV4FZBN3C7XXQOPZPDATR65SH5QHRCDB2WL4JIR` | **ĐANG DÙNG** (env CONTRACT_ID_RECOVERY) — cùng source B-SEC-1 + floors, deploy TỪ artifact đã attest (docs/VERIFY-CONTRACT.md §9) |
+| smart-account wasm (2026-07-29, artifact release v0.1.0) | hash `c1b28d42da1b7b091307c9acb0d72b88f45cc29d404b4d3c30bca0250a9d565f` | **ĐANG DÙNG** (VITE_ACCOUNT_WASM_HASH + BE ACCOUNT_WASM_HASH) — ví tạo mới build-verified theo instance |
+| origin-verifier PROD-pin (2026-07-29, artifact release v0.1.0 — ✅ verified) | `CBFCNHIOQN3N5IVSIVW4TTKYXZ73YQI4DZPADC6UCWF2XU35W4GVVWGW` | **ĐANG DÙNG** (VITE_WEBAUTHN_VERIFIER_ADDRESS) — rpId `familyhaven.mscilabs.com`, 3 origin web/api/extension, constructor fail-closed `InvalidOrigin=8` |
+| web-auth SEP-45 (2026-07-29, artifact release v0.1.0 — ✅ verified) | `CBWMHVEEXEOSOSWULYNYN62EYVMWJT55NKRPUI2MXSYHVVZ6NIMRJBWD` | **ĐANG DÙNG** (SEP45_WEB_AUTH_CONTRACT_ID + GitHub var WEB_AUTH_CONTRACT_ID) |
+| verifier-ed25519 (2026-07-29, artifact release v0.1.0) | `CC7L7IGJ7ZBUQCYUTV6J6KLKMKYKAZIV5FMRISPNIZZW63664TWOVDEE` | DÙNG cho e2e / khoá lạnh (không WebAuthn) — badge đang chờ match (VERIFY-CONTRACT §9) |
 | SAC native (XLM) | `CDLZFC3SYJYDZT7K67VZ75HPJVIEUVNIXF47ZG2FB2RMQQVU2HHGCYSC` | built-in giao thức (DÙNG cho send); mainnet id khác |
+| ~~đợt 2026-07-27 build local (registry `CDDOCXZ3…`, origin-verifier `CAYJGXLB…`, web-auth `CCSIOPPE…`, verifier-ed25519 `CBKTEIWO…`, wasm `2c19ee49…`)~~ | — | BỎ 2026-07-29: thay bằng bộ deploy-từ-artifact để lấy tích xanh. Origin-verifier cũ `CAYJGXLB…` **vẫn sống on-chain** — passkey ví cũ (vd `CD5QX3…`) pin verifier theo TỪNG signer nên ví cũ vẫn ký được |
 | ~~recovery-registry v2.1 `CAFU4CZN…`~~ | ~~`CAFU4CZNPN5YWFV3QOCA4Y6FSJUB7IGI456MIGTQRJXA4DQLWUIHFMCO`~~ | BỎ 2026-07-27 (thiếu vá B-SEC-1 shape mới) |
 | ~~recovery-registry v2.0~~ | ~~`CAN4LHSYB63UH3EKBPKYJ7RH4BRBU7Y7WMRILIQHM3WEJLTIKUVK27SY`~~ | BỎ (không TTL keeper) |
 | ~~recovery-registry v1~~ | ~~`CCPGVSLRFSUOGRFH3LAOWXSHJ2Y3QBFEA2ZTV4PWIINVGJWVDFA5GT3V`~~ | BỎ (classic-model — audit P0) |
