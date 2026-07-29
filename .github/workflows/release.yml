@@ -72,3 +72,13 @@ jobs:
       package: "smart-account"
     secrets:
       release_token: ${{ secrets.GITHUB_TOKEN }}
+
+  spending-limit-policy:
+    uses: stellar-expert/soroban-build-workflow/.github/workflows/release.yml@main
+    with:
+      release_name: ${{ github.ref_name }}
+      release_description: "FamilyWallet spending-limit-policy — OZ rolling-window limit, Default-rule capable"
+      relative_path: "contracts"
+      package: "spending-limit-policy"
+    secrets:
+      release_token: ${{ secrets.GITHUB_TOKEN }}
