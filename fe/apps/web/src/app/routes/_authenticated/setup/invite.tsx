@@ -29,8 +29,8 @@ import {
 } from "@/features/family/components/invite-status-list";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
-import { runSequential } from "@/features/family/lib/sequential-add";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
+import { runSequential } from "@/features/family/lib/sequential-add";
 import { signRecoveryEntries } from "@/features/wallet/lib/sign-recovery-entries";
 import { ApiError } from "@/lib/api-client";
 import { assertAddGuardianEntry, BlindSignError } from "@/lib/auth-entry-guard";

@@ -635,7 +635,15 @@
       "noWallet": "你还没有钱包。",
       "qrLabel": "钱包地址二维码",
       "stableNote": "此地址永不改变 — 即使恢复之后也一样。分享一次，长期使用。",
-      "title": "接收"
+      "title": "接收",
+      "downloadCta": "下载二维码图片",
+      "shareCta": "分享图片",
+      "image": {
+        "title": "给我转账",
+        "subtitle": "Stellar 测试网络上的钱包地址"
+      },
+      "imageFailed": "图片生成失败，请重试。",
+      "unnamedOwner": "钱包主人"
     },
     "send": {
       "amountLabel": "金额（XLM）",
@@ -689,7 +697,21 @@
         "historyCta": "查看历史记录",
         "stillUnknown": "仍未有结果。请几分钟后在历史记录中查看是否已发出 — 在确定之前请不要重复发送。",
         "title": "尚未确认"
-      }
+      },
+      "scan": {
+        "cta": "扫描二维码",
+        "hint": "将钱包地址二维码对准取景框。",
+        "closeCta": "关闭相机",
+        "failed": "无法打开相机。你仍然可以粘贴或输入地址。",
+        "viewfinder": "扫码取景框"
+      },
+      "pasteCta": "粘贴地址",
+      "contacts": {
+        "cta": "选择家人"
+      },
+      "knownRecipient": "将发送给 {name}",
+      "muxedNote": "该地址已包含交易所的识别码，无需填写 memo。",
+      "muxedUnsupported": "暂不支持 muxed 地址（M…）——请使用交易所提供的 G… 地址并按其说明填写 memo。"
     }
   },
   "welcome": {

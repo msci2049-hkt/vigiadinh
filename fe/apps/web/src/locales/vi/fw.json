@@ -635,7 +635,15 @@
       "noWallet": "Bạn chưa có ví.",
       "qrLabel": "Mã QR địa chỉ ví",
       "stableNote": "Địa chỉ này không bao giờ đổi — kể cả sau khi khôi phục. Chia sẻ một lần rồi dùng mãi.",
-      "title": "Nhận tiền"
+      "title": "Nhận tiền",
+      "downloadCta": "Tải ảnh QR",
+      "shareCta": "Chia sẻ ảnh",
+      "image": {
+        "title": "Gửi tiền cho tôi",
+        "subtitle": "Địa chỉ ví trên Mạng thử Stellar"
+      },
+      "imageFailed": "Chưa tạo được ảnh. Bạn thử lại giúp nhé.",
+      "unnamedOwner": "Chủ ví"
     },
     "send": {
       "amountLabel": "Số tiền (XLM)",
@@ -689,7 +697,21 @@
         "historyCta": "Mở Lịch sử",
         "stillUnknown": "Vẫn chưa có kết quả. Mở Lịch sử sau ít phút để xem tiền đã đi chưa — đừng gửi lại cho tới khi chắc chắn.",
         "title": "Chưa xác nhận được"
-      }
+      },
+      "scan": {
+        "cta": "Quét mã QR",
+        "hint": "Đưa mã QR địa chỉ ví vào giữa khung hình.",
+        "closeCta": "Đóng camera",
+        "failed": "Không mở được camera. Bạn vẫn dán hoặc gõ địa chỉ được.",
+        "viewfinder": "Khung camera quét mã QR"
+      },
+      "pasteCta": "Dán địa chỉ",
+      "contacts": {
+        "cta": "Chọn người thân"
+      },
+      "knownRecipient": "Sẽ gửi tới {name}",
+      "muxedNote": "Địa chỉ này đã kèm mã nhận diện của sàn, không cần nhập memo.",
+      "muxedUnsupported": "Địa chỉ muxed (M…) chưa được hỗ trợ ở bản này — hãy dùng địa chỉ G… kèm memo theo hướng dẫn của sàn."
     }
   },
   "welcome": {

@@ -635,7 +635,15 @@
       "noWallet": "You do not have a wallet yet.",
       "qrLabel": "Wallet address QR code",
       "stableNote": "This address never changes — even after a recovery. Share it once and reuse it.",
-      "title": "Receive"
+      "title": "Receive",
+      "downloadCta": "Download QR image",
+      "shareCta": "Share image",
+      "image": {
+        "title": "Send money to me",
+        "subtitle": "Wallet address on the Stellar test network"
+      },
+      "imageFailed": "Couldn't create the image. Please try again.",
+      "unnamedOwner": "Wallet owner"
     },
     "send": {
       "amountLabel": "Amount (XLM)",
@@ -689,7 +697,21 @@
         "historyCta": "Open History",
         "stillUnknown": "Still no answer. Check History in a few minutes to see whether it went through — do not send again until you are sure.",
         "title": "Not confirmed yet"
-      }
+      },
+      "scan": {
+        "cta": "Scan QR code",
+        "hint": "Point the camera at the wallet address QR code.",
+        "closeCta": "Close camera",
+        "failed": "Couldn't open the camera. You can still paste or type the address.",
+        "viewfinder": "Camera viewfinder for QR scanning"
+      },
+      "pasteCta": "Paste address",
+      "contacts": {
+        "cta": "Choose family member"
+      },
+      "knownRecipient": "Sending to {name}",
+      "muxedNote": "This address already carries the exchange's routing id — no memo needed.",
+      "muxedUnsupported": "Muxed addresses (M…) aren't supported yet — use the exchange's G… address with the memo it shows you."
     }
   },
   "welcome": {

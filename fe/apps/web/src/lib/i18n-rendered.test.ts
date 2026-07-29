@@ -83,9 +83,15 @@ describe("catalog render thật qua ICU — không chuỗi nào được ra {{ }
       for (const [ns, catalog] of Object.entries(namespaces)) {
         const flat = new Map<string, string>();
         flatten(catalog, "", flat);
-        const t = i18n.getFixedT(lng, ns);
+        // Key + namespace đi ĐỘNG từ catalog — thoát type augmentation (danh sách
+        // literal của types/i18next.d.ts) bằng MỘT cast tại đây, khuôn i18n-icu.test.
+        const getFixedT = i18n.getFixedT.bind(i18n) as (
+          lng: string,
+          ns: string,
+        ) => (key: string, opts?: Record<string, unknown>) => string;
+        const t = getFixedT(lng, ns);
         for (const [key, source] of flat) {
-          const rendered = t(key, paramsFor(source)) as string;
+          const rendered = t(key, paramsFor(source));
           if (rendered.includes("{{") || rendered.includes("}}")) {
             failures.push(`${lng}/${ns}:${key} → còn {{ }}: "${rendered}"`);
           } else if (/\{\s*[A-Za-z_][A-Za-z0-9_]*\s*[},]/.test(rendered)) {

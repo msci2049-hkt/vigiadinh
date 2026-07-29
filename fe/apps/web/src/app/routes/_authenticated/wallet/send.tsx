@@ -5,7 +5,7 @@
 // im lặng, không sinh trắc học, không side effect) để bấm "Xác nhận" là hộp
 // thoại vân tay hiện không phải chờ.
 import { ApiError, formatAmount } from "@repo/core";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,11 +13,17 @@ import { AmountInput, useParsedAmount } from "@/components/amount-input";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ScreenHeader } from "@/components/family/screen";
-import { Button, Card, CardContent, Input } from "@/components/family/ui";
+import { Button, Card, CardContent } from "@/components/family/ui";
+import { guardiansOptions } from "@/features/family/api/guardians";
 import { prepareSend, type SendReview } from "@/features/family/api/send";
+import {
+  type RecipientContact,
+  RecipientField,
+} from "@/features/family/components/recipient-field";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { DefiniteSubmitFailure, useSendMachine } from "@/features/family/hooks/use-send-machine";
+import { isSendableAddress } from "@/features/family/lib/address";
 import { ensureWalletConnected } from "@/features/wallet/lib/kit";
 import { signWalletEntries, WalletSignError } from "@/features/wallet/lib/sign-wallet-entries";
 import { BlindSignError } from "@/lib/auth-entry-guard";
@@ -33,7 +39,6 @@ export const Route = createFileRoute("/_authenticated/wallet/send")({
   component: WalletSendScreen,
 });
 
-const ADDRESS_RE = /^[GC][A-Z2-7]{55}$/;
 const SEND_REVIEW_HISTORY_KEY = "__familyWalletSendReview";
 
 type SendErrorKey =
@@ -93,7 +98,18 @@ function WalletSendScreen() {
   const [recipient, setRecipient] = useState("");
   const [review, setReview] = useState<SendReview | null>(null);
   const parsed = useParsedAmount(rawAmount);
-  const recipientValid = ADDRESS_RE.test(recipient.trim());
+  // StrKey checksum (LÔ 4) — C/G gửi được; M nhận diện nhưng chặn có lời giải
+  // thích trong RecipientField; regex [GC]{55} cũ cho qua địa chỉ gõ sai.
+  const recipientValid = isSendableAddress(recipient);
+
+  // Người thân đã biết (guardian có địa chỉ) — bấm là điền, hiện nhãn "Mẹ".
+  const guardians = useQuery({
+    ...guardiansOptions(wallet?.id ?? ""),
+    enabled: wallet !== null,
+  });
+  const contacts: RecipientContact[] = (guardians.data ?? [])
+    .filter((g) => g.label !== null && g.onchainKey !== null)
+    .map((g) => ({ label: g.label as string, address: g.onchainKey as string }));
 
   const machine = useSendMachine({
     walletId: wallet?.id ?? null,
@@ -258,21 +274,7 @@ function WalletSendScreen() {
           <span className="text-foreground text-sm">{t("wallet.send.amountLabel")}</span>
           <AmountInput id="send-amount" value={rawAmount} onChange={setRawAmount} assetCode="XLM" />
         </label>
-        <label htmlFor="send-recipient" className="flex flex-col gap-1">
-          <span className="text-foreground text-sm">{t("wallet.send.recipientLabel")}</span>
-          <Input
-            id="send-recipient"
-            value={recipient}
-            onChange={(e) => setRecipient(e.target.value)}
-            placeholder="C…"
-            autoComplete="off"
-            spellCheck={false}
-            aria-invalid={recipient.length > 0 && !recipientValid}
-          />
-          {recipient.length > 0 && !recipientValid ? (
-            <span className="text-destructive text-xs">{t("wallet.send.errors.badRecipient")}</span>
-          ) : null}
-        </label>
+        <RecipientField value={recipient} onChange={setRecipient} contacts={contacts} />
         {err ? (
           <ErrorBanner type="error" title={t(err.key, { shortfall: err.shortfall ?? "" })} />
         ) : null}
