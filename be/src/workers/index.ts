@@ -14,6 +14,7 @@ import {
   createNotificationDispatchWorker,
   scheduleNotificationDispatch,
 } from "@/jobs/notification-dispatch";
+import { createPolicyApplyWorker, schedulePolicyApply } from "@/jobs/policy-apply";
 import { createPresenceWorker, schedulePresencePing } from "@/jobs/presence-ping";
 import { createRecoveryWatchWorker, scheduleRecoveryWatch } from "@/jobs/recovery-watch";
 import { createTtlKeeperWorker, scheduleTtlKeeper } from "@/jobs/ttl-keeper";
@@ -30,6 +31,9 @@ const workers: Worker[] = [
   // Mắt xích cuối của veto: không có worker này thì mọi enqueueNotification()
   // chỉ nằm chết trong bảng, chủ ví không bao giờ biết có recovery đang mở.
   createNotificationDispatchWorker(),
+  // Áp đề nghị nâng ngưỡng chi tiêu sau 24h chờ (B6) — thiếu worker này thì
+  // pending treo vĩnh viễn, "nâng ngưỡng" thành nói dối người dùng.
+  createPolicyApplyWorker(),
 ];
 // Lịch lặp đăng ký từ worker process (jobId cố định → gọi lại vô hại).
 void scheduleIntentSweeper();
@@ -39,6 +43,7 @@ void scheduleHeartbeatWatch();
 void scheduleTtlKeeper();
 void scheduleRecoveryWatch();
 void scheduleNotificationDispatch();
+void schedulePolicyApply();
 
 let shuttingDown = false;
 async function shutdown(signal: string): Promise<void> {

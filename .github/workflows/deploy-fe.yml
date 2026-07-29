@@ -176,6 +176,11 @@ jobs:
           VITE_WEBAUTHN_VERIFIER_ADDRESS: ${{ vars.VITE_WEBAUTHN_VERIFIER_ADDRESS }}
           VITE_RECOVERY_REGISTRY_ADDRESS: ${{ vars.VITE_RECOVERY_REGISTRY_ADDRESS }}
           VITE_SAC_NATIVE: ${{ vars.VITE_SAC_NATIVE }}
+          # Lô policy 2026-07-29: trần cứng chi tiêu — ví MỚI cài policy này vào
+          # rule 0 ngay trong tx deploy (constructor). Trống → ví ra đời không
+          # trần cứng + Cài đặt ẩn thẻ, nên KHÔNG nằm trong gate D1 bắt buộc —
+          # nhưng production PHẢI điền (vars đã set 07-29, bản Default-capable).
+          VITE_SPENDING_LIMIT_POLICY: ${{ vars.VITE_SPENDING_LIMIT_POLICY }}
           VITE_ENABLE_DEVTOOLS: "false"
           VITE_SENTRY_DSN: ${{ secrets.VITE_SENTRY_DSN_WEB }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}

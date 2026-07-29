@@ -72,6 +72,7 @@ const REVIEW: SendReview = {
   recipient: FRIEND,
   amount: "1000000",
   balance: "99000000",
+  knownRecipient: true,
 };
 const LOCAL = { recipient: FRIEND, amountStroops: "1000000" };
 // Test timing: nhanh gấp ~500 lần thật để suite không chờ đồng hồ tường.

@@ -494,7 +494,40 @@
     "safety": {
       "title": "Safety",
       "body": "Your wallet's daily spending limit is enforced by a smart contract on the Stellar network — not by our servers. Even if our systems were taken over, nobody can raise this limit but you.",
-      "changeNote": "Changing the limit is signed with your passkey on your device (coming soon)."
+      "hard": {
+        "title": "On-chain spending lock",
+        "attached": "Active on your wallet — written into the contract.",
+        "notAttached": "Your wallet doesn't have the on-chain lock yet.",
+        "enableCta": "Turn on spending lock",
+        "enabled": "Spending lock is now on — the contract enforces it.",
+        "enableFailed": "Couldn't turn on the lock. Nothing changed — you can try again.",
+        "unknown": "Couldn't reach the contract to check the lock right now."
+      },
+      "soft": {
+        "title": "Your own limits",
+        "body": "Checked before every transfer. Sending above these limits just needs a family confirmation — nothing is ever lost.",
+        "perTxLabel": "Per transfer (XLM)",
+        "dailyLabel": "Per day (XLM)",
+        "current": "Now: {perTx} XLM per transfer · {daily} XLM per day",
+        "saveCta": "Save limits",
+        "raiseNote": "Raising limits takes effect after 24 hours, and you can cancel anytime before that. Lowering applies immediately.",
+        "applied": "New limits are active now.",
+        "pendingCreated": "Increase requested — it takes effect in 24 hours. You can cancel anytime before that.",
+        "unchanged": "Limits unchanged.",
+        "saveFailed": "Couldn't save the limits. Try again.",
+        "errors": {
+          "bad": "Enter whole XLM amounts greater than zero.",
+          "daily": "The daily limit must be at least the per-transfer limit.",
+          "cap": "Limits can't exceed the on-chain cap ({cap} XLM)."
+        }
+      },
+      "pending": {
+        "title": "Waiting: {perTx} XLM per transfer · {daily} XLM per day",
+        "countdown": "Applies in about {hours}h {minutes}m. Until then your old limits stay in force.",
+        "cancelCta": "Cancel this change",
+        "cancelled": "Change cancelled — your old limits stay.",
+        "cancelFailed": "Couldn't cancel. Try again."
+      }
     }
   },
   "setup": {
@@ -687,7 +720,8 @@
         "cta": "Confirm and send",
         "signing": "Waiting for your confirmation…",
         "title": "Check before you send",
-        "to": "To"
+        "to": "To",
+        "unknownRecipient": "You've never sent money to this address before. Double-check it with the person receiving — transfers can't be undone."
       },
       "startOverCta": "Start over",
       "title": "Send",
@@ -730,6 +764,9 @@
     "intentCancelled": "A pending transfer was cancelled.",
     "intentExpired": "A pending transfer expired — no money left the wallet.",
     "intentPending": "A transfer is waiting for your review.",
-    "intentRejected": "Your transfer was declined — no money has moved."
+    "intentRejected": "Your transfer was declined — no money has moved.",
+    "policyRaiseRequested": "Someone asked to raise this wallet's spending limits. If this wasn't you, cancel it in Settings.",
+    "policyApplied": "New spending limits are now active.",
+    "policyCancelled": "The spending limit change was cancelled."
   }
 }

@@ -19,7 +19,12 @@ export type DomainEventType =
   | "intent.approved"
   | "intent.rejected"
   | "intent.cancelled"
-  | "intent.expired";
+  | "intent.expired"
+  // Lô policy 2026-07-29 (B7): đề nghị nâng ngưỡng / áp / huỷ — toast + banner
+  // đếm ngược ở Cài đặt cập nhật không cần F5.
+  | "policy.raise_requested"
+  | "policy.applied"
+  | "policy.cancelled";
 
 export function publishDomainEvent(
   userId: string,

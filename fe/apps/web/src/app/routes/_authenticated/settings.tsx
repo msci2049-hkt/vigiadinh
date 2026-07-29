@@ -7,8 +7,10 @@ import { LANGUAGES } from "@/components/family/product-shell";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { env } from "@/lib/env";
 import { changeAppLanguage } from "@/lib/locale-sync";
+import { SettingsSafetyCard } from "./-settings-safety";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsScreen,
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 function SettingsScreen() {
   const { t, i18n } = useTranslation("fw");
   const { user } = useCurrentUser();
+  const { wallet } = useActiveWallet();
   const active = i18n.resolvedLanguage ?? "en";
   const isTestnet = env.VITE_STELLAR_NETWORK_PASSPHRASE.startsWith("Test ");
 
@@ -64,28 +67,10 @@ function SettingsScreen() {
         </CardContent>
       </Card>
 
-      {/* An toàn — hạn mức chi tiêu cưỡng chế TRÊN CHUỖI (LÔ 3). Chỉ hiện khi
-          đã cấu hình policy: nói thẳng "ghi trong hợp đồng, ngoài bạn không ai
-          đổi", link explorer thật, và ghi rõ đổi hạn mức là bước ký sắp tới. */}
-      {env.VITE_SPENDING_LIMIT_POLICY ? (
-        <Card className="bg-paper-2">
-          <CardHeader>
-            <CardTitle className="text-base">{t("settings.safety.title")}</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-2 text-copy">
-            <p className="text-sm">{t("settings.safety.body")}</p>
-            <a
-              href={`https://stellar.expert/explorer/${isTestnet ? "testnet" : "public"}/contract/${env.VITE_SPENDING_LIMIT_POLICY}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-12 items-center break-all font-mono text-muted-foreground text-xs underline"
-            >
-              {env.VITE_SPENDING_LIMIT_POLICY}
-            </a>
-            <p className="text-muted-foreground text-xs">{t("settings.safety.changeNote")}</p>
-          </CardContent>
-        </Card>
-      ) : null}
+      {/* An toàn (lô policy 2026-07-29) — HAI TẦNG: trần cứng on-chain (ghi
+          trong hợp đồng, ngoài chủ ví không ai đổi) + ngưỡng mềm tự cài (nâng
+          chờ 24h huỷ được, hạ áp ngay). Cần ví — chưa có ví thì chưa có gì để cài. */}
+      {wallet ? <SettingsSafetyCard wallet={wallet} /> : null}
 
       {/* Về app — tên + mạng đang chạy. Nói THẲNG là mạng thử: tiền ở đây
           không phải tiền thật, người dùng phải biết điều đó ở màn cài đặt. */}

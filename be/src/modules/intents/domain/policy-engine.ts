@@ -60,12 +60,50 @@ const evaluateV1: PolicyFn = (ctx) => {
   return { decision: "allow", reasons: ["known_recipient_under_limit"] };
 };
 
+/** v2 (lô policy 2026-07-29, C1-C4) — `unknown_recipient` KHÔNG còn tự nó bắt
+ * duyệt: gửi lần đầu cho bất kỳ ai cũng phải chờ người thân là chặn dùng hằng
+ * ngày. Ngữ nghĩa chốt theo bảng test §4/§6 của lô:
+ * - per_tx CHỈ áp cho ĐỊA CHỈ LẠ (chống chuyển khoản lớn cho kẻ lừa đảo);
+ *   người quen (đã gửi settled / guardian của ví — caller nạp vào
+ *   knownRecipients) gửi lớn đi thẳng ("gửi 5000 XLM cho guardian → đi thẳng").
+ * - daily (rolling 24h) áp cho TẤT CẢ — trần tổng dòng tiền rời ví, và trần
+ *   cứng cuối cùng vẫn là policy on-chain rule 0.
+ * - Địa chỉ lạ dưới ngưỡng → allow, reasons chở `unknown_recipient` để UI hiện
+ *   cảnh báo mềm "bạn chưa từng gửi cho địa chỉ này" — không chặn (C5). */
+const evaluateV2: PolicyFn = (ctx) => {
+  if (ctx.recipient !== null && ctx.blacklist.includes(ctx.recipient)) {
+    return { decision: "require_guardian", reasons: ["blacklisted_recipient"] };
+  }
+  if (ctx.amount === null || ctx.recipient === null) {
+    return { decision: "require_guardian", reasons: ["non_payment_review"] };
+  }
+  const known = ctx.knownRecipients.includes(ctx.recipient);
+  const gating: PolicyReasonCode[] = [];
+  if (!known && ctx.perTxLimit !== null && ctx.amount > ctx.perTxLimit) {
+    gating.push("over_tx_limit");
+  }
+  if (ctx.dailyLimit !== null && ctx.dailySpent + ctx.amount > ctx.dailyLimit) {
+    gating.push("over_daily_limit");
+  }
+  if (gating.length > 0) {
+    return { decision: "require_guardian", reasons: gating };
+  }
+  if (ctx.nightWatchDelay) {
+    return { decision: "delay", reasons: ["risk_delay"] };
+  }
+  return {
+    decision: "allow",
+    reasons: [known ? "known_recipient_under_limit" : "unknown_recipient"],
+  };
+};
+
 /** Registry — THÊM version mới vào đây, KHÔNG sửa version cũ (bất biến versioning). */
 const POLICY_ENGINES: Record<number, PolicyFn> = {
   1: evaluateV1,
+  2: evaluateV2,
 };
 
-export const CURRENT_POLICY_VERSION = 1;
+export const CURRENT_POLICY_VERSION = 2;
 
 export function evaluatePolicy(
   ctx: PolicyContext,

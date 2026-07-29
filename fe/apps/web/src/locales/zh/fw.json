@@ -494,7 +494,40 @@
     "safety": {
       "title": "安全",
       "body": "钱包的每日支出限额由 Stellar 网络上的智能合约强制执行——而非我们的服务器。即使我们的系统被攻陷，除了您，没有人能提高这个限额。",
-      "changeNote": "更改限额将在您的设备上用通行密钥签名（即将推出）。"
+      "hard": {
+        "title": "链上消费锁",
+        "attached": "已在您的钱包启用——写入合约。",
+        "notAttached": "您的钱包尚未启用链上消费锁。",
+        "enableCta": "开启消费锁",
+        "enabled": "消费锁已开启——由合约强制执行。",
+        "enableFailed": "未能开启消费锁。没有任何更改——您可以重试。",
+        "unknown": "暂时无法从合约查询消费锁状态。"
+      },
+      "soft": {
+        "title": "您自己设定的限额",
+        "body": "每次转账前都会检查。超出限额的转账只需家人确认——不会有任何损失。",
+        "perTxLabel": "每笔转账（XLM）",
+        "dailyLabel": "每天（XLM）",
+        "current": "当前：每笔 {perTx} XLM · 每天 {daily} XLM",
+        "saveCta": "保存限额",
+        "raiseNote": "调高限额将在 24 小时后生效，在此之前您可以随时取消。调低则立即生效。",
+        "applied": "新限额已生效。",
+        "pendingCreated": "已提交调高请求——24 小时后生效。在此之前您可以随时取消。",
+        "unchanged": "限额未变化。",
+        "saveFailed": "未能保存限额。请重试。",
+        "errors": {
+          "bad": "请输入大于 0 的整数 XLM。",
+          "daily": "每日限额不能低于单笔限额。",
+          "cap": "限额不能超过链上上限（{cap} XLM）。"
+        }
+      },
+      "pending": {
+        "title": "等待生效：每笔 {perTx} XLM · 每天 {daily} XLM",
+        "countdown": "大约 {hours} 小时 {minutes} 分钟后生效。在此之前旧限额仍然有效。",
+        "cancelCta": "取消此更改",
+        "cancelled": "已取消——旧限额保持不变。",
+        "cancelFailed": "未能取消。请重试。"
+      }
     }
   },
   "setup": {
@@ -687,7 +720,8 @@
         "cta": "确认并发送",
         "signing": "正在等待你的确认…",
         "title": "发送前请核对",
-        "to": "收款方"
+        "to": "收款方",
+        "unknownRecipient": "您从未向这个地址转过账。请与收款人仔细核对——转账无法撤回。"
       },
       "startOverCta": "重新开始",
       "title": "发送",
@@ -730,6 +764,9 @@
     "intentCancelled": "一笔待审核的转账已取消。",
     "intentExpired": "一笔待审核的转账已过期——资金没有离开钱包。",
     "intentPending": "有一笔转账等你审核。",
-    "intentRejected": "你的转账被拒绝了——资金没有离开钱包。"
+    "intentRejected": "你的转账被拒绝了——资金没有离开钱包。",
+    "policyRaiseRequested": "有人请求提高此钱包的消费限额。如果不是您本人，请在设置中取消。",
+    "policyApplied": "新的消费限额已生效。",
+    "policyCancelled": "限额更改请求已取消。"
   }
 }

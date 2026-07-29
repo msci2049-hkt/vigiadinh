@@ -288,3 +288,25 @@ Chạy lại: `RUN_TESTNET_E2E=1 bun test src/modules/intents/features/send-flow
 (a) hạn mức đo MỘT token (thiết kế OZ) — ví giữ token khác ngoài SAC thì token đó không
 bị đo; (b) ví TẠO TRƯỚC 29/07 (vd `CD5QX3…`) chưa gắn policy vào rule 0 — gắn cần chủ ví
 ký `add_policy` qua app (nợ wiring FE, chưa làm ở lô này).
+
+## Lô policy 2026-07-29 — D1: policy cài vào RULE 0 ngay trong CONSTRUCTOR
+
+Đường FE `kit.createWallet({policies})` sẽ đi (policy-link.ts): `__constructor`
+gỡ mục registry rồi đưa phần còn lại của map cho OZ `add_context_rule(Default)`
+— ví **chưa từng tồn tại một giây nào thiếu trần cứng**, không cần tx thứ hai.
+Chạy: `RUN_TESTNET_E2E=1 bun test src/modules/intents/features/send-flow/spending-limit-constructor.e2e`
+
+- policy (Default-capable v0.1.1): [CCIN4CP4…FJZK](https://stellar.expert/explorer/testnet/contract/CCIN4CP4HAFNDBSS7ZILGKBTUNC2TDAMFCLSI7E2TW44SJ7R7FTSFJZK)
+- ví bằng chứng: [CAZW5W4R…WBSZ](https://stellar.expert/explorer/testnet/contract/CAZW5W4RHM5O5BOS7HJICM74JZZ2ZUWVFNWPDBFBYTOLVQBLSEFJWBSZ)
+
+| # | Ca | Kỳ vọng | Kết quả | tx |
+|---|---|---|---|---|
+| D1-1 | deploy với `policies={CCIN…: DefaultInstallParams{50 XLM, 60 ledger, SAC}}` | rule 0 chở policy NGAY từ tx deploy | ✅ `get_context_rule(0).policies=[CCIN…FJZK]` · `get_metered_token(0)=SAC` · `cached_total_spent=0` | [deploy](https://stellar.expert/explorer/testnet/tx/5c20051d18a33e6b0ef06729313b2ab8cfacbab5cc2386de692d7c4a92aee775) · [fund](https://stellar.expert/explorer/testnet/tx/d2fb39e3a8beda0941ca7c583f09e571da73a36f5eb2fd5dbd569604d44acfb7) |
+| D1-2 | **10 XLM** ký rule 0 | pass và BỊ ĐO | ✅ `cached_total_spent=100000000` | [tx](https://stellar.expert/explorer/testnet/tx/a68a9fbf356bdb292cedbcd88135fd917169da3589c1acfbcd4244d0d7e9f338) |
+| D1-3 | **60 XLM** vượt trần | **BỊ CHỐI** | ✅ `Error(Auth, InvalidAction)` — panic **#3221** trong `__check_auth` (simulation reject, tiền không rời ví) | (simulation — không có tx submit) |
+
+Giá trị production (D2, FE policy-link.ts + BE spending-policy.ts): trần
+**20.000 XLM / 17280 ledger (~1 ngày)** — e2e dùng 50 XLM/60 ledger vì friendbot
+chỉ cấp 10k; thứ được chứng minh là ĐƯỜNG CÀI, giá trị là config. Công thức
+DefaultInstallParams ghim vector XDR chéo FE↔BE (policy-link.test.ts ↔
+onchain-policy/domain.test.ts).

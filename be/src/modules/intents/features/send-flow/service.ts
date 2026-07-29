@@ -3,10 +3,10 @@
 // passkey, ví phí ký ENVELOPE. Đường ký = passkey → __check_auth → verifier →
 // transfer trong MỘT tx (chuỗi hai-nửa, đóng rủi ro kỹ thuật lớn nhất còn lại).
 import type { xdr } from "@stellar/stellar-sdk";
-import { env } from "@/env";
+import { effectiveLimits } from "@/modules/wallets";
 import { assertSponsorshipAllowed, FEE_CAP_STROOPS } from "@/services/stellar/fee-policy";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
-import type { IntentState } from "@/shared-contract/intent";
+import type { IntentState, PolicyReasonCode } from "@/shared-contract/intent";
 import { acceptGuardianApproval } from "../../domain/approval-flow";
 import { computeChallengeHash } from "../../domain/hashing";
 import { CURRENT_POLICY_VERSION, evaluatePolicy } from "../../domain/policy-engine";
@@ -18,13 +18,24 @@ import {
   validateSignedTransfer,
 } from "../../domain/transfer";
 import { DRAFT_TTL_SECONDS, expiresAtFrom } from "../../domain/ttl";
+import { guardianOnchainKeysForWallet } from "../../infra/approvals.repository";
 import * as repo from "../../infra/intents.repository";
 import { notifyGuardiansApprovalRequested, notifyOwnerGuardianDecision } from "./notify";
 
-/** Hạn mức MỘT giao dịch (stroops) → vượt là đòi guardian. Đọc từ env
- * SEND_PER_TX_LIMIT_XLM (default 100 XLM) — đổi số không cần deploy code.
- * Đây là gate UX ở BE; hạn mức cưỡng chế thật nằm on-chain (LÔ 3). */
-export const SEND_PER_TX_LIMIT_STROOPS = BigInt(env.SEND_PER_TX_LIMIT_XLM) * 10_000_000n;
+/** Cửa sổ hạn mức ngày = ROLLING 24h (A4) — không phải ngày lịch UTC: 23:50 gửi
+ * đầy hạn mức, 00:01 gửi tiếp được là lỗ, và người dùng lệch múi giờ UTC thấy
+ * "ngày" reset giữa trưa. */
+const DAILY_WINDOW_MS = 24 * 3_600_000;
+
+/** Người quen của VÍ (C2+C3): địa chỉ đã gửi thành công ≥1 lần ∪ địa chỉ
+ * on-chain của guardian — người trông ví không bao giờ là "địa chỉ lạ". */
+async function knownRecipientsForWallet(walletId: string): Promise<string[]> {
+  const [settled, guardianKeys] = await Promise.all([
+    repo.knownRecipients(walletId),
+    guardianOnchainKeysForWallet(walletId),
+  ]);
+  return [...new Set([...settled, ...guardianKeys])];
+}
 
 export class SendServiceError extends Error {
   constructor(
@@ -81,6 +92,9 @@ export type ReviewResult = {
   recipient: string;
   amount: string;
   balance: string;
+  /** C5 — địa chỉ ĐÃ quen (từng gửi thành công / guardian của ví)? false →
+   * màn xác nhận hiện cảnh báo MỀM "bạn chưa từng gửi cho địa chỉ này". */
+  knownRecipient: boolean;
 };
 
 /**
@@ -119,6 +133,9 @@ export async function prepareSend(
     amount: input.amount,
   });
 
+  const known = await knownRecipientsForWallet(wallet.id);
+  const knownRecipient = known.includes(input.recipient);
+
   // Resume idempotent: nếu intent đã đi xa hơn draft, trả trạng thái hiện tại
   // (không lái lại — POST lặp cùng client_intent_id là an toàn).
   if (intent.status !== "draft" && intent.status !== "validating") {
@@ -130,6 +147,7 @@ export async function prepareSend(
       recipient: input.recipient,
       amount: input.amount.toString(),
       balance: balance.toString(),
+      knownRecipient,
     };
   }
 
@@ -155,6 +173,7 @@ export async function prepareSend(
     recipient: input.recipient,
     amount: input.amount.toString(),
     balance: balance.toString(),
+    knownRecipient,
   };
 }
 
@@ -182,19 +201,21 @@ export async function confirmSend(
   assertTransition(intent.status as IntentState, "owner", "confirm"); // → policy_gate (409 nếu sai state)
   await repo.updateIntent(intent.id, { status: "policy_gate" });
 
-  const since = new Date();
-  since.setUTCHours(0, 0, 0, 0);
-  const [known, spent] = await Promise.all([
-    repo.knownRecipients(wallet.id),
+  // A3+A4: ngưỡng THẬT của ví (wallet_policies, fallback default) + cửa sổ
+  // rolling 24h — không còn hằng số env, không còn ngày lịch UTC.
+  const since = new Date(Date.now() - DAILY_WINDOW_MS);
+  const [known, spent, limits] = await Promise.all([
+    knownRecipientsForWallet(wallet.id),
     repo.dailySpent(wallet.id, since),
+    effectiveLimits(wallet.id),
   ]);
   const policy = evaluatePolicy({
     amount: intent.amount,
     recipient: intent.recipient,
     knownRecipients: known,
     blacklist: [],
-    perTxLimit: SEND_PER_TX_LIMIT_STROOPS,
-    dailyLimit: null,
+    perTxLimit: limits.perTxLimit,
+    dailyLimit: limits.dailyLimit,
     dailySpent: spent,
     nightWatchDelay: false,
   });
@@ -356,6 +377,15 @@ export async function guardianApproveIntent(input: {
     return { nextStatus: "rejected", reasons: [] };
   }
 
+  // Context THẬT cho re-eval (A5) — cùng nguồn với confirmSend: ngưỡng của ví,
+  // chi tiêu rolling 24h, người quen (đã gửi + guardian).
+  const since = new Date(Date.now() - DAILY_WINDOW_MS);
+  const [known, spent, limits] = await Promise.all([
+    knownRecipientsForWallet(intent.walletId),
+    repo.dailySpent(intent.walletId, since),
+    effectiveLimits(intent.walletId),
+  ]);
+
   const outcome = acceptGuardianApproval({
     intentStatus: intent.status,
     approvalChallengeHash: link.approval.challengeHash,
@@ -369,23 +399,39 @@ export async function guardianApproveIntent(input: {
           : CURRENT_POLICY_VERSION,
       expiresAtEpoch: Math.floor(link.approval.expiresAt.getTime() / 1000),
     },
-    // Re-eval P3 SAU phê duyệt: guardian ĐÃ clear ngưỡng đã kích hoạt gate này,
-    // nên KHÔNG áp lại per-tx-limit (áp lại = vòng lặp vô tận). Re-eval chỉ bắt
-    // điều kiện MỚI xuất hiện sau approval — blacklist / night-watch delay (hai
-    // subsystem này chưa dựng nên hiện luôn allow); thay đổi amount/recipient đã
-    // bị chặn ở K5 binding phía trên, không phải ở đây.
+    // Re-eval P3 SAU phê duyệt — A5 lô policy: chạy engine với CONTEXT THẬT
+    // (ngưỡng thật của ví, chi tiêu rolling 24h thật, người quen thật) thay vì
+    // context rỗng luôn-allow của bản cũ. Chống vòng lặp vô tận: reason mà
+    // guardian ĐÃ clear (policyReasons ghi trên intent lúc vào awaiting_guardian)
+    // được trừ ra — chỉ điều kiện MỚI xuất hiện sau approval (vd nhiều lệnh khác
+    // settle làm vượt daily, blacklist thêm sau) mới bật ngược về awaiting_guardian.
     policy: {
-      evaluate: () =>
-        evaluatePolicy({
+      evaluate: () => {
+        const evaluated = evaluatePolicy({
           amount: intent.amount,
           recipient: intent.recipient,
-          knownRecipients: intent.recipient ? [intent.recipient] : [],
+          knownRecipients: known,
           blacklist: [],
-          perTxLimit: null,
-          dailyLimit: null,
-          dailySpent: 0n,
+          perTxLimit: limits.perTxLimit,
+          dailyLimit: limits.dailyLimit,
+          dailySpent: spent,
           nightWatchDelay: false,
-        }),
+        });
+        if (evaluated.decision === "allow") return evaluated;
+        // policyReasons là jsonb — normalize về string[] trước khi so.
+        const cleared = new Set<string>(
+          Array.isArray(intent.policyReasons) ? (intent.policyReasons as string[]) : [],
+        );
+        const fresh: PolicyReasonCode[] = evaluated.reasons.filter((r) => !cleared.has(r));
+        if (fresh.length === 0) {
+          return {
+            decision: "allow" as const,
+            policyVersion: evaluated.policyVersion,
+            reasons: [],
+          };
+        }
+        return { ...evaluated, reasons: fresh };
+      },
     },
     wallet: { walletId: intent.walletId, amount: intent.amount, recipient: intent.recipient },
   });

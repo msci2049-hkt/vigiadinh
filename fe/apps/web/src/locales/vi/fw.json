@@ -494,7 +494,40 @@
     "safety": {
       "title": "An toàn",
       "body": "Hạn mức chi tiêu ngày của ví được cưỡng chế bằng hợp đồng thông minh trên mạng Stellar — không phải bằng máy chủ của chúng tôi. Kể cả khi hệ thống bị chiếm, ngoài bạn không ai nâng được hạn mức này.",
-      "changeNote": "Đổi hạn mức được ký bằng passkey ngay trên máy của bạn (sắp có)."
+      "hard": {
+        "title": "Khoá chi tiêu trên chuỗi",
+        "attached": "Đang bật trên ví của bạn — ghi trong hợp đồng.",
+        "notAttached": "Ví của bạn chưa bật khoá chi tiêu trên chuỗi.",
+        "enableCta": "Bật khoá chi tiêu",
+        "enabled": "Đã bật khoá chi tiêu — hợp đồng sẽ tự cưỡng chế.",
+        "enableFailed": "Chưa bật được khoá. Chưa có gì thay đổi — bạn thử lại được.",
+        "unknown": "Hiện chưa kiểm tra được trạng thái khoá trên hợp đồng."
+      },
+      "soft": {
+        "title": "Hạn mức bạn tự đặt",
+        "body": "Được kiểm trước mỗi lần chuyển. Gửi vượt hạn mức chỉ cần người thân xác nhận — không mất gì cả.",
+        "perTxLabel": "Mỗi lần chuyển (XLM)",
+        "dailyLabel": "Mỗi ngày (XLM)",
+        "current": "Hiện tại: {perTx} XLM mỗi lần · {daily} XLM mỗi ngày",
+        "saveCta": "Lưu hạn mức",
+        "raiseNote": "Nâng hạn mức sẽ có hiệu lực sau 24 giờ, bạn huỷ được bất cứ lúc nào trước đó. Hạ hạn mức áp dụng ngay.",
+        "applied": "Hạn mức mới đã có hiệu lực.",
+        "pendingCreated": "Đã ghi nhận đề nghị nâng — có hiệu lực sau 24 giờ. Bạn huỷ được bất cứ lúc nào trước đó.",
+        "unchanged": "Hạn mức không thay đổi.",
+        "saveFailed": "Chưa lưu được hạn mức. Thử lại nhé.",
+        "errors": {
+          "bad": "Nhập số XLM nguyên, lớn hơn 0.",
+          "daily": "Hạn mức ngày phải không nhỏ hơn hạn mức mỗi lần chuyển.",
+          "cap": "Hạn mức không vượt được trần trên chuỗi ({cap} XLM)."
+        }
+      },
+      "pending": {
+        "title": "Đang chờ: {perTx} XLM mỗi lần · {daily} XLM mỗi ngày",
+        "countdown": "Có hiệu lực sau khoảng {hours} giờ {minutes} phút. Trước đó hạn mức cũ vẫn áp dụng.",
+        "cancelCta": "Huỷ thay đổi này",
+        "cancelled": "Đã huỷ — hạn mức cũ giữ nguyên.",
+        "cancelFailed": "Chưa huỷ được. Thử lại nhé."
+      }
     }
   },
   "setup": {
@@ -687,7 +720,8 @@
         "cta": "Xác nhận và gửi",
         "signing": "Đang chờ bạn xác nhận…",
         "title": "Kiểm tra trước khi gửi",
-        "to": "Tới"
+        "to": "Tới",
+        "unknownRecipient": "Bạn chưa từng gửi tiền cho địa chỉ này. Hãy đối chiếu kỹ với người nhận — lệnh chuyển không hoàn lại được."
       },
       "startOverCta": "Làm lại từ đầu",
       "title": "Gửi tiền",
@@ -730,6 +764,9 @@
     "intentCancelled": "Một khoản chuyển chờ duyệt đã được huỷ.",
     "intentExpired": "Một khoản chuyển chờ duyệt đã hết hạn — tiền không rời ví.",
     "intentPending": "Có một khoản chuyển đang chờ bạn duyệt.",
-    "intentRejected": "Người bảo hộ đã từ chối khoản chuyển của bạn — tiền không đi đâu cả."
+    "intentRejected": "Người bảo hộ đã từ chối khoản chuyển của bạn — tiền không đi đâu cả.",
+    "policyRaiseRequested": "Có đề nghị nâng hạn mức chi tiêu của ví. Nếu không phải bạn, hãy huỷ trong Cài đặt.",
+    "policyApplied": "Hạn mức chi tiêu mới đã có hiệu lực.",
+    "policyCancelled": "Đề nghị đổi hạn mức đã được huỷ."
   }
 }

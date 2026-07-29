@@ -1107,3 +1107,37 @@ dừng ở suy luận). Commit `audit: F1…F5`, `audit: S5`, `audit: T6`, `audi
   unique index `(wallet_id, onchain_key)` trong bảng `guardians` (đua 2 invite cùng địa
   chỉ vẫn lách được kiểm trùng — cần migration riêng) · sau `register_wallet` cần đối
   chiếu indexer mirror trạng thái guardian.
+
+## 2026-07-29 · Lô policy — hạn mức tự cài + timelock nâng ngưỡng + policy rule 0 từ constructor
+
+- **A (ngưỡng mềm thật)**: bảng `wallet_policies` (migration 0013 — active/pending
+  per ví, unique partial index), default 1.000/10.000 XLM sinh cùng ví;
+  `confirmSend` đọc ngưỡng THẬT qua facade `@/modules/wallets` (hết hằng số env
+  `SEND_PER_TX_LIMIT_XLM` — giữ khai báo env cho VPS cũ); daily = **rolling 24h**
+  thay ngày lịch UTC; re-eval sau guardian duyệt dùng **context thật** trừ đi
+  reason đã clear (điều kiện MỚI như vượt daily giữa chừng → bật lại awaiting_guardian).
+- **B (timelock 24h)**: HẠ áp ngay · NÂNG (bất kỳ chiều nào nới — kể cả giảm 1
+  tăng 1) treo `pending` 24h, bản cũ hiệu lực suốt cửa sổ; email NGOÀI APP tới
+  chủ ví (kèm link /settings để huỷ) + **guardian được báo** (lớp mắt thứ hai);
+  huỷ bất kỳ lúc nào (DELETE …/policy/pending); cron `{policy-apply}` 5' áp bản
+  đến hạn (khuôn intent-sweeper, redlock); audit 3 sự kiện; SSE domain events
+  `policy.raise_requested|applied|cancelled` + toast FE.
+- **C (mở khoá dùng hằng ngày)**: policy engine **v2** (v1 GIỮ NGUYÊN trong
+  registry — intent cũ đánh giá lại đúng bản cũ): `unknown_recipient` không còn
+  tự nó bắt duyệt; per_tx CHỈ áp địa chỉ lạ (gửi lớn cho guardian/người quen đi
+  thẳng — §6 ca 4), daily áp tất cả; blacklist giữ tuyệt đối; màn review hiện
+  cảnh báo MỀM địa chỉ lạ (`knownRecipient` trong response prepare).
+- **D (trần cứng on-chain)**: ví MỚI cài spending-limit **NGAY TRONG TX DEPLOY**
+  (constructor policies — không ceremony thứ hai, không giây nào thiếu trần);
+  e2e testnet THẬT xanh: ví `CAZW5W4R…WBSZ`, rule 0 chở policy từ deploy, 10 XLM
+  đo được, 60 XLM chối #3221 (docs/evidence/TESTNET.md §D1). Trần production
+  **20.000 XLM / 17280 ledger**; vector XDR DefaultInstallParams ghim chéo FE↔BE.
+  Ví CŨ: Cài đặt → "Bật khoá chi tiêu" — BE build `add_policy` + validate entry
+  NGUYÊN VĂN trước khi ví phí nộp; FE chống ký mù (assertAddPolicyEntries).
+- **E (Cài đặt → An toàn)**: hai tầng rõ ràng (trần on-chain + ngưỡng mềm), form
+  validate daily ≥ per_tx ≤ trần, banner pending đếm ngược + nút Huỷ, i18n đủ
+  en/vi/zh (qua i18n-rendered gate).
+- **Env mới**: BE `CONTRACT_ID_SPENDING_LIMIT_POLICY` (optional — thiếu thì route
+  onchain-policy 503); FE workflow deploy thêm `VITE_SPENDING_LIMIT_POLICY`
+  (GitHub var mirror ĐÃ set = CCIN4CP4… Default-capable; bản CABZ6H4… cũ trong
+  .env.example là OZ 2-trường, constructor sẽ fail — ĐÃ thay).

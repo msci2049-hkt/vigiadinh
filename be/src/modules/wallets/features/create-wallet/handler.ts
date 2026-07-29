@@ -7,6 +7,7 @@ import { HTTPException } from "hono/http-exception";
 import { requireAuth } from "@/middlewares/auth";
 import { rateLimit } from "@/middlewares/rate-limit";
 import { zv } from "@/middlewares/validator";
+import * as policyRepo from "../../infra/wallet-policies.repository";
 import * as repo from "../../infra/wallets.repository";
 import { createWalletBody } from "./dto";
 
@@ -41,6 +42,9 @@ export const createWalletRoute = new Hono().post(
       contractId: body.stellar_address,
       timezone: body.timezone,
     });
+    // A2 lô policy — ngưỡng mềm mặc định (1.000/10.000 XLM) sinh CÙNG ví; lỗi ở
+    // đây không được giết việc tạo ví (engine tự fallback default khi thiếu bản ghi).
+    await policyRepo.ensureActivePolicy(wallet.id, user.id).catch(() => {});
     return c.json({ data: wallet }, 201);
   },
 );

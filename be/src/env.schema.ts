@@ -162,13 +162,22 @@ export const envShape = {
     .string()
     .regex(/^C[A-Z2-7]{55}$/)
     .optional(),
-  // Ngưỡng MỘT lệnh gửi (XLM nguyên) — vượt là đòi người thân duyệt. Đây là
-  // gate UX ở BE (policy engine v1); hạn mức cưỡng chế thật nằm on-chain
-  // (spending-limit policy, LÔ 3). Đổi số không cần deploy lại code.
+  // Ngưỡng MỘT lệnh gửi (XLM nguyên) — DI SẢN policy engine v1. Từ lô policy
+  // 2026-07-29 ngưỡng mềm đọc từ bảng `wallet_policies` (mặc định 1.000/10.000
+  // XLM), biến này KHÔNG còn được engine đọc — giữ khai báo để env cũ trên VPS
+  // không làm boot chết, gỡ ở lô dọn env sau.
   SEND_PER_TX_LIMIT_XLM: z
     .string()
     .regex(/^[1-9][0-9]{0,12}$/, "XLM nguyên, không lẻ")
     .default("100"),
+  // Spending-limit policy Default-capable (contracts/spending-limit-policy,
+  // release v0.1.1) — trần cứng on-chain gắn vào rule 0. BE cần nó cho D3 (ví
+  // CŨ bật khoá: build/validate `add_policy`). Chưa set → route onchain-policy
+  // trả 503 (app sống). PHẢI khớp FE VITE_SPENDING_LIMIT_POLICY.
+  CONTRACT_ID_SPENDING_LIMIT_POLICY: z
+    .string()
+    .regex(/^C[A-Z2-7]{55}$/)
+    .optional(),
 
   // === Webhook secrets (optional) ===
   // Chỉ điền cho provider thực sự dùng. verify.ts throw rõ ràng nếu code

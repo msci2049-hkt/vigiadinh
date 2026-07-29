@@ -18,6 +18,16 @@ export async function guardianUserIdsForWallet(walletId: string): Promise<string
   return [...new Set(rows.map((r) => r.userId).filter((u): u is string => Boolean(u)))];
 }
 
+/** Địa chỉ on-chain của guardian hiệu lực — guardian của ví LUÔN là người quen
+ * (C2 lô policy): gửi cho chính người trông ví không thể là "địa chỉ lạ". */
+export async function guardianOnchainKeysForWallet(walletId: string): Promise<string[]> {
+  const rows = await db
+    .select({ key: guardians.onchainKey })
+    .from(guardians)
+    .where(and(eq(guardians.walletId, walletId), sql`${guardians.status} != 'removed'`));
+  return [...new Set(rows.map((r) => r.key).filter((k): k is string => Boolean(k)))];
+}
+
 /** Đúng MỘT cột user.name của chủ ví (khuôn findOwnerName bên guardians) —
  * cho payload thông báo. Không email, không địa chỉ. */
 export async function ownerNameForWallet(walletId: string): Promise<string | null> {

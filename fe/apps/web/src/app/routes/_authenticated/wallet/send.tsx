@@ -222,6 +222,11 @@ function WalletSendScreen() {
                 {`${review.recipient.slice(0, 6)}…${review.recipient.slice(-6)}`}
               </span>
             </Row>
+            {/* C5 lô policy — địa chỉ LẠ: cảnh báo mềm, không chặn (chặn nằm ở
+                ngưỡng per_tx/daily; địa chỉ lạ tự nó không còn bắt duyệt). */}
+            {review.knownRecipient === false ? (
+              <ErrorBanner type="warn" title={t("wallet.send.review.unknownRecipient")} />
+            ) : null}
             <div className="flex items-center gap-3 rounded-card border border-dashed bg-card p-4">
               <Icon name="fingerprint" size={32} />
               <p className="text-muted-foreground text-sm">

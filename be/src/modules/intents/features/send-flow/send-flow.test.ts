@@ -6,6 +6,7 @@ import { afterAll, describe, expect, it } from "bun:test";
 import { Address, Keypair, xdr } from "@stellar/stellar-sdk";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/db";
+import { DEFAULT_PER_TX_STROOPS } from "@/modules/wallets";
 import { FeePolicyError } from "@/services/stellar/fee-policy";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
 import { pgReachable, SKIP_REASON } from "@/test-support/pg";
@@ -21,7 +22,6 @@ import {
   confirmSend,
   guardianApproveIntent,
   prepareSend,
-  SEND_PER_TX_LIMIT_STROOPS,
   type SendGateway,
   SendServiceError,
   signAndSubmit,
@@ -38,7 +38,7 @@ const OWNER = `it-send-owner-${crypto.randomUUID().slice(0, 8)}`;
 const GUARDIAN = `it-send-guard-${crypto.randomUUID().slice(0, 8)}`;
 const cleanupWalletIds: string[] = [];
 
-async function seedWallet(): Promise<{ id: string; address: string }> {
+async function seedWallet(): Promise<{ id: string; address: string; guardianKey: string }> {
   const address = Keypair.random().publicKey();
   const [w] = await db
     .insert(wallets)
@@ -46,13 +46,14 @@ async function seedWallet(): Promise<{ id: string; address: string }> {
     .returning({ id: wallets.id });
   if (!w) throw new Error("wallet insert failed");
   cleanupWalletIds.push(w.id);
+  const guardianKey = Keypair.random().publicKey();
   await db.insert(guardians).values({
     walletId: w.id,
     userId: GUARDIAN,
-    onchainKey: Keypair.random().publicKey(),
+    onchainKey: guardianKey,
     status: "active",
   });
-  return { id: w.id, address };
+  return { id: w.id, address, guardianKey };
 }
 
 /**
@@ -177,7 +178,7 @@ describe("send flow (DB thật + gateway fake)", () => {
 
   testIt("VƯỢT ngưỡng → awaiting_guardian + phiếu duyệt bound; KHÔNG build tx", async () => {
     const w = await seedWallet();
-    const over = SEND_PER_TX_LIMIT_STROOPS + 1n;
+    const over = DEFAULT_PER_TX_STROOPS + 1n;
     const { gateway, calls } = fakeGateway(over + 1_000_000n);
     const review = await prepareSend(gateway, SAC, {
       walletId: w.id,
@@ -212,7 +213,7 @@ describe("send flow (DB thật + gateway fake)", () => {
 
   testIt("người KHÔNG phải guardian của intent → 403", async () => {
     const w = await seedWallet();
-    const over = SEND_PER_TX_LIMIT_STROOPS + 1n;
+    const over = DEFAULT_PER_TX_STROOPS + 1n;
     const review = await prepareSend(fakeGateway(over + 1n).gateway, SAC, {
       walletId: w.id,
       userId: OWNER,
@@ -315,7 +316,7 @@ async function notifCount(userId: string, templateKey: string) {
 /** Dựng một intent VƯỢT ngưỡng đứng ở awaiting_guardian — dùng chung cho cụm LÔ 1. */
 async function seedAwaitingGuardian() {
   const w = await seedWallet();
-  const over = SEND_PER_TX_LIMIT_STROOPS + 1n;
+  const over = DEFAULT_PER_TX_STROOPS + 1n;
   const { gateway } = fakeGateway(over * 2n);
   const review = await prepareSend(gateway, SAC, {
     walletId: w.id,
@@ -439,6 +440,134 @@ describe("LÔ 1 — báo guardian + từ chối + huỷ lệnh + TTL (A5/A6)", (
       const err2 = await cancelIntent({ intentId: settled.id, userId: OWNER }).catch((e) => e);
       expect(err2).toBeInstanceOf(CancelError);
       expect((err2 as CancelError).status).toBe(409);
+    },
+  );
+});
+
+/** Chèn intent settled với createdAt TUỲ CHỌN — dựng lịch sử chi tiêu cho A4. */
+async function seedSettledSpend(walletId: string, amount: bigint, createdAt: Date): Promise<void> {
+  await db.insert(transactionIntents).values({
+    walletId,
+    clientIntentId: `spend-${crypto.randomUUID().slice(0, 12)}`,
+    createdBy: "owner",
+    status: "settled",
+    operations: [],
+    recipient: Keypair.random().publicKey(),
+    amount,
+    createdAt,
+  });
+}
+
+describe("LÔ POLICY — C1/C2 mở khoá dùng hằng ngày + A4 rolling 24h + A5 re-eval thật", () => {
+  testIt(
+    "C1: địa chỉ LẠ + dưới ngưỡng → ĐI THẲNG, review cắm cờ knownRecipient=false",
+    async () => {
+      const w = await seedWallet();
+      const { gateway } = fakeGateway(100_000_000_000n);
+      const review = await prepareSend(gateway, SAC, {
+        walletId: w.id,
+        userId: OWNER,
+        clientIntentId: crypto.randomUUID(),
+        recipient: Keypair.random().publicKey(), // chưa từng gửi, không phải guardian
+        amount: 1_000_000_000n, // 100 XLM < per_tx 1.000
+      });
+      expect(review.knownRecipient).toBe(false); // C5 — cảnh báo mềm, không chặn
+      const confirmed = await confirmSend(gateway, SAC, {
+        intentId: review.intentId,
+        userId: OWNER,
+      });
+      expect(confirmed.status).toBe("awaiting_signature"); // KHÔNG đòi duyệt
+    },
+  );
+
+  testIt("C2: gửi SỐ LỚN cho guardian (vượt per_tx, dưới daily) → ĐI THẲNG", async () => {
+    const w = await seedWallet();
+    const { gateway } = fakeGateway(100_000_000_000n);
+    const review = await prepareSend(gateway, SAC, {
+      walletId: w.id,
+      userId: OWNER,
+      clientIntentId: crypto.randomUUID(),
+      recipient: w.guardianKey, // địa chỉ on-chain của guardian
+      amount: 50_000_000_000n, // 5.000 XLM > per_tx 1.000, < daily 10.000
+    });
+    expect(review.knownRecipient).toBe(true); // guardian = người quen
+    const confirmed = await confirmSend(gateway, SAC, { intentId: review.intentId, userId: OWNER });
+    expect(confirmed.status).toBe("awaiting_signature");
+  });
+
+  testIt(
+    "A4: cộng dồn TRONG 24h vượt daily → cần duyệt; chi tiêu CŨ HƠN 24h không tính",
+    async () => {
+      const w = await seedWallet();
+      const { gateway } = fakeGateway(300_000_000_000n);
+      // 9.900 XLM đã settle 2h trước — nằm TRONG cửa sổ rolling.
+      await seedSettledSpend(w.id, 99_000_000_000n, new Date(Date.now() - 2 * 3_600_000));
+      const review = await prepareSend(gateway, SAC, {
+        walletId: w.id,
+        userId: OWNER,
+        clientIntentId: crypto.randomUUID(),
+        recipient: Keypair.random().publicKey(),
+        amount: 2_000_000_000n, // 200 XLM — dưới per_tx nhưng 9.900+200 > 10.000
+      });
+      const confirmed = await confirmSend(gateway, SAC, {
+        intentId: review.intentId,
+        userId: OWNER,
+      });
+      expect(confirmed.status).toBe("awaiting_guardian");
+      if (confirmed.status === "awaiting_guardian") {
+        expect(confirmed.reasons).toContain("over_daily_limit");
+      }
+
+      // Cùng kịch bản nhưng khoản 9.900 XLM đã RA KHỎI cửa sổ (25h trước) → đi thẳng.
+      const w2 = await seedWallet();
+      await seedSettledSpend(w2.id, 99_000_000_000n, new Date(Date.now() - 25 * 3_600_000));
+      const review2 = await prepareSend(gateway, SAC, {
+        walletId: w2.id,
+        userId: OWNER,
+        clientIntentId: crypto.randomUUID(),
+        recipient: Keypair.random().publicKey(),
+        amount: 2_000_000_000n,
+      });
+      const confirmed2 = await confirmSend(gateway, SAC, {
+        intentId: review2.intentId,
+        userId: OWNER,
+      });
+      expect(confirmed2.status).toBe("awaiting_signature");
+    },
+  );
+
+  testIt(
+    "A5: re-eval sau duyệt dùng CONTEXT THẬT — điều kiện MỚI (daily vượt sau khi phiếu mở) bật ngược lại awaiting_guardian",
+    async () => {
+      const w = await seedWallet();
+      const over = DEFAULT_PER_TX_STROOPS + 1n;
+      const { gateway } = fakeGateway(300_000_000_000n);
+      const review = await prepareSend(gateway, SAC, {
+        walletId: w.id,
+        userId: OWNER,
+        clientIntentId: crypto.randomUUID(),
+        recipient: Keypair.random().publicKey(),
+        amount: over, // người lạ + vượt per_tx → awaiting_guardian
+      });
+      const confirmed = await confirmSend(gateway, SAC, {
+        intentId: review.intentId,
+        userId: OWNER,
+      });
+      expect(confirmed.status).toBe("awaiting_guardian");
+
+      // GIỮA lúc phiếu mở và lúc guardian duyệt: ví tiêu thêm 9.990 XLM → daily cạn.
+      await seedSettledSpend(w.id, 99_900_000_000n, new Date());
+
+      const outcome = await guardianApproveIntent({
+        intentId: review.intentId,
+        userId: GUARDIAN,
+        verifiedCall: true,
+      });
+      // over_tx_limit đã được guardian clear (trừ ra), nhưng over_daily_limit là
+      // điều kiện MỚI — context thật phải bắt được, không luôn-allow như bản cũ.
+      expect(outcome.nextStatus).toBe("awaiting_guardian");
+      expect(outcome.reasons).toContain("over_daily_limit");
+      expect(outcome.reasons).toContain("reevaluation_required");
     },
   );
 });

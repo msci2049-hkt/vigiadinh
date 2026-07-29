@@ -25,6 +25,11 @@ const TOAST_KEYS = {
   "intent.rejected": "realtime.intentRejected",
   "intent.cancelled": "realtime.intentCancelled",
   "intent.expired": "realtime.intentExpired",
+  // Lô policy 2026-07-29 (B7): đề nghị nâng ngưỡng / áp / huỷ — banner ở Cài
+  // đặt nằm dưới queryKey ["family"] nên invalidate chung là tự cập nhật.
+  "policy.raise_requested": "realtime.policyRaiseRequested",
+  "policy.applied": "realtime.policyApplied",
+  "policy.cancelled": "realtime.policyCancelled",
 } as const;
 
 type DomainType = keyof typeof TOAST_KEYS;

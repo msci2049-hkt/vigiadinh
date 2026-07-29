@@ -127,6 +127,51 @@ export const TEMPLATES: Catalog = {
       body: "家人核实后拒绝了这笔转账。资金未离开您的钱包。如有疑问，请直接与家人沟通。",
     },
   },
+  // Lô policy 2026-07-29 (B4/B9/B6) — params khi enqueue: perTx + daily (XLM đã
+  // format), hours (24), link (URL màn Cài đặt để huỷ — email đi NGOÀI app nên
+  // phải tự chở đường về). Không secret, không địa chỉ ví.
+  "policy.raise_requested": {
+    en: {
+      title: "Spending limit increase requested",
+      body: "Someone asked to raise this wallet's spending limits to {perTx} XLM per transfer and {daily} XLM per day. The old limits stay in force for {hours, plural, one {# hour} other {# hours}}. If this was NOT you, cancel it now: {link}",
+    },
+    vi: {
+      title: "Có đề nghị nâng hạn mức chi tiêu",
+      body: "Có người đề nghị nâng hạn mức ví lên {perTx} XLM mỗi lần chuyển và {daily} XLM mỗi ngày. Hạn mức cũ vẫn hiệu lực trong {hours, plural, other {# giờ}} nữa. Nếu KHÔNG phải bạn, hãy huỷ ngay: {link}",
+    },
+    zh: {
+      title: "有人请求提高消费限额",
+      body: "有人请求将此钱包的限额提高到每笔 {perTx} XLM、每天 {daily} XLM。旧限额将在接下来 {hours, plural, other {# 小时}} 内继续生效。如果不是您本人操作，请立即取消：{link}",
+    },
+  },
+  "policy.raise_requested_guardian": {
+    en: {
+      title: "A wallet you help protect wants higher limits",
+      body: "The owner of a wallet you help protect asked to raise its spending limits to {perTx} XLM per transfer and {daily} XLM per day, effective in {hours, plural, one {# hour} other {# hours}}. If they seem unaware of this, call them — they can cancel it anytime before then.",
+    },
+    vi: {
+      title: "Ví bạn đang trông muốn nâng hạn mức",
+      body: "Chủ ví mà bạn đang trông giúp vừa đề nghị nâng hạn mức lên {perTx} XLM mỗi lần chuyển và {daily} XLM mỗi ngày, có hiệu lực sau {hours, plural, other {# giờ}}. Nếu họ không biết về việc này, hãy gọi cho họ — họ huỷ được bất cứ lúc nào trước đó.",
+    },
+    zh: {
+      title: "您守护的钱包想提高限额",
+      body: "您帮忙守护的钱包的主人请求将限额提高到每笔 {perTx} XLM、每天 {daily} XLM，将在 {hours, plural, other {# 小时}} 后生效。如果对方并不知情，请打电话确认——在生效前他们随时可以取消。",
+    },
+  },
+  "policy.raise_applied": {
+    en: {
+      title: "New spending limits are now active",
+      body: "The waiting period ended and this wallet's spending limits are now {perTx} XLM per transfer and {daily} XLM per day. If this surprises you, lower them in Settings — lowering takes effect immediately.",
+    },
+    vi: {
+      title: "Hạn mức chi tiêu mới đã có hiệu lực",
+      body: "Hết thời gian chờ, hạn mức của ví giờ là {perTx} XLM mỗi lần chuyển và {daily} XLM mỗi ngày. Nếu bạn thấy bất ngờ, hãy hạ hạn mức trong Cài đặt — hạ xuống có hiệu lực ngay lập tức.",
+    },
+    zh: {
+      title: "新的消费限额已生效",
+      body: "等待期已结束，此钱包的限额现为每笔 {perTx} XLM、每天 {daily} XLM。如果您对此感到意外，请在设置中调低限额——调低会立即生效。",
+    },
+  },
   "intent.expired": {
     en: {
       title: "Transfer request expired",

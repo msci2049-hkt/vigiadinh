@@ -9,6 +9,7 @@
 import { apiClient } from "@/lib/api-client";
 import { env } from "@/lib/env";
 import { getWalletKit } from "../lib/kit";
+import { spendingLimitConstructorPolicy } from "../lib/policy-link";
 import { recoveryConstructorPolicies } from "../lib/recovery-link";
 
 export type CreatedWallet = { id: string; stellarAddress: string };
@@ -22,6 +23,11 @@ export async function createWalletMinimal(): Promise<CreatedWallet> {
   // Ném TRƯỚC khi tạo passkey: người dùng không nên phải chạm sinh trắc học rồi
   // mới biết cấu hình thiếu — và tuyệt đối không được đẻ ra ví không cứu được.
   const policies = recoveryConstructorPolicies();
+  // D1 lô policy — trần cứng chi tiêu gắn vào RULE 0 ngay trong tx deploy
+  // (cùng chữ ký, không ceremony thứ hai). Thiếu env → bỏ qua, ví vẫn ra đời
+  // (D4), Cài đặt sẽ nhắc bật sau qua đường ví-cũ.
+  const spendingLimit = spendingLimitConstructorPolicy();
+  if (spendingLimit) policies.push(spendingLimit);
   const userName = `${env.VITE_APP_NAME} owner`;
   const result = await kit.createWallet(env.VITE_APP_NAME, userName, {
     autoSubmit: true,

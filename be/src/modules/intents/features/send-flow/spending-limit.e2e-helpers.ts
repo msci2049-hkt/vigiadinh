@@ -37,10 +37,13 @@ export async function friendbot(kp: Keypair): Promise<void> {
   if (!res.ok && res.status !== 400) throw new Error(`friendbot ${kp.publicKey()}: ${res.status}`);
 }
 
-/** Deploy ví bằng chứng: constructor(signers=[ownerSigner], policies={}). */
+/** Deploy ví bằng chứng: constructor(signers=[ownerSigner], policies).
+ * `policies` mặc định rỗng; lô policy 2026-07-29 truyền map chở spending-limit
+ * để chứng minh ĐƯỜNG CONSTRUCTOR (D1 — ví mới sinh ra đã có trần cứng). */
 export async function deployEvidenceWallet(
   ownerSigner: xdr.ScVal,
   txEvidence: Array<{ step: string; hash: string }>,
+  policies: xdr.ScVal = xdr.ScVal.scvMap([]),
 ): Promise<string> {
   return withRpc(async (server) => {
     const wallet = feeWallet();
@@ -56,7 +59,7 @@ export async function deployEvidenceWallet(
           address: new Address(wallet.publicKey()),
           wasmHash: Buffer.from(SMART_ACCOUNT_WASM, "hex"),
           salt: Buffer.from(salt),
-          constructorArgs: [xdr.ScVal.scvVec([ownerSigner]), xdr.ScVal.scvMap([])],
+          constructorArgs: [xdr.ScVal.scvVec([ownerSigner]), policies],
         }),
       )
       .setTimeout(120)

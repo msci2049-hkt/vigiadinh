@@ -10,6 +10,9 @@ export type SendReview = {
   recipient: string;
   amount: string;
   balance: string;
+  /** C5 lô policy — false: chưa từng gửi cho địa chỉ này (không phải guardian,
+   * chưa có lệnh settled nào tới đó) → màn review hiện cảnh báo MỀM, không chặn. */
+  knownRecipient: boolean;
 };
 
 export type ConfirmResult =
