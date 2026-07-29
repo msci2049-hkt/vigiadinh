@@ -31,4 +31,6 @@ export const guardiansOptions = (walletId: string) =>
       const res = await apiClient.get<{ data: Guardian[] }>(`/api/guardians/wallet/${walletId}`);
       return res.data;
     },
+    // LÔ 3: lưới đỡ khi SSE hỏng — quay lại tab là tự cập nhật.
+    refetchOnWindowFocus: true,
   });

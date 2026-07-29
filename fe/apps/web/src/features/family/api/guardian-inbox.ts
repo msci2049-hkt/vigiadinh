@@ -21,6 +21,8 @@ export const guardianInboxOptions = queryOptions({
     const res = await apiClient.get<{ data: GuardianInboxItem[] }>("/api/recovery/guardian");
     return res.data;
   },
+  // LÔ 3: lưới đỡ khi SSE hỏng — quay lại tab là tự cập nhật.
+  refetchOnWindowFocus: true,
 });
 
 /** "Tiếng gõ cửa" từ THIẾT BỊ MỚI trên các ví mình bảo hộ — nguồn màn initiate. */

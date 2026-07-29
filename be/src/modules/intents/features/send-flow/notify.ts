@@ -8,6 +8,7 @@
 //    enqueue push bây giờ chỉ đốt lượt retry của dispatcher.
 // Payload KHÔNG chở secret: không token, không challenge_hash, không địa chỉ
 // đầy đủ — chỉ tên chủ ví, số tiền, đuôi địa chỉ, số giờ còn hạn.
+import { publishDomainEvent } from "@/lib/domain-events";
 import { logger } from "@/lib/logger";
 import { enqueueNotification } from "@/modules/notifications";
 import { formatXlm, shortAddress } from "../../domain/format";
@@ -47,6 +48,8 @@ export async function notifyGuardiansApprovalRequested(input: {
       for (const channel of CHANNELS) {
         await enqueueNotification({ userId, templateKey: "approval.requested", params, channel });
       }
+      // Realtime NGAY (LÔ 3) — queue trên là email/hộp thư, tick sau mới tới.
+      publishDomainEvent(userId, "intent.awaiting_approval");
     }
   } catch (err) {
     logger.error({ err, walletId: input.walletId }, "send.notify.approval-requested.failed");
@@ -65,6 +68,10 @@ export async function notifyOwnerGuardianDecision(input: {
     for (const channel of CHANNELS) {
       await enqueueNotification({ userId: ownerUserId, templateKey, channel });
     }
+    publishDomainEvent(
+      ownerUserId,
+      input.decision === "approved" ? "intent.approved" : "intent.rejected",
+    );
   } catch (err) {
     logger.error({ err, walletId: input.walletId }, "send.notify.guardian-decision.failed");
   }

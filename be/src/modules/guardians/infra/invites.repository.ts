@@ -47,6 +47,16 @@ export async function findOwnerName(walletId: string): Promise<string | null> {
   return row?.name ?? null;
 }
 
+/** userId chủ ví — đích của sự kiện realtime "guardian vừa nhận lời/vào ví". */
+export async function findOwnerUserId(walletId: string): Promise<string | null> {
+  const [row] = await db
+    .select({ userId: wallets.userId })
+    .from(wallets)
+    .where(eq(wallets.id, walletId))
+    .limit(1);
+  return row?.userId ?? null;
+}
+
 export async function findByToken(token: string): Promise<GuardianInvite | null> {
   const [row] = await db
     .select()

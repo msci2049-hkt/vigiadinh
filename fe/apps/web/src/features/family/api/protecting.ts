@@ -22,6 +22,8 @@ export const protectingOptions = queryOptions({
     const res = await apiClient.get<{ data: ProtectingItem[] }>("/api/guardians/protecting");
     return res.data;
   },
+  // LÔ 3: lưới đỡ khi SSE hỏng — quay lại tab là tự cập nhật.
+  refetchOnWindowFocus: true,
 });
 
 /** Một chạm "tôi còn đây" — POST /api/presence/ack ghi last_seen_at cho MỌI

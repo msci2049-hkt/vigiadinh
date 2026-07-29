@@ -6,8 +6,13 @@
 // `WHERE status = <status vừa đọc>` — status đổi giữa chừng (guardian vừa
 // approve → awaiting_signature, hoặc đã settled) thì 0 row → 409 cho client
 // nhìn lại. KHÔNG BAO GIỜ đè lên settled/submitting.
+import { publishDomainEvent } from "@/lib/domain-events";
 import { assertTransition } from "../../domain/state-machine";
-import { cancelIntentIfStatus, expirePendingApprovals } from "../../infra/approvals.repository";
+import {
+  cancelIntentIfStatus,
+  expirePendingApprovals,
+  guardianUserIdsForWallet,
+} from "../../infra/approvals.repository";
 import * as repo from "../../infra/intents.repository";
 
 export class CancelError extends Error {
@@ -45,5 +50,14 @@ export async function cancelIntent(input: {
     actorId: input.userId,
     payload: { intentId: intent.id, fromStatus: intent.status },
   });
+  // Realtime (LÔ 3): guardian đang mở "Chờ bạn duyệt" thấy phiếu biến mất ngay,
+  // không bấm duyệt một lệnh đã chết. Fire-and-forget — lỗi không hỏng cancel.
+  try {
+    for (const uid of await guardianUserIdsForWallet(intent.walletId)) {
+      publishDomainEvent(uid, "intent.cancelled");
+    }
+  } catch {
+    // đã có audit + refetch-on-focus làm lưới đỡ
+  }
   return { intentId: intent.id, status: "cancelled" };
 }

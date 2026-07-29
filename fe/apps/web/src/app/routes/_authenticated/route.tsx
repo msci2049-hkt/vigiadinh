@@ -1,6 +1,7 @@
 import { sessionQueryOptions } from "@repo/auth";
 import { createFileRoute, Outlet, redirect, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { useRealtimeUpdates } from "@/app/use-realtime-updates";
 import { authClient } from "@/lib/auth-client";
 import i18n from "@/lib/i18n";
 
@@ -48,6 +49,8 @@ const IDLE_PRELOAD_PATHS = [
  */
 function AuthenticatedShell() {
   const router = useRouter();
+  // MỘT kết nối SSE cho cả vỏ đã đăng nhập — realtime guardian/intent (LÔ 3).
+  useRealtimeUpdates();
   useEffect(() => {
     // jsdom/test không có requestIdleCallback — rơi về setTimeout.
     const idle: (cb: () => void) => number =

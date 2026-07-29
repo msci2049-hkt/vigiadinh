@@ -700,5 +700,14 @@
     "point2": "If you ever lose your phone, people you trust help you get it back.",
     "point3": "Decide who inherits it, so nothing is stranded if something happens to you.",
     "title": "Family money,\nsafely kept."
+  },
+  "realtime": {
+    "guardianAccepted": "{name} just agreed to help protect your wallet.",
+    "guardianAdded": "{name} is now one of your wallet's protectors.",
+    "intentApproved": "Your transfer was approved.",
+    "intentCancelled": "A pending transfer was cancelled.",
+    "intentExpired": "A pending transfer expired — no money left the wallet.",
+    "intentPending": "A transfer is waiting for your review.",
+    "intentRejected": "Your transfer was declined — no money has moved."
   }
 }

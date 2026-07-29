@@ -700,5 +700,14 @@
     "point2": "万一丢了手机，你信任的人会帮你找回。",
     "point3": "决定由谁继承，万一你发生意外，也不会有东西被搁置。",
     "title": "家人的钱，\n安心保管。"
+  },
+  "realtime": {
+    "guardianAccepted": "{name}刚同意帮你守护钱包。",
+    "guardianAdded": "{name}已成为你钱包的守护人。",
+    "intentApproved": "你的转账已获同意。",
+    "intentCancelled": "一笔待审核的转账已取消。",
+    "intentExpired": "一笔待审核的转账已过期——资金没有离开钱包。",
+    "intentPending": "有一笔转账等你审核。",
+    "intentRejected": "你的转账被拒绝了——资金没有离开钱包。"
   }
 }

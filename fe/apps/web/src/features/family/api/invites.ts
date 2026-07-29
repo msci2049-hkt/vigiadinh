@@ -43,6 +43,8 @@ export const invitesOptions = (walletId: string) =>
       }>(`/api/guardians/invites/wallet/${walletId}`);
       return res.data;
     },
+    // LÔ 3: lưới đỡ khi SSE hỏng — quay lại tab là tự cập nhật.
+    refetchOnWindowFocus: true,
   });
 
 /**

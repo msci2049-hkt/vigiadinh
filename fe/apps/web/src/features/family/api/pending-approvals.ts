@@ -23,6 +23,8 @@ export const pendingApprovalsOptions = queryOptions({
     const res = await apiClient.get<{ data: PendingApproval[] }>("/api/intents/pending-approvals");
     return res.data;
   },
+  // LÔ 3: lưới đỡ khi SSE hỏng — quay lại tab là tự cập nhật.
+  refetchOnWindowFocus: true,
 });
 
 /** Guardian quyết — approve mở khoá bước ký của chủ ví, reject dừng lệnh.

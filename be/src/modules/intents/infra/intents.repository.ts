@@ -4,6 +4,7 @@
 // double-tap KÝ ở PHA 5 — không thay được unique index).
 import { and, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
+import { publishDomainEvent } from "@/lib/domain-events";
 import { enqueueNotificationTx } from "@/modules/notifications";
 import { guardians } from "../../guardians/infra/guardians.schema";
 import { auditLog } from "../../indexer/infra/audit-log.schema";
@@ -233,7 +234,10 @@ export const SWEEPABLE_STATES = [
  * LÔ 1 A6: hết hạn PHẢI báo — chủ ví ("tiền không rời ví") + guardian còn
  * phiếu pending ("không cần làm gì nữa"), email + sse, cùng transaction. */
 export async function sweepExpired(now: Date): Promise<number> {
-  return db.transaction(async (tx) => {
+  // Đích realtime gom TRONG transaction, phát SAU commit — phát trước commit
+  // là FE refetch còn thấy dữ liệu cũ.
+  const realtimeUserIds: string[] = [];
+  const sweptCount = await db.transaction(async (tx) => {
     const expired = await tx
       .update(transactionIntents)
       .set({ status: "expired", updatedAt: now })
@@ -290,6 +294,7 @@ export async function sweepExpired(now: Date): Promise<number> {
             channel,
           });
         }
+        realtimeUserIds.push(t.userId);
       }
     }
     // approval_requests pending quá hạn → expired (cùng lượt quét).
@@ -299,4 +304,8 @@ export async function sweepExpired(now: Date): Promise<number> {
       .where(and(eq(approvalRequests.decision, "pending"), lt(approvalRequests.expiresAt, now)));
     return expired.length;
   });
+  for (const userId of new Set(realtimeUserIds)) {
+    publishDomainEvent(userId, "intent.expired");
+  }
+  return sweptCount;
 }

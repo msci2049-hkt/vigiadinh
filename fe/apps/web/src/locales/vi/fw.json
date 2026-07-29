@@ -700,5 +700,14 @@
     "point2": "Chẳng may mất điện thoại, những người bạn tin sẽ giúp bạn lấy lại.",
     "point3": "Chọn ai thừa kế, để không có gì kẹt lại nếu bạn gặp chuyện.",
     "title": "Tiền gia đình,\nđược giữ an toàn."
+  },
+  "realtime": {
+    "guardianAccepted": "{name} vừa nhận lời làm người bảo hộ cho ví của bạn.",
+    "guardianAdded": "{name} đã vào danh sách người bảo hộ.",
+    "intentApproved": "Người bảo hộ đã đồng ý khoản chuyển của bạn.",
+    "intentCancelled": "Một khoản chuyển chờ duyệt đã được huỷ.",
+    "intentExpired": "Một khoản chuyển chờ duyệt đã hết hạn — tiền không rời ví.",
+    "intentPending": "Có một khoản chuyển đang chờ bạn duyệt.",
+    "intentRejected": "Người bảo hộ đã từ chối khoản chuyển của bạn — tiền không đi đâu cả."
   }
 }

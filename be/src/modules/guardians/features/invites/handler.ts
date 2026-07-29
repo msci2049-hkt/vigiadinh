@@ -21,6 +21,7 @@ import { zValidator as zv } from "@hono/zod-validator";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { z } from "zod";
+import { publishDomainEvent } from "@/lib/domain-events";
 import { requireAuth } from "@/middlewares/auth";
 import { rateLimit } from "@/middlewares/rate-limit";
 import * as repo from "../../infra/invites.repository";
@@ -183,6 +184,12 @@ export const guardianInvitesRoute = new Hono()
       now: new Date(),
     });
     if (!claimed) throw new HTTPException(409, { message: "INVITE_ALREADY_ACCEPTED" });
+    // Realtime cho CHỦ VÍ — trước đây phải F5 mới thấy "Anh ba đã nhận lời".
+    // Payload chỉ có nhãn chủ ví tự đặt; địa chỉ guardian KHÔNG đi qua đây.
+    const ownerUserId = await repo.findOwnerUserId(invite.walletId);
+    if (ownerUserId) {
+      publishDomainEvent(ownerUserId, "guardian.accepted", { label: invite.label });
+    }
     return c.json({ data: { status: "deployed" } });
   })
 
@@ -211,5 +218,9 @@ export const guardianInvitesRoute = new Hono()
       throw new HTTPException(409, { message: "GUARDIAN_ALREADY_ADDED" });
     }
     await repo.registerInviteAsGuardian({ invite, now: new Date() });
+    // Hai đầu cùng thấy ngay: chủ ví (máy khác của họ) + người bảo hộ vừa vào
+    // ví (màn /protecting của HỌ có thêm một ví để trông).
+    publishDomainEvent(user.id, "guardian.added", { label: invite.label });
+    publishDomainEvent(invite.acceptedByUserId, "guardian.added", { label: invite.label });
     return c.json({ data: { status: "registered" } });
   });
