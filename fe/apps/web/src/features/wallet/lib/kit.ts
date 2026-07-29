@@ -3,8 +3,18 @@
 // chain; màn ví nào cần mới gọi getWalletKit(), thiếu env thì lỗi RÕ RÀNG.
 import { IndexedDBStorage, SmartAccountKit } from "smart-account-kit";
 import { env } from "@/lib/env";
+import { registerSessionCleanup } from "@/lib/session-cleanup";
 
 let kit: SmartAccountKit | null = null;
+
+// Đăng xuất phải xoá ĐỦ BA phiên (Q6 lô passkey-là-chìa-khoá 29/07): session app
+// (Better Auth signOut) · JWT ví (wallet-token đã đăng ký) · và PHIÊN KIT trong
+// IndexedDB — thiếu cái thứ ba thì người kế tiếp trên cùng máy bấm "mở khoá" là
+// kit tự nối vào VÍ CŨ không cần chạm sinh trắc học (connectWallet đọc IndexedDB
+// trước, xem ensureWalletConnected). disconnect() xoá session store + state RAM.
+registerSessionCleanup(() => {
+  if (kit) void kit.disconnect().catch(() => {});
+});
 
 /** Thiếu env chain — màn ví hiển thị hướng dẫn cấu hình thay vì trang trắng. */
 export class WalletNotConfiguredError extends Error {

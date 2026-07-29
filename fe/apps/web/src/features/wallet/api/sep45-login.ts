@@ -1,5 +1,9 @@
 // Luồng đăng nhập SEP-45: connect passkey → xin challenge → ký entry của ví bằng
-// passkey (challenge = P27 auth digest, K2 — kit lo) → đổi JWT → lưu Bearer.
+// passkey (challenge = P27 auth digest, K2 — kit lo) → đổi JWT → lưu Bearer →
+// ĐỔI TIẾP JWT ví lấy SESSION APP (lô passkey-là-chìa-khoá 29/07). Không có bước
+// cuối thì passkey chỉ mở được API ví, còn cổng `_authenticated` vẫn đòi email —
+// tức email mới là chìa khoá thật, và người khôi phục ví (mất máy → guardian
+// duyệt → passkey mới) vẫn chết ở cổng email.
 // Mọi HTTP qua apiClient (luật data-fetching); mọi lỗi ném ra cho UI xử lý.
 import { apiClient } from "@/lib/api-client";
 import { assertMethodOnly } from "@/lib/auth-entry-guard";
@@ -13,6 +17,12 @@ import {
 } from "../lib/sep45-entries";
 import { DEFAULT_CONTEXT_RULE_IDS } from "../lib/sign-wallet-entries";
 import { saveWalletToken } from "../lib/wallet-token";
+// Đổi-session tách ra file riêng (chỉ phụ thuộc apiClient) — file này kéo theo
+// smart-account-kit, mà kit hash lúc import → vỡ dưới jsdom. Re-export để callsite
+// cũ không đổi.
+import { exchangeForAppSession } from "./sep45-exchange";
+
+export { exchangeForAppSession, SessionExchangeError } from "./sep45-exchange";
 
 type ChallengeResponse = { authorization_entries: string; network_passphrase: string };
 type TokenResponse = { token: string };
@@ -64,6 +74,9 @@ export async function sep45Login(override?: {
     authorization_entries: encodeEntriesXdr(entries),
   });
   saveWalletToken(token);
+  // Passkey là chìa khoá thật: đổi NGAY (BE chối token quá 5 phút — cửa sổ tươi
+  // là hàng rào chống token trộm từ localStorage đổi muộn).
+  await exchangeForAppSession(token);
   return { contractId };
 }
 
@@ -74,5 +87,18 @@ export async function connectAndLogin(): Promise<{ contractId: string }> {
     const result = await kit.connectWallet({ prompt: true });
     if (!result) throw new Sep45LoginError("WALLET_CONNECT_CANCELLED");
   }
+  return sep45Login();
+}
+
+/**
+ * "Dùng khoá khác" (B2): ép ceremony WebAuthn để trình duyệt liệt kê passkey —
+ * bỏ qua phiên kit đã lưu. PHẢI là `fresh: true`: `connectWallet()` đọc phiên
+ * IndexedDB TRƯỚC rồi mới xét cờ, nên `prompt: true` một mình không bao giờ hiện
+ * hộp thoại khi máy đã từng đăng nhập (wallet-ops.js:71-86 — đo thật 29/07).
+ */
+export async function connectFreshAndLogin(): Promise<{ contractId: string }> {
+  const kit = getWalletKit();
+  const result = await kit.connectWallet({ fresh: true });
+  if (!result) throw new Sep45LoginError("WALLET_CONNECT_CANCELLED");
   return sep45Login();
 }

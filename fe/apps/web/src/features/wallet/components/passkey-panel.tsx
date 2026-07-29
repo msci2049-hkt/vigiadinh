@@ -1,21 +1,36 @@
-// Màn passkey — luồng THẬT đầu tiên của ví: tạo passkey (WebAuthn) → dựng smart
-// account → đăng nhập SEP-45 → giữ JWT Bearer. LƯU Ý PHA 2.3: createWallet mới
-// TẠO passkey + build tx deploy (chưa submit) — deploy on-chain + tài trợ phí
-// là việc PHA 5; đăng nhập với BE thật chỉ xanh khi ví đã tồn tại trên mạng.
-import { Link } from "@tanstack/react-router";
+// Màn passkey — cửa đăng nhập THẬT bằng vân tay (lô passkey-là-chìa-khoá 29/07):
+// connect passkey → SEP-45 → JWT ví → ĐỔI LẤY SESSION APP → vào thẳng /wallet.
+// Trước lô này màn dừng ở "ví đã mở" (dead-end): JWT ví có nhưng cổng
+// `_authenticated` đòi session email — giờ exchange cấp session của CHỦ VÍ nên
+// đăng nhập xong là ĐI, không đứng lại.
+//
+// "Dùng khoá khác": ép ceremony WebAuthn (fresh) để trình duyệt liệt kê passkey —
+// người có nhiều ví (hoặc máy dùng chung) chọn đúng chìa. Không có nút này thì
+// connectWallet tự nối vào phiên IndexedDB ĐÃ LƯU và khoá khác không có đường vào.
+import { sessionQueryKey } from "@repo/auth";
+import { useQueryClient } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icons";
 import { PrimaryZone } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
-import { connectAndLogin } from "../api/sep45-login";
+import { SessionExchangeError } from "../api/sep45-exchange";
+import { connectAndLogin, connectFreshAndLogin } from "../api/sep45-login";
 import { WalletNotConfiguredError } from "../lib/kit";
+
+type ErrorCode =
+  | "generic"
+  | "notConfigured"
+  | "cancelled"
+  | "walletUnknown"
+  | "belongsToOther"
+  | "revoked";
 
 type PanelState =
   | { status: "idle" | "working" }
-  | { status: "done"; contractId: string }
-  | { status: "error"; code: "generic" | "notConfigured" | "cancelled" };
+  | { status: "error"; code: ErrorCode; maskedEmail?: string | undefined };
 
 function toErrorState(err: unknown): PanelState {
   if (err instanceof WalletNotConfiguredError) return { status: "error", code: "notConfigured" };
@@ -23,28 +38,47 @@ function toErrorState(err: unknown): PanelState {
   if (err instanceof DOMException && err.name === "NotAllowedError") {
     return { status: "error", code: "cancelled" };
   }
+  // Cửa đổi session từ chối — mỗi mã một câu riêng (vì sao · bảo vệ gì · làm gì).
+  if (err instanceof SessionExchangeError && err.code !== "generic") {
+    return { status: "error", code: err.code, maskedEmail: err.maskedEmail };
+  }
   return { status: "error", code: "generic" };
+}
+
+/** Key i18n theo mã lỗi — MỘT chỗ, banner lẫn dòng đọc-màn-hình dùng chung. */
+function errorKey(code: ErrorCode) {
+  return code === "notConfigured"
+    ? ("passkey.errorNotConfigured" as const)
+    : code === "cancelled"
+      ? ("passkey.errorCancelled" as const)
+      : code === "walletUnknown"
+        ? ("passkey.errorWalletUnknown" as const)
+        : code === "belongsToOther"
+          ? ("passkey.errorBelongsToOther" as const)
+          : code === "revoked"
+            ? ("passkey.errorRevoked" as const)
+            : ("passkey.errorGeneric" as const);
 }
 
 export function PasskeyPanel() {
   const { t } = useTranslation("fw");
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [state, setState] = useState<PanelState>({ status: "idle" });
   const busy = state.status === "working";
 
   async function run(flow: () => Promise<{ contractId: string }>) {
     setState({ status: "working" });
     try {
-      const { contractId } = await flow();
-      setState({ status: "done", contractId });
+      await flow();
+      // Session vừa được cấp bằng passkey — xoá cache session để guard
+      // `_authenticated` đọc phiên MỚI thay vì tin bản "chưa đăng nhập" cũ.
+      queryClient.removeQueries({ queryKey: sessionQueryKey });
+      await navigate({ to: "/wallet" });
     } catch (err) {
       setState(toErrorState(err));
     }
   }
-
-  // Đăng nhập = connect passkey vào ví ĐÃ deploy rồi SEP-45. TẠO ví là luồng
-  // deploy thật (kit.createWallet autoSubmit + mirror BE) → đi qua /setup, KHÔNG
-  // làm ở đây: ký SEP-45 cần ví đã tồn tại on-chain (kit đọc signer từ chain).
-  const handleSignIn = () => run(connectAndLogin);
 
   return (
     <PrimaryZone>
@@ -54,11 +88,21 @@ export function PasskeyPanel() {
         disabled={busy}
         loading={busy}
         loadingLabel={t("passkey.working")}
-        onClick={handleSignIn}
+        onClick={() => void run(connectAndLogin)}
         className="w-full"
       >
         <Icon name="fingerprint" size={32} />
         {t("passkey.signInCta")}
+      </Button>
+      <Button
+        type="button"
+        variant="secondary"
+        data-testid="passkey-fresh"
+        disabled={busy}
+        onClick={() => void run(connectFreshAndLogin)}
+        className="w-full"
+      >
+        {t("passkey.useAnotherKeyCta")}
       </Button>
       <Button asChild variant="link">
         <Link to="/recovery" data-testid="passkey-create">
@@ -67,28 +111,13 @@ export function PasskeyPanel() {
       </Button>
       <p data-testid="passkey-status" aria-live="polite" className="sr-only">
         {state.status === "working" ? t("passkey.working") : null}
-        {state.status === "done"
-          ? t("passkey.connected", { wallet: `${state.contractId.slice(0, 8)}…` })
-          : null}
         {state.status === "error"
-          ? t(
-              state.code === "notConfigured"
-                ? "passkey.errorNotConfigured"
-                : state.code === "cancelled"
-                  ? "passkey.errorCancelled"
-                  : "passkey.errorGeneric",
-            )
+          ? t(errorKey(state.code), { email: state.maskedEmail ?? "" })
           : null}
       </p>
       {state.status === "error" ? (
         <ErrorBanner type="warn" title={t("passkey.tryAgainTitle")}>
-          {t(
-            state.code === "notConfigured"
-              ? "passkey.errorNotConfigured"
-              : state.code === "cancelled"
-                ? "passkey.errorCancelled"
-                : "passkey.errorGeneric",
-          )}
+          {t(errorKey(state.code), { email: state.maskedEmail ?? "" })}
         </ErrorBanner>
       ) : null}
     </PrimaryZone>
