@@ -39,13 +39,13 @@ export async function renderInviteCardPng(input: {
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("CANVAS_UNAVAILABLE");
 
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = "#f7f7f2";
   ctx.fillRect(0, 0, W, H);
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
 
   // Tiêu đề
-  ctx.fillStyle = "#1f1a10";
+  ctx.fillStyle = "#151816";
   ctx.font = `bold 56px ${FONT_STACK}`;
   ctx.fillText(input.title, W / 2, 150, W - 120);
 
@@ -58,7 +58,7 @@ export async function renderInviteCardPng(input: {
   const total = cell * (size + quiet * 2);
   const x0 = Math.round((W - total) / 2);
   const y0 = 280;
-  ctx.fillStyle = "#000000";
+  ctx.fillStyle = "#151816";
   for (let row = 0; row < size; row += 1) {
     for (let col = 0; col < size; col += 1) {
       if (qr.modules.get(row, col)) {
@@ -68,10 +68,10 @@ export async function renderInviteCardPng(input: {
   }
 
   // Tên gợi nhớ + câu nhắc
-  ctx.fillStyle = "#1f1a10";
+  ctx.fillStyle = "#151816";
   ctx.font = `bold 52px ${FONT_STACK}`;
   ctx.fillText(input.label, W / 2, y0 + total + 100, W - 120);
-  ctx.fillStyle = "#6b6357";
+  ctx.fillStyle = "#5e665f";
   ctx.font = `38px ${FONT_STACK}`;
   ctx.fillText(input.subtitle, W / 2, y0 + total + 180, W - 120);
 

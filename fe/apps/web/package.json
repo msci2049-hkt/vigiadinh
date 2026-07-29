@@ -16,7 +16,7 @@
     "test:e2e": "playwright test",
     "test:assets": "playwright test e2e/ui-assets.spec.ts --project=chromium --grep \"runtime assets\"",
     "test:layout": "playwright test e2e/ui-assets.spec.ts --project=chromium --grep \"target viewports|Android Back|safe-area viewport\"",
-    "test:visual": "playwright test e2e/ui-assets.spec.ts --project=chromium --grep \"visual regression\"",
+    "test:visual": "playwright test e2e/ui-assets.spec.ts --project=chromium --grep \"visual regression\" --workers=2",
     "test:perf": "playwright test e2e/performance.spec.ts --project=chromium"
   },
   "dependencies": {

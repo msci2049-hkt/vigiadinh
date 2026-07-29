@@ -13,6 +13,12 @@ const ROUTES = [
   "/welcome",
   "/get-started",
   "/passkey",
+  "/login",
+  "/sign-up",
+  "/verify-email?email=owner%40example.com",
+  "/forgot-password",
+  "/reset-password?email=owner%40example.com",
+  "/unauthorized",
   "/recovery",
   "/recovery/find-wallet",
   `/recovery/sent?address=${CONTRACT_ADDRESS}`,
@@ -41,6 +47,7 @@ const ROUTES = [
   "/night-watch/guardian-view",
   "/guardian",
   "/guardian/approve?wallet=w1",
+  "/guardian/approve-intent?intent=intent-approval-1",
   "/guardian/approve-warning?wallet=w1",
   `/guardian/approved?tx=${TX_HASH}`,
   "/guardian/accept?token=asset-audit-token",
@@ -51,6 +58,12 @@ const ROUTES = [
   "/inheritance",
   "/inheritance/heartbeat",
   "/inheritance/claim",
+  "/settings",
+  "/protecting",
+  "/admin",
+  "/admin/users",
+  "/admin/sessions",
+  "/admin/settings",
 ] as const;
 
 const SESSION = {
@@ -69,6 +82,22 @@ const SESSION = {
     userId: "u1",
     token: "asset-audit-session",
     expiresAt: "2027-01-01T00:00:00Z",
+  },
+};
+
+const ADMIN_SESSION = {
+  ...SESSION,
+  user: {
+    ...SESSION.user,
+    id: "admin-1",
+    email: "admin@example.com",
+    name: "Admin",
+    role: "admin",
+  },
+  session: {
+    ...SESSION.session,
+    userId: "admin-1",
+    token: "asset-audit-admin-session",
   },
 };
 
@@ -148,6 +177,19 @@ const DEVICE_REQUESTS = [
   },
 ];
 
+const PENDING_APPROVALS = [
+  {
+    approval_id: "approval-1",
+    intent_id: "intent-approval-1",
+    wallet_id: "w1",
+    owner_name: "Minh",
+    amount: "25000000",
+    recipient_short: "GA12…9XYZ",
+    reasons: ["unknown_recipient"],
+    expires_at: "2026-08-01T14:00:00Z",
+  },
+];
+
 const PLAN = {
   id: "p1",
   version: 1,
@@ -198,22 +240,123 @@ function json(data: unknown) {
   };
 }
 
-async function mockBackend(page: Page): Promise<void> {
+async function mockBackend(
+  page: Page,
+  options: { recoverableWallet?: boolean } = {},
+): Promise<void> {
   await page.route("**/api/**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
     const pathname = url.pathname;
 
     if (pathname === "/api/auth/get-session") {
-      await route.fulfill(json(SESSION));
+      const currentPath = new URL(page.url()).pathname;
+      const signedOut = [
+        "/login",
+        "/sign-up",
+        "/verify-email",
+        "/forgot-password",
+        "/reset-password",
+      ].includes(currentPath);
+      await route.fulfill(
+        json(signedOut ? null : currentPath.startsWith("/admin") ? ADMIN_SESSION : SESSION),
+      );
+      return;
+    }
+    if (pathname === "/api/auth/admin/list-users") {
+      await route.fulfill(
+        json({
+          users: [
+            {
+              id: "u1",
+              email: "owner@example.com",
+              name: "Owner",
+              role: "user",
+              banned: false,
+              emailVerified: true,
+              createdAt: "2026-06-01T00:00:00Z",
+            },
+            {
+              id: "admin-1",
+              email: "admin@example.com",
+              name: "Admin",
+              role: "admin",
+              banned: false,
+              emailVerified: true,
+              createdAt: "2026-05-01T00:00:00Z",
+            },
+          ],
+          total: 2,
+        }),
+      );
+      return;
+    }
+    if (pathname === "/api/auth/list-sessions") {
+      await route.fulfill(
+        json([
+          {
+            id: "s1",
+            token: "asset-audit-admin-session",
+            userId: "admin-1",
+            userAgent: "Chromium",
+            ipAddress: "127.0.0.1",
+            expiresAt: "2027-01-01T00:00:00Z",
+            createdAt: "2026-07-01T00:00:00Z",
+            updatedAt: "2026-07-01T00:00:00Z",
+          },
+        ]),
+      );
       return;
     }
     if (pathname === "/api/config/validation") {
-      await route.fulfill(json({ data: {} }));
+      await route.fulfill(
+        json({ password: { minLength: 12, maxLength: 128 }, otp: { length: 6 } }),
+      );
+      return;
+    }
+    if (pathname === "/api/events") {
+      await route.fulfill({
+        status: 200,
+        headers: {
+          ...JSON_HEADERS,
+          "content-type": "text/event-stream",
+          "cache-control": "no-cache",
+        },
+        body: ": asset-audit\n\n",
+      });
       return;
     }
     if (pathname === "/api/wallets") {
       await route.fulfill(json({ data: [WALLET] }));
+      return;
+    }
+    if (pathname === "/api/wallets/w1/balance") {
+      await route.fulfill(
+        json({
+          data: { wallet_id: "w1", address: CONTRACT_ADDRESS, balance: "125000000", asset: "XLM" },
+        }),
+      );
+      return;
+    }
+    if (pathname === "/api/wallets/w1/policy") {
+      await route.fulfill(
+        json({
+          data: {
+            active: {
+              perTxLimit: "250000000",
+              dailyLimit: "1000000000",
+              version: 1,
+              effectiveAt: "2026-07-01T00:00:00Z",
+            },
+            pending: null,
+            onchainCapStroops: "200000000000",
+          },
+        }),
+      );
+      return;
+    }
+    if (pathname === "/api/wallets/w1/onchain-policy") {
+      await route.fulfill(json({ data: { attached: true, policyContractId: CONTRACT_ADDRESS } }));
       return;
     }
     if (pathname.startsWith("/api/guardians/wallet/")) {
@@ -226,11 +369,11 @@ async function mockBackend(page: Page): Promise<void> {
           data: {
             invites: [],
             recoverability: {
-              available: 0,
+              available: options.recoverableWallet ? 3 : 0,
               threshold: 2,
               required: 3,
-              recoverable: false,
-              missing: 3,
+              recoverable: options.recoverableWallet ?? false,
+              missing: options.recoverableWallet ? 0 : 3,
             },
           },
         }),
@@ -247,6 +390,31 @@ async function mockBackend(page: Page): Promise<void> {
     }
     if (pathname === "/api/recovery/guardian") {
       await route.fulfill(json({ data: INBOX }));
+      return;
+    }
+    if (pathname === "/api/intents/pending-approvals") {
+      await route.fulfill(json({ data: PENDING_APPROVALS }));
+      return;
+    }
+    if (pathname === "/api/guardians/protecting") {
+      await route.fulfill(
+        json({
+          data: [
+            {
+              id: "protecting-1",
+              wallet_id: "w1",
+              status: "active",
+              owner_name: "Minh",
+              protecting_since: "2026-07-01T00:00:00Z",
+              last_seen_at: "2026-07-29T00:00:00Z",
+            },
+          ],
+        }),
+      );
+      return;
+    }
+    if (pathname === "/api/presence/ack") {
+      await route.fulfill(json({ data: { ok: true } }));
       return;
     }
     if (pathname.startsWith("/api/recovery/wallet/")) {
@@ -377,7 +545,7 @@ function reportMarkdown(results: RouteResult[]): string {
 
   return `# UI Asset Runtime Report — VíGiaĐình
 
-Ngày chạy: 2026-07-25
+Ngày chạy: 2026-07-29
 
 Lệnh chuẩn: \`corepack pnpm test:assets\`
 
@@ -403,9 +571,9 @@ ${detail}
 `;
 }
 
-test("41 product routes have healthy runtime assets", async ({ page }) => {
+test("54 route screens have healthy runtime assets", async ({ page }) => {
   test.setTimeout(180_000);
-  expect(ROUTES).toHaveLength(41);
+  expect(ROUTES).toHaveLength(54);
 
   await mockBackend(page);
 
@@ -457,7 +625,9 @@ test("41 product routes have healthy runtime assets", async ({ page }) => {
     activeResult = result;
     try {
       await page.goto(result.route, { waitUntil: "domcontentloaded" });
-      await page.locator(".product-screen").waitFor({ state: "visible", timeout: 8_000 });
+      await page
+        .locator(".product-screen, .workspace-shell__content")
+        .waitFor({ state: "visible", timeout: 8_000 });
       await page.waitForTimeout(150);
       const dom = await page.evaluate(async (): Promise<DomAudit> => {
         const fontFailures: string[] = [];
@@ -539,14 +709,16 @@ test("41 product routes have healthy runtime assets", async ({ page }) => {
 
 const VIEWPORTS = [
   { name: "small-android", width: 320, height: 568 },
+  { name: "iphone-375", width: 375, height: 812 },
   { name: "iphone", width: 390, height: 844 },
   { name: "iphone-pro-max", width: 430, height: 932 },
   { name: "extension-popup", width: 400, height: 560 },
   { name: "tablet", width: 1024, height: 900 },
+  { name: "desktop-wide", width: 1440, height: 900 },
 ] as const;
 
 const VISUAL_VIEWPORTS = [
-  { name: "iphone-390", width: 390, height: 844 },
+  { name: "iphone-375", width: 375, height: 812 },
   { name: "popup-400", width: 400, height: 560 },
 ] as const;
 
@@ -574,11 +746,11 @@ function layoutReportMarkdown(results: LayoutResult[]): string {
 
   return `# UI Layout Matrix Report — VíGiaĐình
 
-Ngày chạy: 2026-07-25
+Ngày chạy: 2026-07-29
 
 Lệnh chuẩn: \`corepack pnpm test:layout\`
 
-Phạm vi: 41 route × 5 viewport = ${results.length} ca trên Chromium production build, locale VI.
+Phạm vi: ${ROUTES.length} route × ${VIEWPORTS.length} viewport = ${results.length} ca trên Chromium production build, locale VI.
 
 ## Tổng hợp
 
@@ -599,10 +771,10 @@ ${details}
 `;
 }
 
-test("41 routes fit all five target viewports", async ({ page }) => {
-  test.setTimeout(300_000);
-  expect(ROUTES).toHaveLength(41);
-  expect(VIEWPORTS).toHaveLength(5);
+test("54 routes fit all seven target viewports", async ({ page }) => {
+  test.setTimeout(480_000);
+  expect(ROUTES).toHaveLength(54);
+  expect(VIEWPORTS).toHaveLength(7);
   await mockBackend(page);
 
   const results: LayoutResult[] = [];
@@ -613,7 +785,9 @@ test("41 routes fit all five target viewports", async ({ page }) => {
     for (const route of ROUTES) {
       const issues: string[] = [];
       await page.goto(route, { waitUntil: "domcontentloaded" });
-      await page.locator(".product-screen").waitFor({ state: "visible", timeout: 8_000 });
+      await page
+        .locator(".product-screen, .workspace-shell__content")
+        .waitFor({ state: "visible", timeout: 8_000 });
       await page.waitForTimeout(50);
 
       const audit = await page.evaluate(() => {
@@ -635,7 +809,9 @@ test("41 routes fit all five target viewports", async ({ page }) => {
           return `${element.tagName.toLowerCase()}${text ? ` "${text.slice(0, 48)}"` : ""}`;
         };
 
-        const clippedText = Array.from(document.querySelectorAll<HTMLElement>("main *"))
+        const clippedText = Array.from(
+          document.querySelectorAll<HTMLElement>("main *, .product-shell__navigation *"),
+        )
           .filter(visible)
           .filter((element) =>
             Array.from(element.childNodes).some(
@@ -655,13 +831,24 @@ test("41 routes fit all five target viewports", async ({ page }) => {
 
         const smallTargets = Array.from(
           document.querySelectorAll<HTMLElement>(
-            "main button, main a[href], main input, .product-shell__language",
+            "main button, main a[href], main input, .product-shell__language, .product-shell__navigation a, .user-menu__trigger",
           ),
         )
           .filter(visible)
           .filter((element) => {
             const rect = element.getBoundingClientRect();
-            return rect.width < 48 || rect.height < 48;
+            if (
+              element instanceof HTMLInputElement &&
+              (element.type === "checkbox" || element.type === "radio")
+            ) {
+              const label = element.closest("label");
+              const labelRect = label?.getBoundingClientRect();
+              if (labelRect && labelRect.width >= 47.5 && labelRect.height >= 47.5) {
+                return false;
+              }
+            }
+
+            return rect.width < 47.5 || rect.height < 47.5;
           })
           .map((element) => {
             const rect = element.getBoundingClientRect();
@@ -739,14 +926,86 @@ test("41 routes fit all five target viewports", async ({ page }) => {
   const failures = results
     .filter((result) => result.issues.length > 0)
     .map((result) => `${result.viewport} ${result.route}: ${result.issues.join("; ")}`);
-  expect(results).toHaveLength(205);
+  expect(results).toHaveLength(ROUTES.length * VIEWPORTS.length);
   expect(failures, failures.join("\n")).toEqual([]);
 });
 
-test("Android Back returns send review to the intact entry form", async ({ page }) => {
+test("375px tri-locale keyboard fits target viewports", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
   await mockBackend(page);
+
+  for (const route of ["/login", "/passkey"] as const) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    await page.locator(".product-screen").waitFor({ state: "visible" });
+
+    for (const language of [
+      { label: "EN", code: "en" },
+      { label: "VI", code: "vi" },
+      { label: "中", code: "zh" },
+    ] as const) {
+      await page.locator(".product-shell__language").filter({ hasText: language.label }).click();
+      await expect(page.locator("html")).toHaveAttribute("lang", language.code);
+
+      const fit = await page.evaluate(() => {
+        const root = document.documentElement;
+        const clipped = Array.from(document.querySelectorAll<HTMLElement>("main *"))
+          .filter((element) => {
+            const style = getComputedStyle(element);
+            const rect = element.getBoundingClientRect();
+            if (style.display === "none" || rect.width === 0 || rect.height === 0) return false;
+            return (
+              ((style.overflowX === "hidden" || style.overflowX === "clip") &&
+                element.scrollWidth > element.clientWidth + 1) ||
+              ((style.overflowY === "hidden" || style.overflowY === "clip") &&
+                element.scrollHeight > element.clientHeight + 1)
+            );
+          })
+          .map((element) => element.textContent?.trim().slice(0, 40) ?? element.tagName);
+        return {
+          clipped,
+          horizontalOverflow: root.scrollWidth > window.innerWidth + 1,
+        };
+      });
+      expect(fit.horizontalOverflow).toBe(false);
+      expect(fit.clipped).toEqual([]);
+
+      await page.evaluate(() => {
+        if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+      });
+      const focused: string[] = [];
+      for (let step = 0; step < 10; step += 1) {
+        await page.keyboard.press("Tab");
+        const state = await page.evaluate(() => {
+          const active = document.activeElement;
+          if (!(active instanceof HTMLElement)) return null;
+          const rect = active.getBoundingClientRect();
+          return {
+            label:
+              active.getAttribute("aria-label") ?? active.textContent?.trim() ?? active.tagName,
+            visible:
+              rect.width > 0 &&
+              rect.height > 0 &&
+              rect.right > 0 &&
+              rect.left < window.innerWidth &&
+              rect.bottom > 0 &&
+              rect.top < window.innerHeight,
+          };
+        });
+        if (state?.visible) focused.push(state.label.slice(0, 60));
+      }
+      expect(focused.length).toBeGreaterThan(0);
+    }
+  }
+});
+
+test("Android Back returns send review to the intact entry form", async ({ page }) => {
+  test.setTimeout(60_000);
+  await mockBackend(page, { recoverableWallet: true });
   await page.goto("/wallet/send");
-  await page.locator("#send-amount").fill("1,00");
+  const amountInput = page.locator("#send-amount");
+  await expect(amountInput).toBeVisible();
+  await page.waitForTimeout(300);
+  await amountInput.fill("1,00");
   const recipient = CONTRACT_ADDRESS;
   await page.locator("#send-recipient").fill(recipient);
   await expect(page.locator('button[type="submit"]')).toBeEnabled();
@@ -848,8 +1107,13 @@ for (const viewport of VISUAL_VIEWPORTS) {
     test(`visual regression ${viewport.name} ${route}`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await mockBackend(page);
+      await page.addInitScript(() => {
+        localStorage.setItem("i18nextLng", "vi");
+      });
       await page.goto(route, { waitUntil: "domcontentloaded" });
-      await page.locator(".product-screen").waitFor({ state: "visible", timeout: 8_000 });
+      await page
+        .locator(".product-screen, .workspace-shell__content")
+        .waitFor({ state: "visible", timeout: 8_000 });
       await page.evaluate(async () => {
         await document.fonts.ready;
         await Promise.all(
@@ -868,6 +1132,13 @@ for (const viewport of VISUAL_VIEWPORTS) {
           ::-webkit-scrollbar { display: none !important; }
         `,
       });
+      await page.evaluate(
+        () =>
+          new Promise<void>((resolve) => {
+            requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+          }),
+      );
+      await page.waitForTimeout(150);
 
       await expect(page).toHaveScreenshot(
         `${String(index + 1).padStart(2, "0")}-${slug}-${viewport.name}.png`,

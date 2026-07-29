@@ -15,14 +15,14 @@
   "userMenu": {
     "login": "登录",
     "logout": "退出登录",
-    "panel": "控制面板",
+    "panel": "工作区",
     "protecting": "我守护的钱包",
     "settings": "设置"
   },
   "health": {
-    "checking": "后端：检查中…",
-    "disconnected": "后端：已断开",
-    "ok": "后端：正常"
+    "checking": "正在检查连接…",
+    "disconnected": "服务暂时不可用",
+    "ok": "已连接"
   },
   "backHome": "← 返回首页",
   "panels": {
@@ -31,20 +31,20 @@
       "nav": {
         "overview": "概览",
         "users": "用户",
-        "sessions": "会话",
+        "sessions": "访问记录",
         "settings": "设置"
       }
     }
   },
   "panelShell": {
-    "switch": "切换面板",
+    "switch": "切换工作区",
     "commandLabel": "快速查找",
     "commandPlaceholder": "输入以搜索页面…",
     "commandEmpty": "没有结果。"
   },
   "impersonation": {
-    "banner": "正在以 {name} 的身份操作 — 所有操作都以该用户执行。",
-    "stop": "停止代操作"
+    "banner": "正在查看 {name} — 所有操作都应用于此账户。",
+    "stop": "返回我的账户"
   },
   "update": {
     "available": "有新版本可用",

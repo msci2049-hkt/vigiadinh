@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ErrorBanner } from "@/components/family/error-banner";
+import { Icon } from "@/components/family/icons";
 import { Button, Card, CardContent, CardHeader, CardTitle, Input } from "@/components/family/ui";
 import {
   cancelPendingPolicy,
@@ -23,6 +24,7 @@ import {
   submitEnableOnchainPolicy,
 } from "@/features/family/api/policy";
 import type { FamilyWallet } from "@/features/family/api/wallets";
+import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { assertAddPolicyEntries } from "@/features/wallet/lib/policy-link";
 import { signWalletEntries } from "@/features/wallet/lib/sign-wallet-entries";
 import { env } from "@/lib/env";
@@ -73,9 +75,16 @@ function HardCapSection({ wallet }: { wallet: FamilyWallet }) {
 
   if (!policyId) return null;
   return (
-    <div className="flex flex-col gap-2">
-      <p className="font-medium text-sm">{t("settings.safety.hard.title")}</p>
-      <p className="text-muted-foreground text-sm">{t("settings.safety.body")}</p>
+    <section className="settings-safety__layer" data-layer="hard">
+      <header className="settings-safety__layer-header">
+        <span className="settings-safety__layer-icon">
+          <Icon name="lock" />
+        </span>
+        <div>
+          <h3 className="font-semibold text-base">{t("settings.safety.hard.title")}</h3>
+          <p className="mt-1 text-muted-foreground text-sm">{t("settings.safety.body")}</p>
+        </div>
+      </header>
       <a
         href={explorerUrl(policyId)}
         target="_blank"
@@ -84,6 +93,8 @@ function HardCapSection({ wallet }: { wallet: FamilyWallet }) {
       >
         {policyId}
       </a>
+      {onchain.isLoading ? <LoadingRows /> : null}
+      {onchain.isError ? <ErrorState /> : null}
       {onchain.data?.attached === true ? (
         <ErrorBanner type="pending" title={t("settings.safety.hard.attached")} />
       ) : null}
@@ -101,7 +112,7 @@ function HardCapSection({ wallet }: { wallet: FamilyWallet }) {
       {onchain.data?.attached === null ? (
         <p className="text-muted-foreground text-xs">{t("settings.safety.hard.unknown")}</p>
       ) : null}
-    </div>
+    </section>
   );
 }
 
@@ -202,16 +213,25 @@ export function SettingsSafetyCard({ wallet }: { wallet: FamilyWallet }) {
   };
 
   return (
-    <Card className="bg-paper-2">
+    <Card className="settings-safety">
       <CardHeader>
         <CardTitle className="text-base">{t("settings.safety.title")}</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-5 text-copy">
         <HardCapSection wallet={wallet} />
 
-        <div className="flex flex-col gap-3 border-t pt-4">
-          <p className="font-medium text-sm">{t("settings.safety.soft.title")}</p>
-          <p className="text-muted-foreground text-sm">{t("settings.safety.soft.body")}</p>
+        <section className="settings-safety__layer" data-layer="soft">
+          <header className="settings-safety__layer-header">
+            <span className="settings-safety__layer-icon">
+              <Icon name="settings" />
+            </span>
+            <div>
+              <h3 className="font-semibold text-base">{t("settings.safety.soft.title")}</h3>
+              <p className="mt-1 text-muted-foreground text-sm">{t("settings.safety.soft.body")}</p>
+            </div>
+          </header>
+          {policy.isLoading ? <LoadingRows /> : null}
+          {policy.isError ? <ErrorState /> : null}
           {policy.data ? (
             <p className="text-sm">
               {t("settings.safety.soft.current", {
@@ -255,7 +275,7 @@ export function SettingsSafetyCard({ wallet }: { wallet: FamilyWallet }) {
               {t("settings.safety.soft.saveCta")}
             </Button>
           </form>
-        </div>
+        </section>
       </CardContent>
     </Card>
   );

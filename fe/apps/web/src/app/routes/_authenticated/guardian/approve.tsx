@@ -8,9 +8,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { guardianAvatarForIndex } from "@/components/family/guardian-assets";
+import { GuardianPortrait, guardianPortraitForIndex } from "@/components/family/guardian-portrait";
 import { Icon } from "@/components/family/icons";
-import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { guardianInboxKeys, guardianInboxOptions } from "@/features/family/api/guardian-inbox";
@@ -114,12 +113,9 @@ function GuardianApproveScreen() {
         <Card className="bg-paper-2">
           <CardContent className="flex flex-col gap-4 pt-6">
             <div className="flex items-center gap-3">
-              <ProductImage
-                {...guardianAvatarForIndex(1)}
-                alt=""
-                width={104}
-                height={104}
-                className="size-16 rounded-full object-cover"
+              <GuardianPortrait
+                variant={guardianPortraitForIndex(1)}
+                className="size-16 rounded-full"
               />
               <p className="font-semibold text-foreground">
                 {t("guardian.approve.votes", {

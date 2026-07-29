@@ -16,9 +16,16 @@ export const Route = createFileRoute("/_authenticated/_admin/admin/settings")({
   component: AdminSettingsPage,
 });
 
+type CommonPanelKey =
+  | "panels.admin.label"
+  | "panels.admin.nav.overview"
+  | "panels.admin.nav.users"
+  | "panels.admin.nav.sessions"
+  | "panels.admin.nav.settings";
+
 /** Panel settings + live view of the PANELS registry (which roles see what). */
 function AdminSettingsPage() {
-  const { t } = useTranslation("admin");
+  const { t } = useTranslation(["admin", "common"]);
 
   return (
     <div className="space-y-6">
@@ -45,17 +52,22 @@ function AdminSettingsPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {PANELS.map((panel) => (
-            <div key={panel.key} className="flex flex-wrap items-center gap-2 text-sm">
-              <code className="rounded bg-muted px-1.5 py-0.5">{panel.basePath}</code>
-              <span className="text-muted-foreground">·</span>
-              {panel.roles.map((role) => (
-                <Badge key={role} variant="outline">
-                  {role}
+            <div key={panel.key} className="rounded-card border bg-card p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-semibold text-sm">
+                  {t(panel.labelKey as CommonPanelKey, { ns: "common" })}
+                </p>
+                <Badge variant="outline">
+                  {panel.nav.length} {t("settings.pages")}
                 </Badge>
-              ))}
-              <span className="text-muted-foreground text-xs">
-                ({panel.nav.length} {t("settings.pages")})
-              </span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {panel.nav.map((item) => (
+                  <Badge key={item.to} variant="secondary">
+                    {t(item.labelKey as CommonPanelKey, { ns: "common" })}
+                  </Badge>
+                ))}
+              </div>
             </div>
           ))}
         </CardContent>

@@ -97,6 +97,6 @@ describe("index.html — ba thẻ iOS mà vite-plugin-pwa KHÔNG tự chèn", ()
   });
 
   test("theme-color có mặt và khớp nền giấy của app", () => {
-    expect(INDEX_HTML).toMatch(/name="theme-color"\s+content="#fdfcf7"/i);
+    expect(INDEX_HTML).toMatch(/name="theme-color"\s+content="#f7f7f2"/i);
   });
 });

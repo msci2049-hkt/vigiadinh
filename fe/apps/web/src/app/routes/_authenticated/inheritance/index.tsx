@@ -5,6 +5,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { GuardianPortrait, guardianPortraitForIndex } from "@/components/family/guardian-portrait";
 import { Icon } from "@/components/family/icons";
 import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
@@ -39,14 +40,12 @@ function InheritanceSetupScreen() {
   return (
     <ProductScreen>
       <ProductImage
-        src="/assets/people/banker-seated.png"
-        webpSrc="/assets/people/banker-seated.webp"
-        avifSrc="/assets/people/banker-seated.avif"
+        src="/assets/illustrations/family-together.png"
         alt=""
-        width={960}
-        height={1280}
+        width={1122}
+        height={1402}
         priority
-        className="mx-auto h-48 w-full max-w-xs object-contain"
+        className="family-scene family-scene--compact"
       />
       <ScreenHeader
         title={t("inheritance.setup.title")}
@@ -68,13 +67,9 @@ function InheritanceSetupScreen() {
             <Card className="bg-paper-2">
               <CardContent className="flex items-center justify-between gap-3 p-4">
                 <div className="flex items-center gap-3">
-                  <ProductImage
-                    src={`/assets/avatars/${index % 2 === 0 ? "sister" : "brother"}-104.webp`}
-                    avifSrc={`/assets/avatars/${index % 2 === 0 ? "sister" : "brother"}-104.avif`}
-                    alt=""
-                    width={104}
-                    height={104}
-                    className="size-12 rounded-full object-cover"
+                  <GuardianPortrait
+                    variant={guardianPortraitForIndex(index + 4)}
+                    className="size-12 rounded-full"
                   />
                   <span className="font-mono text-foreground text-sm">
                     {shortRef(heir.heirRef)}

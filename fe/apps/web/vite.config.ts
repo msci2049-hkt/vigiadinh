@@ -20,8 +20,8 @@ export default defineAppConfig({
     description: "A wallet your family can help you recover",
     // `--fw-paper` (components/family/family.css) — nền giấy của chính app, nên
     // thanh trạng thái Android và splash không nháy sang màu lạ lúc mở.
-    themeColor: "#fdfcf7",
-    backgroundColor: "#fdfcf7",
+    themeColor: "#f7f7f2",
+    backgroundColor: "#f7f7f2",
     // Sinh lại bằng `node scripts/make-app-icons.mjs` (nguồn: linh vật ngôi sao).
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },

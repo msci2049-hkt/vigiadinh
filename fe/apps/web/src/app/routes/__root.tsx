@@ -26,7 +26,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function RootLayout() {
-  const { t, i18n } = useTranslation("common");
+  const { i18n } = useTranslation("common");
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   // Đồng bộ <html lang> theo ngôn ngữ hiện tại (a11y + hreflang cho SPA): screen
   // reader đọc đúng giọng, và trình duyệt chọn đúng font CJK khi lang="zh".
@@ -35,43 +35,47 @@ function RootLayout() {
     document.documentElement.lang = lang;
   }, [i18n.resolvedLanguage]);
   if (isProductPath(pathname)) {
+    const authPath = isAuthPath(pathname);
+    const hubPath = isHubPath(pathname);
     return (
-      // menu = UserMenu (C17): trước đây chrome sản phẩm không có đường đăng
-      // xuất/cài đặt nào — hàm signOut tồn tại mà không nút nào gọi được từ hub.
-      <ProductShell menu={<UserMenu />}>
-        <Outlet />
+      <ProductShell
+        menu={showsAccountMenu(pathname) ? <UserMenu compact /> : undefined}
+        layout={hubPath ? "hub" : "flow"}
+        showNavigation={showsAppNavigation(pathname)}
+      >
+        {authPath ? (
+          <main className="product-screen auth-screen">
+            <Link to="/welcome" className="auth-screen__brand">
+              {site.name}
+            </Link>
+            <Outlet />
+          </main>
+        ) : (
+          <Outlet />
+        )}
         {env.VITE_ENABLE_DEVTOOLS ? <TanStackRouterDevtools position="bottom-right" /> : null}
       </ProductShell>
     );
   }
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="workspace-shell">
       {/* Fixed warning while an admin is impersonating (session.impersonatedBy). */}
       <ImpersonationBanner />
-      <header className="border-b">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-4 px-4">
+      <header className="workspace-shell__header">
+        <div className="workspace-shell__chrome">
           <nav className="flex items-center gap-4">
-            <Link to="/" className="font-semibold">
+            <Link to="/" className="workspace-shell__brand">
               {site.name}
             </Link>
-            {site.nav.map((item) => (
-              <Link
-                key={item.to}
-                to={item.to}
-                className="text-muted-foreground text-sm [&.active]:text-foreground"
-              >
-                {t(item.labelKey)}
-              </Link>
-            ))}
           </nav>
           <div className="flex items-center gap-3">
             <LanguageSwitcher />
             <ThemeToggle />
-            <UserMenu />
+            <UserMenu compact />
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-4 py-8">
+      <main className="workspace-shell__content">
         <Outlet />
       </main>
       {env.VITE_ENABLE_DEVTOOLS ? <TanStackRouterDevtools position="bottom-right" /> : null}
@@ -93,19 +97,82 @@ function isProductPath(pathname: string): boolean {
     "/night-watch",
     "/inheritance",
     "/settings",
+    "/protecting",
+    "/login",
+    "/sign-up",
+    "/verify-email",
+    "/forgot-password",
+    "/reset-password",
+    "/unauthorized",
+  ].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
+function isAuthPath(pathname: string): boolean {
+  return [
+    "/login",
+    "/sign-up",
+    "/verify-email",
+    "/forgot-password",
+    "/reset-password",
+    "/unauthorized",
+  ].includes(pathname);
+}
+
+function isHubPath(pathname: string): boolean {
+  return [
+    "/wallet",
+    "/wallet/history",
+    "/guardians",
+    "/night-watch",
+    "/night-watch/log",
+    "/inheritance",
+    "/settings",
+    "/protecting",
+  ].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+}
+
+function showsAppNavigation(pathname: string): boolean {
+  return [
+    "/wallet",
+    "/wallet/history",
+    "/guardians",
+    "/night-watch",
+    "/night-watch/log",
+    "/inheritance",
+    "/settings",
+    "/protecting",
+  ].includes(pathname);
+}
+
+function showsAccountMenu(pathname: string): boolean {
+  return [
+    "/setup",
+    "/wallet",
+    "/guardians",
+    "/guardian",
+    "/block",
+    "/night-watch",
+    "/inheritance",
+    "/settings",
+    "/protecting",
   ].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
 }
 
 function CenteredMessage({ title, children }: { title: string; children: ReactNode }) {
   const { t } = useTranslation("common");
   return (
-    <div className="mx-auto max-w-md space-y-3 py-16 text-center">
-      <h1 className="font-bold text-2xl tracking-tight">{title}</h1>
-      <div className="text-muted-foreground text-sm">{children}</div>
-      <Link to="/" className="inline-block text-primary text-sm underline-offset-4 hover:underline">
-        {t("backHome")}
-      </Link>
-    </div>
+    <ProductShell layout="flow">
+      <main className="product-screen justify-center text-center">
+        <div className="state-illustration" aria-hidden>
+          !
+        </div>
+        <h1 className="product-title">{title}</h1>
+        <div className="product-copy mx-auto">{children}</div>
+        <Link to="/" className="fw-button fw-button--primary fw-button--default">
+          {t("backHome")}
+        </Link>
+      </main>
+    </ProductShell>
   );
 }
 

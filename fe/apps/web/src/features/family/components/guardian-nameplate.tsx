@@ -18,7 +18,7 @@ export function GuardianNameplate({
   const name = label && label.trim() !== "" ? label : t("guardians.list.itemLabel");
   return (
     <div className="flex min-w-0 flex-col">
-      <span className="truncate font-semibold text-foreground text-sm">{name}</span>
+      <span className="break-words font-semibold text-foreground text-sm leading-snug">{name}</span>
       <span className="font-mono text-muted-foreground text-xs">{shortKey(onchainKey)}</span>
     </div>
   );

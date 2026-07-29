@@ -6,9 +6,8 @@ import { formatDateTime } from "@repo/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { guardianAvatarForIndex } from "@/components/family/guardian-assets";
+import { GuardianPortrait, guardianPortraitForIndex } from "@/components/family/guardian-portrait";
 import { Icon } from "@/components/family/icons";
-import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { type Guardian, guardiansOptions } from "@/features/family/api/guardians";
@@ -35,7 +34,7 @@ function NightWatchAlertScreen() {
   });
 
   const outOfReach = (guardians.data ?? [])
-    .map((g, i) => ({ avatar: guardianAvatarForIndex(i), g, ref: contactRef(g, i) }))
+    .map((g, i) => ({ portrait: guardianPortraitForIndex(i), g, ref: contactRef(g, i) }))
     .filter(({ g }) => g.status === "slow" || g.status === "offline");
   const loading = walletLoading || guardians.isLoading;
 
@@ -53,16 +52,14 @@ function NightWatchAlertScreen() {
       ) : null}
 
       <ul className="flex flex-col gap-2">
-        {outOfReach.map(({ avatar, g, ref }) => (
+        {outOfReach.map(({ portrait, g, ref }) => (
           <li key={g.id}>
             <Card className="border-border bg-paper-2">
               <CardContent className="flex gap-3 p-4">
-                <ProductImage
-                  {...avatar}
-                  alt=""
-                  width={104}
-                  height={104}
-                  className="size-14 shrink-0 rounded-full object-cover grayscale"
+                <GuardianPortrait
+                  variant={portrait}
+                  muted
+                  className="size-14 shrink-0 rounded-full"
                 />
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex items-center justify-between gap-2">

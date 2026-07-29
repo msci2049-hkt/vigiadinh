@@ -16,8 +16,8 @@
   min-height: 100svh;
   margin-inline: auto;
   padding: max(1.5rem, env(safe-area-inset-top)) 1.5rem max(1.5rem, env(safe-area-inset-bottom));
-  color: #0a0a0a;
-  background: #fdfcf7;
+  color: var(--ink);
+  background: var(--paper);
   font-family: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -30,8 +30,8 @@
 .app-boot-title,
 .app-boot-line,
 .app-boot-card {
-  border-radius: 0.875rem;
-  background: #e8e5db;
+  border-radius: var(--radius-sm-value);
+  background: var(--muted);
 }
 
 .app-boot-title {
@@ -52,3 +52,82 @@
 }
 
 /* Product, auth and admin all use the app-local family system. */
+.workspace-shell {
+  min-height: 100svh;
+  color: var(--foreground);
+  background:
+    radial-gradient(
+      circle at 12% 4%,
+      color-mix(in srgb, var(--yellow) 16%, transparent),
+      transparent 22rem
+    ),
+    var(--background);
+}
+
+.workspace-shell__header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--background) 92%, transparent);
+  backdrop-filter: blur(18px);
+}
+
+.workspace-shell__chrome,
+.workspace-shell__content {
+  width: min(calc(100% - 2rem), 80rem);
+  margin-inline: auto;
+}
+
+.workspace-shell__chrome {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 4.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.5rem;
+}
+
+.workspace-shell__brand {
+  font-family: "Fraunces Variable", ui-serif, Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+}
+
+.workspace-shell__content {
+  padding-block: 2rem 4rem;
+  min-width: 0;
+}
+
+.workspace-shell a[href],
+.workspace-shell button,
+.workspace-shell input:not([type="checkbox"]):not([type="radio"]),
+.workspace-shell [role="combobox"] {
+  min-height: 3rem;
+}
+
+.workspace-shell button {
+  min-width: 3rem;
+}
+
+.workspace-shell [data-slot="table-container"] {
+  max-width: 100%;
+}
+
+.workspace-shell__chrome > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 48rem) {
+  .workspace-shell__chrome,
+  .workspace-shell__content {
+    width: min(calc(100% - 4rem), 80rem);
+  }
+
+  .workspace-shell__content {
+    padding-block: 3rem 5rem;
+  }
+}

@@ -37,14 +37,12 @@ function SetupIntroScreen() {
   return (
     <ProductScreen className="justify-center">
       <ProductImage
-        src="/assets/people/banker-present-right.png"
-        webpSrc="/assets/people/banker-present-right.webp"
-        avifSrc="/assets/people/banker-present-right.avif"
+        src="/assets/illustrations/family-together.png"
         alt=""
-        width={960}
-        height={1280}
+        width={1122}
+        height={1402}
         priority
-        className="mx-auto h-52 w-full max-w-xs object-contain object-bottom"
+        className="family-scene family-scene--compact"
       />
       <ScreenHeader
         title={t("setup.intro.title")}

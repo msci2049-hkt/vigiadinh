@@ -19,14 +19,12 @@ function NightWatchGuardianViewScreen() {
   return (
     <ProductScreen className="justify-center">
       <ProductImage
-        src="/assets/people/banker-tablet.png"
-        webpSrc="/assets/people/banker-tablet.webp"
-        avifSrc="/assets/people/banker-tablet.avif"
+        src="/assets/illustrations/family-together.png"
         alt=""
-        width={960}
-        height={1280}
+        width={1122}
+        height={1402}
         priority
-        className="mx-auto h-48 w-full max-w-xs object-contain"
+        className="family-scene family-scene--compact"
       />
       <ScreenHeader
         title={t("nightWatch.guardianView.title")}

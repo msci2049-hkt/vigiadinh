@@ -30,19 +30,19 @@ export function PanelShell({ panelKey }: { panelKey: string }) {
   const activeNav = [...panel.nav].reverse().find((item) => pathname.startsWith(item.to));
 
   return (
-    <div className="flex flex-col gap-6 md:flex-row">
+    <div className="flex min-w-0 flex-col gap-6 md:flex-row">
       {/* Sidebar (top bar on mobile) */}
-      <aside className="md:w-52 md:shrink-0">
+      <aside className="min-w-0 max-w-full md:w-52 md:shrink-0">
         <nav
           aria-label={t(panel.labelKey, { defaultValue: panel.labelKey })}
-          className="flex gap-1 overflow-x-auto md:flex-col md:overflow-visible"
+          className="flex max-w-full gap-1 overflow-x-auto md:flex-col md:overflow-visible"
         >
           {panel.nav.map((item) => (
             <Link
               key={item.to}
               to={item.to}
               activeOptions={{ exact: item.to === panel.basePath }}
-              className="whitespace-nowrap rounded-md px-3 py-2 text-muted-foreground text-sm hover:bg-accent hover:text-accent-foreground [&.active]:bg-accent [&.active]:font-medium [&.active]:text-accent-foreground"
+              className="flex min-h-12 shrink-0 items-center whitespace-nowrap rounded-md px-3 py-2 text-muted-foreground text-sm hover:bg-accent hover:text-accent-foreground [&.active]:bg-accent [&.active]:font-medium [&.active]:text-accent-foreground"
             >
               {t(item.labelKey, { defaultValue: item.labelKey })}
             </Link>

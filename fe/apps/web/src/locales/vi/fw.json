@@ -134,7 +134,7 @@
       "reasons": {
         "unknownRecipient": "Người nhận là địa chỉ mới, ví này chưa gửi cho họ bao giờ.",
         "overTxLimit": "Số tiền vượt hạn mức một lần chuyển.",
-        "overDailyLimit": "Số tiền sẽ vượt hạn mức chi trong ngày.",
+        "overDailyLimit": "Số tiền này sẽ vượt mức bạn đã chọn cho hôm nay.",
         "blacklisted": "Người nhận nằm trong sổ đen của gia đình.",
         "other": "Quy tắc an toàn của ví yêu cầu người nhà kiểm tra."
       },
@@ -178,7 +178,7 @@
       "errIdentityTitle": "Chưa tạo được danh tính trên máy này",
       "errLoginCta": "Đăng nhập lại",
       "errSignedOutBody": "Để nhận lời mời, máy này cần biết bạn là ai. Chưa có gì thay đổi. Hãy đăng nhập lại rồi mở lại đường dẫn này.",
-      "errSignedOutTitle": "Phiên đăng nhập đã hết",
+      "errSignedOutTitle": "Bạn đã được đăng xuất",
       "errTakenBody": "Mỗi lời mời chỉ dùng được một lần, trên một máy. Nếu không phải bạn dùng, hãy báo ngay cho người mời.",
       "errTakenTitle": "Lời mời này đã được dùng rồi",
       "errTechnical": "Mã kỹ thuật: {code}",
@@ -511,15 +511,15 @@
     "title": "Cài đặt",
     "safety": {
       "title": "An toàn",
-      "body": "Hạn mức chi tiêu ngày của ví được cưỡng chế bằng hợp đồng thông minh trên mạng Stellar — không phải bằng máy chủ của chúng tôi. Kể cả khi hệ thống bị chiếm, ngoài bạn không ai nâng được hạn mức này.",
+      "body": "Số tiền tối đa mỗi ngày được khoá cùng với ví, không chỉ nằm ở dịch vụ này. Chỉ bạn mới có thể nâng mức đó.",
       "hard": {
-        "title": "Khoá chi tiêu trên chuỗi",
-        "attached": "Đang bật trên ví của bạn — ghi trong hợp đồng.",
-        "notAttached": "Ví của bạn chưa bật khoá chi tiêu trên chuỗi.",
+        "title": "Mức bảo vệ cố định",
+        "attached": "Đang hoạt động — mức bảo vệ này đi cùng ví của bạn.",
+        "notAttached": "Ví của bạn chưa có mức bảo vệ cố định.",
         "enableCta": "Bật khoá chi tiêu",
-        "enabled": "Đã bật khoá chi tiêu — hợp đồng sẽ tự cưỡng chế.",
+        "enabled": "Đã bật mức bảo vệ cố định.",
         "enableFailed": "Chưa bật được khoá. Chưa có gì thay đổi — bạn thử lại được.",
-        "unknown": "Hiện chưa kiểm tra được trạng thái khoá trên hợp đồng."
+        "unknown": "Hiện chưa kiểm tra được mức bảo vệ này."
       },
       "soft": {
         "title": "Hạn mức bạn tự đặt",
@@ -536,7 +536,7 @@
         "errors": {
           "bad": "Nhập số XLM nguyên, lớn hơn 0.",
           "daily": "Hạn mức ngày phải không nhỏ hơn hạn mức mỗi lần chuyển.",
-          "cap": "Hạn mức không vượt được trần trên chuỗi ({cap} XLM)."
+          "cap": "Số tiền không được cao hơn mức bảo vệ tối đa ({cap} XLM)."
         }
       },
       "pending": {
@@ -746,7 +746,7 @@
         "tampered": "Chúng tôi đã dừng giao dịch này. Lệnh sắp được duyệt không khớp số tiền và người nhận bạn vừa nhập, nên không có gì được ký và không có gì được gửi đi. Đừng thử lại trên máy này — hãy kiểm tra kết nối và liên hệ hỗ trợ.",
         "technical": "Mã kỹ thuật: {code}",
         "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại.",
-        "spendingLimit": "Khoản này vượt hạn mức ngày của ví. Hạn mức được ghi trong hợp đồng thông minh — ngoài bạn, không ai đổi được, kể cả hệ thống. Hãy thử số nhỏ hơn hoặc quay lại vào ngày mai."
+        "spendingLimit": "Khoản này cao hơn mức ví cho phép hôm nay. Chỉ bạn mới đổi được mức bảo vệ đó. Hãy thử số nhỏ hơn hoặc quay lại vào ngày mai."
       },
       "guardian": {
         "description": "Số tiền này cần một người thân đồng ý trước. Chúng tôi đã hỏi họ — bạn sẽ được báo khi được duyệt.",
@@ -815,8 +815,8 @@
     "intentExpired": "Một khoản chuyển chờ duyệt đã hết hạn — tiền không rời ví.",
     "intentPending": "Có một khoản chuyển đang chờ bạn duyệt.",
     "intentRejected": "Người bảo hộ đã từ chối khoản chuyển của bạn — tiền không đi đâu cả.",
-    "policyRaiseRequested": "Có đề nghị nâng hạn mức chi tiêu của ví. Nếu không phải bạn, hãy huỷ trong Cài đặt.",
-    "policyApplied": "Hạn mức chi tiêu mới đã có hiệu lực.",
-    "policyCancelled": "Đề nghị đổi hạn mức đã được huỷ."
+    "policyRaiseRequested": "Có đề nghị nâng số tiền ví cho phép. Nếu không phải bạn, hãy huỷ trong Cài đặt.",
+    "policyApplied": "Mức tiền mới đã có hiệu lực.",
+    "policyCancelled": "Đề nghị đổi mức tiền đã được huỷ."
   }
 }

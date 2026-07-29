@@ -15,14 +15,14 @@
   "userMenu": {
     "login": "Sign in",
     "logout": "Sign out",
-    "panel": "Control panel",
+    "panel": "Workspace",
     "protecting": "Wallets I protect",
     "settings": "Settings"
   },
   "health": {
-    "checking": "BE: checking…",
-    "disconnected": "BE: disconnected",
-    "ok": "BE: OK"
+    "checking": "Checking connection…",
+    "disconnected": "Service unavailable",
+    "ok": "Connected"
   },
   "backHome": "← Back home",
   "panels": {
@@ -31,20 +31,20 @@
       "nav": {
         "overview": "Overview",
         "users": "Users",
-        "sessions": "Sessions",
+        "sessions": "Access",
         "settings": "Settings"
       }
     }
   },
   "panelShell": {
-    "switch": "Switch panel",
+    "switch": "Switch workspace",
     "commandLabel": "Quick find",
     "commandPlaceholder": "Type to search pages…",
     "commandEmpty": "No results."
   },
   "impersonation": {
-    "banner": "Impersonating {name} — every action runs as this user.",
-    "stop": "Stop impersonating"
+    "banner": "Viewing as {name} — every action applies to this account.",
+    "stop": "Return to my account"
   },
   "update": {
     "available": "A new version is available",

@@ -15,14 +15,14 @@
   "userMenu": {
     "login": "Đăng nhập",
     "logout": "Đăng xuất",
-    "panel": "Bảng điều khiển",
+    "panel": "Khu làm việc",
     "protecting": "Ví tôi bảo vệ",
     "settings": "Cài đặt"
   },
   "health": {
-    "checking": "BE: đang kiểm tra…",
-    "disconnected": "BE: mất kết nối",
-    "ok": "BE: OK"
+    "checking": "Đang kiểm tra kết nối…",
+    "disconnected": "Dịch vụ đang gián đoạn",
+    "ok": "Đã kết nối"
   },
   "backHome": "← Về trang chủ",
   "panels": {
@@ -31,20 +31,20 @@
       "nav": {
         "overview": "Tổng quan",
         "users": "Người dùng",
-        "sessions": "Phiên đăng nhập",
+        "sessions": "Lượt truy cập",
         "settings": "Cài đặt"
       }
     }
   },
   "panelShell": {
-    "switch": "Chuyển bảng điều khiển",
+    "switch": "Chuyển khu làm việc",
     "commandLabel": "Tìm nhanh",
     "commandPlaceholder": "Gõ để tìm trang…",
     "commandEmpty": "Không có kết quả."
   },
   "impersonation": {
-    "banner": "Đang mạo danh {name} — thao tác dưới danh nghĩa người này.",
-    "stop": "Thoát mạo danh"
+    "banner": "Đang xem như {name} — mọi thao tác áp dụng cho tài khoản này.",
+    "stop": "Về tài khoản của tôi"
   },
   "update": {
     "available": "Có phiên bản mới",

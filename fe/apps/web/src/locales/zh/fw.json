@@ -134,7 +134,7 @@
       "reasons": {
         "unknownRecipient": "收款方是新地址，这个钱包从未给它转过账。",
         "overTxLimit": "金额超过单笔转账限额。",
-        "overDailyLimit": "金额将超过今日支出限额。",
+        "overDailyLimit": "这将超过您为今天选择的金额。",
         "blacklisted": "收款方在家庭黑名单中。",
         "other": "钱包的安全规则要求家人复核。"
       },
@@ -178,7 +178,7 @@
       "errIdentityTitle": "无法在这台设备上创建你的身份",
       "errLoginCta": "重新登录",
       "errSignedOutBody": "要接受邀请，这台设备需要知道你是谁。没有任何改动。请重新登录，然后再打开这个链接。",
-      "errSignedOutTitle": "登录状态已过期",
+      "errSignedOutTitle": "您已退出登录",
       "errTakenBody": "每个邀请只能用一次，只能在一台设备上用。如果不是你用的，请立刻告诉邀请你的人。",
       "errTakenTitle": "这个邀请已经被使用过了",
       "errTechnical": "技术代码：{code}",
@@ -511,15 +511,15 @@
     "title": "设置",
     "safety": {
       "title": "安全",
-      "body": "钱包的每日支出限额由 Stellar 网络上的智能合约强制执行——而非我们的服务器。即使我们的系统被攻陷，除了您，没有人能提高这个限额。",
+      "body": "每天允许的最高金额与钱包锁定在一起，而不只依赖此服务。只有您可以提高它。",
       "hard": {
-        "title": "链上消费锁",
-        "attached": "已在您的钱包启用——写入合约。",
-        "notAttached": "您的钱包尚未启用链上消费锁。",
+        "title": "内置消费保护",
+        "attached": "已启用——此保护会一直跟随您的钱包。",
+        "notAttached": "您的钱包尚未启用内置消费保护。",
         "enableCta": "开启消费锁",
-        "enabled": "消费锁已开启——由合约强制执行。",
+        "enabled": "内置消费保护已开启。",
         "enableFailed": "未能开启消费锁。没有任何更改——您可以重试。",
-        "unknown": "暂时无法从合约查询消费锁状态。"
+        "unknown": "暂时无法检查此保护。"
       },
       "soft": {
         "title": "您自己设定的限额",
@@ -536,7 +536,7 @@
         "errors": {
           "bad": "请输入大于 0 的整数 XLM。",
           "daily": "每日限额不能低于单笔限额。",
-          "cap": "限额不能超过链上上限（{cap} XLM）。"
+          "cap": "金额不能高于受保护的最高值（{cap} XLM）。"
         }
       },
       "pending": {
@@ -746,7 +746,7 @@
         "tampered": "我们已停止这笔付款。即将确认的指令与你刚输入的金额和收款人不一致，因此没有签名，也没有发送任何内容。请不要在此设备上重试——请检查连接并联系支持。",
         "technical": "技术代码：{code}",
         "walletLocked": "钱包在此设备上已锁定。请先打开钱包再重试。",
-        "spendingLimit": "该金额超过钱包的链上每日限额。限额写在智能合约里——除了您，任何人（包括系统）都无法更改。请尝试较小的金额，或明天再试。"
+        "spendingLimit": "该金额高于钱包今天允许的金额。只有您可以更改此保护。请尝试较小的金额，或明天再试。"
       },
       "guardian": {
         "description": "这笔金额需要一位受信任的联系人先同意。我们已经询问他们 — 获批后会通知你。",
@@ -815,8 +815,8 @@
     "intentExpired": "一笔待审核的转账已过期——资金没有离开钱包。",
     "intentPending": "有一笔转账等你审核。",
     "intentRejected": "你的转账被拒绝了——资金没有离开钱包。",
-    "policyRaiseRequested": "有人请求提高此钱包的消费限额。如果不是您本人，请在设置中取消。",
-    "policyApplied": "新的消费限额已生效。",
-    "policyCancelled": "限额更改请求已取消。"
+    "policyRaiseRequested": "有人请求提高此钱包允许的金额。如果不是您本人，请在设置中取消。",
+    "policyApplied": "新的允许金额已生效。",
+    "policyCancelled": "允许金额的更改已取消。"
   }
 }

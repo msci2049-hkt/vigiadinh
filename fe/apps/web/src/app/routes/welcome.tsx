@@ -22,15 +22,13 @@ function WelcomeScreen() {
       />
       <div className="welcome-hero">
         <ProductImage
-          src="/assets/people/banker-open-left.png"
-          webpSrc="/assets/people/banker-open-left.webp"
-          avifSrc="/assets/people/banker-open-left.avif"
+          src="/assets/illustrations/family-together.png"
           alt=""
-          width={960}
-          height={1280}
+          width={1122}
+          height={1402}
           priority
           aria-hidden
-          className="welcome-banker"
+          className="welcome-family"
         />
         <div className="welcome-promise">
           <div className="flex items-center gap-2 font-semibold text-sm">

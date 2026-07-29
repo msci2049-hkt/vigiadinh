@@ -100,6 +100,6 @@ test("panel shell: sidebar nav đủ 4 mục từ PANELS registry", async ({ pag
   const nav = page.getByRole("navigation", { name: "Quản trị" });
   await expect(nav.getByRole("link", { name: "Tổng quan" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Người dùng" })).toBeVisible();
-  await expect(nav.getByRole("link", { name: "Phiên đăng nhập" })).toBeVisible();
+  await expect(nav.getByRole("link", { name: "Lượt truy cập" })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Cài đặt" })).toBeVisible();
 });

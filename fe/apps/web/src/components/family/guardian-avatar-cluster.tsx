@@ -1,17 +1,21 @@
+import {
+  GuardianPortrait,
+  type GuardianPortraitVariant,
+  guardianPortraitForIndex,
+} from "./guardian-portrait";
 import { Icon } from "./icons";
-import { ProductImage } from "./product-image";
 import { cn } from "./utils";
 
 export type GuardianFace = {
   name: string;
-  src?: string | undefined;
+  variant?: GuardianPortraitVariant | undefined;
   status?: "active" | "slow" | "offline" | "pending" | undefined;
 };
 
 export const DEMO_GUARDIANS: GuardianFace[] = [
-  { name: "Mom", src: "/assets/avatars/mom-160.webp", status: "active" },
-  { name: "Brother", src: "/assets/avatars/brother-160.webp", status: "active" },
-  { name: "Aunt", src: "/assets/avatars/aunt-160.webp", status: "active" },
+  { name: "Mom", variant: 0, status: "active" },
+  { name: "Brother", variant: 1, status: "active" },
+  { name: "Aunt", variant: 3, status: "active" },
 ];
 
 export function GuardianAvatarCluster({
@@ -51,33 +55,16 @@ export function GuardianAvatarCluster({
     <div className="flex items-center">
       {faces.map((person, index) => (
         <span
-          key={`${person.name}-${person.src ?? index}`}
+          key={`${person.name}-${person.variant ?? index}`}
           className={cn("relative rounded-full border-[3px] border-card", index > 0 && overlap)}
           title={person.name}
         >
-          {person.src ? (
-            <ProductImage
-              src={person.src}
-              avifSrc={person.src.replace(/\.webp$/, ".avif")}
-              alt={person.name}
-              width={160}
-              height={160}
-              className={cn(
-                dimensions,
-                "rounded-full object-cover",
-                person.status === "offline" && "grayscale",
-              )}
-            />
-          ) : (
-            <span
-              className={cn(
-                dimensions,
-                "flex items-center justify-center rounded-full bg-muted font-semibold text-muted-foreground",
-              )}
-            >
-              {person.name.slice(0, 1).toUpperCase()}
-            </span>
-          )}
+          <GuardianPortrait
+            variant={person.variant ?? guardianPortraitForIndex(index)}
+            label={person.name}
+            muted={person.status === "offline"}
+            className={cn(dimensions, "rounded-full")}
+          />
           {index === faces.length - 1 ? (
             <span className="-right-1 -bottom-1 absolute flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-sm">
               <Icon name="shieldCheck" size={20} />

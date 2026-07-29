@@ -4,9 +4,8 @@ import { formatDateTime } from "@repo/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { guardianAvatarForIndex } from "@/components/family/guardian-assets";
+import { GuardianPortrait, guardianPortraitForIndex } from "@/components/family/guardian-portrait";
 import { Icon } from "@/components/family/icons";
-import { ProductImage } from "@/components/family/product-image";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import {
@@ -79,12 +78,9 @@ function GuardianInboxScreen() {
         <Card key={item.request.id} className="bg-paper-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-3 text-lg">
-              <ProductImage
-                {...guardianAvatarForIndex(index)}
-                alt=""
-                width={104}
-                height={104}
-                className="size-12 rounded-full object-cover"
+              <GuardianPortrait
+                variant={guardianPortraitForIndex(index)}
+                className="size-12 rounded-full"
               />
               <span>
                 {t("guardian.inbox.walletLabel", {

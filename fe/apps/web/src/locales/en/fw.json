@@ -134,7 +134,7 @@
       "reasons": {
         "unknownRecipient": "The recipient is a new address this wallet has never sent to.",
         "overTxLimit": "The amount is over the per-transfer limit.",
-        "overDailyLimit": "The amount would exceed today's spending limit.",
+        "overDailyLimit": "This would go beyond the amount you chose for today.",
         "blacklisted": "The recipient is on your family's block list.",
         "other": "The wallet's safety rules asked for a family check."
       },
@@ -178,7 +178,7 @@
       "errIdentityTitle": "We could not create your identity on this device",
       "errLoginCta": "Sign in again",
       "errSignedOutBody": "To accept the invite, this device needs to know who you are. Nothing changed. Sign in again, then open this link once more.",
-      "errSignedOutTitle": "Your session has expired",
+      "errSignedOutTitle": "You've been signed out",
       "errTakenBody": "Each invite works once, on one device. If that was not you, tell the person who invited you right away.",
       "errTakenTitle": "This invite has already been used",
       "errTechnical": "Technical code: {code}",
@@ -511,15 +511,15 @@
     "title": "Settings",
     "safety": {
       "title": "Safety",
-      "body": "Your wallet's daily spending limit is enforced by a smart contract on the Stellar network — not by our servers. Even if our systems were taken over, nobody can raise this limit but you.",
+      "body": "The highest amount allowed each day is locked together with your wallet, not held only by this service. Only you can raise it.",
       "hard": {
-        "title": "On-chain spending lock",
-        "attached": "Active on your wallet — written into the contract.",
-        "notAttached": "Your wallet doesn't have the on-chain lock yet.",
+        "title": "Built-in spending protection",
+        "attached": "Active — this protection stays with your wallet.",
+        "notAttached": "Your wallet doesn't have built-in spending protection yet.",
         "enableCta": "Turn on spending lock",
-        "enabled": "Spending lock is now on — the contract enforces it.",
+        "enabled": "Built-in spending protection is now on.",
         "enableFailed": "Couldn't turn on the lock. Nothing changed — you can try again.",
-        "unknown": "Couldn't reach the contract to check the lock right now."
+        "unknown": "Couldn't check this protection right now."
       },
       "soft": {
         "title": "Your own limits",
@@ -536,7 +536,7 @@
         "errors": {
           "bad": "Enter whole XLM amounts greater than zero.",
           "daily": "The daily limit must be at least the per-transfer limit.",
-          "cap": "Limits can't exceed the on-chain cap ({cap} XLM)."
+          "cap": "Amounts can't be higher than your protected maximum ({cap} XLM)."
         }
       },
       "pending": {
@@ -746,7 +746,7 @@
         "tampered": "We stopped this payment. The order we were about to approve did not match the amount and recipient you entered, so nothing was signed and nothing was sent. Do not retry on this device — check your connection and contact support.",
         "technical": "Technical code: {code}",
         "walletLocked": "Your wallet is locked on this device. Open it first, then try again.",
-        "spendingLimit": "This is over your wallet's on-chain daily limit. The limit lives in the smart contract itself — nobody but you can change it, not even our system. Try a smaller amount, or try again tomorrow."
+        "spendingLimit": "This is above the amount your wallet allows today. Only you can change that protection. Try a smaller amount, or try again tomorrow."
       },
       "guardian": {
         "description": "This amount needs a trusted contact to agree first. We've asked them — you'll be notified when it's approved.",
@@ -815,8 +815,8 @@
     "intentExpired": "A pending transfer expired — no money left the wallet.",
     "intentPending": "A transfer is waiting for your review.",
     "intentRejected": "Your transfer was declined — no money has moved.",
-    "policyRaiseRequested": "Someone asked to raise this wallet's spending limits. If this wasn't you, cancel it in Settings.",
-    "policyApplied": "New spending limits are now active.",
-    "policyCancelled": "The spending limit change was cancelled."
+    "policyRaiseRequested": "Someone asked to raise the amounts this wallet allows. If this wasn't you, cancel it in Settings.",
+    "policyApplied": "The new allowed amounts are now active.",
+    "policyCancelled": "The change to allowed amounts was cancelled."
   }
 }

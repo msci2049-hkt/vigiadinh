@@ -317,6 +317,43 @@ export function MoreHorizontalIcon(props: SvgIconProps) {
   );
 }
 
+export function WalletIcon(props: SvgIconProps) {
+  return (
+    <IconFrame {...props}>
+      <path d="M4 6.5h13.5A2.5 2.5 0 0 1 20 9v9.5H6A3 3 0 0 1 3 15.5v-9A2.5 2.5 0 0 1 5.5 4H17" />
+      <path d="M15 11h6v4h-6a2 2 0 0 1 0-4Z" />
+    </IconFrame>
+  );
+}
+
+export function SettingsIcon(props: SvgIconProps) {
+  return (
+    <IconFrame {...props}>
+      <path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h7M15 18h5" />
+      <circle cx="15" cy="6" r="2" />
+      <circle cx="9" cy="12" r="2" />
+      <circle cx="13" cy="18" r="2" />
+    </IconFrame>
+  );
+}
+
+export function UserIcon(props: SvgIconProps) {
+  return (
+    <IconFrame {...props}>
+      <circle cx="12" cy="8" r="3.5" />
+      <path d="M4.5 20a7.5 7.5 0 0 1 15 0" />
+    </IconFrame>
+  );
+}
+
+export function LogOutIcon(props: SvgIconProps) {
+  return (
+    <IconFrame {...props}>
+      <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4M14 8l4 4-4 4M8 12h10" />
+    </IconFrame>
+  );
+}
+
 export function PlusIcon(props: SvgIconProps) {
   return (
     <IconFrame {...props}>
@@ -376,6 +413,10 @@ const ICONS = {
   refresh: RefreshIcon,
   loader: LoaderIcon,
   info: InfoIcon,
+  wallet: WalletIcon,
+  settings: SettingsIcon,
+  user: UserIcon,
+  logOut: LogOutIcon,
 } satisfies Record<string, ComponentType<SvgIconProps>>;
 
 export type FamilyIconName = keyof typeof ICONS;

@@ -56,7 +56,7 @@ function SignedInAs({ email, token }: { email: string; token: string }) {
       <Link
         to="/login"
         search={{ redirect: `/guardian/accept?token=${encodeURIComponent(token)}` }}
-        className="underline"
+        className="inline-flex min-h-12 items-center underline"
       >
         {t("guardians.accept.switchAccount")}
       </Link>
@@ -226,14 +226,12 @@ function GuardianAcceptScreen() {
   return (
     <ProductScreen className="justify-center">
       <ProductImage
-        src="/assets/people/banker-open-left.png"
-        webpSrc="/assets/people/banker-open-left.webp"
-        avifSrc="/assets/people/banker-open-left.avif"
+        src="/assets/illustrations/family-together.png"
         alt=""
-        width={960}
-        height={1280}
+        width={1122}
+        height={1402}
         priority
-        className="mx-auto h-48 w-full max-w-xs object-contain"
+        className="family-scene family-scene--compact"
       />
       {invite.isLoading || sessionPending ? <LoadingRows /> : null}
       {data ? (

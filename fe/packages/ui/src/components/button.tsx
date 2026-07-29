@@ -1,9 +1,9 @@
 import { cva, type VariantProps } from "class-variance-authority";
-import { LoaderCircle } from "lucide-react";
 import { Slot } from "radix-ui";
 import type * as React from "react";
 
 import { cn } from "../lib/utils";
+import { LoaderCircleIcon } from "./icons";
 
 const buttonVariants = cva(
   "inline-flex shrink-0 items-center justify-center gap-3 whitespace-nowrap rounded-md font-bold text-base outline-none transition-[transform,background-color,box-shadow,opacity] duration-200 ease-out hover:-translate-y-0.5 active:translate-y-px focus-visible:ring-[3px] focus-visible:ring-ring/40 disabled:pointer-events-none disabled:translate-y-0 disabled:opacity-40 aria-invalid:ring-error/20 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
@@ -67,7 +67,7 @@ function Button({
     >
       {loading && !asChild ? (
         <>
-          <LoaderCircle aria-hidden className="animate-spin" />
+          <LoaderCircleIcon aria-hidden className="animate-spin" />
           {loadingLabel ?? children}
         </>
       ) : (

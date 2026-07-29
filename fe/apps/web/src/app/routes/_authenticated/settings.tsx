@@ -7,6 +7,7 @@ import { LANGUAGES } from "@/components/family/product-shell";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
+import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { env } from "@/lib/env";
 import { changeAppLanguage } from "@/lib/locale-sync";
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 function SettingsScreen() {
   const { t, i18n } = useTranslation("fw");
   const { user } = useCurrentUser();
-  const { wallet } = useActiveWallet();
+  const { wallet, isLoading: walletLoading, isError: walletError } = useActiveWallet();
   const active = i18n.resolvedLanguage ?? "en";
   const isTestnet = env.VITE_STELLAR_NETWORK_PASSPHRASE.startsWith("Test ");
 
@@ -70,6 +71,11 @@ function SettingsScreen() {
       {/* An toàn (lô policy 2026-07-29) — HAI TẦNG: trần cứng on-chain (ghi
           trong hợp đồng, ngoài chủ ví không ai đổi) + ngưỡng mềm tự cài (nâng
           chờ 24h huỷ được, hạ áp ngay). Cần ví — chưa có ví thì chưa có gì để cài. */}
+      {walletLoading ? <LoadingRows /> : null}
+      {walletError ? <ErrorState /> : null}
+      {!walletLoading && !walletError && wallet === null ? (
+        <EmptyState message={t("wallet.home.noWallet")} />
+      ) : null}
       {wallet ? <SettingsSafetyCard wallet={wallet} /> : null}
 
       {/* Về app — tên + mạng đang chạy. Nói THẲNG là mạng thử: tiền ở đây

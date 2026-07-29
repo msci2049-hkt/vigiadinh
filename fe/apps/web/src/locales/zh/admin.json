@@ -1,7 +1,7 @@
 {
   "nav": {
     "users": "用户",
-    "sessions": "会话",
+    "sessions": "访问记录",
     "settings": "设置"
   },
   "errors": {
@@ -13,7 +13,7 @@
     "totalUsers": "用户总数",
     "bannedUsers": "当前被封禁",
     "quickLinksTitle": "快捷方式",
-    "quickLinksDescription": "本面板内的页面。"
+    "quickLinksDescription": "此工作区内的页面。"
   },
   "users": {
     "title": "用户",
@@ -42,8 +42,8 @@
       "menu": "对 {email} 的操作",
       "setRole": "设置角色",
       "setPassword": "设置密码",
-      "revokeSessions": "撤销所有会话",
-      "impersonate": "代操作",
+      "revokeSessions": "在所有设备上退出",
+      "impersonate": "以此用户打开",
       "ban": "封禁用户",
       "unban": "解封",
       "remove": "删除用户"
@@ -63,9 +63,9 @@
       },
       "passwordTitle": "设置新密码",
       "newPassword": "新密码（≥ 12 个字符）",
-      "passwordTooShort": "至少 12 个字符（后端规则）。",
+      "passwordTooShort": "请使用至少 12 个字符。",
       "removeTitle": "删除用户？",
-      "removeDescription": "将永久删除 {email} 及其会话/账户，无法撤销。"
+      "removeDescription": "将永久删除 {email} 及其所有登录方式，无法撤销。"
     },
     "toasts": {
       "roleUpdated": "角色已更新",
@@ -73,8 +73,8 @@
       "unbanned": "用户已解封",
       "passwordSet": "密码已设置",
       "removed": "用户已删除",
-      "sessionsRevoked": "已撤销该用户的所有会话",
-      "impersonating": "正在代操作 — 用上方横幅退出",
+      "sessionsRevoked": "此用户已在所有设备上退出",
+      "impersonating": "已以此用户打开 — 使用上方提示返回",
       "created": "用户已创建"
     },
     "create": {
@@ -96,21 +96,21 @@
     }
   },
   "sessions": {
-    "title": "我的会话",
-    "description": "持有此管理员账户会话的设备。",
+    "title": "我的登录设备",
+    "description": "目前可以打开此管理员账户的设备。",
     "unknownDevice": "未知设备",
-    "current": "当前会话",
+    "current": "此设备",
     "expires": "过期时间：{value}",
     "revoke": "撤销",
-    "revoked": "会话已撤销"
+    "revoked": "设备已退出"
   },
   "settings": {
     "title": "面板设置",
-    "description": "外观 + 角色面板注册表。",
+    "description": "外观和每个角色可用的工作区。",
     "appearanceTitle": "外观",
     "appearanceDescription": "语言和浅色/深色主题。",
-    "registryTitle": "PANELS 注册表",
-    "registryDescription": "在 packages/auth/src/panels.ts 中声明 — 新面板 = 3 步（docs/ADD-NEW-PANEL.md）。",
+    "registryTitle": "可用工作区",
+    "registryDescription": "每个角色可访问页面的只读概览。",
     "pages": "个页面"
   }
 }

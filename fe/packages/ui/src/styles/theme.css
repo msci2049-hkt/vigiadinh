@@ -5,19 +5,15 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Primitive */
-  --paper: #fdfcf7;
-  --paper-2: #f7f5ee;
-  --white: #ffffff;
-  --ink: #0a0a0a;
-  --ink-70: #4a4a4a;
-  --grey: #6b6b6b;
-  --grey-2: #e5e3dc;
-  --yellow: #fdda24;
-  --yellow-dark: #e0bc00;
-  --yellow-10: #fef7d6;
-  --green: #1b7f4c;
-  --red: #b3261e;
+  /* Eight primitives. Every surface and interaction tone is derived below. */
+  --paper: #f7f7f2;
+  --ink: #151816;
+  --ink-muted: #5e665f;
+  --yellow: #f3c43b;
+  --green: #1b7555;
+  --ochre: #8a5a00;
+  --red: #b42318;
+  --line: #d7dcd5;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -31,14 +27,14 @@
   --space-16: 4rem;
   --gutter: var(--space-6);
 
-  --radius-sm-value: 0.5rem;
-  --radius-md-value: 0.875rem;
+  --radius-sm-value: 0.75rem;
+  --radius-md-value: 0.75rem;
   --radius-lg-value: 1.25rem;
   --radius-full-value: 999px;
 
-  --shadow-1: 0 1px 2px rgb(10 10 10 / 5%);
-  --shadow-2: 0 4px 12px rgb(10 10 10 / 7%);
-  --shadow-sheet: 0 -8px 32px rgb(10 10 10 / 10%);
+  --shadow-1: 0 1px 2px color-mix(in srgb, var(--ink) 8%, transparent);
+  --shadow-2: 0 14px 34px -24px color-mix(in srgb, var(--ink) 38%, transparent);
+  --shadow-sheet: 0 -12px 36px -18px color-mix(in srgb, var(--ink) 42%, transparent);
 
   --duration-fast: 150ms;
   --duration-base: 240ms;
@@ -48,32 +44,33 @@
   /* Semantic */
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: var(--white);
+  --card: color-mix(in srgb, var(--paper) 96%, var(--yellow));
   --card-foreground: var(--ink);
-  --popover: var(--white);
+  --popover: var(--paper);
   --popover-foreground: var(--ink);
   --primary: var(--yellow);
   --primary-foreground: var(--ink);
-  --secondary: var(--white);
+  --secondary: var(--paper);
   --secondary-foreground: var(--ink);
-  --muted: var(--paper-2);
-  --muted-foreground: var(--grey);
-  --accent: var(--yellow-10);
+  --muted: color-mix(in srgb, var(--ink) 5%, var(--paper));
+  --muted-foreground: var(--ink-muted);
+  --accent: color-mix(in srgb, var(--yellow) 22%, var(--paper));
   --accent-foreground: var(--ink);
-  --destructive: var(--ink);
-  --destructive-foreground: var(--white);
-  --border: var(--grey-2);
-  --input: var(--white);
-  --ring: var(--yellow-dark);
+  --destructive: var(--red);
+  --destructive-foreground: var(--paper);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--yellow);
   --success: var(--green);
-  --warning: var(--yellow);
+  --warning: var(--ochre);
   --error: var(--red);
+  --paper-2: var(--muted);
 
   /* Component */
   --button-primary-bg: var(--primary);
   --button-primary-fg: var(--primary-foreground);
-  --button-danger-bg: var(--ink);
-  --button-danger-fg: var(--white);
+  --button-danger-bg: var(--destructive);
+  --button-danger-fg: var(--destructive-foreground);
   --button-height: 3.5rem;
   --button-radius: var(--radius-md-value);
   --card-radius: var(--radius-md-value);
@@ -85,23 +82,23 @@
 .dark {
   --background: var(--paper);
   --foreground: var(--ink);
-  --card: var(--white);
+  --card: color-mix(in srgb, var(--paper) 96%, var(--yellow));
   --card-foreground: var(--ink);
-  --popover: var(--white);
+  --popover: var(--paper);
   --popover-foreground: var(--ink);
   --primary: var(--yellow);
   --primary-foreground: var(--ink);
-  --secondary: var(--white);
+  --secondary: var(--paper);
   --secondary-foreground: var(--ink);
-  --muted: var(--paper-2);
-  --muted-foreground: var(--grey);
-  --accent: var(--yellow-10);
+  --muted: color-mix(in srgb, var(--ink) 5%, var(--paper));
+  --muted-foreground: var(--ink-muted);
+  --accent: color-mix(in srgb, var(--yellow) 22%, var(--paper));
   --accent-foreground: var(--ink);
-  --destructive: var(--ink);
-  --destructive-foreground: var(--white);
-  --border: var(--grey-2);
-  --input: var(--white);
-  --ring: var(--yellow-dark);
+  --destructive: var(--red);
+  --destructive-foreground: var(--paper);
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--yellow);
 }
 
 @theme inline {

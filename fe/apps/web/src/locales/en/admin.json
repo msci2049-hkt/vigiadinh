@@ -1,7 +1,7 @@
 {
   "nav": {
     "users": "Users",
-    "sessions": "Sessions",
+    "sessions": "Access",
     "settings": "Settings"
   },
   "errors": {
@@ -13,7 +13,7 @@
     "totalUsers": "Total users",
     "bannedUsers": "Currently banned",
     "quickLinksTitle": "Shortcuts",
-    "quickLinksDescription": "Pages inside this panel."
+    "quickLinksDescription": "Pages inside this workspace."
   },
   "users": {
     "title": "Users",
@@ -42,8 +42,8 @@
       "menu": "Actions for {email}",
       "setRole": "Set role",
       "setPassword": "Set password",
-      "revokeSessions": "Revoke all sessions",
-      "impersonate": "Impersonate",
+      "revokeSessions": "Sign out everywhere",
+      "impersonate": "Open as this user",
       "ban": "Ban user",
       "unban": "Unban",
       "remove": "Remove user"
@@ -63,9 +63,9 @@
       },
       "passwordTitle": "Set a new password",
       "newPassword": "New password (≥ 12 chars)",
-      "passwordTooShort": "Minimum 12 characters (BE rule).",
+      "passwordTooShort": "Use at least 12 characters.",
       "removeTitle": "Remove user?",
-      "removeDescription": "Permanently deletes {email} with sessions/accounts. Cannot be undone."
+      "removeDescription": "Permanently deletes {email} and every way they can sign in. Cannot be undone."
     },
     "toasts": {
       "roleUpdated": "Role updated",
@@ -73,8 +73,8 @@
       "unbanned": "User unbanned",
       "passwordSet": "Password set",
       "removed": "User removed",
-      "sessionsRevoked": "All user sessions revoked",
-      "impersonating": "Impersonating — use the banner above to exit",
+      "sessionsRevoked": "This user was signed out everywhere",
+      "impersonating": "Opened as this user — use the banner above to return",
       "created": "User created"
     },
     "create": {
@@ -96,21 +96,21 @@
     }
   },
   "sessions": {
-    "title": "My sessions",
-    "description": "Devices holding a session for this admin account.",
+    "title": "Where I'm signed in",
+    "description": "Devices that can currently open this administrator account.",
     "unknownDevice": "Unknown device",
-    "current": "Current session",
+    "current": "This device",
     "expires": "Expires: {value}",
     "revoke": "Revoke",
-    "revoked": "Session revoked"
+    "revoked": "Device signed out"
   },
   "settings": {
-    "title": "Panel settings",
-    "description": "Appearance + the role-panel registry.",
+    "title": "Workspace settings",
+    "description": "Appearance and the workspaces available to each role.",
     "appearanceTitle": "Appearance",
     "appearanceDescription": "Language and light/dark theme.",
-    "registryTitle": "PANELS registry",
-    "registryDescription": "Declared in packages/auth/src/panels.ts — new panel = 3 steps (docs/ADD-NEW-PANEL.md).",
+    "registryTitle": "Available workspaces",
+    "registryDescription": "A read-only overview of the pages available to each role.",
     "pages": "pages"
   }
 }

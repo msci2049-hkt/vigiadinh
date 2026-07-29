@@ -1,12 +1,12 @@
+import { Toaster as Sonner, type ToasterProps } from "sonner";
+import { useThemeStore } from "../theme-store";
 import {
   CircleCheckIcon,
   InfoIcon,
-  Loader2Icon,
+  LoaderCircleIcon,
   OctagonXIcon,
   TriangleAlertIcon,
-} from "lucide-react";
-import { Toaster as Sonner, type ToasterProps } from "sonner";
-import { useThemeStore } from "../theme-store";
+} from "./icons";
 
 const Toaster = ({ ...props }: ToasterProps) => {
   // Theme comes from our zustand store (we don't use next-themes).
@@ -21,7 +21,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         info: <InfoIcon className="size-4" />,
         warning: <TriangleAlertIcon className="size-4" />,
         error: <OctagonXIcon className="size-4" />,
-        loading: <Loader2Icon className="size-4 animate-spin" />,
+        loading: <LoaderCircleIcon className="size-4 animate-spin" />,
       }}
       style={
         {

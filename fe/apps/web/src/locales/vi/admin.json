@@ -1,7 +1,7 @@
 {
   "nav": {
     "users": "Người dùng",
-    "sessions": "Phiên đăng nhập",
+    "sessions": "Lượt truy cập",
     "settings": "Cài đặt"
   },
   "errors": {
@@ -13,7 +13,7 @@
     "totalUsers": "Tổng người dùng",
     "bannedUsers": "Đang bị khoá",
     "quickLinksTitle": "Lối tắt",
-    "quickLinksDescription": "Các trang trong bảng điều khiển này."
+    "quickLinksDescription": "Các trang trong khu làm việc này."
   },
   "users": {
     "title": "Người dùng",
@@ -42,8 +42,8 @@
       "menu": "Thao tác với {email}",
       "setRole": "Đổi vai trò",
       "setPassword": "Đặt mật khẩu",
-      "revokeSessions": "Thu hồi mọi phiên",
-      "impersonate": "Mạo danh",
+      "revokeSessions": "Đăng xuất khỏi mọi thiết bị",
+      "impersonate": "Mở như người này",
       "ban": "Khoá tài khoản",
       "unban": "Mở khoá",
       "remove": "Xoá người dùng"
@@ -63,9 +63,9 @@
       },
       "passwordTitle": "Đặt mật khẩu mới",
       "newPassword": "Mật khẩu mới (≥ 12 ký tự)",
-      "passwordTooShort": "Mật khẩu tối thiểu 12 ký tự (theo BE).",
+      "passwordTooShort": "Dùng ít nhất 12 ký tự.",
       "removeTitle": "Xoá người dùng?",
-      "removeDescription": "Xoá vĩnh viễn {email} cùng session/account. Không hoàn tác được."
+      "removeDescription": "Xoá vĩnh viễn {email} và mọi cách họ có thể đăng nhập. Không hoàn tác được."
     },
     "toasts": {
       "roleUpdated": "Đã đổi vai trò",
@@ -73,8 +73,8 @@
       "unbanned": "Đã mở khoá",
       "passwordSet": "Đã đặt mật khẩu mới",
       "removed": "Đã xoá người dùng",
-      "sessionsRevoked": "Đã thu hồi mọi phiên của user",
-      "impersonating": "Đang mạo danh — banner phía trên để thoát",
+      "sessionsRevoked": "Đã đăng xuất tài khoản này khỏi mọi thiết bị",
+      "impersonating": "Đã mở như người này — dùng dải phía trên để quay lại",
       "created": "Đã tạo người dùng"
     },
     "create": {
@@ -96,21 +96,21 @@
     }
   },
   "sessions": {
-    "title": "Phiên đăng nhập của tôi",
-    "description": "Thiết bị đang giữ session của tài khoản admin này.",
+    "title": "Nơi tôi đang đăng nhập",
+    "description": "Các thiết bị hiện có thể mở tài khoản quản trị này.",
     "unknownDevice": "Thiết bị không rõ",
-    "current": "Phiên hiện tại",
+    "current": "Thiết bị này",
     "expires": "Hết hạn: {value}",
     "revoke": "Thu hồi",
-    "revoked": "Đã thu hồi phiên"
+    "revoked": "Đã đăng xuất thiết bị"
   },
   "settings": {
-    "title": "Cài đặt panel",
-    "description": "Giao diện + registry các bảng điều khiển theo vai trò.",
+    "title": "Cài đặt khu làm việc",
+    "description": "Giao diện và các khu làm việc dành cho từng vai trò.",
     "appearanceTitle": "Hiển thị",
     "appearanceDescription": "Ngôn ngữ và giao diện sáng/tối.",
-    "registryTitle": "PANELS registry",
-    "registryDescription": "Khai báo tại packages/auth/src/panels.ts — thêm panel mới = 3 bước (docs/ADD-NEW-PANEL.md).",
+    "registryTitle": "Các khu làm việc hiện có",
+    "registryDescription": "Danh sách chỉ đọc về những trang dành cho từng vai trò.",
     "pages": "trang"
   }
 }
