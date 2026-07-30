@@ -7,10 +7,9 @@
 // sau 20 lần người dùng bấm qua theo phản xạ và lần thứ 21 — lần có vấn đề —
 // cũng bấm qua (mệt mỏi cảnh báo làm GIẢM bảo mật). Dưới ngưỡng thì im.
 import { formatAmount } from "@repo/core";
-import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Icon } from "@/components/family/icons";
-import { type IntentSignals, intentSignalsOptions } from "../api/intent-signals";
+import type { IntentSignals } from "../api/intent-signals";
 
 export type SignalsAudience = "guardian" | "owner";
 
@@ -67,16 +66,5 @@ export function IntentSignalsBlock({
   );
 }
 
-/** Bản NỐI MẠNG. Đang tải / lỗi / 403 → im lặng: khối phụ trợ không bao giờ
- * được chặn màn chính hay nút duyệt (fail-safe, không fail-open lẫn fail-block). */
-export function IntentSignalsCard({
-  intentId,
-  audience,
-}: {
-  intentId: string;
-  audience: SignalsAudience;
-}) {
-  const signals = useQuery(intentSignalsOptions(intentId));
-  if (!signals.data) return null;
-  return <IntentSignalsBlock signals={signals.data} audience={audience} />;
-}
+// Bản nối mạng nằm ở ai-advisor-card.tsx (AiAdvisorCard) — một chỗ quyết định
+// hiện khối AI hay khối số thô, để hai màn duyệt không bao giờ lệch nhau.

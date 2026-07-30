@@ -441,6 +441,11 @@
     "walletUser": "Family wallet",
     "working": "Unlocking with your device…"
   },
+  "ai": {
+    "title": "AI protector",
+    "speakLabel": "Read aloud",
+    "stopLabel": "Stop reading"
+  },
   "signals": {
     "title": "Check before you approve",
     "titleOwner": "Double-check this transfer",

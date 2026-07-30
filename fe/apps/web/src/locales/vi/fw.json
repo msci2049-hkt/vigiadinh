@@ -441,6 +441,11 @@
     "walletUser": "Ví gia đình",
     "working": "Đang mở khóa bằng thiết bị của bạn…"
   },
+  "ai": {
+    "title": "AI bảo vệ",
+    "speakLabel": "Đọc to nội dung",
+    "stopLabel": "Dừng đọc"
+  },
   "signals": {
     "title": "Kiểm tra trước khi duyệt",
     "titleOwner": "Kiểm tra lại lệnh vừa tạo",

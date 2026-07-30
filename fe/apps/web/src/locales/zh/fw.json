@@ -441,6 +441,11 @@
     "walletUser": "家庭钱包",
     "working": "正在用你的设备解锁…"
   },
+  "ai": {
+    "title": "AI 守护助手",
+    "speakLabel": "朗读内容",
+    "stopLabel": "停止朗读"
+  },
   "signals": {
     "title": "批准前请先核对",
     "titleOwner": "请再核对这笔转账",
