@@ -3,7 +3,8 @@
 // tươi. Phần endpoint đầy-đủ (cấp session thật, chặn khác tài khoản, jti một
 // lần) nằm ở sep45-exchange.integration.test.ts — cần Postgres + Dragonfly.
 import { describe, expect, it } from "bun:test";
-import { MAX_TOKEN_AGE_SECONDS, maskEmail } from "./sep45-session-plugin";
+import { maskEmail } from "./mask-email";
+import { MAX_TOKEN_AGE_SECONDS } from "./sep45-session-plugin";
 
 describe("maskEmail", () => {
   it("giữ tối đa 3 ký tự đầu — đủ nhận ra, không đủ tra", () => {

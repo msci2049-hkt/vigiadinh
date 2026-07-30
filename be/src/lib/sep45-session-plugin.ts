@@ -36,24 +36,17 @@ import { setSessionCookie } from "better-auth/cookies";
 import { z } from "zod";
 import { env } from "@/env";
 import { logger } from "@/lib/logger";
+import { maskEmail } from "@/lib/mask-email";
 import { rateLimitConnection } from "@/lib/redis";
 import { resolveWalletSession, walletIdentityByAddress, walletJwtVersion } from "@/modules/sep45";
 
 /** Token phát quá 5 phút không đổi được nữa — FE đổi ngay sau khi ký (cùng tick). */
 export const MAX_TOKEN_AGE_SECONDS = 300;
 
-/**
- * Che email khi báo "khoá này thuộc tài khoản khác" (B3): người cầm passkey của ví
- * đó đáng được biết MÌNH đang cầm nhầm chìa của ai ở mức nhận ra được, nhưng cửa
- * này không được thành máy tra email theo passkey.
- */
-export function maskEmail(email: string): string {
-  const at = email.indexOf("@");
-  if (at <= 0) return "***";
-  const local = email.slice(0, at);
-  const keep = Math.min(3, Math.max(1, local.length - 1));
-  return `${local.slice(0, keep)}***${email.slice(at)}`;
-}
+// maskEmail chuyển sang lib/mask-email.ts (lô 30/07 — chiều guardian của
+// list-protecting cũng cần che email, mà domain thuần không import nổi file
+// plugin này). Ngữ nghĩa giữ nguyên: B3 — "khoá này thuộc tài khoản khác" nói
+// được "của ai" ở mức nhận ra, không thành máy tra email theo passkey.
 
 /**
  * Endpoint: POST /api/auth/sep45/exchange  body {token}

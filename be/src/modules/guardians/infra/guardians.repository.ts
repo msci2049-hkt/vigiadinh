@@ -47,8 +47,9 @@ export async function listByWalletForOwner(
 }
 
 /** Chiều NGƯỢC — các ví user này đang gác (màn "Ví tôi đang gác", C7).
- * CHỈ select cột an toàn + đúng MỘT cột user.name (như findOwnerName):
- * email / địa chỉ ví / số dư của chủ không đi qua đường này. */
+ * CHỈ select cột an toàn + user.name và user.email (lô 30/07 — email CHỈ để
+ * protectingItemView CHE rồi mới rời BE, bản đầy đủ không bao giờ vào response):
+ * địa chỉ ví / số dư của chủ không đi qua đường này. */
 export async function listProtectingForUser(userId: string, limit = LIST_LIMIT) {
   return db
     .select({
@@ -58,6 +59,7 @@ export async function listProtectingForUser(userId: string, limit = LIST_LIMIT) 
       createdAt: guardians.createdAt,
       lastSeenAt: guardians.lastSeenAt,
       ownerName: user.name,
+      ownerEmail: user.email,
     })
     .from(guardians)
     .innerJoin(wallets, eq(guardians.walletId, wallets.id))
