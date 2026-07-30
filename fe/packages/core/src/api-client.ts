@@ -18,8 +18,18 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * App handler for 401s. Receives the ApiError (parsed BE body in `.data`) so
+ * the app can branch on the error CODE — e.g. clear a dead wallet Bearer on
+ * WALLET_SESSION_REVOKED. Return `true` to make the apiClient retry the request
+ * ONCE with rebuilt headers (an Authorization header cleared inside the handler
+ * actually disappears from the retry); any other return keeps the throw-only
+ * behavior. `error` is undefined for non-HTTP triggers (SSE fatal 401/403).
+ */
+export type UnauthorizedHandler = (error?: ApiError) => boolean | undefined;
+
 /** Default 401 handler: hard redirect to /login preserving the return path. */
-function defaultOnUnauthorized(): void {
+function defaultOnUnauthorized(): undefined {
   if (typeof window === "undefined") return;
   if (window.location.pathname === "/login") return;
   const redirect = encodeURIComponent(window.location.pathname + window.location.search);
@@ -28,19 +38,20 @@ function defaultOnUnauthorized(): void {
 
 // App-wide singleton (one per app bundle): apiClient 401s and SSE fatal 401/403
 // share the same "session expired" handling.
-let onUnauthorized: () => void = defaultOnUnauthorized;
+let onUnauthorized: UnauthorizedHandler = defaultOnUnauthorized;
 
 /** Wire a router-aware handler (e.g. router.navigate) from the app layer. */
-export function setUnauthorizedHandler(handler: () => void): void {
+export function setUnauthorizedHandler(handler: UnauthorizedHandler): void {
   onUnauthorized = handler;
 }
 
 /**
  * Trigger the same "session expired → /login" handling used for HTTP 401s, for
  * non-HTTP flows that detect a dead session too (e.g. SSE returning 401/403).
+ * There is no ApiError to hand over → the handler takes its non-retry branch.
  */
 export function notifyUnauthorized(): void {
-  onUnauthorized();
+  onUnauthorized(undefined);
 }
 
 function parseRetryAfter(header: string | null): number | undefined {
@@ -101,7 +112,9 @@ export function createApiClient({ baseUrl }: ApiClientOptions): ApiClient {
     const { body, retry503 = 2, headers, ...rest } = options;
     const url = path.startsWith("http") ? path : `${baseUrl}${path}`;
 
-    const init: RequestInit = {
+    // Rebuilt on EVERY attempt: the 401 handler may have just cleared authHeader
+    // (a revoked wallet Bearer) — the retry must go out WITHOUT it to escape 401.
+    const buildInit = (): RequestInit => ({
       ...rest,
       credentials: "include",
       headers: {
@@ -111,15 +124,22 @@ export function createApiClient({ baseUrl }: ApiClientOptions): ApiClient {
         ...headers,
       },
       ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-    };
+    });
 
+    let retriedUnauthorized = false;
     for (let attempt = 0; ; attempt += 1) {
-      const res = await fetch(url, init);
+      const res = await fetch(url, buildInit());
 
-      // Unauthenticated → BE returns 401 (not 404). Bounce to /login.
+      // Unauthenticated → BE returns 401 (not 404). The handler decides: `true`
+      // = it fixed the cause (e.g. dropped a revoked wallet Bearer) → retry ONCE;
+      // anything else → keep the old behavior (bounce to /login) and throw.
       if (res.status === 401) {
-        onUnauthorized();
-        throw new ApiError("Unauthorized", 401, await readBody(res));
+        const error = new ApiError("Unauthorized", 401, await readBody(res));
+        if (onUnauthorized(error) === true && !retriedUnauthorized) {
+          retriedUnauthorized = true;
+          continue;
+        }
+        throw error;
       }
 
       // Overloaded → 503 + Retry-After. Back off instead of hammering.

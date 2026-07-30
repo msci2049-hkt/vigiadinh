@@ -24,6 +24,9 @@
     "disconnected": "Dịch vụ đang gián đoạn",
     "ok": "Đã kết nối"
   },
+  "session": {
+    "walletRevoked": "Phiên ví đã hết hiệu lực. Mở khoá lại bằng vân tay."
+  },
   "backHome": "← Về trang chủ",
   "panels": {
     "admin": {

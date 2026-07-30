@@ -94,6 +94,60 @@ describe("apiClient interceptor", () => {
   });
 });
 
+describe("401 handler contract (retry-once on revoked wallet Bearer)", () => {
+  it("🔴 handler returns true → retries ONCE, rebuilt headers drop the cleared Bearer", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        res(401, JSON.stringify({ error: { code: "WALLET_SESSION_REVOKED" } }), JSON_HEADERS),
+      )
+      .mockResolvedValueOnce(res(200, JSON.stringify({ ok: true }), JSON_HEADERS));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const client = createApiClient({ baseUrl: "http://be.test" });
+    client.setAuthHeader("Bearer dead-wallet-jwt");
+    setUnauthorizedHandler((error) => {
+      const code = (error?.data as { error?: { code?: string } } | null)?.error?.code;
+      if (code !== "WALLET_SESSION_REVOKED") return;
+      client.setAuthHeader(null); // the app handler clears the dead token…
+      return true; // …and asks for one retry (the cookie is still valid)
+    });
+
+    await expect(client.get<{ ok: boolean }>("/api/wallets")).resolves.toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const first = (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1]
+      .headers as Record<string, string>;
+    const second = (fetchMock.mock.calls[1] as unknown as [string, RequestInit])[1]
+      .headers as Record<string, string>;
+    expect(first.Authorization).toBe("Bearer dead-wallet-jwt");
+    expect(second.Authorization).toBeUndefined();
+  });
+
+  it("🔴 handler returns void (401 code it doesn't own) → NO retry, throws once", async () => {
+    const fetchMock = vi.fn(async () =>
+      res(401, JSON.stringify({ error: { code: "UNAUTHENTICATED" } }), JSON_HEADERS),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const handler = vi.fn(() => undefined);
+    setUnauthorizedHandler(handler);
+
+    await expect(apiClient.get("/secure")).rejects.toMatchObject({ status: 401 });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledTimes(1);
+  });
+
+  it("handler keeps returning true but 401 persists → retries only ONCE then throws", async () => {
+    const fetchMock = vi.fn(async () =>
+      res(401, JSON.stringify({ error: { code: "WALLET_SESSION_REVOKED" } }), JSON_HEADERS),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    setUnauthorizedHandler(() => true);
+
+    await expect(apiClient.get("/secure")).rejects.toBeInstanceOf(ApiError);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
+
 describe("setAuthHeader (dev-token identity)", () => {
   it("attaches Authorization on every request and clears with null", async () => {
     const client = createApiClient({ baseUrl: "http://be.test" });

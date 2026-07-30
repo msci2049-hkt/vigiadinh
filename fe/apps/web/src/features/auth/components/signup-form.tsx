@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { ErrorBanner } from "@/components/family/error-banner";
 import {
   Button,
   Card,
@@ -28,6 +29,9 @@ export function SignupForm({ redirectTo }: { redirectTo?: string | undefined }) 
   const { t } = useTranslation("auth");
   const limits = useValidationLimits();
   const [submitting, setSubmitting] = useState(false);
+  // Email đã có tài khoản (BE trả USER_ALREADY_EXISTS) — giữ lại để hiện banner
+  // dẫn sang Đăng nhập MANG SẴN email đó, thay vì toast lỗi chung rồi bỏ mặc.
+  const [takenEmail, setTakenEmail] = useState<string | null>(null);
 
   const form = useForm<SignupInput>({
     resolver: zodResolver(useMemo(() => makeSignupSchema(t, limits), [t, limits])),
@@ -36,6 +40,7 @@ export function SignupForm({ redirectTo }: { redirectTo?: string | undefined }) 
 
   async function onSubmit(values: SignupInput) {
     setSubmitting(true);
+    setTakenEmail(null);
     // INVARIANT: never send `role` — server owns it (see @repo/auth).
     const { error } = await signUp.email({
       name: values.name,
@@ -45,6 +50,13 @@ export function SignupForm({ redirectTo }: { redirectTo?: string | undefined }) 
 
     if (error) {
       setSubmitting(false);
+      // BE chối email trùng bằng mã riêng (hooks.before, be/src/lib/auth.ts —
+      // đánh đổi tiết lộ có chủ đích, rate-limit 3/60s vẫn gác): KHÔNG đi tiếp
+      // sang màn OTP, KHÔNG gửi email — hiện đường đúng ngay tại form.
+      if (error.code === "USER_ALREADY_EXISTS") {
+        setTakenEmail(values.email);
+        return;
+      }
       toast.error(error.message ?? t("signup.errorToast"));
       return;
     }
@@ -119,6 +131,18 @@ export function SignupForm({ redirectTo }: { redirectTo?: string | undefined }) 
               </Button>
             </form>
           </Form>
+          {takenEmail ? (
+            <div className="mt-4">
+              <ErrorBanner type="info" title={t("signup.emailTakenTitle")}>
+                <p>{t("signup.emailTaken")}</p>
+                <Button asChild className="mt-3 w-full">
+                  <Link to="/login" search={{ email: takenEmail, redirect: redirectTo }}>
+                    {t("signup.emailTakenCta")}
+                  </Link>
+                </Button>
+              </ErrorBanner>
+            </div>
+          ) : null}
           <p className="mt-4 text-center text-muted-foreground text-sm">
             {t("signup.haveAccount")}{" "}
             <Link to="/login" className="text-primary underline-offset-4 hover:underline">

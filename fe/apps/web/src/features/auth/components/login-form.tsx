@@ -24,7 +24,14 @@ import {
 import { getSession, signIn } from "@/lib/auth-client";
 import { type LoginInput, makeLoginSchema } from "../schemas/login-schema";
 
-export function LoginForm({ redirectTo }: { redirectTo?: string | undefined }) {
+export function LoginForm({
+  redirectTo,
+  prefillEmail,
+}: {
+  redirectTo?: string | undefined;
+  /** Email mang sẵn từ form Đăng ký khi tài khoản đã tồn tại (?email=…). */
+  prefillEmail?: string | undefined;
+}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { t } = useTranslation("auth");
@@ -32,7 +39,7 @@ export function LoginForm({ redirectTo }: { redirectTo?: string | undefined }) {
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(useMemo(() => makeLoginSchema(t), [t])),
-    defaultValues: { email: "", password: "" },
+    defaultValues: { email: prefillEmail ?? "", password: "" },
   });
 
   async function onSubmit(values: LoginInput) {

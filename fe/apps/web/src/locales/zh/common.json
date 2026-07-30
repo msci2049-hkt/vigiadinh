@@ -24,6 +24,9 @@
     "disconnected": "服务暂时不可用",
     "ok": "已连接"
   },
+  "session": {
+    "walletRevoked": "钱包会话已失效。请再次使用指纹解锁。"
+  },
   "backHome": "← 返回首页",
   "panels": {
     "admin": {

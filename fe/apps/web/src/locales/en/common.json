@@ -24,6 +24,9 @@
     "disconnected": "Service unavailable",
     "ok": "Connected"
   },
+  "session": {
+    "walletRevoked": "Your wallet session is no longer valid. Unlock again with your fingerprint."
+  },
   "backHome": "← Back home",
   "panels": {
     "admin": {

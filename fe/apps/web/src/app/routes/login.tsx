@@ -10,6 +10,9 @@ import { sanitizeRedirect } from "@/features/auth/lib/redirect-param";
 // đọc `?redirect` lại là màn không được vá — link vòng lặp dán tay vẫn lồng tiếp.
 const loginSearchSchema = z.object({
   redirect: z.string().optional().transform(sanitizeRedirect),
+  // Email mang từ form Đăng ký sang khi email đã có tài khoản (L1 30/07) —
+  // prefill để người dùng chỉ còn gõ mật khẩu. Không hợp lệ → bỏ, không chặn.
+  email: z.email().optional().catch(undefined),
 });
 
 export const Route = createFileRoute("/login")({
@@ -18,8 +21,8 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { redirect } = Route.useSearch();
+  const { redirect, email } = Route.useSearch();
   // No explicit redirect → LoginForm lands on the role's post-auth home
   // (postAuthPath) after sign-in; plain users go to "/wallet".
-  return <LoginForm redirectTo={redirect} />;
+  return <LoginForm redirectTo={redirect} prefillEmail={email} />;
 }
