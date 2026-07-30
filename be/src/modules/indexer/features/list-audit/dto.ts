@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { AuditEntryWithIntent } from "../../infra/indexer.repository";
 
 /**
  * `cursor` là con trỏ trang mờ đục (opaque) — base64url của `{at,id}` mà trang
@@ -11,6 +12,37 @@ export const listAuditQuery = z.object({
 });
 
 export type ListAuditQuery = z.infer<typeof listAuditQuery>;
+
+/**
+ * Dòng nhật ký như CLIENT nhìn thấy (B3). Thêm `amount` + `recipient` so với bản
+ * trước; giữ nguyên mọi trường cũ để không phá hợp đồng đang chạy.
+ */
+export type AuditItemView = Omit<AuditEntryWithIntent, "intentAmount" | "intentRecipient"> & {
+  /** Chuỗi stroops, KHÔNG phải BigInt — xem lý do ở auditItemView. */
+  amount: string | null;
+  /** Địa chỉ ĐẦY ĐỦ người nhận. Đây là dữ liệu của CHÍNH chủ ví (họ tự gõ vào lúc
+   * gửi), không phải của người khác — khác view phía guardian ở
+   * intents/domain/format.ts, nơi địa chỉ CỐ Ý bị cắt. Rút gọn để hiển thị là việc
+   * của FE. */
+  recipient: string | null;
+};
+
+/**
+ * Đổi `intentAmount` (bigint stroops của Drizzle) thành CHUỖI.
+ *
+ * Không phải chuyện thẩm mỹ: `c.json()` gọi JSON.stringify, và JSON.stringify
+ * THROW trên BigInt — trả thẳng bigint ra là lặp lại đúng lớp lỗi vừa làm indexer
+ * chết cứng 48 phút (2026-07-30, xem indexer/domain/json-safe.ts). Chuỗi stroops
+ * cũng là quy ước tiền sẵn có của FE (`ScaledAmount`, packages/core/src/money).
+ */
+export function auditItemView(row: AuditEntryWithIntent): AuditItemView {
+  const { intentAmount, intentRecipient, ...entry } = row;
+  return {
+    ...entry,
+    amount: intentAmount === null ? null : intentAmount.toString(),
+    recipient: intentRecipient,
+  };
+}
 
 export type DecodedCursor = { at: Date; id: string };
 

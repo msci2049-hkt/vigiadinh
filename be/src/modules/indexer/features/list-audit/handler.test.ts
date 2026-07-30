@@ -3,9 +3,10 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { auditLog } from "@/modules/indexer/infra/audit-log.schema";
 import * as repo from "@/modules/indexer/infra/indexer.repository";
+import { transactionIntents } from "@/modules/intents/infra/intents.schema";
 import { wallets } from "@/modules/wallets/infra/wallets.schema";
 import { pgReachable, SKIP_REASON } from "@/test-support/pg";
-import { decodeCursor, encodeCursor, listAuditQuery } from "./dto";
+import { auditItemView, decodeCursor, encodeCursor, listAuditQuery } from "./dto";
 
 describe("indexer dto", () => {
   it("limit mặc định 50, coerce từ query string", () => {
@@ -18,6 +19,53 @@ describe("indexer dto", () => {
     const decoded = decodeCursor(encodeCursor({ at, id: "01KYCS0TNDVZTS2S9Z95N20DNM" }));
     expect(decoded?.at.toISOString()).toBe(at.toISOString());
     expect(decoded?.id).toBe("01KYCS0TNDVZTS2S9Z95N20DNM");
+  });
+
+  it("auditItemView: bigint stroops → CHUỖI, JSON.stringify không throw", () => {
+    // Trả thẳng bigint ra `c.json()` là lặp lại đúng lớp lỗi đã làm indexer chết
+    // cứng 48 phút (2026-07-30). Gác ở đây vì handler là chỗ duy nhất còn lối ra.
+    const row = {
+      id: "01KYRQ07WMTARAZFP7SFWJ8SP5",
+      walletId: "01KYRQ07WMTARAZFP7SFWJ8SP5",
+      kind: "intent.settled",
+      payload: { intentId: "01KYRYHCX302N1750BRDTKN7FT" },
+      actorType: "owner",
+      actorId: "u-1",
+      deviceId: null,
+      beforeHash: null,
+      afterHash: null,
+      at: new Date("2026-07-30T07:24:00.000Z"),
+      intentAmount: 650_000_000n,
+      intentRecipient: `C${"B".repeat(55)}`,
+    };
+    const view = auditItemView(row);
+    expect(view.amount).toBe("650000000");
+    expect(view.recipient).toBe(`C${"B".repeat(55)}`);
+    expect(() => JSON.stringify(view)).not.toThrow();
+    expect(() => JSON.stringify(row)).toThrow(); // bản chưa qua view thì chết
+    // Trường cũ giữ nguyên — không thu hẹp hợp đồng đang chạy.
+    expect(view.kind).toBe("intent.settled");
+    expect(view.at).toEqual(row.at);
+    expect("intentAmount" in view).toBe(false);
+  });
+
+  it("auditItemView: không có lệnh gửi → amount/recipient null (không phải chuỗi rỗng)", () => {
+    const view = auditItemView({
+      id: "01KYRQ07WMTARAZFP7SFWJ8SP6",
+      walletId: "01KYRQ07WMTARAZFP7SFWJ8SP5",
+      kind: "register",
+      payload: { method: "register_wallet" },
+      actorType: "system",
+      actorId: null,
+      deviceId: null,
+      beforeHash: null,
+      afterHash: null,
+      at: new Date("2026-07-30T10:49:00.000Z"),
+      intentAmount: null,
+      intentRecipient: null,
+    });
+    expect(view.amount).toBeNull();
+    expect(view.recipient).toBeNull();
   });
 
   it("cursor rác → null (handler map sang 400, KHÔNG âm thầm về trang đầu)", () => {
@@ -117,5 +165,156 @@ describe("§6.5 — phân trang con trỏ cho nhật ký ví", () => {
     );
     expect(stranger.items).toHaveLength(0);
     expect(stranger.nextCursor).toBeNull();
+  });
+});
+
+// ── B3: nhật ký phải chở SỐ TIỀN + NGƯỜI NHẬN ───────────────────────────────────
+//
+// `audit_log.payload` chỉ có `hash` + `status` + `intentId`; số tiền và người nhận
+// nằm ở `transaction_intents`. Trước bản này API không join → lịch sử đọc được
+// nhưng thiếu đúng hai thứ người dùng cần biết.
+//
+// 🔴 Ca quan trọng nhất ở đây KHÔNG phải "có join" mà là "join KHÔNG rò rỉ": hai
+// ví khác chủ, payload của ví B trỏ vào intentId của ví A. `transaction_intents.id`
+// là ULID duy nhất toàn cục nên nếu thiếu điều kiện cùng `wallet_id`, ví B sẽ đọc
+// được số tiền + địa chỉ người nhận của ví A.
+const OWNER_A = `it-b3a-${crypto.randomUUID().slice(0, 8)}`;
+const OWNER_B = `it-b3b-${crypto.randomUUID().slice(0, 8)}`;
+let walletA = "";
+let walletB = "";
+let intentA = "";
+
+function fakeAddress(fill: string): string {
+  return `C${fill.repeat(55)}`.slice(0, 56);
+}
+
+if (dbUp) {
+  const [wa] = await db
+    .insert(wallets)
+    .values({ userId: OWNER_A, stellarAddress: fakeAddress("A"), contractId: fakeAddress("A") })
+    .returning({ id: wallets.id });
+  const [wb] = await db
+    .insert(wallets)
+    .values({ userId: OWNER_B, stellarAddress: fakeAddress("B"), contractId: fakeAddress("B") })
+    .returning({ id: wallets.id });
+  walletA = wa?.id ?? "";
+  walletB = wb?.id ?? "";
+
+  // Lệnh gửi THẬT của ví A: 65 XLM (650000000 stroops) → CBYKUI…SYDI.
+  const [intent] = await db
+    .insert(transactionIntents)
+    .values({
+      walletId: walletA,
+      clientIntentId: `cli-${crypto.randomUUID()}`,
+      status: "settled",
+      operations: [{ type: "transfer" }],
+      recipient: "CBYKUIYA7LNNVQJCMKVG664R75V23YX5V4GHGIP5VTDVFDU6GW35SYDI",
+      amount: 650_000_000n,
+    })
+    .returning({ id: transactionIntents.id });
+  intentA = intent?.id ?? "";
+
+  await db.insert(auditLog).values([
+    // Ví A — dòng có lệnh gửi (join phải ra số tiền).
+    {
+      walletId: walletA,
+      kind: "intent.settled",
+      actorType: "owner",
+      payload: { intentId: intentA, hash: "d".repeat(64), status: "SUCCESS" },
+      at: new Date(Date.UTC(2026, 6, 30, 7, 24, 0)),
+    },
+    // Ví A — dòng KHÔNG có lệnh gửi (LEFT JOIN phải giữ lại).
+    {
+      walletId: walletA,
+      kind: "register",
+      actorType: "system",
+      payload: { method: "register_wallet", hash: "e".repeat(64) },
+      at: new Date(Date.UTC(2026, 6, 30, 7, 20, 0)),
+    },
+    { walletId: walletA, kind: "policy.change_applied", actorType: "system", payload: {} },
+    { walletId: walletA, kind: "guardian.approved", actorType: "guardian", payload: null },
+    // 🔴 Ví B — payload TRỎ VÀO intent của ví A. Đây là mũi tấn công.
+    {
+      walletId: walletB,
+      kind: "intent.settled",
+      actorType: "owner",
+      payload: { intentId: intentA, hash: "f".repeat(64), status: "SUCCESS" },
+      at: new Date(Date.UTC(2026, 6, 30, 8, 0, 0)),
+    },
+  ]);
+}
+
+afterAll(async () => {
+  if (!dbUp) return;
+  // wallets → transaction_intents cascade; audit_log là append-only (không dọn được,
+  // và đó là đúng — mỗi lần chạy dùng walletId mới nên không ca nào nhiễu ca nào).
+  for (const id of [walletA, walletB]) {
+    if (id) await db.delete(wallets).where(eq(wallets.id, id));
+  }
+});
+
+describe("B3 — join transaction_intents vào nhật ký", () => {
+  testIt("dòng có intentId → amount stroops + địa chỉ người nhận đầy đủ", async () => {
+    const page = await repo.listByWalletForOwner(walletA, OWNER_A, 50);
+    const settled = page.items.find((r) => r.kind === "intent.settled");
+    expect(settled).toBeDefined();
+    expect(settled?.intentAmount).toBe(650_000_000n);
+    expect(settled?.intentRecipient).toBe(
+      "CBYKUIYA7LNNVQJCMKVG664R75V23YX5V4GHGIP5VTDVFDU6GW35SYDI",
+    );
+    // Qua view thì thành chuỗi — 650000000 stroops = 65 XLM.
+    expect(settled && auditItemView(settled).amount).toBe("650000000");
+  });
+
+  testIt(
+    "🔴 KHÔNG rò rỉ chéo ví: ví B trỏ vào intentId của ví A → amount/recipient NULL",
+    async () => {
+      const page = await repo.listByWalletForOwner(walletB, OWNER_B, 50);
+      const row = page.items.find((r) => r.kind === "intent.settled");
+      // Dòng của chính ví B vẫn phải TRẢ VỀ (không bị join làm mất)...
+      expect(row).toBeDefined();
+      // ...nhưng chi tiết tiền của ví A thì KHÔNG được sang.
+      expect(row?.intentAmount).toBeNull();
+      expect(row?.intentRecipient).toBeNull();
+      // Và không dòng nào của ví B chở số tiền của ví A.
+      expect(page.items.every((r) => r.intentAmount === null)).toBe(true);
+    },
+  );
+
+  testIt("LEFT JOIN: register / policy.change_applied / guardian.approved vẫn trả về", async () => {
+    const page = await repo.listByWalletForOwner(walletA, OWNER_A, 50);
+    const kinds = page.items.map((r) => r.kind);
+    for (const kind of ["register", "policy.change_applied", "guardian.approved"]) {
+      expect(kinds, `${kind} bị inner join xoá mất`).toContain(kind);
+      expect(page.items.find((r) => r.kind === kind)?.intentAmount).toBeNull();
+    }
+    // 4 dòng của ví A, không nhân bản do join.
+    expect(page.items).toHaveLength(4);
+  });
+
+  testIt("payload dị dạng (mảng / scalar / null) không làm sập truy vấn", async () => {
+    // `jsonb ->> 'intentId'` trên mảng/scalar/NULL trả NULL chứ không lỗi — đã đo
+    // trên Postgres thật. Ca này khoá lại điều đó để không ai đổi sang `->` rồi
+    // biến một dòng payload lạ thành 500 cho cả trang nhật ký.
+    await db.insert(auditLog).values([
+      { walletId: walletA, kind: "test.b3-array", actorType: "system", payload: [1, 2] },
+      { walletId: walletA, kind: "test.b3-scalar", actorType: "system", payload: "abc" },
+    ]);
+    const page = await repo.listByWalletForOwner(walletA, OWNER_A, 50);
+    expect(page.items.map((r) => r.kind)).toContain("test.b3-array");
+    expect(page.items.find((r) => r.kind === "test.b3-scalar")?.intentAmount).toBeNull();
+  });
+
+  testIt("con trỏ trang vẫn đúng sau khi thêm join (không nhân dòng, không sót)", async () => {
+    const seen: string[] = [];
+    let cursor: { at: Date; id: string } | undefined;
+    for (let guard = 0; guard < 10; guard++) {
+      const page = await repo.listByWalletForOwner(walletA, OWNER_A, 2, cursor);
+      seen.push(...page.items.map((r) => r.id));
+      if (!page.nextCursor) break;
+      cursor = page.nextCursor;
+    }
+    expect(new Set(seen).size).toBe(seen.length); // không dòng nào lặp
+    expect(seen.length).toBe(6); // 4 dòng gốc + 2 dòng payload dị dạng
   });
 });

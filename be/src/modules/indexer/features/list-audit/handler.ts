@@ -5,7 +5,7 @@ import { requireAuth } from "@/middlewares/auth";
 import { zv } from "@/middlewares/validator";
 import { walletIdParam } from "../../domain/validators";
 import * as repo from "../../infra/indexer.repository";
-import { decodeCursor, encodeCursor, listAuditQuery } from "./dto";
+import { auditItemView, decodeCursor, encodeCursor, listAuditQuery } from "./dto";
 
 export const listAuditRoute = new Hono().get(
   "/wallet/:walletId",
@@ -27,7 +27,9 @@ export const listAuditRoute = new Hono().get(
     // Nhật ký ví = dữ liệu riêng tư, và trang sau phụ thuộc con trỏ → không cache.
     c.header("Cache-Control", "no-store");
     return c.json({
-      data: page.items,
+      // auditItemView: bigint stroops → chuỗi. Trả thẳng `page.items` là
+      // JSON.stringify throw trên BigInt của `intentAmount`.
+      data: page.items.map(auditItemView),
       next_cursor: page.nextCursor ? encodeCursor(page.nextCursor) : null,
     });
   },
