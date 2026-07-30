@@ -13,6 +13,7 @@ import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/component
 import { Button } from "@/components/family/ui";
 import { cancelSend } from "@/features/family/api/send";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
+import { PendingSignatureSolo, usePendingSignature } from "./-pending-signature";
 
 export function Shell({ children }: { children: React.ReactNode }) {
   return <ProductScreen className="justify-center">{children}</ProductScreen>;
@@ -54,6 +55,13 @@ export function SendDoneScreen({ txHash }: { txHash: string | null }) {
  * Màn chờ người thân duyệt — LÔ 1 A6 thêm nút HUỶ LỆNH: trước đây lệnh vào đây
  * là chủ ví hết đường rút lại, chỉ còn chờ 24h cho sweeper cho hết hạn.
  * Huỷ có bước xác nhận (không phải hộp thoại hệ thống — inline cho mobile).
+ *
+ * LÔ VÁ L2 (2026-07-30): màn này từng là NGÕ CỤT THẬT. Người thân duyệt xong,
+ * BE mở khoá ký, chủ ví nhận toast "đã duyệt" — mà màn vẫn đứng nguyên chữ "đang
+ * chờ", vì nó không poll, không nghe SSE và không có nút nào ngoài "huỷ". Giờ nó
+ * tự hỏi danh sách chờ ký: lệnh của mình xuất hiện ở đó = đã duyệt xong → đổi
+ * hẳn sang khối "Ký ngay". Hai lưới: SSE `intent.approved` invalidate cây
+ * ["family"], và poll 10s phòng khi SSE chết (đã từng chết cả kênh).
  */
 export function SendGuardianWaitScreen({
   intentId,
@@ -64,6 +72,8 @@ export function SendGuardianWaitScreen({
 }) {
   const { t } = useTranslation("fw");
   const [confirming, setConfirming] = useState(false);
+  const pending = usePendingSignature({ poll: true });
+  const ready = intentId ? pending.data?.find((i) => i.intent_id === intentId) : undefined;
   const cancel = useMutation({
     mutationFn: () => {
       if (!intentId) throw new Error("NO_INTENT");
@@ -71,6 +81,27 @@ export function SendGuardianWaitScreen({
     },
     onSuccess: onCancelled,
   });
+
+  // ĐÃ DUYỆT — không còn "đang chờ" nữa, và tuyệt đối không còn nút huỷ ở đây:
+  // người dùng vừa được người thân đồng ý, thứ họ cần là đường đi tiếp.
+  if (ready) {
+    return (
+      <Shell>
+        <div className="flex w-full flex-col gap-4">
+          <span className="mx-auto grid size-20 place-items-center rounded-full bg-success text-paper">
+            <Icon name="checkCircle" size={32} />
+          </span>
+          <ScreenHeader
+            title={t("wallet.send.guardian.approvedTitle")}
+            description={t("wallet.send.guardian.approvedDescription")}
+            className="text-center"
+          />
+          <PendingSignatureSolo item={ready} />
+        </div>
+      </Shell>
+    );
+  }
+
   return (
     <Shell>
       <div className="flex flex-col items-center gap-4 text-center">

@@ -19,6 +19,7 @@ import { EmptyState, ErrorState, LoadingRows } from "@/features/family/component
 import { WalletLockedDialog } from "@/features/family/components/wallet-locked";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { type WalletLock, walletSendLock } from "@/features/family/lib/wallet-lock";
+import { PendingSignatureCard } from "./-pending-signature";
 
 type LockedWallet = Extract<WalletLock, { locked: true }>;
 
@@ -137,6 +138,11 @@ function WalletHomeScreen() {
 
       {wallet ? (
         <>
+          {/* ĐẶT TRÊN CÙNG, trên cả số dư: đây là việc ĐANG CHỜ NGƯỜI DÙNG LÀM,
+              không phải thông tin để đọc. Lô vá L2 — trước đây lệnh đã được
+              người thân duyệt không có chỗ nào hiện ra sau khi đóng tab. */}
+          <PendingSignatureCard />
+
           <Card>
             <CardHeader>
               <CardTitle className="text-sm">{t("wallet.home.balanceLabel")}</CardTitle>

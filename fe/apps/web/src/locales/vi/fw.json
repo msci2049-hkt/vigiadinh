@@ -810,7 +810,9 @@
         "confirmBody": "Huỷ lệnh chuyển này? Tiền chưa rời ví của bạn.",
         "confirmYes": "Đúng, huỷ lệnh",
         "confirmNo": "Tiếp tục chờ",
-        "cancelFailed": "Chưa huỷ được. Có thể lệnh vừa được duyệt — hãy xem lại trạng thái."
+        "cancelFailed": "Chưa huỷ được. Có thể lệnh vừa được duyệt — hãy xem lại trạng thái.",
+        "approvedTitle": "Người thân đã đồng ý",
+        "approvedDescription": "Chỉ còn bước cuối: xác nhận bằng vân tay hoặc khuôn mặt của chính bạn. Tiền chưa rời ví trước bước này."
       },
       "noWallet": "Bạn chưa có ví.",
       "progress": {
@@ -851,6 +853,17 @@
       "knownRecipient": "Sẽ gửi tới {name}",
       "muxedNote": "Địa chỉ này đã kèm mã nhận diện của sàn, không cần nhập memo.",
       "muxedUnsupported": "Địa chỉ muxed (M…) chưa được hỗ trợ ở bản này — hãy dùng địa chỉ G… kèm memo theo hướng dẫn của sàn."
+    },
+    "pendingSignature": {
+      "title": "{count, plural, other {Có # lệnh đang chờ bạn}}",
+      "description": "Người thân đã đồng ý. Tiền chỉ rời ví sau khi chính bạn xác nhận bằng vân tay hoặc khuôn mặt — không ai làm thay được.",
+      "noAmount": "Yêu cầu đổi cài đặt",
+      "approvedBadge": "Người thân đã đồng ý",
+      "toLabel": "Gửi tới",
+      "whyBody": "Số tiền này vượt mức bạn tự đặt nên cần một người thân đồng ý — họ đã đồng ý rồi. Hãy đọc kỹ địa chỉ ở trên trước khi xác nhận.",
+      "signCta": "Xác nhận và gửi",
+      "signingCta": "Đang xử lý…",
+      "sentTitle": "Đã gửi xong"
     }
   },
   "welcome": {

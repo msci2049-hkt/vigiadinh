@@ -810,7 +810,9 @@
         "confirmBody": "确定取消这笔转账吗？资金尚未离开您的钱包。",
         "confirmYes": "是的，取消",
         "confirmNo": "继续等待",
-        "cancelFailed": "取消失败。可能刚被家人批准——请查看转账状态。"
+        "cancelFailed": "取消失败。可能刚被家人批准——请查看转账状态。",
+        "approvedTitle": "家人已同意",
+        "approvedDescription": "还差最后一步：用你本人的指纹或面容确认。在此之前，钱还没有离开钱包。"
       },
       "noWallet": "你还没有钱包。",
       "progress": {
@@ -851,6 +853,17 @@
       "knownRecipient": "将发送给 {name}",
       "muxedNote": "该地址已包含交易所的识别码，无需填写 memo。",
       "muxedUnsupported": "暂不支持 muxed 地址（M…）——请使用交易所提供的 G… 地址并按其说明填写 memo。"
+    },
+    "pendingSignature": {
+      "title": "{count, plural, other {有 # 笔在等你确认}}",
+      "description": "家人已经同意。只有你本人用指纹或面容确认后，钱才会离开钱包——没有人能代替你。",
+      "noAmount": "设置变更请求",
+      "approvedBadge": "家人已同意",
+      "toLabel": "转给",
+      "whyBody": "这笔金额超过了你设定的上限，所以需要一位家人同意——他们已经同意了。确认前请仔细核对上面的地址。",
+      "signCta": "确认并发送",
+      "signingCta": "处理中…",
+      "sentTitle": "已发送"
     }
   },
   "welcome": {

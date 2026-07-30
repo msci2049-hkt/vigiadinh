@@ -810,7 +810,9 @@
         "confirmBody": "Cancel this transfer? No money has left your wallet.",
         "confirmYes": "Yes, cancel it",
         "confirmNo": "Keep waiting",
-        "cancelFailed": "Couldn't cancel. It may have just been approved — check the transfer status."
+        "cancelFailed": "Couldn't cancel. It may have just been approved — check the transfer status.",
+        "approvedTitle": "Your family member agreed",
+        "approvedDescription": "One last step: confirm with your own fingerprint or face. The money has not left your wallet until you do."
       },
       "noWallet": "You do not have a wallet yet.",
       "progress": {
@@ -851,6 +853,17 @@
       "knownRecipient": "Sending to {name}",
       "muxedNote": "This address already carries the exchange's routing id — no memo needed.",
       "muxedUnsupported": "Muxed addresses (M…) aren't supported yet — use the exchange's G… address with the memo it shows you."
+    },
+    "pendingSignature": {
+      "title": "{count, plural, one {# request is waiting for you} other {# requests are waiting for you}}",
+      "description": "Your family member said yes. The money only leaves your wallet after you confirm it yourself with your fingerprint or face — nobody can do it for you.",
+      "noAmount": "Settings change request",
+      "approvedBadge": "Family agreed",
+      "toLabel": "Sending to",
+      "whyBody": "This amount is over the limit you set, so it needed a family member to agree — and they did. Read the address above carefully before you confirm.",
+      "signCta": "Confirm and send",
+      "signingCta": "Working…",
+      "sentTitle": "Sent"
     }
   },
   "welcome": {
