@@ -774,7 +774,9 @@
       "cta": "继续",
       "description": "向任何人发送资金。",
       "done": {
+        "againCta": "再转一笔",
         "description": "你的资金正在途中。",
+        "homeCta": "返回我的钱包",
         "title": "已发送",
         "txLabel": "网络上的凭证：{hash}"
       },

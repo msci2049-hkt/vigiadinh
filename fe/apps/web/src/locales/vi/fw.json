@@ -774,7 +774,9 @@
       "cta": "Tiếp tục",
       "description": "Gửi tiền cho bất kỳ ai.",
       "done": {
+        "againCta": "Gửi tiếp một lệnh nữa",
         "description": "Tiền của bạn đang trên đường đi.",
+        "homeCta": "Về ví của tôi",
         "title": "Đã gửi",
         "txLabel": "Bằng chứng trên mạng: {hash}"
       },

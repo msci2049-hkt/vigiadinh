@@ -12,7 +12,9 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { createElement, type ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BlindSignError } from "@/lib/auth-entry-guard";
+import { pendingSignatureKeys } from "../api/pending-signature";
 import { getSignable, signSend } from "../api/send";
+import { walletKeys } from "../api/wallets";
 import { useResumeSigning } from "./use-resume-signing";
 
 // Địa chỉ contract CỐ ĐỊNH hợp lệ (Keypair.random chết dưới jsdom — noble/ed25519
@@ -70,8 +72,9 @@ function makeWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: 0 } },
   });
-  return ({ children }: { children: ReactNode }) =>
+  const wrapper = ({ children }: { children: ReactNode }) =>
     createElement(QueryClientProvider, { client: queryClient }, children);
+  return Object.assign(wrapper, { queryClient });
 }
 
 function signableWith(entries: string[]) {
@@ -164,6 +167,36 @@ describe("useResumeSigning — chống ký mù còn nguyên ở đường ký ti
       intentId: TARGET.intentId,
       signedEntriesXdr: ["signed-entry"],
     });
+  });
+
+  it("ký xong → HẾT HẠN cả danh sách chờ ký LẪN số dư ví", async () => {
+    // Hai query này phải cùng làm mới, và cả hai đều nằm dưới cây ["family"]:
+    // - `pending-signature`: lệnh vừa ký phải rời thẻ chờ ký, không thì người dùng
+    //   thấy nó nằm đó và bấm ký lần nữa.
+    // - số dư: vừa trừ tiền xong mà hub ví còn hiện số cũ là báo sai về tiền.
+    // Ai thu hẹp queryKey ở use-resume-signing sẽ làm ca này đỏ.
+    signableWith([transferEntry(FRIEND, 1_000_000n)]);
+    vi.mocked(signSend).mockResolvedValue({
+      intentId: TARGET.intentId,
+      status: "settled",
+      hash: "abc123",
+    });
+    const wrapper = makeWrapper();
+    const { queryClient } = wrapper;
+    queryClient.setQueryData(pendingSignatureKeys.all, []);
+    queryClient.setQueryData(walletKeys.balance("w-1"), { balance: "1" });
+
+    const { result } = renderHook(
+      () => useResumeSigning({ signEntries: vi.fn().mockResolvedValue(["signed"]) }),
+      { wrapper },
+    );
+    await act(async () => {
+      await result.current.run(TARGET);
+    });
+    await waitFor(() => expect(result.current.phase).toBe("settled"));
+
+    expect(queryClient.getQueryState(pendingSignatureKeys.all)?.isInvalidated).toBe(true);
+    expect(queryClient.getQueryState(walletKeys.balance("w-1"))?.isInvalidated).toBe(true);
   });
 
   it("nộp lỗi → failed, KHÔNG nuốt lỗi (danh sách chờ ký là nguồn sự thật)", async () => {

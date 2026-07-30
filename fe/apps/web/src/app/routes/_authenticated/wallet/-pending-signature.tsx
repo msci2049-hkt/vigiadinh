@@ -54,6 +54,30 @@ export function usePendingSignature(opts?: { poll?: boolean }) {
   });
 }
 
+/**
+ * "Đã gửi xong" + mã giao dịch. Tách ra để dùng được cả khi dòng chờ ký ĐÃ BIẾN
+ * MẤT: ký thành công thì BE thôi trả lệnh đó ở `/pending-signature`, nên chỗ nào
+ * treo kết quả vào chính dòng đó sẽ tự xoá lời báo thành công của mình.
+ */
+export function SignedNotice({ txHash }: { txHash: string | null }) {
+  const { t } = useTranslation("fw");
+  return (
+    <div className="flex flex-col gap-1" data-testid="pending-signature-sent">
+      <ErrorBanner type="info" title={t("wallet.pendingSignature.sentTitle")} />
+      {txHash ? (
+        <a
+          href={explorerTxUrl(txHash)}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-flex min-h-12 items-center break-all font-mono text-muted-foreground text-xs underline"
+        >
+          {t("wallet.send.done.txLabel", { hash: `${txHash.slice(0, 8)}…` })}
+        </a>
+      ) : null}
+    </div>
+  );
+}
+
 export function PendingSignatureRow({
   item,
   signing,
@@ -94,21 +118,7 @@ export function PendingSignatureRow({
 
       <p className="text-muted-foreground text-sm">{t("wallet.pendingSignature.whyBody")}</p>
 
-      {mine && signing.phase === "settled" ? (
-        <div className="flex flex-col gap-1">
-          <ErrorBanner type="info" title={t("wallet.pendingSignature.sentTitle")} />
-          {signing.txHash ? (
-            <a
-              href={explorerTxUrl(signing.txHash)}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-12 items-center break-all font-mono text-muted-foreground text-xs underline"
-            >
-              {t("wallet.send.done.txLabel", { hash: `${signing.txHash.slice(0, 8)}…` })}
-            </a>
-          ) : null}
-        </div>
-      ) : null}
+      {mine && signing.phase === "settled" ? <SignedNotice txHash={signing.txHash} /> : null}
 
       {mine && signing.phase === "failed" ? (
         <SendErrorBanner view={resumeErrorView(signing.error)} protectTo="/setup/review" />
@@ -135,9 +145,21 @@ export function PendingSignatureRow({
   );
 }
 
-/** MỘT lệnh, máy ký riêng — cho màn chờ duyệt (nó chỉ quan tâm lệnh của nó). */
-export function PendingSignatureSolo({ item }: { item: PendingSignature }) {
-  const signing = useResumeSigning({ signEntries: signWalletEntries });
+/**
+ * MỘT lệnh trên màn chờ duyệt + PRE-WARM kit passkey.
+ *
+ * Máy ký do CHA truyền vào, KHÔNG tạo ở đây (2026-07-30): ký xong lệnh rời danh
+ * sách `/pending-signature`, component này unmount theo, và state ký chết cùng nó
+ * — cha mất đường biết là đã gửi xong. Cha giữ state thì cha đổi được sang màn
+ * "Đã gửi".
+ */
+export function PendingSignatureSolo({
+  item,
+  signing,
+}: {
+  item: PendingSignature;
+  signing: ReturnType<typeof useResumeSigning>;
+}) {
   useEffect(() => {
     void ensureWalletConnected().catch(() => {});
   }, []);
@@ -161,17 +183,31 @@ export function PendingSignatureCard() {
     if (hasItems) void ensureWalletConnected().catch(() => {});
   }, [hasItems]);
 
-  if (!pending.data || pending.data.length === 0) return null;
+  // Ký NGAY TỪ HUB: lệnh vừa ký rời danh sách, dòng của nó unmount, và lời báo
+  // "đã gửi" đi theo — người dùng thấy thẻ tự rỗng đi mà không ai nói tiền đã đi
+  // hay chưa. Giữ thẻ sống thêm để nói ra, kèm mã giao dịch.
+  const items = pending.data ?? [];
+  const justSent =
+    signing.phase === "settled" && !items.some((i) => i.intent_id === signing.activeIntentId);
+
+  if (items.length === 0 && !justSent) return null;
   return (
     <Card data-testid="pending-signature-card">
       <CardHeader>
         <CardTitle className="text-sm">
-          {t("wallet.pendingSignature.title", { count: pending.data.length })}
+          {justSent && items.length === 0
+            ? t("wallet.pendingSignature.sentTitle")
+            : t("wallet.pendingSignature.title", { count: items.length })}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-3">
-        <p className="text-muted-foreground text-sm">{t("wallet.pendingSignature.description")}</p>
-        {pending.data.map((item) => (
+        {justSent ? <SignedNotice txHash={signing.txHash} /> : null}
+        {items.length > 0 ? (
+          <p className="text-muted-foreground text-sm">
+            {t("wallet.pendingSignature.description")}
+          </p>
+        ) : null}
+        {items.map((item) => (
           <PendingSignatureRow key={item.intent_id} item={item} signing={signing} />
         ))}
       </CardContent>

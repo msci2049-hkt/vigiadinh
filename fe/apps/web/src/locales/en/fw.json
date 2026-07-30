@@ -774,7 +774,9 @@
       "cta": "Continue",
       "description": "Send money to anyone.",
       "done": {
+        "againCta": "Send another",
         "description": "Your money is on its way.",
+        "homeCta": "Back to my wallet",
         "title": "Sent",
         "txLabel": "Proof on the network: {hash}"
       },

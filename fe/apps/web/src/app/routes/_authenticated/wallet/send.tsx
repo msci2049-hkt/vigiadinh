@@ -185,10 +185,18 @@ function WalletSendScreen() {
     );
   }
 
-  if (machine.phase === "settled") return <SendDoneScreen txHash={machine.txHash} />;
+  if (machine.phase === "settled") {
+    return <SendDoneScreen txHash={machine.txHash} onSendMore={returnToEntry} />;
+  }
   if (machine.phase === "awaiting_guardian") {
+    // `returnToEntry` cho CẢ huỷ lệnh lẫn "gửi tiếp": nó reset máy gửi về idle nên
+    // màn chờ unmount, mang theo state ký-tiếp — form nhập mở ra sạch hoàn toàn.
     return (
-      <SendGuardianWaitScreen intentId={review?.intentId ?? null} onCancelled={returnToEntry} />
+      <SendGuardianWaitScreen
+        intentId={review?.intentId ?? null}
+        onCancelled={returnToEntry}
+        onSendMore={returnToEntry}
+      />
     );
   }
   if (machine.phase === "unconfirmed") {

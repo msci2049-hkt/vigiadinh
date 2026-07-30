@@ -4,14 +4,17 @@
 
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icons";
 import { ProductImage } from "@/components/family/product-image";
 import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
+import type { PendingSignature } from "@/features/family/api/pending-signature";
 import { cancelSend } from "@/features/family/api/send";
+import { useResumeSigning } from "@/features/family/hooks/use-resume-signing";
+import { signWalletEntries } from "@/features/wallet/lib/sign-wallet-entries";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
 import { PendingSignatureSolo, usePendingSignature } from "./-pending-signature";
 
@@ -23,11 +26,25 @@ export function Row({ label, children }: { label: string; children: React.ReactN
   return <DetailRow label={label}>{children}</DetailRow>;
 }
 
-export function SendDoneScreen({ txHash }: { txHash: string | null }) {
+/**
+ * "Đã gửi" — kết cục THÀNH CÔNG của cả hai đường: gửi thẳng và ký-tiếp sau khi
+ * người thân duyệt.
+ *
+ * `onSendMore` về form nhập SẠCH (reset máy gửi ở tầng route). Trước 30/07 màn
+ * này không có nút nào: gửi xong là đứng đó, muốn đi đâu phải bấm back của trình
+ * duyệt. Kết cục tốt cũng cần đường ra như kết cục lỗi.
+ */
+export function SendDoneScreen({
+  txHash,
+  onSendMore,
+}: {
+  txHash: string | null;
+  onSendMore: () => void;
+}) {
   const { t } = useTranslation("fw");
   return (
     <Shell>
-      <div className="flex flex-col items-center gap-4 text-center">
+      <div className="flex w-full flex-col items-center gap-4 text-center">
         <span className="grid size-20 place-items-center rounded-full bg-success text-paper">
           <Icon name="checkCircle" size={32} />
         </span>
@@ -46,6 +63,14 @@ export function SendDoneScreen({ txHash }: { txHash: string | null }) {
             {t("wallet.send.done.txLabel", { hash: `${txHash.slice(0, 8)}…` })}
           </a>
         ) : null}
+        <PrimaryZone className="w-full">
+          <Button asChild>
+            <Link to="/wallet">{t("wallet.send.done.homeCta")}</Link>
+          </Button>
+          <Button variant="ghost" onClick={onSendMore} data-testid="send-done-again">
+            {t("wallet.send.done.againCta")}
+          </Button>
+        </PrimaryZone>
       </div>
     </Shell>
   );
@@ -62,18 +87,41 @@ export function SendDoneScreen({ txHash }: { txHash: string | null }) {
  * tự hỏi danh sách chờ ký: lệnh của mình xuất hiện ở đó = đã duyệt xong → đổi
  * hẳn sang khối "Ký ngay". Hai lưới: SSE `intent.approved` invalidate cây
  * ["family"], và poll 10s phòng khi SSE chết (đã từng chết cả kênh).
+ *
+ * VÁ TIẾP (cùng ngày, sau test tay): ký xong TIỀN ĐI THẬT mà màn nhảy về "đang
+ * chờ người thân" — sai trắng trợn. Cơ chế: màn này chọn nhánh theo `ready`, tức
+ * theo việc lệnh CÒN trong `/pending-signature`; ký thành công thì BE thôi trả
+ * lệnh đó, và cú invalidate ngay sau khi ký (use-resume-signing.ts) tự tay kéo
+ * `ready` về undefined → rơi xuống nhánh cuối = màn chờ. Máy ký vì thế phải sống
+ * Ở ĐÂY (không trong component con phụ thuộc `ready`), và `settled` phải được xét
+ * TRƯỚC `ready`.
  */
 export function SendGuardianWaitScreen({
   intentId,
   onCancelled,
+  onSendMore,
 }: {
   intentId: string | null;
   onCancelled: () => void;
+  /** Về form nhập sạch — dùng cho nút "gửi tiếp" của màn "Đã gửi". */
+  onSendMore: () => void;
 }) {
   const { t } = useTranslation("fw");
   const [confirming, setConfirming] = useState(false);
   const pending = usePendingSignature({ poll: true });
+  const signing = useResumeSigning({ signEntries: signWalletEntries });
   const ready = intentId ? pending.data?.find((i) => i.intent_id === intentId) : undefined;
+
+  // Bản chụp lệnh đang ký: lỗi ký (hay lệnh vừa hết hạn) cũng làm nó rời danh
+  // sách, và khi đó màn PHẢI nói ra chuyện gì đã xảy ra thay vì âm thầm quay về
+  // "đang chờ người thân" — đúng cái bẫy vừa vá ở nhánh thành công.
+  const lastReady = useRef<PendingSignature | null>(null);
+  useEffect(() => {
+    if (ready) lastReady.current = ready;
+  }, [ready]);
+  const signingThis = signing.activeIntentId !== null && signing.activeIntentId === intentId;
+  const item = ready ?? (signingThis ? lastReady.current : null);
+
   const cancel = useMutation({
     mutationFn: () => {
       if (!intentId) throw new Error("NO_INTENT");
@@ -82,9 +130,15 @@ export function SendGuardianWaitScreen({
     onSuccess: onCancelled,
   });
 
+  // ĐÃ GỬI — xét TRƯỚC `ready`, vì `ready` biến mất ngay khi ký xong. Đây là màn
+  // kết cục dùng chung với luồng gửi thẳng, có mã giao dịch + đường ra.
+  if (signingThis && signing.phase === "settled") {
+    return <SendDoneScreen txHash={signing.txHash} onSendMore={onSendMore} />;
+  }
+
   // ĐÃ DUYỆT — không còn "đang chờ" nữa, và tuyệt đối không còn nút huỷ ở đây:
   // người dùng vừa được người thân đồng ý, thứ họ cần là đường đi tiếp.
-  if (ready) {
+  if (item) {
     return (
       <Shell>
         <div className="flex w-full flex-col gap-4">
@@ -96,7 +150,7 @@ export function SendGuardianWaitScreen({
             description={t("wallet.send.guardian.approvedDescription")}
             className="text-center"
           />
-          <PendingSignatureSolo item={ready} />
+          <PendingSignatureSolo item={item} signing={signing} />
         </div>
       </Shell>
     );
