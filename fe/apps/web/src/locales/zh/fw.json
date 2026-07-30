@@ -273,6 +273,7 @@
   },
   "history": {
     "detail": {
+      "amountTo": "{amount} → {recipient}",
       "statusDone": "已完成",
       "statusFailed": "未成功",
       "statusPending": "处理中",
@@ -312,7 +313,8 @@
       "sendWaitingFamily": "一笔转账正在等待亲友确认",
       "walletRegistered": "已设置家庭保护"
     },
-    "noWallet": "你还没有钱包，所以这里没有可显示的内容。"
+    "noWallet": "你还没有钱包，所以这里没有可显示的内容。",
+    "sentTo": "已向 {recipient} 转出 {amount}"
   },
   "inheritance": {
     "claim": {

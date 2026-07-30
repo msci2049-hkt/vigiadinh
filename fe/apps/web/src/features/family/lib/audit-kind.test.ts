@@ -94,10 +94,11 @@ describe("auditKindKey — recovery.onchain.submitted đọc payload.method", ()
 describe("auditDetails — bóc chi tiết mà KHÔNG vỡ khi payload thiếu/rác", () => {
   it("payload lệnh gửi đã xong: hash + trạng thái", () => {
     const hash = "a".repeat(64);
-    expect(auditDetails({ intentId: "01K", hash, status: "SUCCESS" })).toEqual({
+    expect(auditDetails({ payload: { intentId: "01K", hash, status: "SUCCESS" } })).toEqual({
       txHash: hash,
       statusKey: "history.detail.statusDone",
       amount: null,
+      recipient: null,
     });
   });
 
@@ -105,39 +106,79 @@ describe("auditDetails — bóc chi tiết mà KHÔNG vỡ khi payload thiếu/r
     const hash = "c".repeat(64);
     expect(
       auditDetails({
-        eventId: "ev-1",
-        ledger: 3875394,
-        data: { topics: ["register"], value: [2, "86400"], txHash: hash },
+        payload: {
+          eventId: "ev-1",
+          ledger: 3875394,
+          data: { topics: ["register"], value: [2, "86400"], txHash: hash },
+        },
       }).txHash,
     ).toBe(hash);
   });
 
   it("payload rỗng / null / kiểu lạ → mọi trường null, không throw", () => {
     for (const payload of [null, undefined, {}, [], 42, "chuoi", { hash: null }]) {
-      expect(auditDetails(payload)).toEqual({ txHash: null, statusKey: null, amount: null });
+      expect(auditDetails({ payload })).toEqual({
+        txHash: null,
+        statusKey: null,
+        amount: null,
+        recipient: null,
+      });
     }
   });
 
   it("hash sai hình dạng KHÔNG dựng link explorer (thà không có còn hơn trỏ vào rác)", () => {
-    expect(auditDetails({ hash: "khong-phai-hash" }).txHash).toBe(null);
-    expect(auditDetails({ hash: "a".repeat(63) }).txHash).toBe(null);
-    expect(auditDetails({ hash: `${"a".repeat(63)}z` }).txHash).toBe(null);
+    expect(auditDetails({ payload: { hash: "khong-phai-hash" } }).txHash).toBe(null);
+    expect(auditDetails({ payload: { hash: "a".repeat(63) } }).txHash).toBe(null);
+    expect(auditDetails({ payload: { hash: `${"a".repeat(63)}z` } }).txHash).toBe(null);
   });
 
   it("trạng thái lạ → null, KHÔNG dội mã kỹ thuật vào mặt người dùng", () => {
-    expect(auditDetails({ status: "FAILED" }).statusKey).toBe("history.detail.statusFailed");
-    expect(auditDetails({ status: "PENDING" }).statusKey).toBe("history.detail.statusPending");
-    expect(auditDetails({ status: "TRY_AGAIN_LATER" }).statusKey).toBe(
+    expect(auditDetails({ payload: { status: "FAILED" } }).statusKey).toBe(
+      "history.detail.statusFailed",
+    );
+    expect(auditDetails({ payload: { status: "PENDING" } }).statusKey).toBe(
       "history.detail.statusPending",
     );
-    expect(auditDetails({ status: "MOT_MA_LA" }).statusKey).toBe(null);
+    expect(auditDetails({ payload: { status: "TRY_AGAIN_LATER" } }).statusKey).toBe(
+      "history.detail.statusPending",
+    );
+    expect(auditDetails({ payload: { status: "MOT_MA_LA" } }).statusKey).toBe(null);
   });
 
   it("số tiền: chuỗi stroops giữ nguyên từng chữ số (kể cả > 2^53)", () => {
-    expect(auditDetails({ amount: "650000000" }).amount).toBe("650000000");
-    expect(auditDetails({ amount: "9007199254740993" }).amount).toBe("9007199254740993");
-    expect(auditDetails({ amount: "-5" }).amount).toBe(null);
-    expect(auditDetails({ amount: "1.5" }).amount).toBe(null);
+    expect(auditDetails({ payload: null, amount: "650000000" }).amount).toBe("650000000");
+    expect(auditDetails({ payload: null, amount: "9007199254740993" }).amount).toBe(
+      "9007199254740993",
+    );
+    expect(auditDetails({ payload: null, amount: "-5" }).amount).toBe(null);
+    expect(auditDetails({ payload: null, amount: "1.5" }).amount).toBe(null);
+  });
+
+  // ── B3: số tiền + người nhận đến từ trường phẳng do BE join ──────────────────
+  it("người nhận: địa chỉ 56 ký tự nhận, rác thì null (không render chỗ trống)", () => {
+    const addr = "CBYKUIYA7LNNVQJCMKVG664R75V23YX5V4GHGIP5VTDVFDU6GW35SYDI";
+    expect(auditDetails({ payload: null, recipient: addr }).recipient).toBe(addr);
+    expect(auditDetails({ payload: null, recipient: "CBYKUI" }).recipient).toBe(null);
+    expect(auditDetails({ payload: null, recipient: "" }).recipient).toBe(null);
+    expect(auditDetails({ payload: null, recipient: null }).recipient).toBe(null);
+    expect(auditDetails({ payload: null }).recipient).toBe(null);
+  });
+
+  it("dòng có đủ tiền + người nhận + hash: cả bốn trường ra cùng lúc", () => {
+    const addr = "CBYKUIYA7LNNVQJCMKVG664R75V23YX5V4GHGIP5VTDVFDU6GW35SYDI";
+    const hash = "d".repeat(64);
+    expect(
+      auditDetails({
+        payload: { intentId: "01K", hash, status: "SUCCESS" },
+        amount: "650000000",
+        recipient: addr,
+      }),
+    ).toEqual({
+      txHash: hash,
+      statusKey: "history.detail.statusDone",
+      amount: "650000000",
+      recipient: addr,
+    });
   });
 });
 

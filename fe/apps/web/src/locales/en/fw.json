@@ -273,6 +273,7 @@
   },
   "history": {
     "detail": {
+      "amountTo": "{amount} to {recipient}",
       "statusDone": "Done",
       "statusFailed": "Did not go through",
       "statusPending": "In progress",
@@ -312,7 +313,8 @@
       "sendWaitingFamily": "A transfer is waiting for a trusted contact to confirm",
       "walletRegistered": "Family protection was set up"
     },
-    "noWallet": "You don't have a wallet yet, so there's nothing to show here."
+    "noWallet": "You don't have a wallet yet, so there's nothing to show here.",
+    "sentTo": "Sent {amount} to {recipient}"
   },
   "inheritance": {
     "claim": {

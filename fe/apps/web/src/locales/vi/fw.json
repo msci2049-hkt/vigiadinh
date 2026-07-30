@@ -273,6 +273,7 @@
   },
   "history": {
     "detail": {
+      "amountTo": "{amount} cho {recipient}",
       "statusDone": "Đã xong",
       "statusFailed": "Không thành công",
       "statusPending": "Đang xử lý",
@@ -312,7 +313,8 @@
       "sendWaitingFamily": "Lệnh gửi tiền đang chờ người thân xác nhận",
       "walletRegistered": "Đã bật bảo vệ gia đình cho ví"
     },
-    "noWallet": "Bạn chưa có ví nên chưa có gì để xem ở đây."
+    "noWallet": "Bạn chưa có ví nên chưa có gì để xem ở đây.",
+    "sentTo": "Đã gửi {amount} cho {recipient}"
   },
   "inheritance": {
     "claim": {

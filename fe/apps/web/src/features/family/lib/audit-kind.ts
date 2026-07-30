@@ -119,29 +119,59 @@ export type AuditDetails = {
   statusKey: AuditStatusKey | null;
   /** ScaledAmount (chuỗi stroops) — format ở lá cuối bằng formatAmount. */
   amount: string | null;
+  /** Địa chỉ ĐẦY ĐỦ người nhận — rút gọn lúc render, không rút gọn ở đây. */
+  recipient: string | null;
+};
+
+/** Dòng nhật ký như API trả về — chỉ phần hàm này cần đọc. */
+export type AuditRow = {
+  payload: unknown;
+  amount?: string | null;
+  recipient?: string | null;
 };
 
 const TX_HASH = /^[0-9a-f]{64}$/i;
 const SCALED_AMOUNT = /^[0-9]{1,30}$/;
+// Địa chỉ Stellar: 56 ký tự base32 (G… tài khoản, C… hợp đồng, M… muxed). Kiểm
+// HÌNH DẠNG thôi, không kiểm checksum: giá trị này do luồng gửi của chính ta ghi
+// vào DB sau khi đã validate bằng StrKey, ở đây chỉ cần chắc không render rác.
+const STELLAR_ADDRESS = /^[A-Z2-7]{56}$/;
 
 /**
- * Bóc chi tiết đọc được ra khỏi payload jsonb. Payload KHÔNG có hợp đồng chung
- * (mỗi nguồn ghi một kiểu: hành động recovery ghi `hash`, lệnh gửi ghi `hash`,
- * event on-chain ghi `data.txHash`) nên đọc theo thứ tự rồi validate hình dạng —
- * thiếu trường nào thì thôi trường đó, KHÔNG vỡ dòng.
+ * Bóc chi tiết đọc được của MỘT dòng nhật ký.
+ *
+ * Hai nguồn, có lý do: `amount`/`recipient` là trường phẳng do BE join từ
+ * `transaction_intents` (B3 — payload không bao giờ chở số tiền), còn hash/status
+ * nằm trong `payload` và payload KHÔNG có hợp đồng chung (hành động recovery ghi
+ * `hash`, event on-chain ghi `data.txHash`) nên phải đọc theo thứ tự.
+ *
+ * Mọi trường validate theo hình dạng rồi mới nhận — thiếu hay dị dạng thì trả
+ * null, KHÔNG vỡ dòng và KHÔNG hiện chỗ trống.
  */
-export function auditDetails(payload: unknown): AuditDetails {
+export function auditDetails(row: AuditRow): AuditDetails {
+  const { payload } = row;
   const data = readRecord(payload, "data");
   const rawHash =
     readString(payload, "hash") ?? readString(payload, "txHash") ?? readString(data, "txHash");
   const rawStatus = readString(payload, "status");
-  const rawAmount = readString(payload, "amount");
+  const amount = row.amount ?? null;
+  const recipient = row.recipient ?? null;
   return {
     txHash: rawHash !== null && TX_HASH.test(rawHash) ? rawHash : null,
     statusKey: rawStatus === null ? null : (STATUS_KEYS[rawStatus.toUpperCase()] ?? null),
-    amount: rawAmount !== null && SCALED_AMOUNT.test(rawAmount) ? rawAmount : null,
+    amount: SCALED_AMOUNT.test(amount ?? "") ? amount : null,
+    recipient: STELLAR_ADDRESS.test(recipient ?? "") ? recipient : null,
   };
 }
+
+/**
+ * Dòng nghĩa là TIỀN ĐÃ RA KHỎI VÍ — chỉ những dòng này được nói "Đã gửi X cho Y".
+ *
+ * Dòng đang chờ/đã huỷ/gửi lỗi cũng có số tiền (cùng một lệnh gửi), nhưng nói "đã
+ * gửi" về chúng là nói sai sự thật về tiền của người ta. Chúng giữ câu theo trạng
+ * thái và chở số tiền ở dòng phụ.
+ */
+export const MONEY_OUT_KEY = "history.kind.moneySent";
 
 /** Mã giao dịch rút gọn cho mắt người — đủ để đối chiếu, không tràn dòng. */
 export function shortHash(hash: string): string {
