@@ -8,16 +8,13 @@
 // gì / KHÔNG làm được gì, rồi mới đưa người ta đi đăng nhập (giữ token qua cả
 // đăng ký + OTP bằng ?redirect).
 //
-// BỐN TRẠNG THÁI (bug A lần hai, 28/07 — trước đây chỉ đổi mỗi nhãn nút):
-//   1 CHƯA đăng nhập      → giới thiệu đầy đủ + [đồng ý] / [không biết người này]
-//   2 ĐÃ đăng nhập        → giới thiệu THU GỌN + "Bạn đang đăng nhập là <email>"
-//                           + nút tạo danh tính
-//   3 ĐÃ nhận lời (chính tài khoản này — BE trả viewer.accepted_by_me)
-//                         → màn xác nhận, không hiện lại nút tạo
-//   4 CHÍNH CHỦ VÍ mở link của mình (viewer.is_owner)
-//                         → chặn: tự làm guardian của mình là mất máy mất luôn
-//                           "người cứu". BE chặn thật (GUARDIAN_IS_OWNER),
-//                           màn này chỉ nói câu tử tế.
+// HAI HOÀN CẢNH của người được mời (A lô 30/07 — trước đây chỉ một đường):
+//   · CHƯA có tài khoản → nút /sign-up riêng, xong quay lại đúng lời mời;
+//   · ĐÃ có ví          → nút /login riêng; quay lại đây thì DÙNG LẠI danh tính
+//     sẵn có (địa chỉ C… của ví) — không bị ép tạo passkey mới.
+//
+// BỐN TRẠNG THÁI (bug A lần hai, 28/07): 1 chưa đăng nhập · 2 đã đăng nhập ·
+// 3 đã nhận lời (accepted_by_me) · 4 chính chủ ví mở link của mình (is_owner).
 //
 // Ngôn ngữ ở màn này là "danh tính bảo mật", KHÔNG phải "ví crypto của bạn".
 // BẤT BIẾN: khoá sinh ra và Ở LẠI máy này; thứ duy nhất gửi lên server là ĐỊA
@@ -26,118 +23,33 @@
 import { formatDateTime } from "@repo/core";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
-import { ErrorBanner } from "@/components/family/error-banner";
-import { Icon } from "@/components/family/icons";
 import { ProductImage } from "@/components/family/product-image";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
 import { useCurrentUser } from "@/features/auth/hooks/use-current-user";
 import { acceptInvite, inviteByTokenOptions } from "@/features/family/api/invites";
+import { walletsOptions } from "@/features/family/api/wallets";
 import { AcceptErrorBanner } from "@/features/family/components/accept-error-banner";
+import {
+  type AcceptMode,
+  ClosedScreen,
+  DoneScreen,
+  SignedInAs,
+  SignedInChoices,
+  SignedOutChoices,
+} from "@/features/family/components/guardian-accept-entry";
 import { GuardianAcceptIntro } from "@/features/family/components/guardian-accept-intro";
 import { LoadingRows } from "@/features/family/components/screen-state";
 import { mapAcceptError } from "@/features/family/lib/accept-error";
 import { createGuardianIdentity } from "@/features/wallet/api/guardian-identity";
+import { ApiError } from "@/lib/api-client";
 
 export const Route = createFileRoute("/guardian/accept")({
   validateSearch: z.object({ token: z.string().min(1).catch("") }),
   component: GuardianAcceptScreen,
 });
-
-/** "Bạn đang đăng nhập là <email>" + đường đổi tài khoản — trạng thái 2 và 3. */
-function SignedInAs({ email, token }: { email: string; token: string }) {
-  const { t } = useTranslation("fw");
-  return (
-    <p className="text-copy text-muted-foreground" data-testid="guardian-accept-signed-in">
-      {t("guardians.accept.signedInAs", { email })}{" "}
-      <Link
-        to="/login"
-        search={{ redirect: `/guardian/accept?token=${encodeURIComponent(token)}` }}
-        className="inline-flex min-h-12 items-center underline"
-      >
-        {t("guardians.accept.switchAccount")}
-      </Link>
-    </p>
-  );
-}
-
-/** Màn "link này không đi tiếp được" — token hỏng / hết hạn / đã dùng / tự mình. */
-function ClosedScreen({
-  title,
-  body,
-  children,
-}: {
-  title: string;
-  body: string;
-  children: ReactNode;
-}) {
-  return (
-    <ProductScreen className="justify-center">
-      <ScreenHeader title={title} description={body} />
-      <PrimaryZone>{children}</PrimaryZone>
-    </ProductScreen>
-  );
-}
-
-/** Trạng thái 3 — nhận lời xong (vừa xong tại chỗ, hoặc mở lại link cũ). */
-function DoneScreen({
-  ownerName,
-  address,
-  email,
-  token,
-}: {
-  ownerName?: string | null | undefined;
-  address?: string;
-  email: string;
-  token: string;
-}) {
-  const { t } = useTranslation("fw");
-  return (
-    <ProductScreen className="justify-center">
-      <ProductImage
-        src="/assets/mascot/mascot-wave.png"
-        webpSrc="/assets/mascot/mascot-wave.webp"
-        avifSrc="/assets/mascot/mascot-wave.avif"
-        alt=""
-        width={640}
-        height={640}
-        priority
-        className="mx-auto h-40 w-40 object-contain"
-      />
-      <ScreenHeader
-        title={t("guardians.accept.doneTitle")}
-        description={
-          address
-            ? t("guardians.accept.doneBody")
-            : ownerName
-              ? t("guardians.accept.alreadyBody", { owner: ownerName })
-              : t("guardians.accept.doneBody")
-        }
-      />
-      {address ? (
-        <div
-          className="rounded-card border border-dashed bg-paper-2 p-4"
-          data-testid="guardian-identity-address"
-        >
-          <p className="text-muted-foreground text-xs">{t("guardians.accept.addressLabel")}</p>
-          <code className="break-all text-xs">{address}</code>
-        </div>
-      ) : null}
-      <ErrorBanner type="info" title={t("guardians.accept.doneTitle")}>
-        {t("guardians.accept.waitingOwner")}
-      </ErrorBanner>
-      {email ? <SignedInAs email={email} token={token} /> : null}
-      <PrimaryZone>
-        <Button asChild>
-          <Link to="/wallet">{t("guardians.accept.homeCta")}</Link>
-        </Button>
-      </PrimaryZone>
-    </ProductScreen>
-  );
-}
 
 function GuardianAcceptScreen() {
   const { t, i18n } = useTranslation("fw");
@@ -145,22 +57,54 @@ function GuardianAcceptScreen() {
   const { user, isPending: sessionPending } = useCurrentUser();
 
   const invite = useQuery({ ...inviteByTokenOptions(token), enabled: token.length > 0 });
+  // Danh tính sẵn có trên tài khoản (ví của họ, hoặc danh tính bảo hộ đã tạo
+  // trước đó) — CHỈ hỏi khi có phiên: trang này public, hỏi lúc chưa đăng nhập
+  // là ăn 401 vô cớ.
+  const wallets = useQuery({ ...walletsOptions, enabled: user !== null });
+  const existingIdentity = wallets.data?.[0] ?? null;
 
   const accept = useMutation({
-    mutationFn: async () => {
-      // Email vào TÊN passkey — một người có thể vừa có ví của mình, vừa làm
-      // người bảo hộ cho vài ví khác; khoá trùng tên là không dùng được.
+    mutationFn: async (mode: AcceptMode) => {
+      // DÙNG LẠI: thứ BE cần chỉ là ĐỊA CHỈ công khai — không đụng passkey,
+      // không sinh khoá mới. Vân tay chỉ được hỏi khi họ KÝ phiếu sau này.
+      if (mode === "reuse") {
+        if (!existingIdentity) throw new Error("NO_EXISTING_IDENTITY");
+        await acceptInvite({ token, guardianAddress: existingIdentity.stellarAddress });
+        return { address: existingIdentity.stellarAddress };
+      }
+      // TẠO MỚI: email vào TÊN passkey — một người có thể vừa có ví của mình,
+      // vừa làm người bảo hộ cho vài ví khác; khoá trùng tên là không dùng được.
       const identity = await createGuardianIdentity({ ownerLabel: user?.email });
       await acceptInvite({ token, guardianAddress: identity.address });
       return identity;
     },
   });
+  const pendingMode: AcceptMode | null = accept.isPending ? (accept.variables ?? null) : null;
 
-  // ---- Token sai / không tồn tại — câu tử tế, không mã lỗi trần.
-  if (token.length === 0 || invite.isError) {
+  // ---- Token sai / không tồn tại (404) — câu "xin link mới", không mã lỗi trần.
+  const loadStatus = invite.error instanceof ApiError ? invite.error.status : null;
+  if (token.length === 0 || (invite.isError && loadStatus === 404)) {
     return (
       <ClosedScreen title={t("guardians.accept.badTitle")} body={t("guardians.accept.badBody")}>
         <Button asChild variant="secondary">
+          <Link to="/">{t("guardians.accept.declineCta")}</Link>
+        </Button>
+      </ClosedScreen>
+    );
+  }
+
+  // ---- Mạng đứt / hệ thống bận (không phải 404): lời mời VẪN CÒN — trước đây
+  // nhánh này nói "link không dùng được", người thân tưởng link chết và bỏ cuộc.
+  if (invite.isError) {
+    return (
+      <ClosedScreen
+        title={t("guardians.accept.loadFailedTitle")}
+        body={t("guardians.accept.loadFailedBody")}
+      >
+        <Button onClick={() => void invite.refetch()} data-testid="guardian-accept-retry">
+          {t("guardians.accept.retryCta")}
+        </Button>
+        <Button asChild variant="ghost">
           <Link to="/">{t("guardians.accept.declineCta")}</Link>
         </Button>
       </ClosedScreen>
@@ -218,15 +162,13 @@ function GuardianAcceptScreen() {
   const ownerName = data?.owner_name;
   const signedIn = user !== null;
   const redirectBack = `/guardian/accept?token=${encodeURIComponent(token)}`;
-  // Lỗi ở bước cuối KHÔNG còn gộp một câu: bốn nguyên nhân dưới đây đòi bốn việc
-  // khác hẳn nhau (đăng nhập lại · xin link mới · thôi · tạo lại passkey), mà câu
-  // chung "Chưa tải được mục này" thì không nói được cái nào.
   const acceptError = accept.isError ? mapAcceptError(accept.error) : null;
 
   return (
     <ProductScreen className="justify-center">
       <ProductImage
-        src="/assets/illustrations/family-together.png"
+        src="/assets/characters/european-family-hero.png"
+        webpSrc="/assets/characters/european-family-hero.webp"
         alt=""
         width={1122}
         height={1402}
@@ -266,22 +208,13 @@ function GuardianAcceptScreen() {
 
           <PrimaryZone>
             {signedIn ? (
-              // Đã có phiên → tạo danh tính (passkey) + nhận lời ngay tại đây.
-              <Button
-                loading={accept.isPending}
-                onClick={() => accept.mutate()}
-                data-testid="guardian-accept-cta"
-              >
-                <Icon name="fingerprint" />
-                {accept.isPending ? t("guardians.accept.creating") : t("guardians.accept.cta")}
-              </Button>
+              <SignedInChoices
+                hasIdentity={existingIdentity !== null}
+                pendingMode={pendingMode}
+                onAccept={(mode) => accept.mutate(mode)}
+              />
             ) : (
-              // Chưa có phiên → đăng nhập/đăng ký, token đi theo ?redirect.
-              <Button asChild data-testid="guardian-accept-login">
-                <Link to="/login" search={{ redirect: redirectBack }}>
-                  {t("guardians.accept.agreeCta")}
-                </Link>
-              </Button>
+              <SignedOutChoices redirectBack={redirectBack} />
             )}
             <Button asChild variant="ghost">
               <Link to="/">{t("guardians.accept.declineCta")}</Link>

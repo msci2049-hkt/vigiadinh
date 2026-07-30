@@ -201,7 +201,20 @@
       "usedBody": "Mỗi lời mời chỉ dùng được một lần. Nếu không phải bạn, hãy báo cho người mời biết.",
       "usedTitle": "Lời mời này đã được dùng rồi",
       "waitingOwner": "Giờ họ cần xác nhận bạn trên máy của họ. Bạn không phải làm gì thêm.",
-      "whatTitle": "Việc này nghĩa là gì"
+      "whatTitle": "Việc này nghĩa là gì",
+      "signUpCta": "Tôi chưa có ví — tạo tài khoản mới",
+      "signUpHint": "Miễn phí, mất một phút. Đăng ký xong bạn sẽ quay lại đúng trang này để nhận lời.",
+      "loginCta": "Tôi đã có ví — đăng nhập",
+      "loginHint": "Đăng nhập tài khoản cũ của bạn; lời mời vẫn được giữ nguyên khi bạn quay lại.",
+      "reuseCta": "Dùng danh tính đã có của tôi",
+      "reuseHint": "Tài khoản này đã có khoá bảo mật — nhận lời bằng chính khoá đó, không cần tạo thêm.",
+      "createNewCta": "Tạo danh tính mới riêng cho việc này",
+      "createNewHint": "Máy sẽ hỏi vân tay/Face ID để tạo một khoá mới, chỉ dùng cho việc bảo hộ.",
+      "errAlreadyGuardianTitle": "Bạn đã là người bảo hộ của ví này",
+      "errAlreadyGuardianBody": "Mỗi người chỉ giữ một ghế bảo hộ — như vậy mới thật sự là nhiều người cùng gác. Hãy chuyển lời mời này cho một người thân khác.",
+      "loadFailedTitle": "Chưa mở được lời mời",
+      "loadFailedBody": "Mạng chưa thông hoặc hệ thống đang bận. Lời mời của bạn vẫn còn — bấm thử lại giúp nhé.",
+      "retryCta": "Thử lại"
     },
     "detail": {
       "backCta": "Về danh sách",
@@ -621,7 +634,10 @@
       "thresholdLabel": "Số người phải đồng ý",
       "thresholdValue": "{count} người",
       "timelockLabel": "Thời gian kịp chặn",
-      "title": "Xem lại"
+      "title": "Xem lại",
+      "registerErrAlready": "Bảo vệ đã được bật từ trước rồi — không cần làm lại. Bạn xem thẻ An toàn để kiểm chứng.",
+      "registerErrFew": "Chưa đủ người nhận lời để bật. Mời thêm người thân rồi quay lại bước này.",
+      "registerErrBusy": "Thao tác hơi nhanh — chờ một lát rồi bấm lại."
     },
     "threshold": {
       "backCta": "Quay lại",

@@ -201,7 +201,20 @@
       "usedBody": "Each invite works only once. If this wasn't you, tell the person who invited you.",
       "usedTitle": "This invite was already used",
       "waitingOwner": "They now need to confirm you on their own phone. You do not have to do anything else.",
-      "whatTitle": "What this means"
+      "whatTitle": "What this means",
+      "signUpCta": "I don't have a wallet yet — create an account",
+      "signUpHint": "Free and takes a minute. After signing up you will come right back to this page to accept.",
+      "loginCta": "I already have a wallet — sign in",
+      "loginHint": "Sign in to your existing account; the invite is kept safe until you come back.",
+      "reuseCta": "Use my existing identity",
+      "reuseHint": "This account already has a secure key — accept with that key, no need to create another.",
+      "createNewCta": "Create a separate new identity",
+      "createNewHint": "Your device will ask for fingerprint/Face ID to create a new key used only for protecting.",
+      "errAlreadyGuardianTitle": "You already protect this wallet",
+      "errAlreadyGuardianBody": "Each person holds only one guardian seat — that is what makes it truly several people standing guard. Pass this invite to another family member.",
+      "loadFailedTitle": "Could not open the invite",
+      "loadFailedBody": "The network is unstable or the system is busy. Your invite is still there — please try again.",
+      "retryCta": "Try again"
     },
     "detail": {
       "backCta": "Back to the list",
@@ -621,7 +634,10 @@
       "thresholdLabel": "People who must agree",
       "thresholdValue": "{count, plural, one {# person} other {# people}}",
       "timelockLabel": "Time to stop a recovery",
-      "title": "Check everything"
+      "title": "Check everything",
+      "registerErrAlready": "Protection was already turned on — nothing to redo. Check the Safety card to confirm.",
+      "registerErrFew": "Not enough people have accepted yet. Invite more family, then come back to this step.",
+      "registerErrBusy": "That was a little fast — wait a moment and press again."
     },
     "threshold": {
       "backCta": "Back",

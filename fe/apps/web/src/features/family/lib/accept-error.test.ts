@@ -52,4 +52,10 @@ describe("mapAcceptError", () => {
     expect(v.title).toBe("guardians.accept.errGenericTitle");
     expect(v.code).toBe("WHAT_IS_THIS");
   });
+
+  it("409 GUARDIAN_ALREADY_GUARDIAN → 'bạn đã bảo hộ ví này', KHÔNG rơi vào câu chung", () => {
+    const v = mapAcceptError(apiErr(409, "GUARDIAN_ALREADY_GUARDIAN"));
+    expect(v.title).toBe("guardians.accept.errAlreadyGuardianTitle");
+    expect(v.code).toBeUndefined();
+  });
 });

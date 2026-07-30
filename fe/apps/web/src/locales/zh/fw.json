@@ -201,7 +201,20 @@
       "usedBody": "每个邀请只能使用一次。如果不是你本人，请告知邀请你的人。",
       "usedTitle": "该邀请已被使用",
       "waitingOwner": "现在他们需要在自己的手机上确认你。你不用再做任何事。",
-      "whatTitle": "这意味着什么"
+      "whatTitle": "这意味着什么",
+      "signUpCta": "我还没有钱包——创建新账户",
+      "signUpHint": "免费，只需一分钟。注册完成后会自动回到这个页面继续接受邀请。",
+      "loginCta": "我已经有钱包——登录",
+      "loginHint": "登录你原来的账户；回来时邀请仍然有效。",
+      "reuseCta": "使用我已有的身份",
+      "reuseHint": "这个账户已经有安全密钥——直接用它接受邀请，无需再创建。",
+      "createNewCta": "为此单独创建一个新身份",
+      "createNewHint": "设备会要求指纹或面容，创建一把只用于守护的新密钥。",
+      "errAlreadyGuardianTitle": "你已经是这个钱包的守护人",
+      "errAlreadyGuardianBody": "每个人只能担任一个守护席位——这样才是真正的多人守护。请把这个邀请转给其他家人。",
+      "loadFailedTitle": "暂时打不开邀请",
+      "loadFailedBody": "网络不稳定或系统繁忙。你的邀请还在——请再试一次。",
+      "retryCta": "重试"
     },
     "detail": {
       "backCta": "返回列表",
@@ -621,7 +634,10 @@
       "thresholdLabel": "需要同意的人数",
       "thresholdValue": "{count} 人",
       "timelockLabel": "可阻止的时间",
-      "title": "检查一遍"
+      "title": "检查一遍",
+      "registerErrAlready": "保护之前已经开启——无需重复。请查看安全卡片确认。",
+      "registerErrFew": "接受邀请的人还不够。请再邀请家人，然后回到这一步。",
+      "registerErrBusy": "操作有点快——稍等片刻再按一次。"
     },
     "threshold": {
       "backCta": "返回",

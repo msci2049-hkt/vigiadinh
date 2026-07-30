@@ -13,18 +13,46 @@ import { ErrorBanner } from "@/components/family/error-banner";
 import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { inviteKeys, invitesOptions } from "@/features/family/api/invites";
+import { chainTruthKeys } from "@/features/family/api/recovery";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { timelockLabelKey } from "@/features/family/api/wallets";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 import { signRecoveryEntries } from "@/features/wallet/lib/sign-recovery-entries";
+import { ApiError } from "@/lib/api-client";
 import { assertRegisterWalletEntry, BlindSignError } from "@/lib/auth-entry-guard";
 import { env } from "@/lib/env";
 
 export const Route = createFileRoute("/_authenticated/setup/review")({
   component: SetupReviewScreen,
 });
+
+type RegisterErrorKey =
+  | "setup.review.registerErrAlready"
+  | "setup.review.registerErrFew"
+  | "setup.review.registerErrBusy"
+  | "setup.review.registerFailed";
+
+/**
+ * Mỗi mã lỗi đăng ký MỘT câu (C2 lô 30/07): "đã bật rồi" · "chưa đủ người" ·
+ * "bấm nhanh quá" là ba việc-tiếp-theo khác hẳn nhau — câu chung "thử lại"
+ * đúng cho mỗi lỗi mạng.
+ */
+function registerErrorKey(err: unknown): RegisterErrorKey {
+  const code =
+    err instanceof ApiError
+      ? ((err.data as { error?: { code?: string } } | undefined)?.error?.code ?? "")
+      : "";
+  if (code === "CONTRACT_ERROR:AlreadyRegistered") return "setup.review.registerErrAlready";
+  if (code === "CONTRACT_ERROR:TooFewGuardians" || code === "TOO_FEW_GUARDIAN_KEYS") {
+    return "setup.review.registerErrFew";
+  }
+  if (code === "RATE_LIMITED" || code === "RATE_LIMIT_STORE_DOWN") {
+    return "setup.review.registerErrBusy";
+  }
+  return "setup.review.registerFailed";
+}
 
 function SetupReviewScreen() {
   const { t } = useTranslation("fw");
@@ -67,7 +95,13 @@ function SetupReviewScreen() {
       return submitRecoveryAction({ walletId, signedEntriesXdr: signed });
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: inviteKeys.byWallet(wallet?.id ?? "") });
+      // Cả HAI nguồn của walletSendLock + thẻ An toàn: số người (DB) và
+      // is_registered (chain-truth) — thiếu cái sau là hub vẫn hiện "chưa bật"
+      // tới tick poll kế tiếp dù đăng ký vừa xong.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: inviteKeys.byWallet(wallet?.id ?? "") }),
+        queryClient.invalidateQueries({ queryKey: chainTruthKeys.byWallet(wallet?.id ?? "") }),
+      ]);
     },
   });
 
@@ -108,7 +142,7 @@ function SetupReviewScreen() {
       ) : null}
       {register.isError ? (
         <div data-testid="review-register-failed">
-          <ErrorBanner type="error" title={t("setup.review.registerFailed")} />
+          <ErrorBanner type="error" title={t(registerErrorKey(register.error))} />
         </div>
       ) : null}
 

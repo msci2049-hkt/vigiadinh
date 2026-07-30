@@ -24,7 +24,9 @@ export type AcceptErrorKey =
   | "guardians.accept.errGenericTitle"
   | "guardians.accept.errGenericBody"
   | "guardians.accept.selfTitle"
-  | "guardians.accept.selfBody";
+  | "guardians.accept.selfBody"
+  | "guardians.accept.errAlreadyGuardianTitle"
+  | "guardians.accept.errAlreadyGuardianBody";
 
 export type AcceptErrorView = {
   title: AcceptErrorKey;
@@ -63,6 +65,13 @@ const BY_CODE: Record<string, AcceptErrorView> = {
   GUARDIAN_IS_OWNER: {
     title: "guardians.accept.selfTitle",
     body: "guardians.accept.selfBody",
+    action: null,
+  },
+  // MỘT NGƯỜI MỘT GHẾ (BE chặn từ lô 30/07): người này đã bảo hộ ví rồi —
+  // việc tiếp theo là CHUYỂN link cho người thân khác, không phải "thử lại".
+  GUARDIAN_ALREADY_GUARDIAN: {
+    title: "guardians.accept.errAlreadyGuardianTitle",
+    body: "guardians.accept.errAlreadyGuardianBody",
     action: null,
   },
   RATE_LIMITED: {
