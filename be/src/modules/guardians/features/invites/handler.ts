@@ -178,6 +178,14 @@ export const guardianInvitesRoute = new Hono()
     if ((await repo.walletOwnedBy(invite.walletId, user.id)) !== null) {
       throw new HTTPException(409, { message: "GUARDIAN_IS_OWNER" });
     }
+    // MỘT NGƯỜI MỘT GHẾ: một người nhận HAI lời mời của cùng ví (mỗi lần một
+    // danh tính C… mới) là cầm 2/3 phiếu ≥ threshold — "hai người thân đồng ý"
+    // thành MỘT người tự quyết. Check trùng địa chỉ không thấy được vì địa chỉ
+    // lần nào cũng mới; phải chặn theo NGƯỜI, và chặn NGAY lúc nhận để họ còn
+    // chuyển link cho đúng người khác trong nhà.
+    if (await repo.userHoldsGuardianSeat(invite.walletId, user.id)) {
+      throw new HTTPException(409, { message: "GUARDIAN_ALREADY_GUARDIAN" });
+    }
     // Người thắng cuộc đua là người ghi ĐẦU TIÊN, quyết ở tầng DB. Kiểm trạng
     // thái phía trên chỉ để trả lỗi đẹp — nó không chống được hai request
     // đồng thời (cả hai cùng đọc thấy `sent`).
@@ -219,6 +227,12 @@ export const guardianInvitesRoute = new Hono()
     // Cùng một danh tính không được đếm hai lần — contract cũng sẽ chối
     // `DuplicateGuardian`, nhưng chặn ở đây mới nói được câu đúng cho người dùng.
     if ((await repo.guardianByKey(wallet.id, invite.guardianAddress)) !== null) {
+      throw new HTTPException(409, { message: "GUARDIAN_ALREADY_ADDED" });
+    }
+    // Vòng hai của MỘT-NGƯỜI-MỘT-GHẾ (accept đã chặn; dòng `deployed` cũ từ
+    // trước khi vòng một tồn tại vẫn lọt tới đây): người này đã có ghế chốt
+    // trong `guardians` thì không được chốt thêm ghế thứ hai.
+    if ((await repo.guardianByUser(wallet.id, invite.acceptedByUserId)) !== null) {
       throw new HTTPException(409, { message: "GUARDIAN_ALREADY_ADDED" });
     }
     await repo.registerInviteAsGuardian({ invite, now: new Date() });

@@ -1,6 +1,6 @@
 // Import schema xuyên module bằng đường dẫn TƯƠNG ĐỐI: ngoại lệ có chủ đích cho
 // TẦNG SCHEMA (cùng khuôn recovery.repository) — FK/JOIN cần chính table object.
-import { and, eq, ne } from "drizzle-orm";
+import { and, eq, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { user } from "@/db/schema";
 import { wallets } from "../../wallets/infra/wallets.schema";
@@ -96,6 +96,48 @@ export async function markDeployed(input: {
     .where(and(eq(guardianInvites.id, input.id), eq(guardianInvites.status, "sent")))
     .returning({ id: guardianInvites.id });
   return rows.length > 0;
+}
+
+/** User đã có GHẾ người bảo hộ chốt trong bảng `guardians` của ví này chưa. */
+export async function guardianByUser(walletId: string, userId: string) {
+  const [row] = await db
+    .select({ id: guardians.id })
+    .from(guardians)
+    .where(
+      and(
+        eq(guardians.walletId, walletId),
+        eq(guardians.userId, userId),
+        ne(guardians.status, "removed"),
+      ),
+    )
+    .limit(1);
+  return row ?? null;
+}
+
+/**
+ * MỘT NGƯỜI MỘT GHẾ — user này đã giữ một ghế bảo hộ của ví chưa, tính cả ghế
+ * đã chốt (`guardians`) lẫn lời mời KHÁC đã nhận mà chủ ví chưa kịp "Thêm vào ví".
+ *
+ * Vì sao chặn theo NGƯỜI chứ không chỉ theo địa chỉ: mỗi lần nhận lời là một
+ * danh tính C… MỚI TOANH, nên check trùng địa chỉ không thấy gì. Không có hàng
+ * rào này, một người nhận HAI lời mời của cùng ví là cầm 2/3 phiếu ≥ threshold —
+ * "hai người thân đồng ý" thành MỘT người tự quyết, social recovery chỉ còn
+ * timelock + veto đứng chắn.
+ */
+export async function userHoldsGuardianSeat(walletId: string, userId: string): Promise<boolean> {
+  if ((await guardianByUser(walletId, userId)) !== null) return true;
+  const [row] = await db
+    .select({ id: guardianInvites.id })
+    .from(guardianInvites)
+    .where(
+      and(
+        eq(guardianInvites.walletId, walletId),
+        eq(guardianInvites.acceptedByUserId, userId),
+        inArray(guardianInvites.status, ["accepted", "deployed", "registered"]),
+      ),
+    )
+    .limit(1);
+  return row !== undefined;
 }
 
 /** Ví đã có người bảo hộ mang đúng địa chỉ này chưa (loại `removed`). */

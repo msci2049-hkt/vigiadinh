@@ -5,6 +5,9 @@
 //      — mỗi nguyên nhân một MÃ, không còn câu lỗi chung.
 //   3. "Thêm vào ví" phải GHI dòng `guardians` — trước đây không ai ghi bảng này
 //      nên bước `register_wallet` không bao giờ đủ khoá.
+//   4. MỘT NGƯỜI MỘT GHẾ (GUARDIAN_ALREADY_GUARDIAN) — cùng một NGƯỜI không
+//      nhận được hai lời mời của cùng ví, kể cả với hai danh tính C… khác nhau;
+//      lọt là một người cầm 2/3 phiếu ≥ threshold.
 // Phiên THẬT qua Better Auth (khuôn authz-matrix.integration.test.ts) — cookie
 // tự chế thì cả suite chỉ chứng minh về một cái giả.
 import { afterAll, describe, expect, it } from "bun:test";
@@ -187,17 +190,33 @@ describe("guardian invites — hàng rào tự-mình + trùng danh tính (HTTP t
         { onchainKey: guardianAddress, userId: helper.userId, status: "active" },
       ]);
 
-      // Cùng danh tính nhận lời mời THỨ HAI rồi "Thêm vào ví" → mã riêng, không câu chung.
+      // MỘT NGƯỜI MỘT GHẾ — cùng NGƯỜI nhận lời mời THỨ HAI (dù mỗi lần một
+      // danh tính C… mới) phải bị chặn NGAY LÚC NHẬN: không chặn thì một người
+      // cầm 2/3 phiếu ≥ threshold, "hai người thân đồng ý" thành một người tự quyết.
       const token2 = await createInvite(owner.cookie, walletId, "Chị (lần 2)");
-      await post(`/api/guardians/invites/${token2}/accept`, helper.cookie, {
-        guardian_address: guardianAddress,
+      const secondSeat = await post(`/api/guardians/invites/${token2}/accept`, helper.cookie, {
+        guardian_address: contractAddress(),
       });
-      const [invite2] = await db
-        .select({ id: guardianInvites.id })
-        .from(guardianInvites)
-        .where(eq(guardianInvites.token, token2));
+      expect(secondSeat.status).toBe(409);
+      expect(await errorCode(secondSeat)).toBe("GUARDIAN_ALREADY_GUARDIAN");
+
+      // Vòng hai ở "Thêm vào ví": dòng `deployed` cũ lọt từ TRƯỚC khi vòng một
+      // tồn tại (dựng thẳng trong DB) — chốt ghế thứ hai vẫn phải bị chối.
+      const [stale] = await db
+        .insert(guardianInvites)
+        .values({
+          walletId,
+          token: crypto.randomUUID().replaceAll("-", "").padEnd(64, "a"),
+          label: "Chị (dòng cũ)",
+          status: "deployed",
+          acceptedByUserId: helper.userId,
+          guardianAddress: contractAddress(),
+          acceptedAt: new Date(),
+          expiresAt: new Date(Date.now() + 60_000),
+        })
+        .returning({ id: guardianInvites.id });
       const dup = await post("/api/guardians/invites/registered", owner.cookie, {
-        invite_id: invite2?.id,
+        invite_id: stale?.id,
       });
       expect(dup.status).toBe(409);
       expect(await errorCode(dup)).toBe("GUARDIAN_ALREADY_ADDED");
