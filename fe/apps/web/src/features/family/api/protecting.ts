@@ -10,6 +10,8 @@ export type ProtectingItem = {
   wallet_id: string;
   status: GuardianStatus;
   owner_name: string | null;
+  /** Email chủ ví ĐÃ che sẵn từ BE ("ab***@gmail.com") — bản đầy đủ không bao giờ tới FE. */
+  owner_email_masked: string;
   protecting_since: string;
   last_seen_at: string | null;
 };

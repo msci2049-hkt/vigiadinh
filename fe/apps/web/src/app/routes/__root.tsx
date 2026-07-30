@@ -15,6 +15,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { site } from "@/config/site";
 import { ImpersonationBanner } from "@/features/auth/components/impersonation-banner";
 import { UserMenu } from "@/features/auth/components/user-menu";
+import { useGuardianWorkBadge } from "@/features/family/hooks/use-guardian-work-badge";
 import { env } from "@/lib/env";
 import type { RouterContext } from "../router";
 
@@ -28,6 +29,10 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 function RootLayout() {
   const { i18n } = useTranslation("common");
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  // Badge tab Người thân (B2 lô 30/07): số việc đang chờ người bảo hộ này
+  // duyệt. enabled CHỈ trên hub path (đã qua cổng đăng nhập) — đường public
+  // không bắn query; SSE invalidate nguồn nên số sống realtime.
+  const guardianTabBadge = useGuardianWorkBadge(showsAppNavigation(pathname));
   // Đồng bộ <html lang> theo ngôn ngữ hiện tại (a11y + hreflang cho SPA): screen
   // reader đọc đúng giọng, và trình duyệt chọn đúng font CJK khi lang="zh".
   useEffect(() => {
@@ -42,6 +47,7 @@ function RootLayout() {
         menu={showsAccountMenu(pathname) ? <UserMenu compact /> : undefined}
         layout={hubPath ? "hub" : "flow"}
         showNavigation={showsAppNavigation(pathname)}
+        guardianTabBadge={guardianTabBadge}
       >
         {authPath ? (
           <main className="product-screen auth-screen">

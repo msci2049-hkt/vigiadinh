@@ -254,7 +254,9 @@
     },
     "manage": {
       "description": "查看谁在守护你的钱包，以及我们是否还能联系到他们。",
-      "title": "你的守护人"
+      "title": "你的守护人",
+      "mineTitle": "守护你钱包的人（{available}/{required}）",
+      "mineTitleNoCount": "守护你钱包的人"
     },
     "recoverability": {
       "notYetBody": "至少需要 {required} 位亲友接受邀请——目前已有 {available} 位，还差 {missing} 位。恢复钱包时，其中 {threshold} 位需要共同确认。",
@@ -420,7 +422,14 @@
       "item": "{name} 想向 {recipient} 转 {amount}",
       "expires": "{when}过期",
       "reviewCta": "查看并决定"
-    }
+    },
+    "summary": {
+      "title": "你正在守护",
+      "empty": "你还没有守护任何人的钱包。接受家人的邀请后，他们的钱包会显示在这里。",
+      "pendingWork": "有事项等待你决定",
+      "openCta": "查看待办事项"
+    },
+    "badgeAria": "有 {count} 项事务等待你决定"
   },
   "recovery": {
     "cooldown": {

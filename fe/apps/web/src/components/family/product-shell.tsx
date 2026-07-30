@@ -39,17 +39,23 @@ const APP_NAV = [
  * menu = slot cho tầng app truyền UserMenu vào (C17). ProductShell là
  * components/ nên CẤM tự import features/auth (chiều phụ thuộc một chiều);
  * __root.tsx (tầng app) là nơi ghép.
+ *
+ * guardianTabBadge (B2 lô 30/07) — cùng khuôn slot: SỐ việc đang chờ người
+ * bảo hộ (phiếu chi + khôi phục) do tầng app đếm (useGuardianWorkBadge) và
+ * truyền xuống; shell chỉ vẽ chấm trên tab Người thân, không tự fetch.
  */
 export function ProductShell({
   children,
   menu,
   layout = "flow",
   showNavigation = false,
+  guardianTabBadge = 0,
 }: {
   children: ReactNode;
   menu?: ReactNode;
   layout?: "flow" | "hub";
   showNavigation?: boolean;
+  guardianTabBadge?: number;
 }) {
   const { t, i18n } = useTranslation(["common", "fw"]);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -100,15 +106,24 @@ export function ProductShell({
             const isActive = item.active.some(
               (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
             );
+            const badge = item.to === "/guardians" && guardianTabBadge > 0;
             return (
               <Link
                 key={item.to}
                 to={item.to}
-                className="product-shell__nav-link"
+                className="product-shell__nav-link relative"
                 aria-current={isActive ? "page" : undefined}
               >
                 <Icon name={item.icon} size={20} />
                 <span>{t(item.key)}</span>
+                {badge ? (
+                  <span className="-top-0.5 absolute right-1/4 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-semibold text-[10px] text-destructive-foreground">
+                    <span aria-hidden>{guardianTabBadge > 9 ? "9+" : guardianTabBadge}</span>
+                    <span className="sr-only">
+                      {t("fw:protecting.badgeAria", { count: guardianTabBadge })}
+                    </span>
+                  </span>
+                ) : null}
               </Link>
             );
           })}

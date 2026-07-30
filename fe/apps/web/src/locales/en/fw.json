@@ -254,7 +254,9 @@
     },
     "manage": {
       "description": "See who protects your wallet, and whether we can still reach them.",
-      "title": "Your protectors"
+      "title": "Your protectors",
+      "mineTitle": "People protecting your wallet ({available}/{required})",
+      "mineTitleNoCount": "People protecting your wallet"
     },
     "recoverability": {
       "notYetBody": "You need at least {required} people to accept — {available} so far, {missing, plural, one {# more to go} other {# more to go}}. To recover the wallet, {threshold} of them must approve together.",
@@ -420,7 +422,14 @@
       "item": "{name} wants to send {amount} to {recipient}",
       "expires": "Expires {when}",
       "reviewCta": "Review and decide"
-    }
+    },
+    "summary": {
+      "title": "You are protecting",
+      "empty": "You're not protecting anyone's wallet yet. When you accept a family invite, their wallet will show up here.",
+      "pendingWork": "Something is waiting for your decision",
+      "openCta": "See what's waiting"
+    },
+    "badgeAria": "{count} things waiting for your decision"
   },
   "recovery": {
     "cooldown": {

@@ -254,7 +254,9 @@
     },
     "manage": {
       "description": "Xem ai đang bảo vệ ví, và chúng tôi còn liên lạc được với ai.",
-      "title": "Người bảo hộ của bạn"
+      "title": "Người bảo hộ của bạn",
+      "mineTitle": "Người bảo hộ ví của bạn ({available}/{required})",
+      "mineTitleNoCount": "Người bảo hộ ví của bạn"
     },
     "recoverability": {
       "notYetBody": "Cần ít nhất {required} người nhận lời — đã có {available}, còn thiếu {missing}. Khi cần cứu ví, {threshold} người trong số đó phải cùng đồng ý.",
@@ -420,7 +422,14 @@
       "item": "{name} muốn gửi {amount} tới {recipient}",
       "expires": "Hết hạn {when}",
       "reviewCta": "Xem và quyết định"
-    }
+    },
+    "summary": {
+      "title": "Bạn đang bảo hộ cho",
+      "empty": "Bạn chưa trông ví cho ai. Khi bạn nhận lời mời của người thân, ví của họ sẽ hiện ở đây.",
+      "pendingWork": "Có việc đang chờ bạn quyết định",
+      "openCta": "Xem việc đang chờ"
+    },
+    "badgeAria": "Có {count} việc đang chờ bạn quyết định"
   },
   "recovery": {
     "cooldown": {
