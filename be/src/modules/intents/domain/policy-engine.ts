@@ -10,8 +10,14 @@ import type { PolicyDecision, PolicyReasonCode } from "@/shared-contract/intent"
 export type PolicyContext = {
   amount: bigint | null;
   recipient: string | null;
-  /** Địa chỉ đã từng gửi thành công (mirror từ lịch sử settled). */
+  /** Địa chỉ đã từng gửi thành công (mirror từ lịch sử settled). Từ v3 đây CHỈ
+   * là dữ kiện cho cảnh báo mềm — KHÔNG còn là giấy thông hành qua `per_tx`. */
   knownRecipients: readonly string[];
+  /** Địa chỉ on-chain của guardian ĐANG hiệu lực (status != removed). Tách khỏi
+   * `knownRecipients` ở lô 2026-07-30: hai thứ này có chi phí giả mạo lệch nhau
+   * 8 bậc độ lớn (chữ ký on-chain thu hồi được ↔ 1 stroop vĩnh viễn) nên KHÔNG
+   * được dùng chung một cửa miễn trừ. v1/v2 không đọc field này. */
+  guardianAddresses: readonly string[];
   /** Sổ đen gia đình. */
   blacklist: readonly string[];
   /** Hạn mức một giao dịch / ngày (stroops); null = không đặt. */
@@ -97,13 +103,63 @@ const evaluateV2: PolicyFn = (ctx) => {
   };
 };
 
+/** v3 (lô vá cửa hậu 2026-07-30) — ĐÓNG lỗ "gửi 1 lần = miễn `per_tx` vĩnh viễn".
+ *
+ * v2 viết `if (!known && … amount > perTxLimit)`, trong đó `known` là hợp của
+ * HAI tập rất khác nhau. Hậu quả đã khai thác được trên ví thật: gửi 100 XLM cho
+ * địa chỉ lạ (dưới ngưỡng, đi thẳng) → địa chỉ đó settled → 52 giây sau gửi 600
+ * XLM cho CHÍNH nó (3× `per_tx` 200) vẫn đi thẳng, không ai duyệt. Ngưỡng
+ * `per_tx` trở thành vô nghĩa với bất kỳ ai chịu bỏ một giao dịch mồi.
+ *
+ * v3 chỉ đổi ĐÚNG MỘT Ô của bảng quyết định:
+ * - `per_tx` áp cho MỌI địa chỉ. Miễn trừ DUY NHẤT là guardian đang hiệu lực —
+ *   họ đã ký cam kết on-chain kiểm chứng được, và gỡ guardian là mất miễn trừ
+ *   ngay (`guardianAddresses` lọc `status != 'removed'`).
+ * - "Địa chỉ đã từng gửi" tụt xuống đúng vai trò của nó: dữ kiện cho CẢNH BÁO
+ *   MỀM ở màn xác nhận, không phải cổng chính sách.
+ * - `daily` giữ nguyên: áp cho TẤT CẢ, kể cả guardian — không nới.
+ * - Sổ đen / phi-thanh-toán / night-watch giữ nguyên v2.
+ *
+ * Đánh đổi đã được chủ ví chấp nhận: gửi định kỳ vượt `per_tx` phải duyệt mỗi
+ * lần. Lối ra đúng là NÂNG `per_tx` (nâng phải chờ 24h — kẻ chiếm ví không dùng
+ * được), không phải nới lại cổng này. */
+const evaluateV3: PolicyFn = (ctx) => {
+  if (ctx.recipient !== null && ctx.blacklist.includes(ctx.recipient)) {
+    return { decision: "require_guardian", reasons: ["blacklisted_recipient"] };
+  }
+  if (ctx.amount === null || ctx.recipient === null) {
+    return { decision: "require_guardian", reasons: ["non_payment_review"] };
+  }
+  const isGuardian = ctx.guardianAddresses.includes(ctx.recipient);
+  // `familiar` CHỈ quyết định câu chữ cảnh báo mềm, KHÔNG quyết định cổng nào.
+  const familiar = isGuardian || ctx.knownRecipients.includes(ctx.recipient);
+  const gating: PolicyReasonCode[] = [];
+  if (!isGuardian && ctx.perTxLimit !== null && ctx.amount > ctx.perTxLimit) {
+    gating.push("over_tx_limit");
+  }
+  if (ctx.dailyLimit !== null && ctx.dailySpent + ctx.amount > ctx.dailyLimit) {
+    gating.push("over_daily_limit");
+  }
+  if (gating.length > 0) {
+    return { decision: "require_guardian", reasons: gating };
+  }
+  if (ctx.nightWatchDelay) {
+    return { decision: "delay", reasons: ["risk_delay"] };
+  }
+  return {
+    decision: "allow",
+    reasons: [familiar ? "known_recipient_under_limit" : "unknown_recipient"],
+  };
+};
+
 /** Registry — THÊM version mới vào đây, KHÔNG sửa version cũ (bất biến versioning). */
 const POLICY_ENGINES: Record<number, PolicyFn> = {
   1: evaluateV1,
   2: evaluateV2,
+  3: evaluateV3,
 };
 
-export const CURRENT_POLICY_VERSION = 2;
+export const CURRENT_POLICY_VERSION = 3;
 
 export function evaluatePolicy(
   ctx: PolicyContext,

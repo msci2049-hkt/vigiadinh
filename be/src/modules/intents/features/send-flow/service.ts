@@ -27,14 +27,32 @@ import { notifyGuardiansApprovalRequested, notifyOwnerGuardianDecision } from ".
  * "ngày" reset giữa trưa. */
 const DAILY_WINDOW_MS = 24 * 3_600_000;
 
-/** Người quen của VÍ (C2+C3): địa chỉ đã gửi thành công ≥1 lần ∪ địa chỉ
- * on-chain của guardian — người trông ví không bao giờ là "địa chỉ lạ". */
-async function knownRecipientsForWallet(walletId: string): Promise<string[]> {
-  const [settled, guardianKeys] = await Promise.all([
+/** Hai tập người nhận, GIỮ RIÊNG (lô vá cửa hậu 2026-07-30).
+ *
+ * Bản cũ trả về union của hai tập này và policy v2 dùng union đó làm cổng miễn
+ * `per_tx` — nghĩa là một giao dịch mồi 1 stroop mua được đúng thứ mà guardian
+ * phải ký cam kết on-chain mới có. Giữ riêng ở đây để engine v3 tự chọn tập nào
+ * mở cổng nào: `guardians` mở `per_tx`, `settled` chỉ đổi câu chữ cảnh báo. */
+type RecipientFamiliarity = {
+  /** Địa chỉ đã gửi thành công ≥1 lần — CHỈ dùng cho cảnh báo mềm. */
+  settled: string[];
+  /** Địa chỉ on-chain của guardian đang hiệu lực — cổng miễn `per_tx` duy nhất. */
+  guardians: string[];
+};
+
+async function recipientFamiliarity(walletId: string): Promise<RecipientFamiliarity> {
+  const [settled, guardians] = await Promise.all([
     repo.knownRecipients(walletId),
     guardianOnchainKeysForWallet(walletId),
   ]);
-  return [...new Set([...settled, ...guardianKeys])];
+  return { settled, guardians };
+}
+
+/** Cờ cảnh báo mềm C5 của màn xác nhận — "đã từng gửi HOẶC là người trông ví".
+ * KHÁC hoàn toàn cổng chính sách: đây chỉ quyết định hiện hay không hiện dòng
+ * "bạn chưa từng gửi cho địa chỉ này". */
+function isFamiliar(familiarity: RecipientFamiliarity, recipient: string): boolean {
+  return familiarity.settled.includes(recipient) || familiarity.guardians.includes(recipient);
 }
 
 export class SendServiceError extends Error {
@@ -145,8 +163,7 @@ export async function prepareSend(
     amount: input.amount,
   });
 
-  const known = await knownRecipientsForWallet(wallet.id);
-  const knownRecipient = known.includes(input.recipient);
+  const knownRecipient = isFamiliar(await recipientFamiliarity(wallet.id), input.recipient);
 
   // Resume idempotent: nếu intent đã đi xa hơn draft, trả trạng thái hiện tại
   // (không lái lại — POST lặp cùng client_intent_id là an toàn).
@@ -216,15 +233,16 @@ export async function confirmSend(
   // A3+A4: ngưỡng THẬT của ví (wallet_policies, fallback default) + cửa sổ
   // rolling 24h — không còn hằng số env, không còn ngày lịch UTC.
   const since = new Date(Date.now() - DAILY_WINDOW_MS);
-  const [known, spent, limits] = await Promise.all([
-    knownRecipientsForWallet(wallet.id),
+  const [familiarity, spent, limits] = await Promise.all([
+    recipientFamiliarity(wallet.id),
     repo.dailySpent(wallet.id, since),
     effectiveLimits(wallet.id),
   ]);
   const policy = evaluatePolicy({
     amount: intent.amount,
     recipient: intent.recipient,
-    knownRecipients: known,
+    knownRecipients: familiarity.settled,
+    guardianAddresses: familiarity.guardians,
     blacklist: [],
     perTxLimit: limits.perTxLimit,
     dailyLimit: limits.dailyLimit,
@@ -392,8 +410,8 @@ export async function guardianApproveIntent(input: {
   // Context THẬT cho re-eval (A5) — cùng nguồn với confirmSend: ngưỡng của ví,
   // chi tiêu rolling 24h, người quen (đã gửi + guardian).
   const since = new Date(Date.now() - DAILY_WINDOW_MS);
-  const [known, spent, limits] = await Promise.all([
-    knownRecipientsForWallet(intent.walletId),
+  const [familiarity, spent, limits] = await Promise.all([
+    recipientFamiliarity(intent.walletId),
     repo.dailySpent(intent.walletId, since),
     effectiveLimits(intent.walletId),
   ]);
@@ -422,7 +440,8 @@ export async function guardianApproveIntent(input: {
         const evaluated = evaluatePolicy({
           amount: intent.amount,
           recipient: intent.recipient,
-          knownRecipients: known,
+          knownRecipients: familiarity.settled,
+          guardianAddresses: familiarity.guardians,
           blacklist: [],
           perTxLimit: limits.perTxLimit,
           dailyLimit: limits.dailyLimit,

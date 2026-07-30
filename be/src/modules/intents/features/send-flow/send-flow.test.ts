@@ -4,7 +4,7 @@
 // sign → settled. Đường chain THẬT ở onchain e2e (guard env riêng).
 import { afterAll, describe, expect, it } from "bun:test";
 import { Address, Keypair, xdr } from "@stellar/stellar-sdk";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { DEFAULT_PER_TX_STROOPS } from "@/modules/wallets";
 import { FeePolicyError } from "@/services/stellar/fee-policy";
@@ -17,6 +17,7 @@ import { transferArgs } from "../../domain/transfer";
 import { pendingApprovalsForGuardianUser } from "../../infra/approvals.repository";
 import { approvalRequests } from "../../infra/approvals.schema";
 import { transactionIntents } from "../../infra/intents.schema";
+import { intentsAwaitingSignatureForOwner } from "../../infra/signing.repository";
 import { CancelError, cancelIntent } from "../cancel-intent/service";
 import {
   confirmSend,
@@ -127,6 +128,11 @@ async function markRecipientKnown(walletId: string, recipient: string): Promise<
 afterAll(async () => {
   if (!dbUp) return;
   for (const id of cleanupWalletIds) await db.delete(wallets).where(eq(wallets.id, id));
+  // Thông báo là SOFT-REF sang user (không FK) nên xoá ví KHÔNG dọn nó. Bỏ lại
+  // là rác tích luỹ trong DB dev, và dispatcher claim theo `ORDER BY created_at
+  // LIMIT 50` — quá 50 dòng queued cũ thì test dispatcher (chèn dòng của nó SAU
+  // CÙNG) không bao giờ được claim và đỏ vì lý do chẳng liên quan gì tới nó.
+  await db.delete(notifications).where(inArray(notifications.userId, [OWNER, GUARDIAN]));
 });
 
 describe("send flow (DB thật + gateway fake)", () => {
@@ -444,15 +450,22 @@ describe("LÔ 1 — báo guardian + từ chối + huỷ lệnh + TTL (A5/A6)", (
   );
 });
 
-/** Chèn intent settled với createdAt TUỲ CHỌN — dựng lịch sử chi tiêu cho A4. */
-async function seedSettledSpend(walletId: string, amount: bigint, createdAt: Date): Promise<void> {
+/** Chèn intent settled với createdAt TUỲ CHỌN — dựng lịch sử chi tiêu cho A4.
+ * `recipient` truyền vào khi ca test cần chính địa chỉ đó vào `knownRecipients`
+ * (repo đọc đúng `status='settled'` + `recipient`), mặc định ngẫu nhiên. */
+async function seedSettledSpend(
+  walletId: string,
+  amount: bigint,
+  createdAt: Date,
+  recipient?: string,
+): Promise<void> {
   await db.insert(transactionIntents).values({
     walletId,
     clientIntentId: `spend-${crypto.randomUUID().slice(0, 12)}`,
     createdBy: "owner",
     status: "settled",
     operations: [],
-    recipient: Keypair.random().publicKey(),
+    recipient: recipient ?? Keypair.random().publicKey(),
     amount,
     createdAt,
   });
@@ -479,6 +492,62 @@ describe("LÔ POLICY — C1/C2 mở khoá dùng hằng ngày + A4 rolling 24h + 
       expect(confirmed.status).toBe("awaiting_signature"); // KHÔNG đòi duyệt
     },
   );
+
+  testIt(
+    "🔴 CỬA HẬU: gửi nhỏ cho địa chỉ lạ → settled → gửi VƯỢT per_tx cho CHÍNH nó → PHẢI xin duyệt",
+    async () => {
+      // Tái hiện đúng chuỗi khai thác trên ví thật 01KYRQ07WM… (2026-07-30):
+      //   16:58:36 gửi 100 XLM cho địa chỉ lạ → settled
+      //   16:59:37 gửi 600 XLM cho CHÍNH địa chỉ đó → policy allow (đã "quen")
+      //   16:59:54 settled — 3× per_tx, không ai duyệt, sau 52 giây.
+      // Trước lô này ca dưới trả awaiting_signature. Chống hồi quy vĩnh viễn.
+      const w = await seedWallet();
+      const { gateway } = fakeGateway(300_000_000_000n);
+      const victim = Keypair.random().publicKey();
+      // Giao dịch mồi đã settle → victim vào knownRecipients.
+      await seedSettledSpend(w.id, 1_000_000_000n, new Date(), victim);
+
+      const review = await prepareSend(gateway, SAC, {
+        walletId: w.id,
+        userId: OWNER,
+        clientIntentId: crypto.randomUUID(),
+        recipient: victim,
+        amount: DEFAULT_PER_TX_STROOPS + 1n, // vượt per_tx, vẫn dưới daily
+      });
+      // Cảnh báo mềm vẫn nói "quen" — chữ mềm KHÔNG còn là cổng chính sách.
+      expect(review.knownRecipient).toBe(true);
+
+      const confirmed = await confirmSend(gateway, SAC, {
+        intentId: review.intentId,
+        userId: OWNER,
+      });
+      expect(confirmed.status).toBe("awaiting_guardian");
+      if (confirmed.status === "awaiting_guardian") {
+        expect(confirmed.reasons).toContain("over_tx_limit");
+      }
+    },
+  );
+
+  testIt("guardian ĐÃ GỠ → mất miễn trừ per_tx ngay lần gửi kế tiếp", async () => {
+    const w = await seedWallet();
+    const { gateway } = fakeGateway(300_000_000_000n);
+    await db
+      .update(guardians)
+      .set({ status: "removed" })
+      .where(and(eq(guardians.walletId, w.id), eq(guardians.userId, GUARDIAN)));
+    const review = await prepareSend(gateway, SAC, {
+      walletId: w.id,
+      userId: OWNER,
+      clientIntentId: crypto.randomUUID(),
+      recipient: w.guardianKey,
+      amount: DEFAULT_PER_TX_STROOPS + 1n,
+    });
+    const confirmed = await confirmSend(gateway, SAC, { intentId: review.intentId, userId: OWNER });
+    expect(confirmed.status).toBe("awaiting_guardian");
+    if (confirmed.status === "awaiting_guardian") {
+      expect(confirmed.reasons).toContain("over_tx_limit");
+    }
+  });
 
   testIt("C2: gửi SỐ LỚN cho guardian (vượt per_tx, dưới daily) → ĐI THẲNG", async () => {
     const w = await seedWallet();
@@ -570,4 +639,77 @@ describe("LÔ POLICY — C1/C2 mở khoá dùng hằng ngày + A4 rolling 24h + 
       expect(outcome.reasons).toContain("reevaluation_required");
     },
   );
+});
+
+describe("LÔ VÁ L2 — chủ ví KHÁM PHÁ LẠI lệnh đang chờ chính mình ký", () => {
+  testIt("guardian duyệt xong → lệnh hiện trong danh sách chờ ký của chủ ví", async () => {
+    const w = await seedWallet();
+    const { gateway } = fakeGateway(300_000_000_000n);
+    const recipient = Keypair.random().publicKey();
+    const review = await prepareSend(gateway, SAC, {
+      walletId: w.id,
+      userId: OWNER,
+      clientIntentId: crypto.randomUUID(),
+      recipient,
+      amount: DEFAULT_PER_TX_STROOPS + 1n,
+    });
+    const confirmed = await confirmSend(gateway, SAC, { intentId: review.intentId, userId: OWNER });
+    expect(confirmed.status).toBe("awaiting_guardian");
+    // Đang chờ duyệt thì CHƯA ký được → không được nằm trong danh sách.
+    const before = await intentsAwaitingSignatureForOwner(OWNER, new Date());
+    expect(before.some((r) => r.intentId === review.intentId)).toBe(false);
+
+    await guardianApproveIntent({
+      intentId: review.intentId,
+      userId: GUARDIAN,
+      verifiedCall: true,
+    });
+
+    // Đây là đường thay cho `intentId` trong state của tab: đóng tab / F5 xong
+    // vẫn tìm lại được lệnh. Trước lô này không có route nào trả về nó.
+    const after = await intentsAwaitingSignatureForOwner(OWNER, new Date());
+    const row = after.find((r) => r.intentId === review.intentId);
+    expect(row).toBeDefined();
+    expect(row?.recipient).toBe(recipient); // ĐẦY ĐỦ — chống ký mù cần địa chỉ thật
+    expect(row?.walletAddress).toBe(w.address);
+    expect(row?.amount).toBe(DEFAULT_PER_TX_STROOPS + 1n);
+  });
+
+  testIt("KHÔNG trả lệnh của ví người khác", async () => {
+    const mine = await seedWallet();
+    const { gateway } = fakeGateway(300_000_000_000n);
+    const review = await prepareSend(gateway, SAC, {
+      walletId: mine.id,
+      userId: OWNER,
+      clientIntentId: crypto.randomUUID(),
+      recipient: Keypair.random().publicKey(),
+      amount: 1_000_000_000n, // dưới ngưỡng → thẳng awaiting_signature
+    });
+    await confirmSend(gateway, SAC, { intentId: review.intentId, userId: OWNER });
+
+    const stranger = `it-send-other-${crypto.randomUUID().slice(0, 8)}`;
+    const rows = await intentsAwaitingSignatureForOwner(stranger, new Date());
+    expect(rows.some((r) => r.intentId === review.intentId)).toBe(false);
+    expect(rows).toEqual([]);
+  });
+
+  testIt("lệnh ĐÃ HẾT HẠN không hiện (không dắt người dùng vào 409)", async () => {
+    const w = await seedWallet();
+    const { gateway } = fakeGateway(300_000_000_000n);
+    const review = await prepareSend(gateway, SAC, {
+      walletId: w.id,
+      userId: OWNER,
+      clientIntentId: crypto.randomUUID(),
+      recipient: Keypair.random().publicKey(),
+      amount: 1_000_000_000n,
+    });
+    await confirmSend(gateway, SAC, { intentId: review.intentId, userId: OWNER });
+    await db
+      .update(transactionIntents)
+      .set({ expiresAt: new Date(Date.now() - 60_000) })
+      .where(eq(transactionIntents.id, review.intentId));
+
+    const rows = await intentsAwaitingSignatureForOwner(OWNER, new Date());
+    expect(rows.some((r) => r.intentId === review.intentId)).toBe(false);
+  });
 });
