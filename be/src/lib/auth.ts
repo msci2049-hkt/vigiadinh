@@ -16,6 +16,7 @@
 // Plugin thêm dần qua skill (add-oauth, add-2fa, add-passkey).
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { APIError, createAuthMiddleware } from "better-auth/api";
 import { admin, bearer, emailOTP } from "better-auth/plugins";
 import { db } from "@/db";
 import { env } from "@/env";
@@ -95,6 +96,38 @@ export const auth = betterAuth({
         }),
       },
     },
+  },
+
+  // === Đăng ký email TRÙNG: báo thẳng, không giả vờ thành công (30/07) ===
+  // BA 1.6 mặc định CHỐNG user-enumeration khi requireEmailVerification hoặc
+  // autoSignIn:false (ta bật CẢ HAI): email đã tồn tại vẫn trả success GIẢ
+  // (synthetic user, không tạo gì, không gửi gì). Hệ quả sản phẩm: người dùng
+  // bị dẫn sang màn nhập OTP chờ mã không bao giờ đến, bấm "Gửi lại" là hệ
+  // thống gửi email xác minh cho tài khoản ĐÃ CÓ — vừa lạc đường vừa tốn email.
+  //
+  // ĐÁNH ĐỔI ĐÃ CHỌN: ví gia đình cho người không rành công nghệ — dẫn đúng
+  // đường quan trọng hơn giấu chuyện email tồn tại. BA không có cờ tắt riêng
+  // hành vi generic này (chỉ có hook onExistingUserSignUp/customSyntheticUser,
+  // đều không đổi response) nên chặn ở hooks.before. Rào chống dò hàng loạt
+  // vẫn còn: rate limit /sign-up/email 3 lần/60s/IP (rateLimit.customRules);
+  // sign-in (INVALID_EMAIL_OR_PASSWORD) và quên-mật-khẩu (luôn trả success)
+  // vẫn KHÔNG tiết lộ gì — chỉ mở đúng MỘT cửa đăng ký, có chủ đích.
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/sign-up/email") return;
+      const email = ctx.body?.email;
+      if (typeof email !== "string" || !email) return; // body sai — validator BA tự chối
+      const existing = await ctx.context.internalAdapter.findUserByEmail(email.toLowerCase());
+      if (existing?.user) {
+        // Cùng code/message BASE_ERROR_CODES.USER_ALREADY_EXISTS của BA (không
+        // re-export public nên viết literal) — FE nhận error.code và hiện
+        // "Email này đã có tài khoản" + nút Đăng nhập mang sẵn email.
+        throw new APIError("UNPROCESSABLE_ENTITY", {
+          message: "User already exists.",
+          code: "USER_ALREADY_EXISTS",
+        });
+      }
+    }),
   },
 
   emailAndPassword: {
