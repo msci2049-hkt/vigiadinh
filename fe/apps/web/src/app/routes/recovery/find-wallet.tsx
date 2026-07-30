@@ -12,9 +12,20 @@ import { Icon } from "@/components/family/icons";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, Input } from "@/components/family/ui";
 import { knockWithNewPasskey } from "@/features/wallet/api/device-recovery";
+import { EmailLookupCard } from "@/features/wallet/components/email-lookup-card";
 import { WalletNotConfiguredError } from "@/features/wallet/lib/kit";
 
 export const Route = createFileRoute("/recovery/find-wallet")({
+  // ?address=… từ email tra ví (R4 nhóm C): điền sẵn ô địa chỉ, người dùng chỉ
+  // bấm tiếp. Optional để các Link cũ không phải truyền search; giá trị lạ →
+  // coi như không có, không báo lỗi.
+  validateSearch: z.object({
+    address: z
+      .string()
+      .regex(/^C[A-Z2-7]{55}$/)
+      .optional()
+      .catch(undefined),
+  }),
   component: RecoveryFindWalletScreen,
 });
 
@@ -27,9 +38,10 @@ type FormInput = z.infer<typeof schema>;
 function RecoveryFindWalletScreen() {
   const { t } = useTranslation("fw");
   const navigate = useNavigate();
+  const prefilled = Route.useSearch().address ?? "";
   const form = useForm<FormInput>({
     resolver: zodResolver(schema),
-    defaultValues: { address: "" },
+    defaultValues: { address: prefilled },
   });
 
   const knock = useMutation({
@@ -76,9 +88,17 @@ function RecoveryFindWalletScreen() {
                 {t("recovery.findWallet.invalid")}
               </p>
             ) : null}
+            {prefilled !== "" ? (
+              <p className="text-success text-sm" role="status">
+                {t("recovery.findWallet.prefilled")}
+              </p>
+            ) : null}
             <p className="text-muted-foreground text-sm">{t("recovery.findWallet.passkeyNote")}</p>
           </CardContent>
         </Card>
+        <div className="mt-4">
+          <EmailLookupCard />
+        </div>
         {knock.isError ? (
           <ErrorBanner type="error" title={t("recovery.findWallet.errorTitle")}>
             {knock.error instanceof WalletNotConfiguredError

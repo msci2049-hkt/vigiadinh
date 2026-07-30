@@ -12,6 +12,7 @@ import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/sc
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { publicProgressOptions } from "@/features/wallet/api/device-recovery";
+import { explorerTxUrl } from "@/lib/stellar-explorer";
 
 export const Route = createFileRoute("/recovery/progress")({
   validateSearch: z.object({
@@ -82,6 +83,40 @@ function RecoveryProgressScreen() {
             ) : null}
             {status === "ready" ? (
               <p className="text-foreground text-sm">{t("recovery.progress.state.ready")}</p>
+            ) : null}
+            {(status === "pending" || status === "ready") &&
+            (progress.data.approvers?.length ?? 0) > 0 ? (
+              // Bằng chứng ĐÚNG NGƯỜI (R4-B3/B4): địa chỉ người xác nhận đủ 56 ký
+              // tự — lấy từ THAM SỐ lời gọi on-chain. Source account của tx là ví
+              // phí dùng chung, tuyệt đối không được trưng ra như "người duyệt".
+              <section className="space-y-3">
+                <h2 className="font-semibold text-foreground text-sm">
+                  {t("recovery.progress.approversTitle")}
+                </h2>
+                <p className="text-muted-foreground text-sm">{t("recovery.progress.feeNote")}</p>
+                <ul className="space-y-2">
+                  {(progress.data.approvers ?? []).map((approver) => (
+                    <li
+                      key={approver.guardian}
+                      className="rounded-card border border-dashed bg-card p-3"
+                    >
+                      <p className="break-all font-mono text-muted-foreground text-xs">
+                        {approver.guardian}
+                      </p>
+                      {approver.txHash ? (
+                        <a
+                          href={explorerTxUrl(approver.txHash)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-primary text-sm underline"
+                        >
+                          {t("recovery.progress.approverLink")}
+                        </a>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ) : null}
             {status === "executed" ? (
               <p className="text-foreground text-sm">{t("recovery.progress.state.executed")}</p>

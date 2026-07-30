@@ -70,7 +70,11 @@
       "signing": "Waiting for your confirmation…",
       "title": "Confirm it's them",
       "verifyNote": "Call the person who asked for this and read the key ID to each other. If it does not match, do not agree.",
-      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} so far. Yours could be the deciding one."
+      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} so far. Yours could be the deciding one.",
+      "recorded": {
+        "title": "Your vote is recorded",
+        "body": "The network already has your approval for this request — including if you were the one who opened it. Nothing more to do."
+      }
     },
     "approveWarning": {
       "approveCta": "I've verified — review & approve",
@@ -129,7 +133,8 @@
         "avoid": "Do not ask for a birthday, a school name, or a pet's name — those can be looked up.",
         "unsure": "If you are not sure, do not approve. The wallet stays as it is. The real person can call back; an impostor cannot.",
         "rush": "Real family will not rush you. Anyone pushing you to approve quickly is a warning sign."
-      }
+      },
+      "countsAsVote": "Opening the request also counts as your vote — you won't need to vote again."
     },
     "approveIntent": {
       "title": "A transfer needs your OK",
@@ -537,7 +542,19 @@
       "label": "Your wallet address",
       "passkeyNote": "Next, this device will ask for your fingerprint or face to create the new key.",
       "placeholder": "C…",
-      "title": "Find your wallet"
+      "title": "Find your wallet",
+      "lookup": {
+        "title": "I don't remember my wallet address",
+        "note": "Enter the email you use for your wallet. If that email has a wallet, we'll send instructions with a link that fills the address in for you.",
+        "emailLabel": "Your email",
+        "emailPlaceholder": "you@example.com",
+        "invalid": "That doesn't look like an email address yet.",
+        "cta": "Email me the instructions",
+        "sending": "Sending…",
+        "sentNote": "If this email has a wallet, we've sent instructions. Check your inbox (and the spam folder).",
+        "errorNotSent": "Couldn't send. Check your connection and try again."
+      },
+      "prefilled": "Your wallet address was filled in from your email. Check it, then continue."
     },
     "progress": {
       "checkNote": "This page updates itself — you can leave it open.",
@@ -555,7 +572,10 @@
       },
       "title": "Waiting for approvals",
       "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
-      "waitingCta": "Waiting for family"
+      "waitingCta": "Waiting for family",
+      "approversTitle": "Who has confirmed",
+      "approverLink": "View the on-chain proof",
+      "feeNote": "The network fee is paid by our system wallet — the people confirming are the addresses below, not the fee wallet."
     },
     "sent": {
       "description": "Your protectors have been asked to confirm it's really you.",

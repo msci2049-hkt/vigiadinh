@@ -5,6 +5,7 @@ import { useRealtimeUpdates } from "@/app/use-realtime-updates";
 import { sanitizeRedirect } from "@/features/auth/lib/redirect-param";
 import { authClient } from "@/lib/auth-client";
 import i18n from "@/lib/i18n";
+import { ensureLocaleSynced } from "@/lib/locale-sync";
 
 /**
  * Pathless auth gate: every child route requires a session. The session is
@@ -23,6 +24,9 @@ export const Route = createFileRoute("/_authenticated")({
       // nên nếu không lọc thì nó tự lồng vào chính nó — đúng vòng lặp 29/07.
       throw redirect({ to: "/login", search: { redirect: sanitizeRedirect(location.href) } });
     }
+    // R4-D3: user.locale trên BE phải khớp ngôn ngữ đang hiển thị — email an
+    // ninh render theo cột đó, và người chưa từng bấm đổi ngôn ngữ thì cột NULL.
+    ensureLocaleSynced((session.user as { locale?: string | null }).locale);
     return { session };
   },
   component: AuthenticatedShell,

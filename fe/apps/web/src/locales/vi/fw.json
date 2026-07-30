@@ -70,7 +70,11 @@
       "signing": "Đang chờ bạn xác nhận…",
       "title": "Xác nhận đúng là họ",
       "verifyNote": "Gọi cho người nhờ bạn và đọc mã chìa khoá cho nhau nghe. Không khớp thì đừng đồng ý.",
-      "votes": "Đã có {approvals, plural, other {# phiếu}} trên {threshold}. Phiếu của bạn có thể là phiếu quyết định."
+      "votes": "Đã có {approvals, plural, other {# phiếu}} trên {threshold}. Phiếu của bạn có thể là phiếu quyết định.",
+      "recorded": {
+        "title": "Phiếu của bạn đã được ghi",
+        "body": "Mạng đã ghi nhận phiếu đồng ý của bạn cho yêu cầu này — kể cả khi bạn là người mở yêu cầu. Không cần làm gì thêm."
+      }
     },
     "approveWarning": {
       "approveCta": "Tôi đã xác minh — xem và duyệt",
@@ -129,7 +133,8 @@
         "avoid": "Đừng hỏi ngày sinh, tên trường, tên thú nuôi — những thứ đó tra được.",
         "unsure": "Không chắc thì đừng duyệt. Ví vẫn còn nguyên. Người thật gọi lại được; kẻ giả thì không.",
         "rush": "Người thân thật sẽ không giục. Người giục bạn duyệt nhanh là dấu hiệu đáng ngờ."
-      }
+      },
+      "countsAsVote": "Mở yêu cầu cũng chính là phiếu đồng ý của bạn — bạn không cần bỏ phiếu lần nữa."
     },
     "approveIntent": {
       "title": "Một khoản chuyển cần bạn duyệt",
@@ -537,7 +542,19 @@
       "label": "Địa chỉ ví của bạn",
       "passkeyNote": "Tiếp theo, máy sẽ hỏi vân tay hoặc khuôn mặt để tạo chìa khoá mới.",
       "placeholder": "C…",
-      "title": "Tìm ví của bạn"
+      "title": "Tìm ví của bạn",
+      "lookup": {
+        "title": "Tôi không nhớ địa chỉ ví",
+        "note": "Nhập email bạn dùng cho ví. Nếu email đó có ví, chúng tôi sẽ gửi hướng dẫn kèm đường dẫn điền sẵn địa chỉ.",
+        "emailLabel": "Email của bạn",
+        "emailPlaceholder": "ten@viduemail.com",
+        "invalid": "Đây chưa phải địa chỉ email hợp lệ.",
+        "cta": "Gửi hướng dẫn qua email",
+        "sending": "Đang gửi…",
+        "sentNote": "Nếu email này có ví, chúng tôi đã gửi hướng dẫn. Kiểm hộp thư (cả mục spam).",
+        "errorNotSent": "Chưa gửi được. Kiểm tra mạng rồi thử lại."
+      },
+      "prefilled": "Địa chỉ ví đã được điền sẵn từ email của bạn. Kiểm tra lại rồi bấm tiếp."
     },
     "progress": {
       "checkNote": "Trang này tự cập nhật — bạn cứ để mở.",
@@ -555,7 +572,10 @@
       },
       "title": "Đang chờ xác nhận",
       "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có",
-      "waitingCta": "Đang chờ người thân"
+      "waitingCta": "Đang chờ người thân",
+      "approversTitle": "Ai đã xác nhận",
+      "approverLink": "Xem bằng chứng trên mạng",
+      "feeNote": "Phí mạng do ví hệ thống trả hộ — người xác nhận là các địa chỉ bên dưới, không phải ví trả phí."
     },
     "sent": {
       "description": "Người bảo hộ của bạn đã được đề nghị xác nhận đúng là bạn.",

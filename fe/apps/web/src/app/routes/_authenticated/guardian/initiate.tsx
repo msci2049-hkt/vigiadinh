@@ -163,6 +163,12 @@ function GuardianInitiateScreen() {
               </p>
             </div>
 
+            {/* R4-D4: contract đếm NGƯỜI MỞ là phiếu đầu tiên — nói trước để
+                không ai mở xong lại đi bấm duyệt và gặp "đã bỏ phiếu rồi". */}
+            <p className="text-foreground text-sm" role="note">
+              {t("guardian.initiate.countsAsVote")}
+            </p>
+
             {initiate.isError ? (
               <ErrorBanner type="error" title={t(initiateErrorKey(initiate.error))} />
             ) : null}

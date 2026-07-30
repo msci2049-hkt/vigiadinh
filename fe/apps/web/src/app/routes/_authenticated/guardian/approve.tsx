@@ -89,7 +89,19 @@ function GuardianApproveScreen() {
       await queryClient.invalidateQueries({ queryKey: guardianInboxKeys.all });
       await navigate({ to: "/guardian/approved", search: { tx: result.hash } });
     },
+    onError: async (err) => {
+      // Phiếu đã có trên mạng mà mirror chưa kịp khớp → refetch để số hiển thị
+      // đuổi kịp chain.
+      if (approveErrorKey(err) === "guardian.approve.errors.alreadyVoted") {
+        await queryClient.invalidateQueries({ queryKey: guardianInboxKeys.all });
+      }
+    },
   });
+
+  // R4-D5: AlreadyApproved KHÔNG phải lỗi — phiếu của bạn ĐÃ nằm trên mạng
+  // (người mở yêu cầu được contract đếm là phiếu ĐẦU TIÊN, không cần bỏ lại).
+  const alreadyVoted =
+    approve.isError && approveErrorKey(approve.error) === "guardian.approve.errors.alreadyVoted";
 
   return (
     <ProductScreen className="justify-center">
@@ -135,15 +147,34 @@ function GuardianApproveScreen() {
               <p className="text-muted-foreground text-sm">{t("guardian.approve.biometricNote")}</p>
             </div>
 
-            {approve.isError ? (
+            {alreadyVoted ? (
+              // Tích XANH, không phải khối lỗi đỏ: chuyện cần nói là "xong rồi",
+              // không phải "bạn làm sai".
+              <div
+                className="flex items-start gap-3 rounded-card border border-success bg-success/10 p-4"
+                role="status"
+              >
+                <Icon name="checkCircle" size={24} className="mt-0.5 shrink-0 text-success" />
+                <div>
+                  <p className="font-semibold text-foreground text-sm">
+                    {t("guardian.approve.recorded.title")}
+                  </p>
+                  <p className="text-muted-foreground text-sm">
+                    {t("guardian.approve.recorded.body")}
+                  </p>
+                </div>
+              </div>
+            ) : approve.isError ? (
               <ErrorBanner type="error" title={t(approveErrorKey(approve.error))} />
             ) : null}
 
             <PrimaryZone>
-              <Button loading={approve.isPending} onClick={() => approve.mutate(item.wallet.id)}>
-                <Icon name="fingerprint" />
-                {approve.isPending ? t("guardian.approve.signing") : t("guardian.approve.cta")}
-              </Button>
+              {alreadyVoted ? null : (
+                <Button loading={approve.isPending} onClick={() => approve.mutate(item.wallet.id)}>
+                  <Icon name="fingerprint" />
+                  {approve.isPending ? t("guardian.approve.signing") : t("guardian.approve.cta")}
+                </Button>
+              )}
               <Button asChild variant="ghost" disabled={approve.isPending}>
                 <Link to="/guardian">{t("guardian.approve.backCta")}</Link>
               </Button>

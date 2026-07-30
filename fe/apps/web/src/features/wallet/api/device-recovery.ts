@@ -84,7 +84,20 @@ export type PublicProgress = {
   threshold?: number | null;
   vetoUntil?: string | null;
   startedAt?: string;
+  /** Ai đã xác nhận — địa chỉ trong THAM SỐ lời gọi on-chain (không phải ví trả
+   * phí) + tx hash làm bằng chứng. Vốn public trên chain. */
+  approvers?: { guardian: string; txHash: string | null }[];
 };
+
+/**
+ * Tra ví bằng EMAIL (người quên địa chỉ). Server LUÔN trả accepted:true và
+ * KHÔNG BAO GIỜ trả địa chỉ hay tiết lộ email có tồn tại không — hướng dẫn
+ * (nếu có) đi qua hộp thư của chính chủ. UI vì thế chỉ được phép nói
+ * "nếu email này có ví…", không được nói "đã tìm thấy".
+ */
+export async function lookupWalletByEmail(email: string): Promise<void> {
+  await apiClient.post("/api/recovery/public/lookup-by-email", { email });
+}
 
 export const publicProgressKeys = {
   byAddress: (address: string) => ["public-recovery", "progress", address] as const,

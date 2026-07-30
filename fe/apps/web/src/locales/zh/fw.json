@@ -70,7 +70,11 @@
       "signing": "正在等待你的确认…",
       "title": "确认是本人",
       "verifyNote": "给发起请求的人打电话，互相核对钥匙 ID。如果不一致，请不要同意。",
-      "votes": "目前 {approvals, plural, other {# 票}}，共需 {threshold} 票。你这一票可能是决定性的。"
+      "votes": "目前 {approvals, plural, other {# 票}}，共需 {threshold} 票。你这一票可能是决定性的。",
+      "recorded": {
+        "title": "您的一票已被记录",
+        "body": "网络已记录您对该请求的同意——包括您是发起人的情况。无需再次操作。"
+      }
     },
     "approveWarning": {
       "approveCta": "我已核实——查看并批准",
@@ -129,7 +133,8 @@
         "avoid": "不要问生日、学校名字、宠物名字——这些都能查到。",
         "unsure": "没有把握就不要同意。钱包不会有任何变化。真正的本人可以再打来；冒充的人不能。",
         "rush": "真正的家人不会催您。催您赶快同意的人，是值得警惕的信号。"
-      }
+      },
+      "countsAsVote": "发起请求本身就算您的一票——之后无需再投票。"
     },
     "approveIntent": {
       "title": "一笔转账需要您确认",
@@ -537,7 +542,19 @@
       "label": "你的钱包地址",
       "passkeyNote": "接下来，此设备会请求你的指纹或面容以创建新钥匙。",
       "placeholder": "C…",
-      "title": "找到你的钱包"
+      "title": "找到你的钱包",
+      "lookup": {
+        "title": "我不记得钱包地址",
+        "note": "输入您钱包使用的邮箱。如果该邮箱有钱包，我们会发送指引，其中的链接会自动填好地址。",
+        "emailLabel": "您的邮箱",
+        "emailPlaceholder": "you@example.com",
+        "invalid": "这还不是有效的邮箱地址。",
+        "cta": "把指引发到我的邮箱",
+        "sending": "发送中…",
+        "sentNote": "如果这个邮箱有钱包，我们已发送了指引。请查看收件箱（包括垃圾邮件）。",
+        "errorNotSent": "暂时无法发送。请检查网络后重试。"
+      },
+      "prefilled": "钱包地址已从您的邮件中自动填好。请核对后继续。"
     },
     "progress": {
       "checkNote": "此页面会自动更新 — 你可以保持打开。",
@@ -555,7 +572,10 @@
       },
       "title": "等待同意",
       "votes": "需要 {approvals, plural, other {# 票}}，共 {threshold} 票",
-      "waitingCta": "正在等待家人"
+      "waitingCta": "正在等待家人",
+      "approversTitle": "谁已确认",
+      "approverLink": "查看链上凭证",
+      "feeNote": "网络手续费由系统钱包代付——确认人是下面显示的地址，而不是付费钱包。"
     },
     "sent": {
       "description": "已请求你的守护人确认确实是你本人。",
