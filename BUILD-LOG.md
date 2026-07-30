@@ -1141,3 +1141,48 @@ dừng ở suy luận). Commit `audit: F1…F5`, `audit: S5`, `audit: T6`, `audi
   onchain-policy 503); FE workflow deploy thêm `VITE_SPENDING_LIMIT_POLICY`
   (GitHub var mirror ĐÃ set = CCIN4CP4… Default-capable; bản CABZ6H4… cũ trong
   .env.example là OZ 2-trường, constructor sẽ fail — ĐÃ thay).
+
+---
+
+## 2026-07-31 · Lô R4 — khôi phục ví đi hết đường (phiếu · bằng chứng · tra email)
+
+- **A · Phiếu đúng số**: `indexer.service.ts` nhánh `initiate` ghi `approvals: 1` —
+  contract đếm NGƯỜI MỞ là phiếu đầu tiên (`recovery-registry/src/lib.rs:311-312`
+  push initiator; `test.rs:318-342` g1 mở rồi bỏ phiếu lại → `AlreadyApproved`).
+  **Chốt bằng chain, không bằng suy luận**: `get_recovery_status` trên registry
+  `CDGBHEXSPNO4CJHYSSV4FZBN3C7XXQOPZPDATR65SH5QHRCDB2WL4JIR` cho ví `CAEDGA447…QHBY`
+  trả `approvals_len = 1`, người duyệt `CBYKUIYA7LNNVQJCMKVG664R75V23YX5V4GHGIP5VTDVFDU6GW35SYDI`.
+  Nhánh `approve` giữ nguyên cách gán `approvals_len` từ event.
+  **Negative control**: bỏ dòng sửa → `expect(approvals).toBe(1)` nhận `0`, ĐỎ.
+- **B · Bằng chứng ĐÚNG NGƯỜI**: `actorAddressFromArgs` lấy người duyệt từ THAM SỐ
+  lời gọi (`initiate_recovery`→args[2], `approve_recovery`→args[1]) — KHÔNG BAO GIỜ
+  từ source account (ví phí `GCJT4UD4…GMFE` dùng chung, không nhận dạng ai). Địa chỉ
+  vào `audit_log.payload.guardian`; indexer mirror cùng danh sách vào
+  `recovery_requests.signals.approvers` (jsonb sẵn có — KHÔNG migration); cửa public
+  `/public/progress` trả `approvers`, màn tiến trình hiện đủ 56 ký tự + link
+  StellarExpert + câu "phí do ví hệ thống trả".
+- **C · Tra ví bằng email**: `POST /api/recovery/public/lookup-by-email` trả
+  `200 {accepted:true}` GIỐNG BYTE cho email có ví / không có ví / sai định dạng /
+  body rác (không dùng `zv` — một mã 400 đã là một bit rò rỉ). Địa chỉ ví chỉ đi qua
+  HỘP THƯ chính chủ (template `recovery.wallet_lookup` 3 locale, link
+  `/recovery/find-wallet?address=…` điền sẵn). Enqueue **fire-and-forget** để hai
+  nhánh không lệch thời gian — đo thật: median hit 11.6ms / miss 9.7ms, chênh 1.9ms.
+  Mọi lần tra vào `audit_log` với **sha256(email)**, không email thô.
+- **D · Kênh + locale + copy hai bước**: cả 5 template `recovery.*` do indexer phát
+  giờ đi `email+sse`, bỏ `push`. Guard A7 cũ (`notify-channels.test.ts`) lọt vì
+  allowlist ghi lý do "đã ép thêm email" — thêm email KHÔNG làm dòng push biến mất
+  (đo 31/07: `recovery.initiated` push failed + email sent cùng microsecond). Bằng
+  chứng mới là test ĐO DB trong `indexer.integration.test.ts`. `ensureLocaleSynced`
+  đẩy ngôn ngữ đang hiển thị lên `user.locale` mỗi phiên (email guardian ra `en` vì
+  cột NULL, không phải vì đường render khác). Màn mở yêu cầu nói rõ "mở = phiếu của
+  bạn"; `AlreadyApproved` render tích XANH thay khối đỏ.
+- **Test**: BE 566 pass / 22 skip (e2e cần `RUN_TESTNET_E2E=1`) / 0 fail;
+  FE 328 pass / 46 file / 0 fail; validate + typecheck + 4 guard script xanh.
+- ⛔ **DEPLOY BE KHÔNG CHẠY ĐƯỢC BẰNG AGENT (chặn cứng, không phải lỗi lô này)**:
+  `vgd-deploy.sh` là script **root, mode 700**, `/root/apps/family-wallet` không đọc
+  được bằng user `cdhc`; `sudo -n -l` chỉ cho NOPASSWD `nginx` / `systemctl reload
+  nginx` / `certbot`. Đúng như MAINNET-CHECKLIST dòng 199 đã ghi. Production vẫn
+  chạy image cũ `2026-07-30T22:00:39Z` — đã xác nhận: `POST …/lookup-by-email` = **404**.
+  Baseline trước deploy: `/health` ok · `/ready` ok (`push:"disabled"`) ·
+  `indexer_checkpoint` ledger 3887184 stale 26s · 5 curl 401/400/403/401 đúng kỳ vọng.
+  → Runbook deploy + backfill nằm ở phần "KHỐI LỆNH CHO GIN" của lô này.
