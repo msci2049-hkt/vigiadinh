@@ -85,6 +85,17 @@ describe("notification renderer (ICU theo locale người nhận)", () => {
     }
   });
 
+  // R4 nhóm C: template email tra ví — link điền sẵn địa chỉ phải sống sót
+  // nguyên vẹn qua ICU ở CẢ BA locale (địa chỉ chỉ đi qua hộp thư, không qua HTTP).
+  it("recovery.wallet_lookup: đủ 3 locale, link giữ nguyên dạng find-wallet?address=", () => {
+    const link = `https://familyhaven.example/recovery/find-wallet?address=C${"A".repeat(55)}`;
+    for (const locale of ["vi", "en", "zh"]) {
+      const r = renderNotification("recovery.wallet_lookup", locale, { link });
+      expect(r.locale).toBe(locale);
+      expect(r.body).toContain(link);
+    }
+  });
+
   it("chuỗi người thường — không lộ jargon kỹ thuật", () => {
     for (const key of [
       "inheritance.suggest_claim",

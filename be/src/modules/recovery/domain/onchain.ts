@@ -147,6 +147,22 @@ export function finalizeArgs(input: { wallet: string }): xdr.ScVal[] {
   return [addr(input.wallet)];
 }
 
+/**
+ * Địa chỉ NGƯỜI DUYỆT từ THAM SỐ lời gọi đã validate: `initiate_recovery(wallet,
+ * new_signer, initiator)` → args[2]; `approve_recovery(wallet, guardian)` → args[1].
+ * Source account của tx là VÍ PHÍ dùng chung cho mọi giao dịch — nó KHÔNG nhận
+ * dạng được ai, audit tuyệt đối không lấy từ đó. Method khác không chở người
+ * duyệt → null (audit bỏ trường, không đoán).
+ */
+export function actorAddressFromArgs(method: string, args: xdr.ScVal[]): string | null {
+  const index =
+    method === RECOVERY_METHODS.initiate ? 2 : method === RECOVERY_METHODS.approve ? 1 : null;
+  if (index === null) return null;
+  const arg = args[index];
+  if (!arg || arg.switch() !== xdr.ScValType.scvAddress()) return null;
+  return Address.fromScAddress(arg.address()).toString();
+}
+
 export type ValidatedSubmission = {
   method: string;
   /** Args lấy từ CHÍNH invocation user đã ký — op dựng lại từ đây, không tin body. */

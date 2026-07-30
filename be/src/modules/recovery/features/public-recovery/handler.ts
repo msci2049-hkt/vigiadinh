@@ -8,9 +8,12 @@
 //   public trên chain); không lộ id nội bộ hay thông tin chủ ví.
 import { createHash } from "node:crypto";
 import { Hono } from "hono";
+import { env } from "@/env";
+import { logger } from "@/lib/logger";
 import { rateLimit } from "@/middlewares/rate-limit";
 import { zv } from "@/middlewares/validator";
 import { externalSignerScVal, RecoveryOnchainError } from "../../domain/onchain";
+import * as lookupRepo from "../../infra/lookup.repository";
 import * as repo from "../../infra/recovery.repository";
 import { deviceRequestBody, progressQuery } from "./dto";
 
@@ -62,4 +65,41 @@ export const publicRecoveryRoute = new Hono()
     const progress = await repo.publicProgressByAddress(address);
     // Không có gì đang mở (hoặc ví lạ) → cùng MỘT shape "none" — không phân biệt được.
     return c.json({ data: progress ?? { status: "none" } });
+  })
+  // Tra ví bằng EMAIL — cho người mất máy KHÔNG nhớ nổi 56 ký tự địa chỉ.
+  // BẤT BIẾN (R4 nhóm C): mọi nhánh — email có ví, không có ví, sai định dạng,
+  // body hỏng — trả CÙNG MỘT response 200 {accepted:true}. Địa chỉ ví chỉ đi
+  // qua email của chính chủ, KHÔNG BAO GIỜ nằm trong response HTTP.
+  .post("/public/lookup-by-email", publicLimit, async (c) => {
+    // Không zv: schema chối body là trả 400 — chính cái 400 đó đã là một bit
+    // khác biệt. Tự parse, mọi input xấu đối xử y hệt "email không tồn tại".
+    let email = "";
+    try {
+      const body = (await c.req.json()) as { email?: unknown };
+      if (typeof body?.email === "string") email = body.email.trim().toLowerCase();
+    } catch {
+      // body không phải JSON — như email không tồn tại, KHÔNG trả lỗi riêng.
+    }
+    const wellFormed = email.length >= 3 && email.length <= 320 && email.includes("@");
+    // Nhánh "không có ví" chạy CÙNG query (index scan email lạ ≈ email có) —
+    // khác biệt còn lại chỉ là enqueue, mà enqueue KHÔNG chặn response (dưới).
+    const match = wellFormed ? await lookupRepo.walletByOwnerEmail(email) : null;
+    await lookupRepo.auditWalletLookup({
+      walletId: match?.walletId ?? null,
+      emailHash: createHash("sha256").update(email).digest("hex"),
+    });
+    if (match) {
+      const origin = env.TRUSTED_ORIGINS[0] ?? "";
+      // Fire-and-forget CÓ CHỦ ĐÍCH (C2): await ở đây là cộng thời gian INSERT
+      // vào đúng nhánh "có ví" — chênh lệch đo được = lộ email tồn tại.
+      void lookupRepo
+        .enqueueWalletLookupEmail({
+          ownerUserId: match.ownerUserId,
+          link: `${origin}/recovery/find-wallet?address=${match.stellarAddress}`,
+        })
+        .catch((err: unknown) => {
+          logger.error({ err }, "recovery.wallet-lookup.enqueue-failed");
+        });
+    }
+    return c.json({ data: { accepted: true } });
   });

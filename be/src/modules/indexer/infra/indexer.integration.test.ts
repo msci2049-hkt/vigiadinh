@@ -149,7 +149,8 @@ describe("indexer core (Postgres thật)", () => {
       if (!w) throw new Error("wallet insert failed");
       cleanupWalletIds.push(w.id);
 
-      const guardian = `G${"G".repeat(55)}`;
+      const guardianA = `G${"G".repeat(55)}`;
+      const guardianB = `G${"H".repeat(55)}`;
       // Registry v2: value initiate = (initiator, fingerprint sha256 Signer mới).
       const fingerprint = new Uint8Array(32).fill(0xab);
       const fingerprintHex56 = Buffer.from(fingerprint).toString("hex").slice(0, 56);
@@ -161,15 +162,17 @@ describe("indexer core (Postgres thật)", () => {
         contractId: registryId,
         data: {
           topics: ["initiate", walletAddress],
-          value: [guardian, fingerprint],
+          value: [guardianA, fingerprint],
           txHash: "a".repeat(64),
         },
       };
+      // Contract publish (guardian, approvals_len) — sau initiate(g1)+approve(g2)
+      // len trên chain là 2 (initiator đã là phiếu #1, test.rs:318-342).
       const approve = {
         ...makeEvent("approve"),
         ledger: 2,
         contractId: registryId,
-        data: { topics: ["approve", walletAddress], value: [guardian, 1], txHash: "b".repeat(64) },
+        data: { topics: ["approve", walletAddress], value: [guardianB, 2], txHash: "b".repeat(64) },
       };
       const cancel = {
         ...makeEvent("cancel"),
@@ -177,10 +180,32 @@ describe("indexer core (Postgres thật)", () => {
         contractId: registryId,
         data: { topics: ["cancel", walletAddress], value: walletAddress, txHash: "c".repeat(64) },
       };
-      cleanupEventIds.push(initiate.id, approve.id, cancel.id);
+      const finalize = {
+        ...makeEvent("finalize"),
+        ledger: 4,
+        contractId: registryId,
+        data: { topics: ["finalize", walletAddress], value: walletAddress, txHash: "d".repeat(64) },
+      };
+      cleanupEventIds.push(initiate.id, approve.id, cancel.id, finalize.id);
+
+      // R4-A: áp RIÊNG initiate trước — mirror phải ghi 1 phiếu (người mở),
+      // KHÔNG phải 0. Đây là chỗ sự cố 31/07: UI 0/2 trong khi chain 1/2.
+      await pollOnce(
+        fakeSource([{ events: [initiate], cursor: "cur-r0", latestLedger: 5 }]),
+        stream,
+      );
+      const [afterInitiate] = await db
+        .select()
+        .from(recoveryRequests)
+        .where(eq(recoveryRequests.walletId, w.id));
+      expect(afterInitiate?.approvals).toBe(1);
+      // R4-B2: người mở nằm trong signals.approvers — địa chỉ THAM SỐ + tx hash.
+      expect(afterInitiate?.signals).toEqual({
+        approvers: [{ guardian: guardianA, txHash: "a".repeat(64) }],
+      });
 
       await pollOnce(
-        fakeSource([{ events: [initiate, approve], cursor: "cur-r1", latestLedger: 10 }]),
+        fakeSource([{ events: [approve], cursor: "cur-r1", latestLedger: 10 }], 0),
         stream,
       );
       const [afterApprove] = await db
@@ -189,12 +214,20 @@ describe("indexer core (Postgres thật)", () => {
         .where(eq(recoveryRequests.walletId, w.id));
       expect(afterApprove?.status).toBe("pending");
       expect(afterApprove?.newOwner).toBe(fingerprintHex56);
-      expect(afterApprove?.approvals).toBe(1);
+      expect(afterApprove?.approvals).toBe(2);
       expect(afterApprove?.threshold).toBe(2);
+      // Không vượt ngưỡng: 2 phiếu / threshold 2.
+      expect(afterApprove?.approvals).toBeLessThanOrEqual(afterApprove?.threshold ?? 0);
       expect(afterApprove?.txHash).toBe("a".repeat(64));
+      expect(afterApprove?.signals).toEqual({
+        approvers: [
+          { guardian: guardianA, txHash: "a".repeat(64) },
+          { guardian: guardianB, txHash: "b".repeat(64) },
+        ],
+      });
 
       await pollOnce(
-        fakeSource([{ events: [cancel], cursor: "cur-r2", latestLedger: 20 }], 0),
+        fakeSource([{ events: [cancel, finalize], cursor: "cur-r2", latestLedger: 20 }], 0),
         stream,
       );
       const [afterCancel] = await db
@@ -203,13 +236,26 @@ describe("indexer core (Postgres thật)", () => {
         .where(eq(recoveryRequests.walletId, w.id));
       expect(afterCancel?.status).toBe("vetoed");
 
-      // Notify chủ ví: initiate + approve + cancel đều có template.
+      // Notify chủ ví: đủ 4 template registry. R4-D2 (guard A7 mới): recovery.* là
+      // sự kiện an ninh — kênh phải là email + sse, KHÔNG MỘT dòng push nào.
+      // Guard tĩnh cũ (notify-channels.test.ts) đã từng cho indexer lọt qua
+      // allowlist "đã ép thêm email" — dòng push vẫn sinh ra và chết
+      // failed/PUSH_NOT_CONFIGURED. Test này đo DB thật nên không lọt được nữa.
       const notis = await db
-        .select({ templateKey: notifications.templateKey })
+        .select({ templateKey: notifications.templateKey, channel: notifications.channel })
         .from(notifications)
         .where(eq(notifications.userId, OWNER));
-      for (const key of ["recovery.initiated", "recovery.approved", "recovery.vetoed"]) {
-        expect(notis.some((n) => n.templateKey === key)).toBe(true);
+      const recoveryRows = notis.filter((n) => n.templateKey.startsWith("recovery."));
+      expect(recoveryRows.length).toBeGreaterThan(0);
+      expect(recoveryRows.filter((n) => n.channel === "push")).toEqual([]);
+      for (const key of [
+        "recovery.initiated",
+        "recovery.approved",
+        "recovery.vetoed",
+        "recovery.finalized",
+      ]) {
+        const channels = new Set(notis.filter((n) => n.templateKey === key).map((n) => n.channel));
+        expect(channels).toEqual(new Set(["email", "sse"]));
       }
     },
   );

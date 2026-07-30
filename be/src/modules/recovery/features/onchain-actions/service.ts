@@ -6,6 +6,7 @@ import type { xdr } from "@stellar/stellar-sdk";
 import { assertSponsorshipAllowed, FEE_CAP_STROOPS } from "@/services/stellar/fee-policy";
 import type { BuiltInvoke } from "@/services/stellar/stellar.service";
 import {
+  actorAddressFromArgs,
   addGuardianArgs,
   approveArgs,
   finalizeArgs,
@@ -184,12 +185,21 @@ export async function submitRecoveryAction(
     authEntries: validated.entries,
     maxFeeStroops: FEE_CAP_STROOPS,
   });
+  // Người duyệt = địa chỉ trong THAM SỐ lời gọi (initiate → initiator, approve →
+  // guardian). Source account của tx là ví phí dùng chung — hash không đủ làm
+  // bằng chứng "ai duyệt" nếu payload không tự chở địa chỉ này.
+  const guardian = actorAddressFromArgs(validated.method, validated.args);
   await repo.appendOnchainAudit({
     walletId: wallet.id,
     kind: "recovery.onchain.submitted",
     actorType: role,
     actorId: input.userId,
-    payload: { method: validated.method, hash: result.hash, status: result.status },
+    payload: {
+      method: validated.method,
+      hash: result.hash,
+      status: result.status,
+      ...(guardian === null ? {} : { guardian }),
+    },
   });
   return { method: validated.method, ...result };
 }

@@ -110,21 +110,39 @@ describe("device-request (DB thật)", () => {
       .returning({ id: wallets.id });
     if (!w) throw new Error("wallet insert failed");
     cleanupWalletIds.push(w.id);
+    const approver = `C${"A".repeat(55)}`;
     await db.insert(recoveryRequests).values({
       walletId: w.id,
       newOwner: "c".repeat(56),
       status: "pending",
       approvals: 1,
       threshold: 2,
+      // R4-B3: signals.approvers do indexer ghi — rác lẫn vào phải bị lọc,
+      // KHÔNG được rò ra cửa public.
+      signals: {
+        approvers: [
+          { guardian: approver, txHash: "a".repeat(64) },
+          { guardian: "not-an-address", txHash: "b".repeat(64) },
+          { guardian: approver, txHash: "KHÔNG-PHẢI-HEX" },
+        ],
+        riskNote: "trường khác của risk engine — không thuộc cửa public",
+      },
     });
 
     const progress = await publicProgressByAddress(address);
     expect(progress?.status).toBe("pending");
     expect(progress?.approvals).toBe(1);
     expect(progress?.threshold).toBe(2);
+    // Địa chỉ NGƯỜI DUYỆT đủ 56 ký tự + tx hash; entry rác bị lọc, txHash sai
+    // dạng hạ về null (link không dựng được thì thôi, không dựng link rác).
+    expect(progress?.approvers).toEqual([
+      { guardian: approver, txHash: "a".repeat(64) },
+      { guardian: approver, txHash: null },
+    ]);
     // Không id nội bộ, không userId — đúng các trường đã khai, không hơn.
     expect(Object.keys(progress ?? {}).sort()).toEqual([
       "approvals",
+      "approvers",
       "startedAt",
       "status",
       "threshold",

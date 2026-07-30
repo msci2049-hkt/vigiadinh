@@ -4,6 +4,7 @@
 import { describe, expect, it } from "bun:test";
 import { Address, Keypair, xdr } from "@stellar/stellar-sdk";
 import {
+  actorAddressFromArgs,
   approveArgs,
   contractErrorCode,
   externalSignerScVal,
@@ -109,6 +110,43 @@ describe("recovery onchain args builders", () => {
     expect(() =>
       externalSignerScVal({ verifier: VERIFIER, keyBase64: Buffer.alloc(100).toString("base64") }),
     ).toThrow(RecoveryOnchainError);
+  });
+});
+
+describe("actorAddressFromArgs — người duyệt = THAM SỐ lời gọi, không phải source", () => {
+  it("approve: guardian = args[1]", () => {
+    const args = approveArgs({ wallet: WALLET, guardian: OTHER });
+    expect(actorAddressFromArgs(RECOVERY_METHODS.approve, args)).toBe(OTHER);
+  });
+
+  it("initiate: initiator = args[2] (arg CUỐI, sau Signer mới)", () => {
+    const args = initiateArgs({
+      wallet: WALLET,
+      newSignerVerifier: VERIFIER,
+      newSignerKeyBase64: KEY32_B64,
+      initiator: OTHER,
+    });
+    expect(actorAddressFromArgs(RECOVERY_METHODS.initiate, args)).toBe(OTHER);
+  });
+
+  it("method không chở người duyệt (veto/register/finalize) → null, không đoán", () => {
+    expect(actorAddressFromArgs(RECOVERY_METHODS.veto, vetoArgs({ wallet: WALLET }))).toBeNull();
+    expect(actorAddressFromArgs(RECOVERY_METHODS.finalize, [])).toBeNull();
+  });
+
+  it("B5: tx giả có 'source'/credentials là VÍ PHÍ ≠ guardian → vẫn lấy đúng THAM SỐ", () => {
+    // Ví phí (source account thật của mọi tx sponsor — GCJT4U… trên production)
+    // ký credentials; guardian thật chỉ nằm trong args của lời gọi.
+    const feeSponsor = Keypair.random().publicKey();
+    const entry = makeEntry({ signer: feeSponsor });
+    const validated = validateSignedSubmission({
+      registryContractId: REGISTRY,
+      walletAddress: WALLET,
+      entriesXdr: [entry],
+    });
+    const actor = actorAddressFromArgs(validated.method, validated.args);
+    expect(actor).toBe(OTHER);
+    expect(actor).not.toBe(feeSponsor);
   });
 });
 

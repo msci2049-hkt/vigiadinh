@@ -77,7 +77,13 @@ describe("guard tĩnh — push-only KHÔNG được quay lại đường khôi p
     "src/jobs/presence-ping.ts",
     // Nợ đã ghi: luồng thừa kế, chưa rà.
     "src/modules/inheritance/infra/heartbeat.repository.ts",
-    // HỢP LỆ: push ở dòng 223 nhưng recovery.* được ép thêm email ở 227-234.
+    // Literal push chỉ còn ở nhánh template NGOÀI recovery (applyEvent tách
+    // nhánh recovery.* → email+sse TRƯỚC, R4-D1). Lý do CŨ của mục này ("đã ép
+    // thêm email ở 227-234") chính là lỗ hổng R4-D2: có thêm email không làm
+    // dòng push biến mất — 4 template recovery.* vẫn chết failed/
+    // PUSH_NOT_CONFIGURED (đo 31/07: recovery.initiated push failed + email
+    // sent cùng microsecond). Bằng chứng thật giờ là test ĐO DB:
+    // indexer.integration.test.ts — cả 4 template registry email+sse, 0 push.
     "src/modules/indexer/infra/indexer.service.ts",
   ]);
 

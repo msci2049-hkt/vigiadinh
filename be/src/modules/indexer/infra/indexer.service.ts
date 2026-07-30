@@ -10,6 +10,7 @@ import { enqueueNotificationTx } from "@/modules/notifications";
 import { recoveryRequests } from "../../recovery/infra/recovery-requests.schema";
 import { wallets } from "../../wallets/infra/wallets.schema";
 import { orderByPriority, routeEvent } from "../domain/event-router";
+import { toJsonSafe } from "../domain/json-safe";
 import { auditLog } from "./audit-log.schema";
 import { indexerCheckpoint, indexerEvents } from "./checkpoint.schema";
 
@@ -143,14 +144,26 @@ async function applyRegistryMirror(
       if (!Array.isArray(value)) return;
       const fp = value[1];
       if (!(fp instanceof Uint8Array)) return;
+      const initiator = typeof value[0] === "string" ? value[0] : null;
+      const txHash = typeof data.txHash === "string" ? data.txHash.slice(0, 64) : null;
       await tx.insert(recoveryRequests).values({
         walletId: wallet.id,
         newOwner: Buffer.from(fp).toString("hex").slice(0, 56),
         status: "pending",
-        approvals: 0,
+        // Contract đếm NGƯỜI MỞ là phiếu ĐẦU TIÊN (recovery-registry/src/lib.rs:311-312
+        // push initiator vào approvals; test.rs:318-342: g1 mở xong bỏ phiếu lại →
+        // AlreadyApproved). Mirror khởi tạo 0 là nói dối: UI báo 0/2 khi chain đã 1/2,
+        // và guardian mở yêu cầu bấm duyệt tiếp ăn CONTRACT_ERROR:AlreadyApproved.
+        approvals: 1,
         threshold: wallet.threshold,
-        txHash: typeof data.txHash === "string" ? data.txHash.slice(0, 64) : null,
+        txHash,
         vetoUntil: new Date(Date.now() + wallet.timelockSecs * 1000),
+        // Người duyệt = địa chỉ trong THAM SỐ lời gọi (initiator), KHÔNG phải source
+        // account của tx — source là ví phí dùng chung, không nhận dạng ai. Màn tiến
+        // trình đọc danh sách này (jsonb có sẵn — không migration).
+        signals: toJsonSafe({
+          approvers: initiator ? [{ guardian: initiator, txHash }] : [],
+        }),
       });
       return;
     }
@@ -159,9 +172,24 @@ async function applyRegistryMirror(
       const value = data.value;
       const approvalsLen = Array.isArray(value) ? Number(value[1]) : Number.NaN;
       if (!Number.isFinite(approvalsLen)) return;
+      const guardian = Array.isArray(value) && typeof value[0] === "string" ? value[0] : null;
+      const txHash = typeof data.txHash === "string" ? data.txHash.slice(0, 64) : null;
+      // Nối người duyệt vào signals.approvers TRONG SQL (giữ nguyên key khác của
+      // jsonb nếu risk engine đã ghi). Replay event đã bị dedupe PK chặn ở pollOnce.
+      const approverJson = JSON.stringify(toJsonSafe({ guardian, txHash }));
       await tx
         .update(recoveryRequests)
-        .set({ approvals: approvalsLen })
+        .set({
+          approvals: approvalsLen,
+          ...(guardian
+            ? {
+                signals: sql`coalesce(${recoveryRequests.signals}, '{}'::jsonb)
+                  || jsonb_build_object('approvers',
+                       coalesce(${recoveryRequests.signals}->'approvers', '[]'::jsonb)
+                       || ${approverJson}::jsonb)`,
+              }
+            : {}),
+        })
         .where(and(walletScope, ACTIVE_MIRROR));
       return;
     }
@@ -216,20 +244,31 @@ async function applyEvent(tx: Tx, event: SimplifiedEvent): Promise<void> {
   });
 
   if (route.notifyTemplate && wallet) {
-    await enqueueNotificationTx(tx, {
-      userId: wallet.ownerUserId,
-      templateKey: route.notifyTemplate,
-      params: { walletId: wallet.id, eventId: event.id, ...event.data },
-      channel: "push",
-    });
-    // Recovery BẮT BUỘC có kênh NGOÀI app (pipeline §7): app bị chiếm thì email
-    // vẫn tới. Nút veto hoạt động từ email nối ở PHA 5 (route veto + link ký).
+    const params = { walletId: wallet.id, eventId: event.id, ...event.data };
     if (route.notifyTemplate.startsWith("recovery.")) {
+      // recovery.* = sự kiện AN NINH → email + sse, KHÔNG push. Push chưa cấu
+      // hình (dispatcher ném PermanentDispatchError PUSH_NOT_CONFIGURED) —
+      // enqueue push cho đường khôi phục là enqueue vào hư không (sự cố 30/07,
+      // tái diễn 31/07 với recovery.initiated). Bộ kênh CỐ Ý trùng
+      // RECOVERY_NOTIFY_CHANNELS của recovery.repository.ts (không import chéo
+      // module — luật module-boundary); indexer.integration.test.ts khoá cả 5
+      // template recovery.* ở mức DB. Nút veto từ email nối ở PHA 5.
+      for (const channel of ["email", "sse"] as const) {
+        await enqueueNotificationTx(tx, {
+          userId: wallet.ownerUserId,
+          templateKey: route.notifyTemplate,
+          params,
+          channel,
+        });
+      }
+    } else {
       await enqueueNotificationTx(tx, {
         userId: wallet.ownerUserId,
         templateKey: route.notifyTemplate,
-        params: { walletId: wallet.id, eventId: event.id, ...event.data },
-        channel: "email",
+        params,
+        // Literal "push" CỐ Ý để tripwire notify-channels.test.ts còn thấy file
+        // này — nhánh trên đã chặn mọi template recovery.* rơi vào đây.
+        channel: "push",
       });
     }
   }

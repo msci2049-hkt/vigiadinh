@@ -6,6 +6,7 @@ import { guardians } from "../../guardians/infra/guardians.schema";
 import { auditLog } from "../../indexer/infra/audit-log.schema";
 import { notifications } from "../../notifications/infra/notifications.schema";
 import { type Wallet, wallets } from "../../wallets/infra/wallets.schema";
+import { approversFromSignals, type PublicRecoveryProgress } from "../domain/approvers";
 import { type RecoveryDeviceRequest, recoveryDeviceRequests } from "./device-requests.schema";
 import { type RecoveryRequest, recoveryRequests } from "./recovery-requests.schema";
 
@@ -207,14 +208,11 @@ export async function openDeviceRequestsForGuardianUser(
   }));
 }
 
-/** Tiến độ khôi phục PUBLIC theo địa chỉ — chỉ trường vô hại (vốn public on-chain). */
-export async function publicProgressByAddress(address: string): Promise<{
-  status: string;
-  approvals: number;
-  threshold: number | null;
-  vetoUntil: string | null;
-  startedAt: string;
-} | null> {
+/** Tiến độ khôi phục PUBLIC theo địa chỉ — chỉ trường vô hại (vốn public on-chain).
+ * approvers: ai đã duyệt (địa chỉ THAM SỐ lời gọi + tx hash) — cũng public on-chain. */
+export async function publicProgressByAddress(
+  address: string,
+): Promise<PublicRecoveryProgress | null> {
   const [row] = await db
     .select({
       status: recoveryRequests.status,
@@ -222,6 +220,7 @@ export async function publicProgressByAddress(address: string): Promise<{
       threshold: recoveryRequests.threshold,
       vetoUntil: recoveryRequests.vetoUntil,
       startedAt: recoveryRequests.startedAt,
+      signals: recoveryRequests.signals,
     })
     .from(recoveryRequests)
     .innerJoin(wallets, eq(recoveryRequests.walletId, wallets.id))
@@ -235,6 +234,7 @@ export async function publicProgressByAddress(address: string): Promise<{
     threshold: row.threshold,
     vetoUntil: row.vetoUntil ? row.vetoUntil.toISOString() : null,
     startedAt: row.startedAt.toISOString(),
+    approvers: approversFromSignals(row.signals),
   };
 }
 
