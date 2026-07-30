@@ -122,7 +122,14 @@
       "gone": "This request is no longer open.",
       "signing": "Waiting for your confirmation…",
       "title": "Start recovery for this wallet?",
-      "verifyNote": "Call the wallet owner. Ask them to read the key ID from their new device — it must match this one exactly. If it does not, stop here."
+      "verifyNote": "Call the wallet owner. Ask them to read the key ID from their new device — it must match this one exactly. If it does not, stop here.",
+      "verify": {
+        "title": "Before you approve, call them and listen to their voice.",
+        "pickQuestion": "If you are not sure, ask about something only the two of you know and that exists nowhere else — not on social media, not on the phone they lost. A time you were both there. Something you said to each other.",
+        "avoid": "Do not ask for a birthday, a school name, or a pet's name — those can be looked up.",
+        "unsure": "If you are not sure, do not approve. The wallet stays as it is. The real person can call back; an impostor cannot.",
+        "rush": "Real family will not rush you. Anyone pushing you to approve quickly is a warning sign."
+      }
     },
     "approveIntent": {
       "title": "A transfer needs your OK",
@@ -445,7 +452,10 @@
       "activity": "active {when}",
       "noActivity": "no activity yet",
       "recoveryOpen": "A recovery request is waiting for you",
-      "reviewCta": "Review and decide"
+      "reviewCta": "Review and decide",
+      "addressLabel": "Their wallet address",
+      "copyCta": "Copy address",
+      "copied": "Copied"
     },
     "approvals": {
       "title": "Waiting for your decision",
@@ -459,7 +469,13 @@
       "pendingWork": "Something is waiting for your decision",
       "openCta": "See what's waiting"
     },
-    "badgeAria": "{count} things waiting for your decision"
+    "badgeAria": "{count} things waiting for your decision",
+    "knocks": {
+      "title": "Waiting for you",
+      "item": "Someone says they lost their device and needs your help to get back in.",
+      "since": "Sent {when}",
+      "reviewCta": "Review and decide"
+    }
   },
   "recovery": {
     "cooldown": {
@@ -889,6 +905,7 @@
     "intentRejected": "Your transfer was declined — no money has moved.",
     "policyRaiseRequested": "Someone asked to raise the amounts this wallet allows. If this wasn't you, cancel it in Settings.",
     "policyApplied": "The new allowed amounts are now active.",
-    "policyCancelled": "The change to allowed amounts was cancelled."
+    "policyCancelled": "The change to allowed amounts was cancelled.",
+    "recoveryDeviceRequested": "Someone in your family needs help getting back into their wallet."
   }
 }

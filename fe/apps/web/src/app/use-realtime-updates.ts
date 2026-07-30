@@ -30,6 +30,10 @@ const TOAST_KEYS = {
   "policy.raise_requested": "realtime.policyRaiseRequested",
   "policy.applied": "realtime.policyApplied",
   "policy.cancelled": "realtime.policyCancelled",
+  // Lô R1: thiết bị mới gõ cửa xin khôi phục. KHÔNG có mặt ở đây thì parseDomain
+  // trả null và sự kiện bị bỏ luôn — kênh sse coi như không tồn tại, đúng kiểu
+  // "im lặng bằng cách thành công" mà lô này đang đi vá.
+  "recovery.device_requested": "realtime.recoveryDeviceRequested",
 } as const;
 
 type DomainType = keyof typeof TOAST_KEYS;

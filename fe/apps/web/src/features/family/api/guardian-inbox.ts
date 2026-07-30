@@ -47,4 +47,8 @@ export const guardianDeviceRequestsOptions = queryOptions({
     );
     return res.data;
   },
+  // Lô R1: query này giờ nuôi badge tab + khối "đang chờ" ở /protecting, không
+  // còn chỉ phục vụ màn initiate → cần cùng lưới đỡ như hai nguồn kia, nếu
+  // không SSE hỏng là số badge đứng im.
+  refetchOnWindowFocus: true,
 });

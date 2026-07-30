@@ -132,6 +132,30 @@ function GuardianInitiateScreen() {
             <ErrorBanner type="warn" title={t("guardian.initiate.title")}>
               {t("guardian.initiate.verifyNote")}
             </ErrorBanner>
+
+            {/* Lô R1 — HƯỚNG DẪN xác minh, không phải hàng rào cưỡng chế. Hàng
+                rào thật là đủ phiếu + khoảng chờ + quyền chặn, nằm on-chain.
+                Đặt NGAY TRÊN nút duyệt và luôn mở: người dùng lớn tuổi, thứ gì
+                phải bấm để đọc thì coi như không tồn tại. CỐ Ý không gợi ý câu
+                hỏi cụ thể — gợi ý cụ thể vừa dạy kẻ trộm cần chuẩn bị gì, vừa
+                làm người bảo hộ tưởng đã kiểm tra xong khi thực ra chưa. */}
+            <section
+              className="flex flex-col gap-2 rounded-card border border-primary bg-accent p-4"
+              aria-label={t("guardian.initiate.verify.title")}
+            >
+              <h2 className="font-semibold text-foreground text-sm">
+                {t("guardian.initiate.verify.title")}
+              </h2>
+              <p className="text-foreground text-sm">
+                {t("guardian.initiate.verify.pickQuestion")}
+              </p>
+              <p className="text-muted-foreground text-sm">{t("guardian.initiate.verify.avoid")}</p>
+              <p className="font-semibold text-foreground text-sm">
+                {t("guardian.initiate.verify.unsure")}
+              </p>
+              <p className="text-muted-foreground text-sm">{t("guardian.initiate.verify.rush")}</p>
+            </section>
+
             <div className="flex items-center gap-3">
               <Icon name="fingerprint" size={32} />
               <p className="text-muted-foreground text-sm">

@@ -1,6 +1,6 @@
 // Chiều NGƯỢC (C7) — GET /api/guardians/protecting: các ví user này đang gác.
-// BE chỉ trả cột an toàn (chốt bằng key-list test protectingItemView) — không
-// có email / địa chỉ ví / số dư của chủ ví ở chiều này.
+// BE chỉ trả cột an toàn (chốt bằng key-list test protectingItemView) — SỐ DƯ và
+// LỊCH SỬ của chủ ví không đi qua chiều này, đúng lời hứa ở /passkey.
 import { queryOptions } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import type { GuardianStatus } from "./guardians";
@@ -8,6 +8,9 @@ import type { GuardianStatus } from "./guardians";
 export type ProtectingItem = {
   id: string;
   wallet_id: string;
+  /** Địa chỉ ví ĐỦ 56 ký tự (lô R1) — public trên chain, và là thứ người bảo hộ
+   * đọc cho chủ ví khi họ mất máy. KHÔNG rút gọn khi hiển thị. */
+  stellar_address: string;
   status: GuardianStatus;
   owner_name: string | null;
   /** Email chủ ví ĐÃ che sẵn từ BE ("ab***@gmail.com") — bản đầy đủ không bao giờ tới FE. */

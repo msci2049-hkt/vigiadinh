@@ -122,7 +122,14 @@
       "gone": "该请求已不再开放。",
       "signing": "正在等待你的确认…",
       "title": "为该钱包发起恢复？",
-      "verifyNote": "给钱包主人打电话。请他们读出新设备上的钥匙 ID — 必须与这个完全一致。如果不一致，请到此为止。"
+      "verifyNote": "给钱包主人打电话。请他们读出新设备上的钥匙 ID — 必须与这个完全一致。如果不一致，请到此为止。",
+      "verify": {
+        "title": "在同意之前，请先打电话，听听对方的声音。",
+        "pickQuestion": "如果没有把握，就问一件只有你们两人知道、别处都查不到的事——社交媒体上没有，丢失的手机里也没有。比如你们都在场的某一次，或者彼此说过的一句话。",
+        "avoid": "不要问生日、学校名字、宠物名字——这些都能查到。",
+        "unsure": "没有把握就不要同意。钱包不会有任何变化。真正的本人可以再打来；冒充的人不能。",
+        "rush": "真正的家人不会催您。催您赶快同意的人，是值得警惕的信号。"
+      }
     },
     "approveIntent": {
       "title": "一笔转账需要您确认",
@@ -445,7 +452,10 @@
       "activity": "最近活跃：{when}",
       "noActivity": "还没有动态",
       "recoveryOpen": "有一个恢复请求正在等你处理",
-      "reviewCta": "查看并决定"
+      "reviewCta": "查看并决定",
+      "addressLabel": "他们的钱包地址",
+      "copyCta": "复制地址",
+      "copied": "已复制"
     },
     "approvals": {
       "title": "等待您决定",
@@ -459,7 +469,13 @@
       "pendingWork": "有事项等待你决定",
       "openCta": "查看待办事项"
     },
-    "badgeAria": "有 {count} 项事务等待你决定"
+    "badgeAria": "有 {count} 项事务等待你决定",
+    "knocks": {
+      "title": "等您处理",
+      "item": "有人说自己的设备丢了，需要您帮忙重新进入钱包。",
+      "since": "{when}发出",
+      "reviewCta": "查看并决定"
+    }
   },
   "recovery": {
     "cooldown": {
@@ -889,6 +905,7 @@
     "intentRejected": "你的转账被拒绝了——资金没有离开钱包。",
     "policyRaiseRequested": "有人请求提高此钱包允许的金额。如果不是您本人，请在设置中取消。",
     "policyApplied": "新的允许金额已生效。",
-    "policyCancelled": "允许金额的更改已取消。"
+    "policyCancelled": "允许金额的更改已取消。",
+    "recoveryDeviceRequested": "您的一位家人需要帮助，才能重新进入他的钱包。"
   }
 }

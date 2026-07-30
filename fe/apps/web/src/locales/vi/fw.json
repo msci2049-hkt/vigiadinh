@@ -122,7 +122,14 @@
       "gone": "Yêu cầu này không còn mở.",
       "signing": "Đang chờ bạn xác nhận…",
       "title": "Bắt đầu khôi phục ví này?",
-      "verifyNote": "Gọi cho chủ ví. Nhờ họ đọc mã chìa khoá trên thiết bị mới của họ — phải TRÙNG KHỚP từng ký tự với mã này. Không khớp thì dừng lại."
+      "verifyNote": "Gọi cho chủ ví. Nhờ họ đọc mã chìa khoá trên thiết bị mới của họ — phải TRÙNG KHỚP từng ký tự với mã này. Không khớp thì dừng lại.",
+      "verify": {
+        "title": "Trước khi duyệt, hãy gọi điện và nghe giọng.",
+        "pickQuestion": "Nếu chưa chắc, hỏi một chuyện chỉ hai người biết và không có ở đâu khác — không nằm trên mạng xã hội, không nằm trong điện thoại đã mất. Ví dụ một lần cả hai cùng có mặt, một câu đã nói với nhau.",
+        "avoid": "Đừng hỏi ngày sinh, tên trường, tên thú nuôi — những thứ đó tra được.",
+        "unsure": "Không chắc thì đừng duyệt. Ví vẫn còn nguyên. Người thật gọi lại được; kẻ giả thì không.",
+        "rush": "Người thân thật sẽ không giục. Người giục bạn duyệt nhanh là dấu hiệu đáng ngờ."
+      }
     },
     "approveIntent": {
       "title": "Một khoản chuyển cần bạn duyệt",
@@ -445,7 +452,10 @@
       "activity": "hoạt động {when}",
       "noActivity": "chưa có hoạt động nào",
       "recoveryOpen": "Có yêu cầu khôi phục đang chờ bạn",
-      "reviewCta": "Xem và quyết định"
+      "reviewCta": "Xem và quyết định",
+      "addressLabel": "Địa chỉ ví của họ",
+      "copyCta": "Chép địa chỉ",
+      "copied": "Đã chép"
     },
     "approvals": {
       "title": "Chờ bạn quyết định",
@@ -459,7 +469,13 @@
       "pendingWork": "Có việc đang chờ bạn quyết định",
       "openCta": "Xem việc đang chờ"
     },
-    "badgeAria": "Có {count} việc đang chờ bạn quyết định"
+    "badgeAria": "Có {count} việc đang chờ bạn quyết định",
+    "knocks": {
+      "title": "Yêu cầu đang chờ",
+      "item": "Có người nói họ mất máy và cần bạn giúp mở lại ví.",
+      "since": "Gửi {when}",
+      "reviewCta": "Xem và quyết định"
+    }
   },
   "recovery": {
     "cooldown": {
@@ -889,6 +905,7 @@
     "intentRejected": "Người bảo hộ đã từ chối khoản chuyển của bạn — tiền không đi đâu cả.",
     "policyRaiseRequested": "Có đề nghị nâng số tiền ví cho phép. Nếu không phải bạn, hãy huỷ trong Cài đặt.",
     "policyApplied": "Mức tiền mới đã có hiệu lực.",
-    "policyCancelled": "Đề nghị đổi mức tiền đã được huỷ."
+    "policyCancelled": "Đề nghị đổi mức tiền đã được huỷ.",
+    "recoveryDeviceRequested": "Có người thân cần bạn giúp mở lại ví của họ."
   }
 }

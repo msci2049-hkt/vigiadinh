@@ -33,3 +33,18 @@ export function shortAddress(raw: string): string {
   const value = raw.trim();
   return value.length > 12 ? `${value.slice(0, 6)}…${value.slice(-6)}` : value;
 }
+
+/**
+ * Địa chỉ chia nhóm 4 ký tự để ĐỌC TO QUA ĐIỆN THOẠI (lô R1).
+ *
+ * Ca dùng: chủ ví mất máy, không nhớ 56 ký tự base32 của mình và app chưa có
+ * đường tra ví bằng email — người bảo hộ phải đọc hộ. 56 ký tự liền một dải là
+ * không đọc được cho ai chép tay; 14 nhóm bốn thì đọc được.
+ *
+ * Trả về chuỗi ĐỦ, KHÔNG rút gọn — `shortAddress` ở đây là bịt nốt đường thoát
+ * duy nhất. Khoảng trắng chỉ để nhìn/đọc: nút copy phải chép bản gốc.
+ */
+export function groupAddress(raw: string): string {
+  const value = raw.trim();
+  return value.match(/.{1,4}/g)?.join(" ") ?? value;
+}
