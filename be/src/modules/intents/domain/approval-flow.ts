@@ -24,6 +24,15 @@ export type ApprovalOutcome = {
 
 /**
  * Nhận phiếu APPROVE của guardian:
+ * 0. NGƯỠNG = MỘT người. Duyệt CHI TIÊU cần đúng một người thân đồng ý; hàm này
+ *    KHÔNG đếm phiếu và đó là CHỦ Ý, không phải thiếu sót. Đừng đọc nhầm sang
+ *    `wallets.threshold` (mặc định 2) — cột đó thuộc về KHÔI PHỤC VÍ, nơi 2/3
+ *    phiếu là bắt buộc vì hậu quả là mất quyền kiểm soát ví vĩnh viễn. Hai
+ *    luồng, hai mức rủi ro, hai ngưỡng khác nhau:
+ *      - chi tiêu vượt hạn mức → 1 người thân (tiền có trần `daily` chặn phía sau)
+ *      - khôi phục ví sang thiết bị mới → 2/3 người thân + timelock
+ *    Muốn nâng ngưỡng chi tiêu lên 2 thì phải đếm phiếu Ở ĐÂY và đổi cả
+ *    `guardianApproveIntent` (nó update status ngay sau MỘT phiếu).
  * 1. K5 — approval phải còn bind đúng intent HIỆN TẠI (challenge_hash tính lại khớp).
  * 2. State machine: awaiting_guardian → approved (guardian) — ngoài bảng là 409.
  * 3. P3 — re-run policy TRƯỚC khi mở awaiting_signature; policy đòi duyệt lại →
