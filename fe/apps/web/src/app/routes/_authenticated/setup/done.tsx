@@ -15,9 +15,8 @@ function SetupDoneScreen() {
   return (
     <ProductScreen className="items-center justify-center text-center">
       <ProductImage
-        src="/assets/mascot/mascot-wave.png"
-        webpSrc="/assets/mascot/mascot-wave.webp"
-        avifSrc="/assets/mascot/mascot-wave.avif"
+        src="/assets/characters/family-guide-wave.png"
+        webpSrc="/assets/characters/family-guide-wave.webp"
         alt=""
         width={640}
         height={640}

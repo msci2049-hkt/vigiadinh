@@ -22,7 +22,8 @@ function WelcomeScreen() {
       />
       <div className="welcome-hero">
         <ProductImage
-          src="/assets/illustrations/family-together.png"
+          src="/assets/characters/european-family-hero.png"
+          webpSrc="/assets/characters/european-family-hero.webp"
           alt=""
           width={1122}
           height={1402}

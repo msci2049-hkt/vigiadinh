@@ -1,5 +1,9 @@
 # UI Audit State — VíGiaĐình
 
+> Historical route audit. All character assets listed below were superseded on
+> 2026-07-30 by `assets/characters/*`, the updated PWA icons, and `og.jpg`.
+> See `docs/ASSET-MANIFEST.md` for the current production inventory.
+
 ## Pha hiện tại: 5/6
 ## Màn đã đọc: 41/41
 

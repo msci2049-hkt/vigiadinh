@@ -545,7 +545,7 @@ function reportMarkdown(results: RouteResult[]): string {
 
   return `# UI Asset Runtime Report — VíGiaĐình
 
-Ngày chạy: 2026-07-29
+Ngày chạy: 2026-07-30
 
 Lệnh chuẩn: \`corepack pnpm test:assets\`
 
@@ -746,7 +746,7 @@ function layoutReportMarkdown(results: LayoutResult[]): string {
 
   return `# UI Layout Matrix Report — VíGiaĐình
 
-Ngày chạy: 2026-07-29
+Ngày chạy: 2026-07-30
 
 Lệnh chuẩn: \`corepack pnpm test:layout\`
 

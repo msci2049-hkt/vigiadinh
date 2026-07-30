@@ -658,7 +658,6 @@
   height: auto;
   margin-inline: auto;
   object-fit: contain;
-  mix-blend-mode: multiply;
 }
 
 .family-scene--compact {
@@ -668,39 +667,12 @@
 
 .guardian-portrait {
   display: block;
+  aspect-ratio: 1;
   overflow: hidden;
   border: 1px solid var(--fw-line);
   background: var(--fw-paper);
-}
-
-.guardian-portrait__paper {
-  fill: var(--fw-paper-raised);
-}
-
-.guardian-portrait__hair {
-  fill: var(--fw-ink);
-  stroke: var(--fw-ink);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.guardian-portrait__skin {
-  fill: color-mix(in srgb, var(--fw-yellow) 19%, var(--fw-paper));
-  stroke: var(--fw-ink);
-  stroke-width: 2;
-}
-
-.guardian-portrait__detail,
-.guardian-portrait__highlight {
-  fill: none;
-  stroke: var(--fw-ink);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
-
-.guardian-portrait__highlight {
-  stroke: color-mix(in srgb, var(--fw-paper) 72%, transparent);
+  object-fit: cover;
+  object-position: center top;
 }
 
 .guardian-portrait--muted {

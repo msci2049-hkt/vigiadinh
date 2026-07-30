@@ -1,9 +1,10 @@
 /**
- * Sinh icon PWA từ linh vật ngôi sao (`assets/mascot/mascot-wave.png`, 640×640).
+ * Sinh icon PWA từ hai ảnh gia đình ảo châu Âu đã duyệt:
+ * `icons/icon-512.png` và `icons/icon-maskable-512.png`.
  *
  * CHẠY TAY, KHÔNG nằm trong build — output đã commit vào `apps/web/public/icons/`
- * (cùng quy ước với `scripts/prepare-ui-assets.py` ở root: tài sản sinh ra thì
- * commit, script chỉ để TÁI LẬP). Máy build production không cần chạy file này.
+ * Tài sản sinh ra được commit; script chỉ để tái lập các kích thước PWA.
+ * Máy build production không cần chạy file này.
  *
  *   node scripts/make-app-icons.mjs
  *
@@ -14,15 +15,11 @@
  * THROW nếu khác — thà đỏ ồn ào còn hơn sinh ra icon hỏng.
  *
  * Thu nhỏ bằng TRUNG BÌNH DIỆN TÍCH: tỉ lệ thu 3–7 lần mà lấy mẫu điểm sẽ làm
- * nét vẽ mảnh của linh vật đứt quãng.
+ * chi tiết khuôn mặt và sợi tóc không bị đứt quãng.
  *
  * Hai loại icon, CỐ Ý tách rời:
- *   - `any`      : chủ thể to (0.86 cạnh) — đây là icon người dùng nhìn thấy.
- *   - `maskable` : Android cắt theo hình tròn/squircle của máy. Vùng an toàn là
- *                  đường tròn đường kính 0.8·N, nên hình vuông bao chủ thể phải
- *                  ≤ 0.8/√2 ≈ 0.566·N thì bốn góc mới không bị xén. Dùng chung
- *                  một file cho cả hai purpose là cách kinh điển để linh vật bị
- *                  cắt cụt tay chân trên máy Android.
+ *   - `any`: chân dung gia đình cận cảnh, dễ nhận ra ở kích thước nhỏ.
+ *   - `maskable`: bố cục gia đình thu gọn trong vùng an toàn trung tâm.
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -30,14 +27,13 @@ import { fileURLToPath } from "node:url";
 import { deflateSync, inflateSync } from "node:zlib";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
-const SOURCE = join(ROOT, "apps/web/public/assets/mascot/mascot-wave.png");
+const SOURCE_ANY = join(ROOT, "apps/web/public/icons/icon-512.png");
+const SOURCE_MASKABLE = join(ROOT, "apps/web/public/icons/icon-maskable-512.png");
 const OUT_DIR = join(ROOT, "apps/web/public/icons");
+const EXTENSION_OUT_DIR = join(ROOT, "../extension/icons");
 
 /** `--fw-paper` trong `components/family/family.css` — nền giấy của chính app. */
 const PAPER = [253, 252, 247];
-
-/** Ngưỡng coi một pixel là "khác nền" khi dò khung chủ thể (tổng lệch RGB). */
-const SUBJECT_THRESHOLD = 24;
 
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 
@@ -155,30 +151,6 @@ function encodePng(width, height, rgb) {
   ]);
 }
 
-function subjectBox(img) {
-  const bg = [img.rgb[0], img.rgb[1], img.rgb[2]];
-  let x0 = img.width;
-  let y0 = img.height;
-  let x1 = -1;
-  let y1 = -1;
-  for (let y = 0; y < img.height; y++) {
-    for (let x = 0; x < img.width; x++) {
-      const i = (img.width * y + x) * 3;
-      const delta =
-        Math.abs(img.rgb[i] - bg[0]) +
-        Math.abs(img.rgb[i + 1] - bg[1]) +
-        Math.abs(img.rgb[i + 2] - bg[2]);
-      if (delta > SUBJECT_THRESHOLD) {
-        if (x < x0) x0 = x;
-        if (x > x1) x1 = x;
-        if (y < y0) y0 = y;
-        if (y > y1) y1 = y;
-      }
-    }
-  }
-  return { x0, y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
-}
-
 /** Trung bình diện tích một ô nguồn → một pixel đích (giữ nét mảnh khi thu nhỏ). */
 function sampleBox(src, sx0, sy0, sx1, sy1) {
   const x0 = Math.max(0, Math.floor(sx0));
@@ -232,21 +204,22 @@ function render(src, box, size, fill) {
   return out;
 }
 
-const source = decodePng(readFileSync(SOURCE));
-const box = subjectBox(source);
-console.log(`nguồn ${source.width}×${source.height}, khung chủ thể`, box);
+const sourceAny = decodePng(readFileSync(SOURCE_ANY));
+const sourceMaskable = decodePng(readFileSync(SOURCE_MASKABLE));
 
 const OUTPUTS = [
-  // Icon người dùng nhìn thấy — chủ thể to.
-  { file: "icon-192.png", size: 192, fill: 0.86 },
-  { file: "icon-512.png", size: 512, fill: 0.86 },
-  { file: "apple-touch-icon.png", size: 180, fill: 0.86 },
-  // Android cắt theo mặt nạ của máy — chủ thể phải nằm gọn trong đường tròn 0.8·N.
-  { file: "icon-maskable-512.png", size: 512, fill: 0.56 },
+  { source: sourceAny, outDir: OUT_DIR, file: "icon-192.png", size: 192 },
+  { source: sourceAny, outDir: OUT_DIR, file: "icon-512.png", size: 512 },
+  { source: sourceAny, outDir: OUT_DIR, file: "apple-touch-icon.png", size: 180 },
+  { source: sourceMaskable, outDir: OUT_DIR, file: "icon-maskable-512.png", size: 512 },
+  { source: sourceAny, outDir: EXTENSION_OUT_DIR, file: "icon-16.png", size: 16 },
+  { source: sourceAny, outDir: EXTENSION_OUT_DIR, file: "icon-48.png", size: 48 },
+  { source: sourceAny, outDir: EXTENSION_OUT_DIR, file: "icon-128.png", size: 128 },
 ];
 
-for (const { file, size, fill } of OUTPUTS) {
-  const rgb = render(source, box, size, fill);
-  writeFileSync(join(OUT_DIR, file), encodePng(size, size, rgb));
-  console.log(`✅ ${file} — ${size}×${size}, chủ thể ${Math.round(fill * 100)}%`);
+for (const { source, outDir, file, size } of OUTPUTS) {
+  const box = { x0: 0, y0: 0, w: source.width, h: source.height };
+  const rgb = render(source, box, size, 1);
+  writeFileSync(join(outDir, file), encodePng(size, size, rgb));
+  console.log(`✅ ${file} — ${size}×${size}`);
 }

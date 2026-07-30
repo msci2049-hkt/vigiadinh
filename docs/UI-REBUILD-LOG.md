@@ -16,7 +16,7 @@ machines and navigation destinations remain intact.
 - Primary, secondary, ghost, danger and link buttons with hover, pressed, disabled and loading.
 - Shared product screen/header/primary zone, guardian cluster, biometric gate, status pill,
   timelock countdown, sheet, semantic error banner and read-state components.
-- Generated banker, mascot, guardian avatar and social assets documented in
+- Generated European family, state-character, guardian portrait, app-icon and social assets documented in
   `docs/ASSET-MANIFEST.md`.
 - English, Vietnamese and Simplified Chinese catalogs at equal key parity.
 
@@ -73,9 +73,8 @@ the same system because real invite/recovery links land there.
   address and real protection state are shown instead.
 - `/wallet/receive` uses a QR icon, address and working copy action. A fake non-scannable QR
   payload was not generated.
-- The task explicitly requested generated characters throughout the experience, so a small
-  number of calm editorial character/mascot assets are used beyond landing while all financial
-  data remains real.
+- The character layer now uses one consistent semi-realistic European virtual family across
+  hero, state, guardian, app-icon and social surfaces while all financial data remains real.
 - The recipient input still accepts both `G…` and `C…` because changing validation would alter
   existing behavior. Its visible placeholder is `C…` to match the product architecture.
 

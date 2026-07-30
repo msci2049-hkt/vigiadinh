@@ -1,5 +1,10 @@
 # UI Visual Regression Report — VíGiaĐình
 
+> Historical baseline from 2026-07-25. Character imagery was fully replaced on
+> 2026-07-30 with the semi-realistic European family system documented in
+> `docs/ASSET-MANIFEST.md`; current QA results are recorded in
+> `docs/UI-ASSET-REPORT.md`.
+
 Ngày chốt: 2026-07-25
 Phạm vi: đúng 41 route sản phẩm trong `docs/UI-AUDIT-STATE.md`.
 
@@ -25,7 +30,8 @@ Phạm vi: đúng 41 route sản phẩm trong `docs/UI-AUDIT-STATE.md`.
 popup 22–41.
 
 - 41/41 màn có nội dung, không ô ảnh trống, không icon vỡ, không placeholder lạc.
-- Banker/mascot/avatar giữ cùng nhận diện; ảnh banker ngồi không còn artefact.
+- Bộ nhân vật tại thời điểm baseline giữ cùng nhận diện; baseline này đã được thay
+  bởi bộ gia đình châu Âu semi-realistic ngày 2026-07-30.
 - QR nhận tiền render QR thật.
 - Các khối magenta trong contact sheet là vùng mask động của Playwright, không
   phải thành phần UI.

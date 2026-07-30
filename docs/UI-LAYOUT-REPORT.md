@@ -1,6 +1,6 @@
 # UI Layout Matrix Report — VíGiaĐình
 
-Ngày chạy: 2026-07-29
+Ngày chạy: 2026-07-30
 
 Lệnh chuẩn: `corepack pnpm test:layout`
 

@@ -109,12 +109,11 @@ brief.
 
 | Asset family | Current use | Decision |
 |---|---|---|
-| `assets/people/banker-open-left.*` | Welcome, guardian invitation | Replace with one original hand-drawn family scene |
-| `assets/people/banker-present-right.*` | Setup | Replace with original illustration |
-| `assets/people/banker-seated.*` | Inheritance | Replace with original illustration/state art |
-| `assets/people/banker-tablet.*` | Night Watch guardian view | Replace with original illustration/state art |
-| `assets/avatars/{aunt,brother,grandfather,mom,sister,uncle}-*.*` | Guardian identities and clusters | Replace with repo-owned inline SVG portrait system |
-| `assets/mascot/*` | Waiting, welcome details, status moments | Keep; already matches the illustrated product language |
+| `assets/characters/european-family-hero.*` | Welcome, invitation, setup, inheritance, family safety | Use the approved semi-realistic European family system |
+| `assets/characters/family-guide-{wave,wait}.*` | Completion and waiting states | Use the same young adult family member in consistent poses |
+| `assets/characters/guardians/guardian-{1..6}.webp` | Guardian identities and clusters | Use the approved semi-realistic European portrait set |
+| `icons/*.png` and `og.jpg` | PWA and social surfaces | Keep character identity consistent with the in-app family |
+| Former `assets/illustrations/*`, `assets/mascot/*`, cartoon SVG portraits | Retired | Removed from production and recoverable from Git history |
 
 New imagery must remain decorative or supportive. Identity, amount, status, and
 decision meaning must always remain available as text.

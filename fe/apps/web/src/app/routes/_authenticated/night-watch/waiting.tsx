@@ -39,9 +39,8 @@ function NightWatchWaitingScreen() {
   return (
     <ProductScreen>
       <ProductImage
-        src="/assets/mascot/mascot-wait.png"
-        webpSrc="/assets/mascot/mascot-wait.webp"
-        avifSrc="/assets/mascot/mascot-wait.avif"
+        src="/assets/characters/family-guide-wait.png"
+        webpSrc="/assets/characters/family-guide-wait.webp"
         alt=""
         width={640}
         height={640}
