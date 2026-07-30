@@ -5,6 +5,7 @@
 // quét lại từ cửa sổ hiện tại (thà trùng — dedupe lo — còn hơn mất).
 import { rpc, scValToNative } from "@stellar/stellar-sdk";
 import { logger } from "@/lib/logger";
+import { toJsonSafe } from "../domain/json-safe";
 import type { EventPage, EventSource, SimplifiedEvent } from "./indexer.service";
 
 const PAGE_LIMIT = 100;
@@ -12,12 +13,19 @@ const PAGE_LIMIT = 100;
 // deploy mới; lịch sử sâu hơn thuộc về rebuild-from-state (PHA 5).
 const BOOTSTRAP_LOOKBACK_LEDGERS = 1440;
 
-function simplify(event: rpc.Api.EventResponse): SimplifiedEvent {
+/**
+ * ScVal → SimplifiedEvent. `toJsonSafe` bọc NGAY sau `scValToNative` — đây là
+ * rìa duy nhất BigInt vào được hệ thống, và `data` chảy tiếp vào 3 cột jsonb
+ * (indexer_events.payload, audit_log.payload, notifications.params). Vá ở đây là
+ * vá cả ba; vá ở từng chỗ ghi là chắc chắn quên một chỗ (xem domain/json-safe.ts).
+ * Export để test dựng ScVal THẬT chạy qua đúng đường này.
+ */
+export function simplifyEvent(event: rpc.Api.EventResponse): SimplifiedEvent {
   let kind = "unknown";
   const topics: unknown[] = [];
   for (const t of event.topic) {
     try {
-      topics.push(scValToNative(t));
+      topics.push(toJsonSafe(scValToNative(t)));
     } catch {
       topics.push(t.toXDR("base64"));
     }
@@ -25,7 +33,7 @@ function simplify(event: rpc.Api.EventResponse): SimplifiedEvent {
   if (typeof topics[0] === "string") kind = topics[0];
   let value: unknown;
   try {
-    value = scValToNative(event.value);
+    value = toJsonSafe(scValToNative(event.value));
   } catch {
     value = event.value.toXDR("base64");
   }
@@ -78,7 +86,7 @@ export function rpcEventSource(config: { rpcUrl: string; contractIds: string[] }
       }
 
       return {
-        events: response.events.map(simplify),
+        events: response.events.map(simplifyEvent),
         cursor: response.cursor,
         latestLedger: response.latestLedger,
         ...(gapFromLedger !== undefined ? { gapFromLedger } : {}),

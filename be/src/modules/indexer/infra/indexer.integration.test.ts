@@ -3,15 +3,19 @@
 // (kind quá 64 ký tự → varchar chối → tx rollback) — đúng bản chất crash:
 // transaction chưa commit thì mọi thứ (event + mirror + checkpoint) cùng biến mất.
 import { afterAll, describe, expect, it } from "bun:test";
+import { randomBytes } from "node:crypto";
+import { Contract, nativeToScVal, type rpc, StrKey, xdr } from "@stellar/stellar-sdk";
 import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { pgReachable, SKIP_REASON } from "@/test-support/pg";
 import { notifications } from "../../notifications/infra/notifications.schema";
 import { recoveryRequests } from "../../recovery/infra/recovery-requests.schema";
 import { wallets } from "../../wallets/infra/wallets.schema";
+import { auditLog } from "./audit-log.schema";
 import { indexerCheckpoint, indexerEvents } from "./checkpoint.schema";
 import { getCheckpoint, pollOnce } from "./indexer.service";
 import { checkpointOf, fakeSource, makeEvent } from "./indexer.test-support";
+import { simplifyEvent } from "./rpc-source";
 
 const dbUp = await pgReachable();
 const testIt = dbUp ? it : it.skip;
@@ -210,6 +214,84 @@ describe("indexer core (Postgres thật)", () => {
     },
   );
 
+  // ── Sự cố 2026-07-30: BigInt của ScVal u64 làm chết indexer 48 phút ─────────
+  // Ca chứng minh TRỰC TIẾP: dựng ScVal THẬT của event `register` (threshold u32
+  // = 2, timelock u64 = 86400) → chạy qua ĐÚNG `simplifyEvent` của rpc-source →
+  // pollOnce ghi vào jsonb. Trước khi vá, chính event này throw "cannot serialize
+  // BigInt", rollback cả transaction, checkpoint đứng, poll sau fetch lại nó.
+  testIt("event `register` có timelock u64 86400 → ghi được vào jsonb, KHÔNG throw", async () => {
+    const stream = freshStream();
+    // Ở ca này địa chỉ phải là StrKey THẬT (có checksum): `Contract` và ScVal
+    // address decode chứ không nhận chuỗi bịa như các ca chỉ ghi DB phía trên.
+    const registryId = StrKey.encodeContract(randomBytes(32));
+    const walletAddress = StrKey.encodeEd25519PublicKey(randomBytes(32));
+    const [w] = await db
+      .insert(wallets)
+      .values({ userId: OWNER, stellarAddress: walletAddress, threshold: 2 })
+      .returning({ id: wallets.id });
+    if (!w) throw new Error("wallet insert failed");
+    cleanupWalletIds.push(w.id);
+
+    // ScVal THẬT — không phải data đã decode bằng tay: u64 phải đi qua
+    // scValToNative để thành BigInt, đó mới là ca thật.
+    const raw = {
+      id: `ev-bigint-${crypto.randomUUID()}`,
+      ledger: 3_875_394,
+      contractId: new Contract(registryId),
+      topic: [
+        nativeToScVal("register", { type: "symbol" }),
+        nativeToScVal(walletAddress, { type: "address" }),
+      ],
+      value: xdr.ScVal.scvVec([
+        nativeToScVal(2, { type: "u32" }),
+        nativeToScVal(86_400n, { type: "u64" }),
+      ]),
+      txHash: "d".repeat(64),
+    } as unknown as rpc.Api.EventResponse;
+
+    const event = simplifyEvent(raw);
+    cleanupEventIds.push(event.id);
+    expect(event.kind).toBe("register");
+    // Đây là chỗ vá: u64 ra string, KHÔNG còn BigInt nào trong data.
+    expect((event.data as { value: unknown }).value).toEqual([2, "86400"]);
+    expect(JSON.stringify(event.data)).toContain('"86400"');
+
+    expect(
+      await pollOnce(
+        fakeSource([{ events: [event], cursor: "cur-u64", latestLedger: 3_875_400 }]),
+        stream,
+      ),
+    ).toBe(1);
+
+    // Ghi THẬT vào cả hai cột jsonb (indexer_events + audit_log), đọc lại được.
+    const [row] = await db
+      .select({ payload: indexerEvents.payload })
+      .from(indexerEvents)
+      .where(eq(indexerEvents.id, event.id));
+    expect((row?.payload as { value?: unknown } | null)?.value).toEqual([2, "86400"]);
+    const audits = await db
+      .select({ kind: auditLog.kind, payload: auditLog.payload })
+      .from(auditLog)
+      .where(eq(auditLog.walletId, w.id));
+    expect(audits.some((a) => a.kind === "register")).toBe(true);
+
+    // Checkpoint NHÍCH — cái đứng yên 48 phút trong sự cố.
+    expect(await getCheckpoint(stream)).toEqual(checkpointOf("cur-u64", 3_875_400));
+  });
+
+  testIt("BigInt chưa ép (bỏ qua rìa RPC) VẪN chết — vá đúng chỗ mới có tác dụng", async () => {
+    const stream = freshStream();
+    const poison = makeEvent("heartbeat");
+    // Mô phỏng data như `scValToNative` trả về khi KHÔNG có toJsonSafe.
+    const raw = { ...poison, data: { topics: ["heartbeat"], value: [2, 86_400n] } };
+    cleanupEventIds.push(poison.id);
+    expect(
+      pollOnce(fakeSource([{ events: [raw], cursor: "cur-bad", latestLedger: 500 }]), stream),
+    ).rejects.toThrow();
+    // Và đúng như sự cố thật: checkpoint KHÔNG nhích → poll sau fetch lại nó.
+    expect(await getCheckpoint(stream)).toEqual(checkpointOf(null, 0));
+  });
+
   testIt("gap (trôi quá cửa sổ RPC): ghi audit lỗ hổng, vẫn chạy tiếp", async () => {
     const stream = freshStream();
     // Checkpoint đã có (ledger 50) → nguồn báo gapFromLedger 500.
@@ -220,7 +302,6 @@ describe("indexer core (Postgres thật)", () => {
       fakeSource([{ events: [e], cursor: "cur-g", latestLedger: 600, gapFromLedger: 500 }]),
       stream,
     );
-    const { auditLog } = await import("./audit-log.schema");
     const gaps = await db
       .select({ kind: auditLog.kind })
       .from(auditLog)
