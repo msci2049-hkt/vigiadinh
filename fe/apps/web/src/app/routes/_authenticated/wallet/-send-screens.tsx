@@ -13,6 +13,7 @@ import { DetailRow, PrimaryZone, ProductScreen, ScreenHeader } from "@/component
 import { Button } from "@/components/family/ui";
 import type { PendingSignature } from "@/features/family/api/pending-signature";
 import { cancelSend } from "@/features/family/api/send";
+import { IntentSignalsCard } from "@/features/family/components/intent-signals-card";
 import { useResumeSigning } from "@/features/family/hooks/use-resume-signing";
 import { signWalletEntries } from "@/features/wallet/lib/sign-wallet-entries";
 import { explorerTxUrl } from "@/lib/stellar-explorer";
@@ -172,6 +173,11 @@ export function SendGuardianWaitScreen({
           description={t("wallet.send.guardian.description")}
           className="text-center"
         />
+        {/* Lô R2 §5.4 — chủ ví CHỈ thấy khối tín hiệu khi lệnh phải chờ người
+            thân (màn này chính là trạng thái đó; component còn tự gác thêm
+            requiresGuardian). Dưới ngưỡng thì không có màn này, không cảnh báo
+            — tránh mệt mỏi cảnh báo. Chủ ví vẫn còn nút huỷ ngay dưới. */}
+        {intentId ? <IntentSignalsCard intentId={intentId} audience="owner" /> : null}
         {cancel.isError ? (
           <ErrorBanner type="error" title={t("wallet.send.guardian.cancelFailed")} />
         ) : null}

@@ -441,6 +441,16 @@
     "walletUser": "Family wallet",
     "working": "Unlocking with your device…"
   },
+  "signals": {
+    "title": "Check before you approve",
+    "titleOwner": "Double-check this transfer",
+    "ratio": "About {ratio} times what this wallet usually sends",
+    "firstTime": "Receiving address: first time this wallet sends to it",
+    "sentBefore": "Receiving address: {count, plural, one {sent successfully once before} other {sent successfully # times before}}",
+    "velocity": "Last hour: {count, plural, one {# transfer} other {# transfers}}, {total} in total",
+    "finalGuardian": "Once the money leaves, it cannot be taken back.",
+    "finalOwner": "This transfer will need a family member to confirm it."
+  },
   "protecting": {
     "title": "Wallets I protect",
     "description": "Wallets your family trusted you to protect.",

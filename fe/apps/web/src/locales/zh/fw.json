@@ -441,6 +441,16 @@
     "walletUser": "家庭钱包",
     "working": "正在用你的设备解锁…"
   },
+  "signals": {
+    "title": "批准前请先核对",
+    "titleOwner": "请再核对这笔转账",
+    "ratio": "约为这个钱包平时转账金额的 {ratio} 倍",
+    "firstTime": "收款地址：钱包第一次向它转账",
+    "sentBefore": "收款地址：钱包此前已成功转过 {count, number} 次",
+    "velocity": "过去 1 小时：{count, number} 笔转账，共 {total}",
+    "finalGuardian": "钱转出去就拿不回来了。",
+    "finalOwner": "这笔转账需要一位家人确认。"
+  },
   "protecting": {
     "title": "我守护的钱包",
     "description": "你正在帮家人守护的钱包。",

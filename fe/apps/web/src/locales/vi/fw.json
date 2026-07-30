@@ -441,6 +441,16 @@
     "walletUser": "Ví gia đình",
     "working": "Đang mở khóa bằng thiết bị của bạn…"
   },
+  "signals": {
+    "title": "Kiểm tra trước khi duyệt",
+    "titleOwner": "Kiểm tra lại lệnh vừa tạo",
+    "ratio": "Gấp {ratio} lần mức gửi thường ngày của ví",
+    "firstTime": "Địa chỉ nhận: lần đầu ví gửi tới",
+    "sentBefore": "Địa chỉ nhận: ví đã gửi thành công {count, number} lần",
+    "velocity": "1 giờ qua: {count, number} lệnh gửi, tổng {total}",
+    "finalGuardian": "Tiền đi rồi không lấy lại được.",
+    "finalOwner": "Lệnh này sẽ cần một người thân xác nhận."
+  },
   "protecting": {
     "title": "Ví tôi bảo vệ",
     "description": "Những ví của người thân mà bạn đang bảo vệ.",

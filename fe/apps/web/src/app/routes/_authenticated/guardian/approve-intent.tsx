@@ -17,6 +17,7 @@ import {
   pendingApprovalsKeys,
   pendingApprovalsOptions,
 } from "@/features/family/api/pending-approvals";
+import { IntentSignalsCard } from "@/features/family/components/intent-signals-card";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 
 export const Route = createFileRoute("/_authenticated/guardian/approve-intent")({
@@ -134,6 +135,11 @@ function ApproveIntentScreen() {
                 ))}
               </ul>
             ) : null}
+
+            {/* Lô R2 §5.4 — tín hiệu rủi ro hiện LUÔN ở màn guardian: người
+                đang quyết là tiền của NGƯỜI KHÁC. Nằm trên nút duyệt, cạnh
+                khối hướng dẫn gọi điện. */}
+            <IntentSignalsCard intentId={item.intent_id} audience="guardian" />
 
             <ErrorBanner type="warn" title={t("guardian.approveIntent.verifyTitle")}>
               {t("guardian.approveIntent.verifyNote", { name: ownerName })}
