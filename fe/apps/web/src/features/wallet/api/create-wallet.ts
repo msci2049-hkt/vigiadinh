@@ -8,6 +8,7 @@
 // đường sản phẩm nào, nên mọi ví tạo qua /setup đều không khôi phục được.
 import { apiClient } from "@/lib/api-client";
 import { env } from "@/lib/env";
+import { sortConstructorPolicies } from "../lib/constructor-policies";
 import { getWalletKit } from "../lib/kit";
 import { passkeyOwnerName } from "../lib/passkey-label";
 import { spendingLimitConstructorPolicy } from "../lib/policy-link";
@@ -41,6 +42,11 @@ export async function createWalletMinimal(opts?: {
   // (D4), Cài đặt sẽ nhắc bật sau qua đường ví-cũ.
   const spendingLimit = spendingLimitConstructorPolicy();
   if (spendingLimit) policies.push(spendingLimit);
+  // Sort theo thứ tự HOST trước khi đưa vào kit (sự cố 30/07): host đòi ScMap
+  // sorted by key mà kit/SDK encode map constructor theo đúng thứ tự chèn —
+  // 2 entry chèn ngược là mọi lần deploy chết ở simulate ("ScMap was not
+  // sorted by key"). Chi tiết + luật so sánh: lib/constructor-policies.ts.
+  const constructorPolicies = sortConstructorPolicies(policies);
   // Tên qua passkeyOwnerName — TRẦN 30 BYTE (sự cố 30/07): kit nhét userName
   // vào user.id WebAuthn kèm đuôi ~34 byte, vượt 64 là trình duyệt chối ngay
   // trước cả prompt sinh trắc học. Email nguyên vẹn khi lọt trần; nhãn app bỏ
@@ -48,7 +54,7 @@ export async function createWalletMinimal(opts?: {
   const userName = passkeyOwnerName(env.VITE_APP_NAME, opts?.ownerLabel);
   const result = await kit.createWallet(env.VITE_APP_NAME, userName, {
     autoSubmit: true,
-    policies,
+    policies: constructorPolicies,
   });
   const contractId = result.contractId;
   if (!contractId) throw new Error("WALLET_DEPLOY_NO_ADDRESS");

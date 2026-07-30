@@ -53,6 +53,12 @@ function SetupIntroScreen() {
 
   const create = useMutation({
     mutationFn: () => createWalletMinimal({ ownerLabel: user?.email }),
+    onError: (err) => {
+      // UI cắt mã kỹ thuật còn 140 ký tự (createErrorCode) — sự cố 30/07 đúng
+      // dòng diagnostic thứ hai ("ScMap was not sorted…") bị cắt mất và tốn 20
+      // phút mò. Console giữ nguyên văn; những gì user thấy không đổi.
+      console.error(err);
+    },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: walletKeys.all });
       await navigate({ to: "/setup/done" });
