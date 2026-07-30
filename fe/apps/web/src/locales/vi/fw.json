@@ -587,8 +587,10 @@
       "cta": "Tạo ví của tôi",
       "description": "Chọn những người thân tin cậy có thể giúp bạn lấy lại ví nếu chẳng may mất điện thoại.",
       "errors": {
-        "failed": "Không tạo được ví. Thiết bị chưa xác nhận — hãy thử lại.",
-        "notConfigured": "Ứng dụng chưa kết nối mạng ví. Đây là việc của đội chúng tôi."
+        "failed": "Không tạo được ví. Chưa có gì thay đổi trên tài khoản của bạn — bấm thử lại; nếu vẫn vậy, đọc mã bên dưới cho đội hỗ trợ.",
+        "notConfigured": "Ứng dụng chưa kết nối mạng ví. Đây là việc của đội chúng tôi.",
+        "deviceDeclined": "Thiết bị chưa xác nhận khuôn mặt/vân tay. Ví chưa được tạo — bấm thử lại và xác nhận trên thiết bị của bạn.",
+        "technical": "Mã kỹ thuật cho đội hỗ trợ: {code}"
       },
       "haveWalletCta": "Tôi đã có ví",
       "point1": "Ví mở bằng khuôn mặt hoặc vân tay — không có seed phrase để mất.",

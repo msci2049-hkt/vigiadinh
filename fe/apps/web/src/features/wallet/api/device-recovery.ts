@@ -8,6 +8,7 @@ import { queryOptions } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api-client";
 import { env } from "@/lib/env";
 import { getWalletKit } from "../lib/kit";
+import { recoveryPasskeyName } from "../lib/passkey-label";
 
 export type RecoveryDraft = {
   address: string;
@@ -53,7 +54,10 @@ function base64ToBytes(b64: string): Uint8Array {
  */
 export async function knockWithNewPasskey(address: string): Promise<RecoveryDraft> {
   const kit = getWalletKit();
-  const label = `${env.VITE_APP_NAME} recovery ${address.slice(0, 4)}…${address.slice(-4)}`;
+  // recoveryPasskeyName — TRẦN 30 BYTE (sự cố 30/07): nickname đi thẳng vào
+  // user.id WebAuthn của kit; bản cũ "FamilyHaven recovery CCMT…M4A4" 32 byte
+  // → user.id 66 byte, chính luồng khôi phục cũng chết vì tràn.
+  const label = recoveryPasskeyName(env.VITE_APP_NAME, address);
   const cred = await kit.credentials.create({ nickname: label });
   const keyBase64 = bytesToBase64(cred.publicKey);
   const res = await apiClient.post<{ data: { accepted: boolean; fingerprint: string } }>(

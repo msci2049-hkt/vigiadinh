@@ -27,7 +27,7 @@ import "@/instrument";
  *    đường dẫn mới, lối thoát khi một đường dẫn asset bị cache biên đóng băng
  *    (sự cố ở trên). Comment không làm được việc đó.
  */
-const BUILD_TAG = "2026-07-29.5";
+const BUILD_TAG = "2026-07-30.1";
 document.documentElement.dataset.build = BUILD_TAG;
 
 import { StrictMode } from "react";

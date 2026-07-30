@@ -18,6 +18,31 @@ import { WalletNotConfiguredError } from "@/features/wallet/lib/kit";
 
 export const Route = createFileRoute("/_authenticated/setup/")({ component: SetupIntroScreen });
 
+type CreateErrorKey =
+  | "setup.intro.errors.notConfigured"
+  | "setup.intro.errors.deviceDeclined"
+  | "setup.intro.errors.failed";
+
+/**
+ * Mỗi nguyên nhân một câu (sự cố 30/07): câu cũ "Thiết bị chưa xác nhận" từng
+ * che MỌI lỗi — kể cả TypeError user.id tràn 64 byte, lúc thiết bị chưa hề
+ * được hỏi — và làm mất một giờ điều tra. "Thiết bị chưa xác nhận" giờ CHỈ
+ * dành cho đúng ca đó (NotAllowedError: người dùng bấm huỷ / máy từ chối).
+ */
+function createErrorKey(err: unknown): CreateErrorKey {
+  if (err instanceof WalletNotConfiguredError) return "setup.intro.errors.notConfigured";
+  if (err instanceof DOMException && err.name === "NotAllowedError") {
+    return "setup.intro.errors.deviceDeclined";
+  }
+  return "setup.intro.errors.failed";
+}
+
+/** Mã kỹ thuật cho đội hỗ trợ — không bao giờ nuốt lỗi gốc nữa. */
+function createErrorCode(err: unknown): string {
+  if (err instanceof Error) return `${err.name}: ${err.message}`.slice(0, 140);
+  return String(err).slice(0, 140);
+}
+
 function SetupIntroScreen() {
   const { t } = useTranslation("fw");
   const navigate = useNavigate();
@@ -65,9 +90,12 @@ function SetupIntroScreen() {
 
       {create.isError ? (
         <ErrorBanner type="error" title={t("setup.intro.title")}>
-          {create.error instanceof WalletNotConfiguredError
-            ? t("setup.intro.errors.notConfigured")
-            : t("setup.intro.errors.failed")}
+          <p>{t(createErrorKey(create.error))}</p>
+          {create.error instanceof WalletNotConfiguredError ? null : (
+            <p className="mt-1 text-xs opacity-70" data-testid="setup-create-error-code">
+              {t("setup.intro.errors.technical", { code: createErrorCode(create.error) })}
+            </p>
+          )}
         </ErrorBanner>
       ) : null}
 

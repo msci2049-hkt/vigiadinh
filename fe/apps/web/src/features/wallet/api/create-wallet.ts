@@ -9,6 +9,7 @@
 import { apiClient } from "@/lib/api-client";
 import { env } from "@/lib/env";
 import { getWalletKit } from "../lib/kit";
+import { passkeyOwnerName } from "../lib/passkey-label";
 import { spendingLimitConstructorPolicy } from "../lib/policy-link";
 import { recoveryConstructorPolicies } from "../lib/recovery-link";
 
@@ -40,8 +41,11 @@ export async function createWalletMinimal(opts?: {
   // (D4), Cài đặt sẽ nhắc bật sau qua đường ví-cũ.
   const spendingLimit = spendingLimitConstructorPolicy();
   if (spendingLimit) policies.push(spendingLimit);
-  const label = opts?.ownerLabel?.trim();
-  const userName = label ? `${label} · ${env.VITE_APP_NAME}` : `${env.VITE_APP_NAME} owner`;
+  // Tên qua passkeyOwnerName — TRẦN 30 BYTE (sự cố 30/07): kit nhét userName
+  // vào user.id WebAuthn kèm đuôi ~34 byte, vượt 64 là trình duyệt chối ngay
+  // trước cả prompt sinh trắc học. Email nguyên vẹn khi lọt trần; nhãn app bỏ
+  // khỏi tên vì không còn chỗ (trình quản lý khoá vốn nhóm theo domain).
+  const userName = passkeyOwnerName(env.VITE_APP_NAME, opts?.ownerLabel);
   const result = await kit.createWallet(env.VITE_APP_NAME, userName, {
     autoSubmit: true,
     policies,

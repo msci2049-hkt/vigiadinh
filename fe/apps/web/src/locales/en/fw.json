@@ -587,8 +587,10 @@
       "cta": "Create my wallet",
       "description": "Choose trusted people who can help you recover this wallet if you ever lose your phone.",
       "errors": {
-        "failed": "Could not create your wallet. Your device didn't confirm — please try again.",
-        "notConfigured": "The app isn't connected to the wallet network yet. That's on our team."
+        "failed": "We could not create the wallet. Nothing has changed on your account — try again, and if it keeps failing, read the code below to our support team.",
+        "notConfigured": "The app isn't connected to the wallet network yet. That's on our team.",
+        "deviceDeclined": "Your device did not confirm your face/fingerprint. The wallet was not created — try again and confirm on your device.",
+        "technical": "Technical code for support: {code}"
       },
       "haveWalletCta": "I already have a wallet",
       "point1": "Your wallet unlocks with your face or fingerprint — no seed phrase to lose.",
