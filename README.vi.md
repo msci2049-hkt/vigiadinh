@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="docs/images/banner.png" alt="Biểu tượng ví VíGiaĐình được bảo vệ" width="1200">
+<img src="docs/images/banner.png" alt="Gia đình nhân vật ảo châu Âu của VíGiaĐình" width="1200">
 
 # VíGiaĐình
 
@@ -21,7 +21,7 @@ Stellar APAC Hackathon 2026
 
 **[🌐 Trang giới thiệu](https://familyhavenwallet.mscilabs.com/)** · **[↗ Ứng dụng thật](https://familyhaven.mscilabs.com)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[⚡ Bắt đầu nhanh](#bắt-đầu-nhanh)**
 
-<img src="docs/images/welcome-judges.png" alt="Cánh cửa hình học mở dưới ba ngôi sao bảo vệ" width="900">
+<img src="docs/images/welcome-judges.png" alt="Gia đình nhân vật ảo chào đón ban giám khảo Stellar" width="900">
 
 Kính chào ban giám khảo Stellar — các liên kết phía trên dẫn tới câu chuyện dự án, ứng dụng Testnet thật và trailer sản phẩm dài hai phút.
 

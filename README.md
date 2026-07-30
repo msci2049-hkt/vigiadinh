@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="docs/images/banner.png" alt="FamilyHaven protected-wallet motif" width="1200">
+<img src="docs/images/banner.png" alt="FamilyHaven virtual European family hero" width="1200">
 
 # FamilyHaven
 
@@ -21,7 +21,7 @@ Stellar APAC Hackathon 2026
 
 **[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live app](https://familyhaven.mscilabs.com)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[⚡ Quick start](#quick-start)**
 
-<img src="docs/images/welcome-judges.png" alt="An open geometric doorway beneath three protective stars" width="900">
+<img src="docs/images/welcome-judges.png" alt="A virtual European family welcoming Stellar judges" width="900">
 
 Welcome, Stellar judges — the links above lead to the public story, the real Testnet application, and the two-minute product trailer.
 

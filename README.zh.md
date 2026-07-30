@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="docs/images/banner.png" alt="FamilyHaven 受保护钱包图形" width="1200">
+<img src="docs/images/banner.png" alt="FamilyHaven 欧洲虚拟家庭主视觉" width="1200">
 
 # FamilyHaven
 
@@ -21,7 +21,7 @@ Stellar APAC Hackathon 2026
 
 **[🌐 项目主页](https://familyhavenwallet.mscilabs.com/)** · **[↗ 在线应用](https://familyhaven.mscilabs.com)** · **[▶ 预告片](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[⚡ 快速开始](#快速开始)**
 
-<img src="docs/images/welcome-judges.png" alt="三颗守护星下微微开启的几何门" width="900">
+<img src="docs/images/welcome-judges.png" alt="欢迎 Stellar 评委的欧洲虚拟家庭" width="900">
 
 欢迎 Stellar 评委——上方链接分别指向项目说明、真实 Testnet 应用和两分钟产品预告片。
 
