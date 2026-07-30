@@ -48,13 +48,19 @@ export async function listByWalletForOwner(
 
 /** Chiều NGƯỢC — các ví user này đang gác (màn "Ví tôi đang gác", C7).
  * CHỈ select cột an toàn + user.name và user.email (lô 30/07 — email CHỈ để
- * protectingItemView CHE rồi mới rời BE, bản đầy đủ không bao giờ vào response):
- * địa chỉ ví / số dư của chủ không đi qua đường này. */
+ * protectingItemView CHE rồi mới rời BE, bản đầy đủ không bao giờ vào response).
+ *
+ * Lô R1: thêm `stellarAddress`. Lý do nghiệp vụ, không phải tiện tay: chủ ví mất
+ * máy KHÔNG có cách nào tìm lại địa chỉ ví của mình, và đường thoát duy nhất là
+ * gọi cho người thân đọc hộ — nên guardian phải ĐỌC ĐƯỢC nó. Địa chỉ ví vốn
+ * public trên chain nên hiện ra không phá lời hứa ở /passkey; SỐ DƯ và LỊCH SỬ
+ * thì vẫn không đi qua đường này (và test key-list chốt cứng điều đó). */
 export async function listProtectingForUser(userId: string, limit = LIST_LIMIT) {
   return db
     .select({
       id: guardians.id,
       walletId: guardians.walletId,
+      stellarAddress: wallets.stellarAddress,
       status: guardians.status,
       createdAt: guardians.createdAt,
       lastSeenAt: guardians.lastSeenAt,

@@ -24,7 +24,11 @@ export type DomainEventType =
   // đếm ngược ở Cài đặt cập nhật không cần F5.
   | "policy.raise_requested"
   | "policy.applied"
-  | "policy.cancelled";
+  | "policy.cancelled"
+  // Lô R1: thiết bị mới gõ cửa xin khôi phục. Guardian đang mở app thấy NGAY,
+  // không chờ tick dispatcher — nhưng email vẫn là kênh chính, vì ca dùng thật
+  // của luồng này là guardian cả tuần chưa mở app.
+  | "recovery.device_requested";
 
 export function publishDomainEvent(
   userId: string,

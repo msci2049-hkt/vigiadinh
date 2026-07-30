@@ -1,5 +1,6 @@
 import { and, desc, eq, inArray, isNotNull, ne, sql } from "drizzle-orm";
 import { db } from "@/db";
+import { publishDomainEvent } from "@/lib/domain-events";
 import { guardians } from "../../guardians/infra/guardians.schema";
 // Ngoại lệ TẦNG SCHEMA có chủ đích (như intents.repository): audit + notify ghi cùng nơi.
 import { auditLog } from "../../indexer/infra/audit-log.schema";
@@ -9,6 +10,12 @@ import { type RecoveryDeviceRequest, recoveryDeviceRequests } from "./device-req
 import { type RecoveryRequest, recoveryRequests } from "./recovery-requests.schema";
 
 const LIST_LIMIT = 100;
+
+/** Kênh thông báo khôi phục — CỐ Ý trùng `CHANNELS` của send-flow/notify.ts.
+ * Không import chéo module (luật module-boundary: intents không phải facade của
+ * recovery), nên chép hằng số kèm nguyên lý do; `notify-channels.test.ts` gác
+ * để hai bên không lệch nhau trong im lặng. */
+const RECOVERY_NOTIFY_CHANNELS = ["email", "sse"] as const;
 
 export async function walletById(walletId: string): Promise<Wallet | null> {
   const [row] = await db.select().from(wallets).where(eq(wallets.id, walletId)).limit(1);
@@ -95,7 +102,14 @@ export async function jwtVersionByStellarAddress(address: string): Promise<numbe
 }
 
 /** Máy mới gõ cửa: MỖI ví một request mở — cái mới đè cái cũ (superseded),
- * tránh guardian nhìn thấy chồng chất vật liệu khoá lẫn lộn. */
+ * tránh guardian nhìn thấy chồng chất vật liệu khoá lẫn lộn.
+ *
+ * Ghi `audit_log` trong CÙNG transaction (lô R1). Trước đó "có người xin khôi
+ * phục ví của bạn" không để lại một dòng nào trong nhật ký kiểm tra — sự kiện an
+ * ninh nặng nhất của hệ lại là sự kiện duy nhất không có dấu vết, nên khi thông
+ * báo chết lặng thì không còn chỗ nào để đối chiếu. `actorType: "system"` vì cửa
+ * public không có ai đã-xác-thực đứng sau; `fingerprint` là dữ liệu chủ ví ĐỌC TO
+ * qua điện thoại (không bí mật), còn `key_base64` thì KHÔNG vào audit. */
 export async function upsertDeviceRequest(input: {
   walletId: string;
   verifier: string;
@@ -113,11 +127,27 @@ export async function upsertDeviceRequest(input: {
         ),
       );
     await tx.insert(recoveryDeviceRequests).values({ ...input, status: "open" });
+    await tx.insert(auditLog).values({
+      walletId: input.walletId,
+      kind: "recovery.device_requested",
+      actorType: "system",
+      payload: { fingerprint: input.fingerprint, verifier: input.verifier },
+    });
   });
 }
 
 /** Notify MỌI guardian hiệu lực CÓ TÀI KHOẢN của ví: thiết bị mới xin khôi phục.
- * (guardians.userId nullable — người được mời chưa có account thì chưa notify được.) */
+ * (guardians.userId nullable — người được mời chưa có account thì chưa notify được.)
+ *
+ * KÊNH: email + sse — GIỐNG HỆT send-flow/notify.ts, và vì đúng lý do đó:
+ * push CHƯA cấu hình (dispatcher ném PermanentDispatchError PUSH_NOT_CONFIGURED,
+ * `/ready` báo `push:"disabled"`), nên enqueue push là enqueue vào hư không.
+ *
+ * Đây KHÔNG phải lỗi giả định — nó đã xảy ra thật ngày 30/07: ba guardian nhận
+ * đúng ba dòng `channel='push'` → cả ba `failed/PUSH_NOT_CONFIGURED`, không ai
+ * biết có người đang cầu cứu. Email là kênh NGOÀI APP duy nhất còn sống, và với
+ * ca dùng chính của luồng này — chủ ví mất máy, guardian có thể cả tuần chưa mở
+ * app — nó là kênh DUY NHẤT có ý nghĩa. `notify-channels.test.ts` khoá lại. */
 export async function notifyGuardiansDeviceRequested(walletId: string): Promise<void> {
   const rows = await db
     .select({ userId: guardians.userId })
@@ -131,12 +161,18 @@ export async function notifyGuardiansDeviceRequested(walletId: string): Promise<
     );
   for (const g of rows) {
     if (!g.userId) continue;
-    await db.insert(notifications).values({
-      userId: g.userId,
-      templateKey: "recovery.device_requested",
-      params: {},
-      channel: "push",
-    });
+    for (const channel of RECOVERY_NOTIFY_CHANNELS) {
+      await db.insert(notifications).values({
+        userId: g.userId,
+        templateKey: "recovery.device_requested",
+        params: {},
+        channel,
+      });
+    }
+    // Realtime NGAY (khuôn notify.ts:51-52) — hàng đợi trên là email/hộp thư,
+    // tick sau mới tới. Guardian đang mở app thấy trong vài giây.
+    // Payload RỖNG theo luật domain-events: không địa chỉ ví, không id nội bộ.
+    publishDomainEvent(g.userId, "recovery.device_requested");
   }
 }
 

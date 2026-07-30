@@ -41,6 +41,10 @@ export const TEMPLATES: Catalog = {
       title: "Có người mất quyền truy cập và cần bạn giúp",
       body: "Một thiết bị mới nói rằng nó thuộc về chủ ví mà bạn đang bảo hộ. Hãy gọi xác minh với họ, rồi xem yêu cầu trong ứng dụng. Chưa có gì xảy ra khi chưa đủ người thân đồng ý.",
     },
+    zh: {
+      title: "有人失去了访问权限，需要您帮忙",
+      body: "一台新设备声称属于您正在守护的钱包主人。请先打电话向本人核实，再到应用中查看该请求。在家人同意的人数不足之前，不会发生任何变动。",
+    },
   },
   "recovery.initiated": {
     en: {
@@ -50,6 +54,10 @@ export const TEMPLATES: Catalog = {
     vi: {
       title: "Có yêu cầu khôi phục ví",
       body: "Có người yêu cầu tiếp quản ví này qua quy trình khôi phục gia đình. Nếu KHÔNG phải bạn hoặc người thân đang giúp bạn, hãy chặn ngay từ bất kỳ thiết bị nào của bạn.",
+    },
+    zh: {
+      title: "有人申请恢复钱包",
+      body: "有人正通过家人恢复流程申请接管这个钱包。如果这不是您本人、也不是家人在帮您，请立即用您的任一设备阻止。",
     },
   },
   "recovery.approved": {
@@ -61,6 +69,10 @@ export const TEMPLATES: Catalog = {
       title: "Một người thân đã xác nhận khôi phục",
       body: "Thêm một người thân đã xác nhận yêu cầu khôi phục ví này. Nếu bạn thấy bất thường, hãy chặn ngay.",
     },
+    zh: {
+      title: "一位家人已确认此次恢复",
+      body: "又有一位家人确认了恢复这个钱包的请求。如果这出乎您的意料，请立即阻止。",
+    },
   },
   "recovery.finalized": {
     en: {
@@ -71,6 +83,10 @@ export const TEMPLATES: Catalog = {
       title: "Khôi phục ví hoàn tất",
       body: "Quy trình khôi phục đã xong, ví giờ thuộc về khoá mới. Nếu điều này ngoài dự kiến, hãy liên hệ người thân và kiểm tra hoạt động của ví ngay.",
     },
+    zh: {
+      title: "钱包恢复已完成",
+      body: "恢复流程已结束，钱包现在由新密钥掌管。如果这出乎您的意料，请立即联系家人并检查钱包的活动记录。",
+    },
   },
   "recovery.vetoed": {
     en: {
@@ -80,6 +96,10 @@ export const TEMPLATES: Catalog = {
     vi: {
       title: "Đã chặn một yêu cầu khôi phục",
       body: "Một yêu cầu chiếm quyền ví đã bị CHẶN. Nếu không phải bạn chặn, hãy kiểm tra hoạt động của ví ngay.",
+    },
+    zh: {
+      title: "已阻止一次恢复申请",
+      body: "一次接管钱包的申请已被阻止。如果不是您本人阻止的，请立即检查钱包的活动记录。",
     },
   },
   // Params LUÔN đủ khi enqueue (notify.ts): ownerName ("unknown" nếu chưa đặt

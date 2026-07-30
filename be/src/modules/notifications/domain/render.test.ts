@@ -39,10 +39,20 @@ describe("notification renderer (ICU theo locale người nhận)", () => {
     expect(anon.body).toContain("Một người thân");
   });
 
-  it("locale không có bản dịch → fallback en (vd zh chưa dịch)", () => {
-    const r = renderNotification("recovery.vetoed", "zh-Hans", {});
+  // Trước lô R1 ca này dùng `recovery.vetoed` + "zh-Hans" làm ví dụ "chưa dịch"
+  // — rồi R1 dịch zh cho recovery.* và test đỏ, dù CƠ CHẾ fallback không đổi
+  // một dòng nào. Đo bằng một locale KHÔNG nằm trong bộ sản phẩm (vi/en/zh) thì
+  // test nói về cơ chế, không nói về độ phủ bản dịch tại một thời điểm.
+  it("locale ngoài bộ sản phẩm → fallback en", () => {
+    const r = renderNotification("recovery.vetoed", "ja-JP", {});
     expect(r.locale).toBe("en");
     expect(r.body).toContain("BLOCKED");
+  });
+
+  it("region code vẫn khớp về ngôn ngữ gốc: zh-Hans → zh (không rơi xuống en)", () => {
+    const r = renderNotification("recovery.vetoed", "zh-Hans", {});
+    expect(r.locale).toBe("zh");
+    expect(r.title).toBe("已阻止一次恢复申请");
   });
 
   it("template lạ → bản generic theo locale, KHÔNG throw", () => {
@@ -55,14 +65,23 @@ describe("notification renderer (ICU theo locale người nhận)", () => {
     expect(r.title).toBe("Wallet update");
   });
 
-  it("template recovery mới (PHA 5.2) render đủ hai thứ tiếng", () => {
-    for (const key of ["recovery.initiated", "recovery.approved", "recovery.finalized"]) {
-      const vi = renderNotification(key, "vi", {});
-      const en = renderNotification(key, "en", {});
-      expect(vi.title.length).toBeGreaterThan(0);
-      expect(en.title.length).toBeGreaterThan(0);
-      expect(vi.title).not.toBe("Cập nhật ví"); // không rơi xuống generic
-      expect(en.title).not.toBe("Wallet update");
+  // Lô R1: recovery.* lên đủ 3 locale như approval.* — trước đó chỉ en+vi, nên
+  // người dùng zh nhận cảnh báo an ninh bằng tiếng Anh.
+  it("MỌI template recovery render đủ BA thứ tiếng, không rơi xuống generic", () => {
+    const GENERIC_TITLES = ["Cập nhật ví", "Wallet update", "钱包动态"];
+    for (const key of [
+      "recovery.device_requested",
+      "recovery.initiated",
+      "recovery.approved",
+      "recovery.finalized",
+      "recovery.vetoed",
+    ]) {
+      for (const locale of ["vi", "en", "zh"]) {
+        const r = renderNotification(key, locale, {});
+        expect(r.locale).toBe(locale); // có bản dịch THẬT, không fallback en
+        expect(r.title.length).toBeGreaterThan(0);
+        expect(GENERIC_TITLES).not.toContain(r.title);
+      }
     }
   });
 
@@ -70,11 +89,14 @@ describe("notification renderer (ICU theo locale người nhận)", () => {
     for (const key of [
       "inheritance.suggest_claim",
       "presence.guardian_offline",
+      "recovery.device_requested",
       "recovery.initiated",
       "recovery.approved",
       "recovery.finalized",
+      "recovery.vetoed",
     ]) {
-      for (const locale of ["vi", "en"]) {
+      // zh có mặt ở đây để bắt jargon LỌT NGUYÊN tiếng Anh vào bản dịch mới.
+      for (const locale of ["vi", "en", "zh"]) {
         const r = renderNotification(key, locale, { days: 3, guardianName: "undefined" });
         const text = `${r.title} ${r.body}`.toLowerCase();
         for (const jargon of ["guardian", "threshold", "timelock", "veto", "heartbeat"]) {
