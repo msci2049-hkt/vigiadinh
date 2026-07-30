@@ -82,6 +82,18 @@ export const envShape = {
   // Không phải PROD-REQUIRED: email mới là đường bắt buộc cho sự kiện an ninh.
   FIREBASE_SERVICE_ACCOUNT_JSON: z.string().optional(),
 
+  // === "AI bảo vệ" — LỚP 3 DIỄN ĐẠT (lô R3) ===
+  // DeepSeek CHỈ diễn đạt số liệu lớp 2 thành câu chữ — không bao giờ là cổng:
+  // thiếu key / tắt cờ / API sập → /explain trả null, FE rơi về khối số liệu
+  // thô. Mất AI = mất một tiện ích, không mất một hàng rào.
+  DEEPSEEK_API_KEY: z.string().min(1).optional(),
+  // Kill switch tường minh: "true" mới bật. Mặc định TẮT — bật là quyết định
+  // vận hành (có chi phí gọi API), không phải side-effect của việc có key.
+  AI_ADVISOR_ENABLED: z
+    .string()
+    .optional()
+    .transform((v) => v === "true"),
+
   // === Stellar / SEP-45 (PHA 2.3 — đăng nhập bằng ví contract) ===
   // FAIL-CLOSED (mainnet migration 2026-07-26): RPC + passphrase + 2 domain SEP-45
   // HẾT default. Trước đây default testnet/localhost — production thiếu biến là

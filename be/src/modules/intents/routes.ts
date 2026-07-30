@@ -5,6 +5,7 @@
 import { Hono } from "hono";
 import { cancelIntentRoute } from "./features/cancel-intent/handler";
 import { createIntentRoute } from "./features/create-intent/handler";
+import { intentExplainRoute } from "./features/explain/handler";
 import { pendingApprovalsRoute } from "./features/pending-approvals/handler";
 import { pendingSignatureRoute } from "./features/pending-signature/handler";
 import { sendFlowRoute } from "./features/send-flow/handler";
@@ -16,4 +17,5 @@ export const intentsRoutes = new Hono()
   .route("/", pendingApprovalsRoute)
   .route("/", pendingSignatureRoute)
   .route("/", intentSignalsRoute)
+  .route("/", intentExplainRoute)
   .route("/", cancelIntentRoute);
