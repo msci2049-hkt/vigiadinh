@@ -55,7 +55,7 @@ function WalletAddressRow({ address }: { address: string }) {
         {groupAddress(address)}
       </p>
       <Button variant="outline" size="sm" onClick={copy}>
-        <Icon name={copied ? "checkCircle" : "copy"} size={16} />
+        <Icon name={copied ? "checkCircle" : "copy"} size={20} />
         {copied ? t("protecting.item.copied") : t("protecting.item.copyCta")}
       </Button>
     </div>
