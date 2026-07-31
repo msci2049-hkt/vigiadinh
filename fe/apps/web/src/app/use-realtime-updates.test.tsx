@@ -69,6 +69,14 @@ describe("useRealtimeUpdates", () => {
     expect(toastSpy).toHaveBeenCalledWith("Có một khoản chuyển đang chờ bạn duyệt.");
   });
 
+  it("R5: recovery.closed → invalidate ['family'] (thẻ guardian tự biến mất) + toast tin tốt", () => {
+    const queryClient = renderHost();
+    const invalidate = vi.spyOn(queryClient, "invalidateQueries");
+    emit({ event: "domain", data: JSON.stringify({ type: "recovery.closed" }) });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: ["family"] });
+    expect(toastSpy).toHaveBeenCalledWith("Chủ ví đã vào lại được ví. Yêu cầu khôi phục đã đóng.");
+  });
+
   it("rác — type lạ hoặc JSON hỏng → bỏ qua, không invalidate, không toast", () => {
     const queryClient = renderHost();
     const invalidate = vi.spyOn(queryClient, "invalidateQueries");

@@ -23,8 +23,7 @@
       "errors": {
         "alreadyStopped": "Good news — this request was already stopped. Your wallet is safe.",
         "notSent": "Nothing was sent yet. The stop order did not reach the network — you can try again safely.",
-        "tooLate": "This request already completed before it could be stopped. Contact your family members now.",
-        "walletLocked": "Your wallet is locked on this device. Open your wallet first, then try again."
+        "tooLate": "This request already completed before it could be stopped. Contact your family members now."
       },
       "signing": "Waiting for your confirmation…",
       "title": "Stop this recovery?"
@@ -61,7 +60,6 @@
       "description": "Check with them in person or by call before you approve.",
       "errors": {
         "alreadyVoted": "You already voted on this request. No need to vote again.",
-        "closed": "This request is closed — it was stopped or already finished.",
         "deviceKeyMissing": "This device does not hold your protector key for this wallet. Open the app on the device you set up as protector.",
         "notSent": "Your vote was not sent. Nothing reached the network — you can try again safely."
       },
@@ -74,6 +72,10 @@
       "recorded": {
         "title": "Your vote is recorded",
         "body": "The network already has your approval for this request — including if you were the one who opened it. Nothing more to do."
+      },
+      "closed": {
+        "title": "This request is closed",
+        "body": "The wallet owner is back in their wallet. Nothing more for you to do."
       }
     },
     "approveWarning": {
@@ -941,6 +943,14 @@
     "policyRaiseRequested": "Someone asked to raise the amounts this wallet allows. If this wasn't you, cancel it in Settings.",
     "policyApplied": "The new allowed amounts are now active.",
     "policyCancelled": "The change to allowed amounts was cancelled.",
-    "recoveryDeviceRequested": "Someone in your family needs help getting back into their wallet."
+    "recoveryDeviceRequested": "Someone in your family needs help getting back into their wallet.",
+    "recoveryClosed": "The wallet owner is back in their wallet. The recovery request is closed."
+  },
+  "walletSession": {
+    "reconfirm": {
+      "title": "Confirm with your fingerprint again to sign.",
+      "cta": "Confirm with fingerprint again"
+    },
+    "reconfirmFailed": "We still could not confirm on this device. Try again later, or open the app on the device you usually sign with."
   }
 }

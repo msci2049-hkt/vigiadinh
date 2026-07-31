@@ -34,6 +34,9 @@ const TOAST_KEYS = {
   // trả null và sự kiện bị bỏ luôn — kênh sse coi như không tồn tại, đúng kiểu
   // "im lặng bằng cách thành công" mà lô này đang đi vá.
   "recovery.device_requested": "realtime.recoveryDeviceRequested",
+  // Lô R5: lệnh khôi phục ĐÓNG (huỷ/veto/finalize) — invalidate ["family"] làm
+  // thẻ yêu cầu trên màn guardian tự biến mất ≤10s, badge tab trừ theo.
+  "recovery.closed": "realtime.recoveryClosed",
 } as const;
 
 type DomainType = keyof typeof TOAST_KEYS;

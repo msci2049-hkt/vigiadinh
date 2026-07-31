@@ -5,13 +5,15 @@
 //      fingerprint Signer TRONG ENTRY với mã đã hiện — BE bị chiếm mà tráo
 //      khoá là hai phía lệch nhau → DỪNG, không ký.
 //   3. Cổng sinh trắc học = chính prompt passkey.
-import { ApiError } from "@repo/core";
+// R5: phân loại lỗi ký qua @/lib/recovery-sign-outcome — phiên ví hết hạn thì
+// chạm vân tay xin lại phiên (một lần), không bắt đăng xuất.
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icons";
+import { ReconfirmSign } from "@/components/family/reconfirm-sign";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import {
@@ -25,10 +27,9 @@ import {
   fingerprintMatchesMirror,
   initiateSignerFingerprint,
 } from "@/features/family/lib/entry-fingerprint";
-import {
-  RecoverySignError,
-  signRecoveryEntries,
-} from "@/features/wallet/lib/sign-recovery-entries";
+import { useWalletReconfirm } from "@/features/wallet/hooks/use-wallet-reconfirm";
+import { signRecoveryEntries } from "@/features/wallet/lib/sign-recovery-entries";
+import { initiateOutcome } from "@/lib/recovery-sign-outcome";
 
 export const Route = createFileRoute("/_authenticated/guardian/initiate")({
   validateSearch: z.object({ wallet: z.string().catch("") }),
@@ -40,27 +41,6 @@ class SignerMismatchError extends Error {
     super("SIGNER_MISMATCH");
     this.name = "SignerMismatchError";
   }
-}
-
-type InitiateErrorKey =
-  | "guardian.initiate.errors.mismatch"
-  | "guardian.initiate.errors.alreadyOpen"
-  | "guardian.initiate.errors.deviceKeyMissing"
-  | "guardian.initiate.errors.notSent";
-
-function apiErrorCode(err: unknown): string | null {
-  if (!(err instanceof ApiError)) return null;
-  const data = err.data as { error?: { code?: string } } | null;
-  return data?.error?.code ?? null;
-}
-
-function initiateErrorKey(err: unknown): InitiateErrorKey {
-  if (err instanceof SignerMismatchError) return "guardian.initiate.errors.mismatch";
-  if (err instanceof RecoverySignError) return "guardian.initiate.errors.deviceKeyMissing";
-  if (apiErrorCode(err) === "CONTRACT_ERROR:RecoveryInProgress") {
-    return "guardian.initiate.errors.alreadyOpen";
-  }
-  return "guardian.initiate.errors.notSent";
 }
 
 async function initiateFlow(item: GuardianDeviceRequestItem) {
@@ -93,6 +73,7 @@ function GuardianInitiateScreen() {
   const queryClient = useQueryClient();
   const requests = useQuery(guardianDeviceRequestsOptions);
   const item = (requests.data ?? []).find((i) => i.wallet.id === walletId);
+  const reconfirm = useWalletReconfirm();
 
   const initiate = useMutation({
     mutationFn: initiateFlow,
@@ -102,6 +83,8 @@ function GuardianInitiateScreen() {
       await navigate({ to: "/guardian/approved", search: { tx: result.hash } });
     },
   });
+
+  const outcome = initiate.isError ? initiateOutcome(initiate.error) : null;
 
   return (
     <ProductScreen className="justify-center">
@@ -169,9 +152,15 @@ function GuardianInitiateScreen() {
               {t("guardian.initiate.countsAsVote")}
             </p>
 
-            {initiate.isError ? (
-              <ErrorBanner type="error" title={t(initiateErrorKey(initiate.error))} />
+            {outcome?.kind === "reconfirm" ? (
+              // Phiên ví hết — máy VẪN CÓ passkey: chạm vân tay xin lại phiên,
+              // KHÔNG bắt đăng xuất (§4, đúng MỘT lần thử lại).
+              <ReconfirmSign
+                phase={reconfirm.phase}
+                onStart={() => reconfirm.start(() => initiate.mutate(item))}
+              />
             ) : null}
+            {outcome?.kind === "error" ? <ErrorBanner type="error" title={t(outcome.key)} /> : null}
 
             <PrimaryZone>
               <Button loading={initiate.isPending} onClick={() => initiate.mutate(item)}>

@@ -2,69 +2,37 @@
 // Cổng sinh trắc học = CHÍNH prompt passkey khi ký entry (kit) — không có "nút
 // xác nhận" nào thay được chữ ký. Taxonomy lỗi trả lời đúng một câu hỏi:
 // "lệnh chặn ĐÃ đến mạng chưa?" — chưa ký / chưa gửi ≠ đã gửi mà thất bại.
-import { ApiError } from "@repo/core";
+// R5: phân loại qua @/lib/recovery-sign-outcome — phiên ví hết thì chạm vân tay
+// xin lại phiên (một lần); "đã có người chặn trước" là TIN TỐT, không phải lỗi.
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { Icon } from "@/components/family/icons";
+import { ReconfirmSign } from "@/components/family/reconfirm-sign";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { SuccessNote } from "@/components/family/success-note";
 import { Button } from "@/components/family/ui";
 import { recoveryKeys } from "@/features/family/api/recovery";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
-import {
-  RecoverySignError,
-  signRecoveryEntries,
-} from "@/features/wallet/lib/sign-recovery-entries";
+import { useWalletReconfirm } from "@/features/wallet/hooks/use-wallet-reconfirm";
+import { signRecoveryEntries } from "@/features/wallet/lib/sign-recovery-entries";
 import { assertCancelRecoveryEntry, BlindSignError } from "@/lib/auth-entry-guard";
 import { env } from "@/lib/env";
+import { vetoOutcome } from "@/lib/recovery-sign-outcome";
 
 export const Route = createFileRoute("/_authenticated/block/confirm")({
   component: BlockConfirmScreen,
 });
-
-/** Mã lỗi trong envelope BE `{error:{code}}` — null nếu không phải ApiError. */
-function apiErrorCode(err: unknown): string | null {
-  if (!(err instanceof ApiError)) return null;
-  const data = err.data as { error?: { code?: string } } | null;
-  return data?.error?.code ?? null;
-}
-
-type VetoErrorKey =
-  | "block.confirm.errors.walletLocked"
-  | "block.confirm.errors.alreadyStopped"
-  | "block.confirm.errors.tooLate"
-  | "block.confirm.errors.notSent";
-
-/** Taxonomy lỗi veto → key i18n. Trả lời "lệnh đã đến mạng chưa". */
-function vetoErrorKey(err: unknown): VetoErrorKey {
-  if (err instanceof RecoverySignError) {
-    // Chưa ký được (ví chưa mở / build không có entry của ví) — CHƯA gì được gửi.
-    return err.message === "WALLET_NOT_CONNECTED"
-      ? "block.confirm.errors.walletLocked"
-      : "block.confirm.errors.notSent";
-  }
-  const code = apiErrorCode(err);
-  if (code === "CONTRACT_ERROR:RecoveryCancelled" || code === "CONTRACT_ERROR:NoActiveRecovery") {
-    // Người khác (hoặc chính mình ở máy khác) đã chặn trước — coi như đã an toàn.
-    return "block.confirm.errors.alreadyStopped";
-  }
-  if (code === "CONTRACT_ERROR:AlreadyFinalized") {
-    // Muộn: khôi phục đã hoàn tất trước khi chặn — nói thẳng, không vòng vo.
-    return "block.confirm.errors.tooLate";
-  }
-  // Người dùng huỷ prompt passkey (NotAllowedError của WebAuthn) hoặc lỗi mạng
-  // TRƯỚC submit — chưa có gì đến mạng.
-  return "block.confirm.errors.notSent";
-}
 
 function BlockConfirmScreen() {
   const { t } = useTranslation("fw");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { wallet, isLoading, isError } = useActiveWallet();
+  const reconfirm = useWalletReconfirm();
 
   const veto = useMutation({
     mutationFn: async (walletId: string) => {
@@ -95,6 +63,8 @@ function BlockConfirmScreen() {
     },
   });
 
+  const outcome = veto.isError ? vetoOutcome(veto.error) : null;
+
   return (
     <ProductScreen className="items-center justify-center text-center">
       <span className="grid size-20 place-items-center rounded-full bg-destructive text-destructive-foreground">
@@ -113,7 +83,19 @@ function BlockConfirmScreen() {
       {isLoading ? <LoadingRows /> : null}
       {isError ? <ErrorState /> : null}
 
-      {veto.isError ? <ErrorBanner type="error" title={t(vetoErrorKey(veto.error))} /> : null}
+      {outcome?.kind === "stopped" ? (
+        // Người khác (hoặc chính mình ở máy khác) đã chặn trước — TIN TỐT.
+        <SuccessNote title={t("block.confirm.errors.alreadyStopped")} />
+      ) : null}
+      {outcome?.kind === "reconfirm" ? (
+        // Phiên ví hết — máy VẪN CÓ passkey: chạm vân tay xin lại phiên,
+        // KHÔNG bắt đăng xuất (§4, đúng MỘT lần thử lại).
+        <ReconfirmSign
+          phase={reconfirm.phase}
+          onStart={() => reconfirm.start(() => wallet && veto.mutate(wallet.id))}
+        />
+      ) : null}
+      {outcome?.kind === "error" ? <ErrorBanner type="error" title={t(outcome.key)} /> : null}
 
       <PrimaryZone className="w-full">
         <Button

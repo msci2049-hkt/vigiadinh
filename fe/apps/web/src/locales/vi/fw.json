@@ -23,8 +23,7 @@
       "errors": {
         "alreadyStopped": "Tin tốt — yêu cầu này đã bị chặn từ trước. Ví của bạn an toàn.",
         "notSent": "Chưa có gì được gửi đi. Lệnh chặn chưa đến mạng — bạn có thể thử lại an toàn.",
-        "tooLate": "Yêu cầu đã hoàn tất trước khi kịp chặn. Liên hệ người thân của bạn ngay.",
-        "walletLocked": "Ví đang khoá trên máy này. Mở ví trước rồi thử lại."
+        "tooLate": "Yêu cầu đã hoàn tất trước khi kịp chặn. Liên hệ người thân của bạn ngay."
       },
       "signing": "Đang chờ bạn xác nhận…",
       "title": "Chặn lần khôi phục này?"
@@ -61,7 +60,6 @@
       "description": "Hãy gặp hoặc gọi cho họ trước khi bạn đồng ý.",
       "errors": {
         "alreadyVoted": "Bạn đã bỏ phiếu cho yêu cầu này rồi. Không cần bỏ lại.",
-        "closed": "Yêu cầu này đã đóng — bị chặn hoặc đã hoàn tất.",
         "deviceKeyMissing": "Máy này không giữ chìa khoá bảo hộ của bạn cho ví đó. Mở ứng dụng trên máy bạn đã thiết lập làm người bảo hộ.",
         "notSent": "Phiếu chưa được gửi. Chưa có gì đến mạng — bạn có thể thử lại an toàn."
       },
@@ -74,6 +72,10 @@
       "recorded": {
         "title": "Phiếu của bạn đã được ghi",
         "body": "Mạng đã ghi nhận phiếu đồng ý của bạn cho yêu cầu này — kể cả khi bạn là người mở yêu cầu. Không cần làm gì thêm."
+      },
+      "closed": {
+        "title": "Yêu cầu đã đóng",
+        "body": "Chủ ví đã vào lại được ví. Bạn không cần làm gì thêm."
       }
     },
     "approveWarning": {
@@ -941,6 +943,14 @@
     "policyRaiseRequested": "Có đề nghị nâng số tiền ví cho phép. Nếu không phải bạn, hãy huỷ trong Cài đặt.",
     "policyApplied": "Mức tiền mới đã có hiệu lực.",
     "policyCancelled": "Đề nghị đổi mức tiền đã được huỷ.",
-    "recoveryDeviceRequested": "Có người thân cần bạn giúp mở lại ví của họ."
+    "recoveryDeviceRequested": "Có người thân cần bạn giúp mở lại ví của họ.",
+    "recoveryClosed": "Chủ ví đã vào lại được ví. Yêu cầu khôi phục đã đóng."
+  },
+  "walletSession": {
+    "reconfirm": {
+      "title": "Cần xác nhận lại bằng vân tay để ký.",
+      "cta": "Xác nhận lại bằng vân tay"
+    },
+    "reconfirmFailed": "Vẫn chưa xác nhận lại được trên máy này. Thử lại sau, hoặc mở ứng dụng trên máy bạn thường dùng để ký."
   }
 }

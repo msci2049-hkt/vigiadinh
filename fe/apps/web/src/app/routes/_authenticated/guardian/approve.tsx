@@ -2,57 +2,33 @@
 // passkey khi ký entry approve. Phiếu on-chain gắn với YÊU CẦU đang mở trên
 // mạng (vật liệu khoá mới đã chốt lúc initiate) — màn hiện fingerprint từ
 // mirror-chain để người bảo hộ đối chiếu với người thân qua kênh ngoài.
-import { ApiError } from "@repo/core";
+// R5: phân loại lỗi ký qua @/lib/recovery-sign-outcome (phiên ví hết ≠ sai máy;
+// lệnh đã đóng = tin tốt), thẻ đang xem mà lệnh đóng → đổi màn "đã đóng".
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
 import { GuardianPortrait, guardianPortraitForIndex } from "@/components/family/guardian-portrait";
 import { Icon } from "@/components/family/icons";
+import { ReconfirmSign } from "@/components/family/reconfirm-sign";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
+import { SuccessNote } from "@/components/family/success-note";
 import { Button, Card, CardContent } from "@/components/family/ui";
 import { guardianInboxKeys, guardianInboxOptions } from "@/features/family/api/guardian-inbox";
 import { buildRecoveryAction, submitRecoveryAction } from "@/features/family/api/recovery-actions";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
-import {
-  RecoverySignError,
-  signRecoveryEntries,
-} from "@/features/wallet/lib/sign-recovery-entries";
+import { useWalletReconfirm } from "@/features/wallet/hooks/use-wallet-reconfirm";
+import { signRecoveryEntries } from "@/features/wallet/lib/sign-recovery-entries";
 import { assertApproveRecoveryEntry, BlindSignError } from "@/lib/auth-entry-guard";
 import { env } from "@/lib/env";
+import { approveOutcome } from "@/lib/recovery-sign-outcome";
 
 export const Route = createFileRoute("/_authenticated/guardian/approve")({
   validateSearch: z.object({ wallet: z.string().catch("") }),
   component: GuardianApproveScreen,
 });
-
-type ApproveErrorKey =
-  | "guardian.approve.errors.alreadyVoted"
-  | "guardian.approve.errors.closed"
-  | "guardian.approve.errors.deviceKeyMissing"
-  | "guardian.approve.errors.notSent";
-
-function apiErrorCode(err: unknown): string | null {
-  if (!(err instanceof ApiError)) return null;
-  const data = err.data as { error?: { code?: string } } | null;
-  return data?.error?.code ?? null;
-}
-
-/** Taxonomy: phiếu ĐÃ đến mạng chưa — và vì sao không cần gửi lại. */
-function approveErrorKey(err: unknown): ApproveErrorKey {
-  if (err instanceof RecoverySignError) return "guardian.approve.errors.deviceKeyMissing";
-  const code = apiErrorCode(err);
-  if (code === "CONTRACT_ERROR:AlreadyApproved") return "guardian.approve.errors.alreadyVoted";
-  if (
-    code === "CONTRACT_ERROR:RecoveryCancelled" ||
-    code === "CONTRACT_ERROR:NoActiveRecovery" ||
-    code === "CONTRACT_ERROR:AlreadyFinalized"
-  ) {
-    return "guardian.approve.errors.closed";
-  }
-  return "guardian.approve.errors.notSent";
-}
 
 function GuardianApproveScreen() {
   const { t } = useTranslation("fw");
@@ -61,6 +37,13 @@ function GuardianApproveScreen() {
   const queryClient = useQueryClient();
   const inbox = useQuery(guardianInboxOptions);
   const item = (inbox.data ?? []).find((i) => i.wallet.id === walletId);
+  const reconfirm = useWalletReconfirm();
+
+  // C3: đã từng THẤY yêu cầu trên màn này mà giờ biến mất (SSE recovery.closed
+  // → invalidate ["family"] → refetch) = lệnh vừa đóng ngay dưới chân họ —
+  // đổi sang màn tin tốt, đừng hiện "không tìm thấy" khô khốc.
+  const sawItem = useRef(false);
+  if (item) sawItem.current = true;
 
   const approve = useMutation({
     mutationFn: async (id: string) => {
@@ -90,18 +73,19 @@ function GuardianApproveScreen() {
       await navigate({ to: "/guardian/approved", search: { tx: result.hash } });
     },
     onError: async (err) => {
-      // Phiếu đã có trên mạng mà mirror chưa kịp khớp → refetch để số hiển thị
-      // đuổi kịp chain.
-      if (approveErrorKey(err) === "guardian.approve.errors.alreadyVoted") {
+      // Phiếu đã trên mạng / lệnh đã đóng mà mirror chưa kịp khớp → refetch để
+      // màn hình đuổi kịp chain.
+      const kind = approveOutcome(err).kind;
+      if (kind === "recorded" || kind === "closed") {
         await queryClient.invalidateQueries({ queryKey: guardianInboxKeys.all });
       }
     },
   });
 
+  const outcome = approve.isError ? approveOutcome(approve.error) : null;
   // R4-D5: AlreadyApproved KHÔNG phải lỗi — phiếu của bạn ĐÃ nằm trên mạng
   // (người mở yêu cầu được contract đếm là phiếu ĐẦU TIÊN, không cần bỏ lại).
-  const alreadyVoted =
-    approve.isError && approveErrorKey(approve.error) === "guardian.approve.errors.alreadyVoted";
+  const done = outcome?.kind === "recorded" || outcome?.kind === "closed";
 
   return (
     <ProductScreen className="justify-center">
@@ -114,7 +98,14 @@ function GuardianApproveScreen() {
       {inbox.isError ? <ErrorState /> : null}
       {inbox.data && !item ? (
         <div className="flex flex-col gap-3">
-          <EmptyState message={t("guardian.approve.gone")} />
+          {sawItem.current ? (
+            <SuccessNote
+              title={t("guardian.approve.closed.title")}
+              body={t("guardian.approve.closed.body")}
+            />
+          ) : (
+            <EmptyState message={t("guardian.approve.gone")} />
+          )}
           <Button asChild variant="outline">
             <Link to="/guardian">{t("guardian.approve.backCta")}</Link>
           </Button>
@@ -147,29 +138,32 @@ function GuardianApproveScreen() {
               <p className="text-muted-foreground text-sm">{t("guardian.approve.biometricNote")}</p>
             </div>
 
-            {alreadyVoted ? (
-              // Tích XANH, không phải khối lỗi đỏ: chuyện cần nói là "xong rồi",
-              // không phải "bạn làm sai".
-              <div
-                className="flex items-start gap-3 rounded-card border border-success bg-success/10 p-4"
-                role="status"
-              >
-                <Icon name="checkCircle" size={24} className="mt-0.5 shrink-0 text-success" />
-                <div>
-                  <p className="font-semibold text-foreground text-sm">
-                    {t("guardian.approve.recorded.title")}
-                  </p>
-                  <p className="text-muted-foreground text-sm">
-                    {t("guardian.approve.recorded.body")}
-                  </p>
-                </div>
-              </div>
-            ) : approve.isError ? (
-              <ErrorBanner type="error" title={t(approveErrorKey(approve.error))} />
+            {outcome?.kind === "recorded" ? (
+              // Tích XANH, không phải khối lỗi đỏ: chuyện cần nói là "xong rồi".
+              <SuccessNote
+                title={t("guardian.approve.recorded.title")}
+                body={t("guardian.approve.recorded.body")}
+              />
             ) : null}
+            {outcome?.kind === "closed" ? (
+              // Lệnh đã đóng = TIN TỐT — chủ ví đã vào lại được ví.
+              <SuccessNote
+                title={t("guardian.approve.closed.title")}
+                body={t("guardian.approve.closed.body")}
+              />
+            ) : null}
+            {outcome?.kind === "reconfirm" ? (
+              // Phiên ví hết — máy VẪN CÓ passkey: chạm vân tay xin lại phiên,
+              // KHÔNG bắt đăng xuất (§4, đúng MỘT lần thử lại).
+              <ReconfirmSign
+                phase={reconfirm.phase}
+                onStart={() => reconfirm.start(() => approve.mutate(item.wallet.id))}
+              />
+            ) : null}
+            {outcome?.kind === "error" ? <ErrorBanner type="error" title={t(outcome.key)} /> : null}
 
             <PrimaryZone>
-              {alreadyVoted ? null : (
+              {done ? null : (
                 <Button loading={approve.isPending} onClick={() => approve.mutate(item.wallet.id)}>
                   <Icon name="fingerprint" />
                   {approve.isPending ? t("guardian.approve.signing") : t("guardian.approve.cta")}
