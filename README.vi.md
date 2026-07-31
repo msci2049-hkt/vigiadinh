@@ -6,7 +6,7 @@
 
 # VíGiaĐình
 
-**Ví thông minh Stellar không cần seed phrase — chính gia đình là cơ chế khôi phục của bạn.**
+**Ví thông minh Stellar không cần seed phrase - chính gia đình là cơ chế khôi phục của bạn.**
 
 *Ví khác đưa bạn mười hai từ để rồi có thể làm mất. Ví này trao cho bạn gia đình.*
 
@@ -23,7 +23,7 @@ APAC Stellar Hackathon 2026
 
 <img src="docs/images/welcome-judges.png" alt="Gia đình nhân vật ảo chào đón ban giám khảo Stellar" width="900">
 
-Kính chào ban giám khảo Stellar — các liên kết phía trên dẫn tới câu chuyện dự án, ứng dụng Testnet thật và trailer sản phẩm dài hai phút.
+Kính chào ban giám khảo Stellar - các liên kết phía trên dẫn tới câu chuyện dự án, ứng dụng Testnet thật và trailer sản phẩm dài hai phút.
 
 </div>
 
@@ -31,7 +31,7 @@ Kính chào ban giám khảo Stellar — các liên kết phía trên dẫn tớ
 
 Ví gia đình trên Stellar. Passkey thay cụm từ khôi phục; người thân là lớp khôi phục.
 
-Hoạt động trên chuỗi, kiểm chứng được — hợp đồng, giao dịch và dữ liệu tải về: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
+Hoạt động trên chuỗi, kiểm chứng được - hợp đồng, giao dịch và dữ liệu tải về: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
 
 ## Chấm trong 60 giây
 
@@ -56,9 +56,9 @@ Mã nguồn này **không có chế độ demo dựng sẵn**. Các luồng sả
 
 | Năng lực | Ngăn được điều gì |
 |---|---|
-| Không seed phrase — passkey trong Secure Enclave hoặc TPM | Mất giấy hoặc bị lừa nhập mười hai từ vào trang giả |
+| Không seed phrase - passkey trong Secure Enclave hoặc TPM | Mất giấy hoặc bị lừa nhập mười hai từ vào trang giả |
 | Giới hạn khôi phục tối thiểu được cưỡng chế **trong hợp đồng** | Kẻ chiếm máy chủ hạ cấu hình xuống một người bảo hộ hoặc không còn thời gian chờ |
-| **Hai đường cảnh báo độc lập** — một tiến trình đọc hợp đồng trực tiếp và gửi email ngoài ứng dụng | Làm chủ ví im lặng bằng cách chỉ vô hiệu hóa bộ đánh chỉ mục trong 24 giờ |
+| **Hai đường cảnh báo độc lập** - một tiến trình đọc hợp đồng trực tiếp và gửi email ngoài ứng dụng | Làm chủ ví im lặng bằng cách chỉ vô hiệu hóa bộ đánh chỉ mục trong 24 giờ |
 | Thời gian chờ 24 giờ và quyền phủ quyết on-chain của chủ ví | Người bảo hộ thông đồng chiếm ví ngay lập tức |
 | Hạn mức chi tiêu là **hợp đồng chính sách** gắn vào quy tắc ủy quyền OpenZeppelin | Máy chủ bị chiếm rút cạn ví |
 | Nâng hạn mức phải chờ 24 giờ | Kẻ chiếm tài khoản nâng trần rồi rút ngay |
@@ -90,7 +90,7 @@ Các ràng buộc này được cưỡng chế bởi hợp đồng đã triển 
 
 ### Tín hiệu rủi ro tất định
 
-Trước khi một giao dịch vượt ngưỡng được đưa cho người bảo hộ, các truy vấn SQL tất định tính ba tín hiệu — không dùng mô hình và không suy đoán:
+Trước khi một giao dịch vượt ngưỡng được đưa cho người bảo hộ, các truy vấn SQL tất định tính ba tín hiệu - không dùng mô hình và không suy đoán:
 
 | Tín hiệu | Đo gì |
 |---|---|
@@ -124,7 +124,7 @@ Người mất thiết bị có thể không nhớ địa chỉ ví 56 ký tự,
 
 ### Cảnh báo khôi phục cho người bảo hộ
 
-Khi có yêu cầu khôi phục, người bảo hộ nhận cả email và cập nhật thời gian thực trong ứng dụng. Email đặc biệt quan trọng vì người bảo hộ có thể nhiều ngày không mở ứng dụng — đúng lúc chủ ví cần họ nhất.
+Khi có yêu cầu khôi phục, người bảo hộ nhận cả email và cập nhật thời gian thực trong ứng dụng. Email đặc biệt quan trọng vì người bảo hộ có thể nhiều ngày không mở ứng dụng - đúng lúc chủ ví cần họ nhất.
 
 Màn hình “Ví tôi bảo vệ” hiển thị đầy đủ địa chỉ ví 56 ký tự kèm nút sao chép, để người bảo hộ đọc lại cho chủ ví đã mất thiết bị. Số dư và lịch sử giao dịch vẫn được ẩn.
 
@@ -219,15 +219,15 @@ Dấu xác minh nghĩa là bản dựng lại từ mã nguồn công khai đư�
 
 | Cổng chất lượng | Kết quả |
 |---|---|
-| Hợp đồng verified công khai | **5/5** — ba hợp đồng từ `da689235`, hai hợp đồng từ `96957faa` |
+| Hợp đồng verified công khai | **5/5** - ba hợp đồng từ `da689235`, hai hợp đồng từ `96957faa` |
 | Kiểm thử hợp đồng Rust | **82 pass** |
 | Kiểm thử backend | **566 pass**, **22 skip**; các ca skip cần `RUN_TESTNET_E2E=1` |
 | Kiểm thử frontend | **328 pass** |
 | Tổng số kiểm thử đạt | **976 pass** |
-| Hạn mức on-chain — dưới ngưỡng | Pass **và được ghi nhận vào tổng đã chi** |
-| Hạn mức on-chain — vượt trong một giao dịch | Bị chối với `#3221` |
-| Hạn mức on-chain — nhiều giao dịch cộng dồn vượt ngưỡng | Bị chối |
-| Hạn mức on-chain — qua cửa sổ trượt | Pass trở lại |
+| Hạn mức on-chain - dưới ngưỡng | Pass **và được ghi nhận vào tổng đã chi** |
+| Hạn mức on-chain - vượt trong một giao dịch | Bị chối với `#3221` |
+| Hạn mức on-chain - nhiều giao dịch cộng dồn vượt ngưỡng | Bị chối |
+| Hạn mức on-chain - qua cửa sổ trượt | Pass trở lại |
 | Xoay ví đầy **15 khóa** | Thành công, có bằng chứng ledger |
 | Cooldown 300 giây | Chặn trong cửa sổ và mở đúng tại biên |
 | Thiếu người bảo hộ | Bị chối với `#4` |
@@ -272,7 +272,7 @@ Cây mã nguồn này **không có chế độ demo dựng sẵn**. Các luồng
 | Trang giới thiệu | [familyhavenwallet.mscilabs.com](https://familyhavenwallet.mscilabs.com/) |
 | Ứng dụng thật | [familyhaven.mscilabs.com](https://familyhaven.mscilabs.com) |
 | Mạng | **Stellar Testnet** |
-| Chế độ demo | Không có — dùng tài khoản Testnet và luồng Testnet thật |
+| Chế độ demo | Không có - dùng tài khoản Testnet và luồng Testnet thật |
 
 ## Bản đồ mã nguồn
 
@@ -315,8 +315,8 @@ Theo lộ trình, khi giao dịch vượt ngưỡng cần duyệt, người bả
 
 ## Đội ngũ
 
-**[MSCI Labs](https://www.mscilabs.com)** — Vietnam
+**[MSCI Labs](https://www.mscilabs.com)** - Vietnam
 
 ---
 
-> **Phạm vi.** Bản mẫu hackathon chạy trên Stellar Testnet. Không dùng tiền thật. Các ngưỡng chính sách chỉ có tính minh họa và người dùng có thể cấu hình. Xác minh hợp đồng chỉ xác nhận mã nguồn đã công bố khớp bytecode on-chain — không phải kiểm định an ninh độc lập. Đây không phải lời khuyên tài chính.
+> **Phạm vi.** Bản mẫu hackathon chạy trên Stellar Testnet. Không dùng tiền thật. Các ngưỡng chính sách chỉ có tính minh họa và người dùng có thể cấu hình. Xác minh hợp đồng chỉ xác nhận mã nguồn đã công bố khớp bytecode on-chain - không phải kiểm định an ninh độc lập. Đây không phải lời khuyên tài chính.

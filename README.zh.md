@@ -6,7 +6,7 @@
 
 # FamilyHaven
 
-**无需助记词的 Stellar 智能钱包——家人就是你的恢复机制。**
+**无需助记词的 Stellar 智能钱包-家人就是你的恢复机制。**
 
 *其他钱包给你十二个可能丢失的单词；这个钱包把恢复权交给你的家人。*
 
@@ -23,7 +23,7 @@ APAC Stellar Hackathon 2026
 
 <img src="docs/images/welcome-judges.png" alt="欢迎 Stellar 评委的欧洲虚拟家庭" width="900">
 
-欢迎 Stellar 评委——上方链接分别指向项目说明、真实 Testnet 应用和两分钟产品预告片。
+欢迎 Stellar 评委-上方链接分别指向项目说明、真实 Testnet 应用和两分钟产品预告片。
 
 </div>
 
@@ -31,7 +31,7 @@ APAC Stellar Hackathon 2026
 
 Stellar 上的家庭钱包。以 Passkey 取代助记词，由亲人组成恢复层。
 
-可验证的链上活动——合约、交易与可下载数据：**[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
+可验证的链上活动-合约、交易与可下载数据：**[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
 
 ## 60 秒评审
 
@@ -56,9 +56,9 @@ Stellar 上的家庭钱包。以 Passkey 取代助记词，由亲人组成恢复
 
 | 能力 | 防止的问题 |
 |---|---|
-| 无助记词——通行密钥保存在 Secure Enclave 或 TPM | 丢失纸张，或被钓鱼网站诱导输入十二个单词 |
+| 无助记词-通行密钥保存在 Secure Enclave 或 TPM | 丢失纸张，或被钓鱼网站诱导输入十二个单词 |
 | 最低恢复约束在**合约内部**强制执行 | 被入侵的服务器把恢复降为一名守护人或零等待时间 |
-| **两条独立警报路径**——一个进程直接读取合约，并从应用外发送电子邮件 | 攻击者只停用索引器 24 小时就让所有者收不到警报 |
+| **两条独立警报路径**-一个进程直接读取合约，并从应用外发送电子邮件 | 攻击者只停用索引器 24 小时就让所有者收不到警报 |
 | 24 小时时间锁和链上所有者否决权 | 守护人串通后立即夺取钱包 |
 | 消费限额是附着在 OpenZeppelin 授权规则上的**策略合约** | 被入侵的服务器清空钱包 |
 | 提高限额必须等待 24 小时 | 账户攻击者先提高上限再立即提款 |
@@ -90,7 +90,7 @@ Stellar 上的家庭钱包。以 Passkey 取代助记词，由亲人组成恢复
 
 ### 确定性风险信号
 
-超过配置阈值的转账在交给守护人审批前，会通过确定性 SQL 查询计算三项信号——不使用模型，也不进行推测：
+超过配置阈值的转账在交给守护人审批前，会通过确定性 SQL 查询计算三项信号-不使用模型，也不进行推测：
 
 | 信号 | 衡量内容 |
 |---|---|
@@ -219,15 +219,15 @@ StellarExpert 目前为五个已部署合约全部返回 `validation.status = ve
 
 | 质量门 | 结果 |
 |---|---|
-| 公开验证合约 | **5/5**——三个来自 `da689235`，两个来自 `96957faa` |
+| 公开验证合约 | **5/5**-三个来自 `da689235`，两个来自 `96957faa` |
 | Rust 合约测试 | **82 pass** |
 | 后端测试 | **566 pass**，**22 skip**；跳过项需要 `RUN_TESTNET_E2E=1` |
 | 前端单元测试 | **328 pass** |
 | 通过测试总数 | **976 pass** |
-| 链上限额——低于阈值 | 通过，**并计入累计支出** |
-| 链上限额——单笔超过阈值 | 以 `#3221` 拒绝 |
-| 链上限额——多笔累计超过阈值 | 拒绝 |
-| 链上限额——滚动窗口结束后 | 再次通过 |
+| 链上限额-低于阈值 | 通过，**并计入累计支出** |
+| 链上限额-单笔超过阈值 | 以 `#3221` 拒绝 |
+| 链上限额-多笔累计超过阈值 | 拒绝 |
+| 链上限额-滚动窗口结束后 | 再次通过 |
 | 对含 **15 把密钥**的钱包执行轮换 | 成功，并有账本证据 |
 | 300 秒冷却期 | 窗口内阻止，边界到达时重新开放 |
 | 守护人数不足 | 以 `#4` 拒绝 |
@@ -272,7 +272,7 @@ cd ../fe && pnpm install && pnpm validate && pnpm test && pnpm dev
 | 项目主页 | [familyhavenwallet.mscilabs.com](https://familyhavenwallet.mscilabs.com/) |
 | 在线产品 | [familyhaven.mscilabs.com](https://familyhaven.mscilabs.com) |
 | 网络 | **Stellar Testnet** |
-| 演示模式 | 无——使用 Testnet 账户和真实 Testnet 流程 |
+| 演示模式 | 无-使用 Testnet 账户和真实 Testnet 流程 |
 
 ## 源码地图
 
@@ -315,8 +315,8 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 
 ## 团队
 
-**[MSCI Labs](https://www.mscilabs.com)** — Vietnam
+**[MSCI Labs](https://www.mscilabs.com)** - Vietnam
 
 ---
 
-> **范围。** 在 Stellar Testnet 上运行的黑客松原型。不使用真实资金。策略阈值仅作说明，并可由用户配置。合约验证只确认已发布源码与链上字节码一致——它不是独立安全审计。不构成财务建议。
+> **范围。** 在 Stellar Testnet 上运行的黑客松原型。不使用真实资金。策略阈值仅作说明，并可由用户配置。合约验证只确认已发布源码与链上字节码一致-它不是独立安全审计。不构成财务建议。

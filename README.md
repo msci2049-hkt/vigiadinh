@@ -6,7 +6,7 @@
 
 # FamilyHaven
 
-**A Stellar smart wallet with no seed phrase — your family is the recovery mechanism.**
+**A Stellar smart wallet with no seed phrase - your family is the recovery mechanism.**
 
 *Other wallets hand you twelve words to lose. This one hands you your family.*
 
@@ -23,7 +23,7 @@ APAC Stellar Hackathon 2026
 
 <img src="docs/images/welcome-judges.png" alt="A virtual European family welcoming Stellar judges" width="900">
 
-Welcome, Stellar judges — the links above lead to the public story, the real Testnet application, and the two-minute product trailer.
+Welcome, Stellar judges - the links above lead to the public story, the real Testnet application, and the two-minute product trailer.
 
 </div>
 
@@ -31,7 +31,7 @@ Welcome, Stellar judges — the links above lead to the public story, the real T
 
 A family wallet on Stellar. Passkeys replace seed phrases; trusted relatives are the recovery layer.
 
-Live, verifiable on-chain activity — contracts, transactions and downloadable data: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
+Live, verifiable on-chain activity - contracts, transactions and downloadable data: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
 
 ## Judge in 60 seconds
 
@@ -56,9 +56,9 @@ This repository has **no canned demo mode**. Product flows use real Stellar Test
 
 | Capability | What it prevents |
 |---|---|
-| No seed phrase — passkey in Secure Enclave or TPM | Losing paper or entering twelve words into a phishing site |
+| No seed phrase - passkey in Secure Enclave or TPM | Losing paper or entering twelve words into a phishing site |
 | Minimum recovery constraints enforced **inside the contract** | A compromised server lowering recovery to one guardian or a zero-hour wait |
-| **Two independent alert paths** — one process reads the contract directly and sends email outside the app | Silencing the owner by disabling only the indexer for 24 hours |
+| **Two independent alert paths** - one process reads the contract directly and sends email outside the app | Silencing the owner by disabling only the indexer for 24 hours |
 | 24-hour timelock plus on-chain owner veto | Colluding guardians taking the wallet immediately |
 | Spending limit as a **policy contract** attached to OpenZeppelin authorization rules | A compromised server draining the wallet |
 | Limit increases wait 24 hours | An account attacker raising the cap and withdrawing immediately |
@@ -90,7 +90,7 @@ These constraints are enforced by the deployed contracts, so control of the serv
 
 ### Deterministic risk signals
 
-Before a transfer above the configured threshold is shown to a guardian, deterministic SQL queries calculate three signals — no model and no inference:
+Before a transfer above the configured threshold is shown to a guardian, deterministic SQL queries calculate three signals - no model and no inference:
 
 | Signal | What it measures |
 |---|---|
@@ -124,7 +124,7 @@ The wallet address is public on-chain, but the email-to-wallet mapping is not. R
 
 ### Guardian recovery alerts
 
-When recovery starts, guardians receive both email and a real-time in-app update. Email matters because a guardian may not open the application for days — exactly when the wallet owner needs them.
+When recovery starts, guardians receive both email and a real-time in-app update. Email matters because a guardian may not open the application for days - exactly when the wallet owner needs them.
 
 The “Wallets I protect” screen shows the complete 56-character wallet address with a copy button, allowing a guardian to read it back to an owner who lost their device. Balance and transaction history remain hidden.
 
@@ -219,15 +219,15 @@ Verification means a rebuild from the linked public source matches the on-chain 
 
 | Quality gate | Result |
 |---|---|
-| Publicly verified contracts | **5/5** — three from `da689235`, two from `96957faa` |
+| Publicly verified contracts | **5/5** - three from `da689235`, two from `96957faa` |
 | Contract tests (Rust) | **82 pass** |
 | Backend tests | **566 pass**, **22 skip**; skipped cases require `RUN_TESTNET_E2E=1` |
 | Frontend unit tests | **328 pass** |
 | Total passing tests | **976 pass** |
-| On-chain limit — below threshold | Passes **and is recorded in cumulative spend** |
-| On-chain limit — one transfer above threshold | Rejected with `#3221` |
-| On-chain limit — cumulative transfers exceed threshold | Rejected |
-| On-chain limit — after the rolling window | Passes again |
+| On-chain limit - below threshold | Passes **and is recorded in cumulative spend** |
+| On-chain limit - one transfer above threshold | Rejected with `#3221` |
+| On-chain limit - cumulative transfers exceed threshold | Rejected |
+| On-chain limit - after the rolling window | Passes again |
 | Rotation of a full **15-key** wallet | Succeeds with ledger evidence |
 | 300-second cooldown | Blocks during the window and reopens on the boundary |
 | Too few guardians | Rejected with `#4` |
@@ -272,7 +272,7 @@ There is **no scripted demo mode in this source tree**. Runtime flows operate ag
 | Landing | [familyhavenwallet.mscilabs.com](https://familyhavenwallet.mscilabs.com/) |
 | Live product | [familyhaven.mscilabs.com](https://familyhaven.mscilabs.com) |
 | Network | **Stellar Testnet** |
-| Demo mode | None — use a Testnet account and real Testnet flows |
+| Demo mode | None - use a Testnet account and real Testnet flows |
 
 ## Repository map
 
@@ -315,8 +315,8 @@ Planned: when a transfer exceeds the configured approval threshold, a guardian w
 
 ## Team
 
-**[MSCI Labs](https://www.mscilabs.com)** — Vietnam
+**[MSCI Labs](https://www.mscilabs.com)** - Vietnam
 
 ---
 
-> **Scope.** Hackathon prototype on Stellar Testnet. No real funds. Policy thresholds are illustrative and user-configurable. Contract verification confirms the published source matches on-chain bytecode — it is not an independent security audit. Not financial advice.
+> **Scope.** Hackathon prototype on Stellar Testnet. No real funds. Policy thresholds are illustrative and user-configurable. Contract verification confirms the published source matches on-chain bytecode - it is not an independent security audit. Not financial advice.
