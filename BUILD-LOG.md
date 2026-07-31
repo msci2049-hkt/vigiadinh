@@ -1186,3 +1186,39 @@ dừng ở suy luận). Commit `audit: F1…F5`, `audit: S5`, `audit: T6`, `audi
   Baseline trước deploy: `/health` ok · `/ready` ok (`push:"disabled"`) ·
   `indexer_checkpoint` ledger 3887184 stale 26s · 5 curl 401/400/403/401 đúng kỳ vọng.
   → Runbook deploy + backfill nằm ở phần "KHỐI LỆNH CHO GIN" của lô này.
+
+## 2026-07-31 · Lô R5 — huỷ lệnh khôi phục báo mọi guardian + phân loại lỗi ký đúng
+
+SHA: `f540ca5` (BE) · `9f03a08` (FE). BUILD_TAG `2026-07-31.2`.
+
+- **A · Lệnh đóng báo MỌI guardian (BE)**: trước lô này indexer chỉ notify CHỦ VÍ
+  khi `cancel`/`finalize`/`recovery.vetoed` — guardian chưa duyệt không biết gì,
+  thẻ vẫn nằm trên màn họ, bấm duyệt là ăn lỗi (tái lập 31/07). Giờ
+  `applyRegistryMirror` trả cờ "vừa đóng yêu cầu đang mở thật" (`.returning` —
+  replay/event mồ côi KHÔNG gửi trùng), và `recovery-closed-notify.ts` enqueue
+  `email+sse` (0 push) cho MỌI guardian hiệu lực có tài khoản + phát domain event
+  `recovery.closed` + ghi `audit_log` kind `recovery.closed` (đếm số người báo).
+  Template `recovery.closed` giọng TIN TỐT, đủ 3 locale, khoá trong `render.test.ts`.
+  **Negative control**: vô hiệu vòng lặp gửi → test ĐỎ đúng assertion "guardian
+  CHƯA DUYỆT vẫn nhận thư" (Expected 2, Received 0) — output dán trong báo cáo lô.
+- **B · Hai mã ký hỏng ra hai câu (FE)**: `WalletSignError` mang sẵn 2 mã nhưng
+  `approve`/`initiate` gộp cả hai thành `deviceKeyMissing`. Taxonomy mới ở
+  `@/lib/recovery-sign-outcome` (đọc mã ApiError TRƯỚC nhánh sign-error):
+  `WALLET_NOT_CONNECTED` → banner info + nút *"Xác nhận lại bằng vân tay"* →
+  `connectAndLogin` (SEP-45) → thử ký lại ĐÚNG MỘT lần (`session-reconfirm.test.ts`
+  đếm số lần gọi login; huỷ hộp thoại không đốt lượt, không render lỗi);
+  `NO_ENTRY_FOR_WALLET` giữ `deviceKeyMissing`; `RecoveryCancelled`/`NoActiveRecovery`/
+  `AlreadyFinalized` → khối TIN TỐT "chủ ví đã vào lại được ví"; `AlreadyApproved`
+  giữ tích xanh R4-D5. Áp đủ 3 màn `approve`/`initiate`/`block/confirm`.
+  `provider.tsx:41` KHÔNG đổi (chỉ dọn token khi `WALLET_SESSION_REVOKED`).
+- **C · Thẻ tự biến mất**: `recovery.closed` vào `TOAST_KEYS` → invalidate cây
+  `["family"]` ≤10s (thẻ + badge tab); guardian đang đứng TRONG màn duyệt lúc lệnh
+  đóng → màn đổi sang khối "đã đóng" (ref `sawItem`), không còn bấm ký được.
+- **Ghi chú PHA 0**: chẩn đoán gốc "dòng 44 chặn trước `apiErrorCode`" không đúng
+  cơ học (`ApiError` không rơi vào `instanceof RecoverySignError`) — nhánh
+  `RecoveryCancelled` chưa từng bị nuốt; lỗi thật là B1 (gộp 2 mã). B4 đã vá từ R4-D5.
+- **Test**: BE 564 pass / 24 skip / 4 fail-env (timeout 5s qua tunnel DB ~63ms RTT —
+  máy dev không có Docker, dựng Postgres+Dragonfly THROWAWAY trên VPS, không đụng
+  production; 4 test đó không chạm code R5). FE validate 11/11 + honest build xanh +
+  test 389 pass / 49 file / 0 fail (chạy trên bản copy ext4 vì node_modules /mnt/d
+  cài binary Windows — rolldown/biome linux thiếu).
