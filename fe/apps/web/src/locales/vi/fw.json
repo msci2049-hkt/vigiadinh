@@ -76,6 +76,10 @@
       "closed": {
         "title": "Yêu cầu đã đóng",
         "body": "Chủ ví đã vào lại được ví. Bạn không cần làm gì thêm."
+      },
+      "already": {
+        "title": "Bạn đã đồng ý",
+        "body": "Xác nhận của bạn đã nằm trên mạng. Bạn không cần làm gì thêm ở đây."
       }
     },
     "approveWarning": {
@@ -111,7 +115,10 @@
       "since": "Bắt đầu {when}",
       "title": "Yêu cầu dành cho bạn",
       "votes": "{approvals, plural, other {# phiếu}} trên {threshold} phiếu cần có",
-      "walletLabel": "Ví {address}"
+      "walletLabel": "Ví {address}",
+      "youApproved": "Bạn đã đồng ý.",
+      "thresholdMet": "Đã đủ người đồng ý. Đang chờ hết khoảng an toàn.",
+      "progressCta": "Xem tiến trình"
     },
     "initiate": {
       "backCta": "Về danh sách yêu cầu",
@@ -516,7 +523,9 @@
       "protectionTitle": "Vì sao cần khoảng chờ",
       "title": "Sắp xong",
       "window": "Còn {countdown} (đến {absolute})",
-      "windowLabel": "Khoảng bảo vệ"
+      "windowLabel": "Khoảng bảo vệ",
+      "stoppedTitle": "Yêu cầu này đã bị dừng",
+      "stoppedBody": "Chủ ví đã chặn yêu cầu này, hoặc nó đã hết hạn. Không có gì bị chuyển đi."
     },
     "done": {
       "connectCta": "Mở ví của tôi trên máy này",
@@ -597,6 +606,21 @@
       "step2": "Người thân xác minh đúng là bạn — qua điện thoại, không qua ứng dụng này.",
       "step3": "Khi đủ người đồng ý và hết khoảng chờ, ví của bạn nghe theo chìa khoá mới. Địa chỉ giữ nguyên, tiền không di chuyển.",
       "title": "Lấy lại ví của bạn"
+    },
+    "finalize": {
+      "cta": "Lấy lại ví",
+      "working": "Đang lấy lại ví…",
+      "waitNote": "Nút sẽ bật khi hết thời gian chờ.",
+      "signInCta": "Đăng nhập để hoàn tất",
+      "signInNote": "Dùng email và mật khẩu của tài khoản chủ ví này. Bước cuối cần biết chắc là bạn.",
+      "alreadyDone": "Ví đã về rồi. Mở ví ở dưới.",
+      "errors": {
+        "tooEarly": "Chưa hết thời gian chờ. Hãy thử lại khi đồng hồ về 0.",
+        "notEnoughVotes": "Chưa đủ người thân xác nhận.",
+        "expired": "Yêu cầu này chờ quá lâu và đã hết hạn. Hãy mở một yêu cầu mới.",
+        "notYourWallet": "Tài khoản này không phải chủ ví đó. Hãy đăng nhập bằng tài khoản bạn vẫn dùng.",
+        "notSent": "Chưa gửi được. Chưa có gì thay đổi, bạn thử lại được."
+      }
     }
   },
   "settings": {
@@ -944,7 +968,8 @@
     "policyApplied": "Mức tiền mới đã có hiệu lực.",
     "policyCancelled": "Đề nghị đổi mức tiền đã được huỷ.",
     "recoveryDeviceRequested": "Có người thân cần bạn giúp mở lại ví của họ.",
-    "recoveryClosed": "Chủ ví đã vào lại được ví. Yêu cầu khôi phục đã đóng."
+    "recoveryClosed": "Chủ ví đã vào lại được ví. Yêu cầu khôi phục đã đóng.",
+    "recoveryReady": "Đã đủ người thân xác nhận việc khôi phục ví."
   },
   "walletSession": {
     "reconfirm": {
@@ -952,5 +977,13 @@
       "cta": "Xác nhận lại bằng vân tay"
     },
     "reconfirmFailed": "Vẫn chưa xác nhận lại được trên máy này. Thử lại sau, hoặc mở ứng dụng trên máy bạn thường dùng để ký."
+  },
+  "recoveryAlert": {
+    "title": "Có người đang xin chuyển ví của bạn",
+    "body": "Có người xin chuyển ví này sang thiết bị khác. Ví sẽ chuyển sau {remaining} (lúc {when}) nếu bạn không chặn.",
+    "bodyExpired": "Có người xin chuyển ví này sang thiết bị khác, và thời gian chờ đã hết. Nếu không phải bạn, hãy chặn ngay.",
+    "cta": "Chặn ngay",
+    "unknownTitle": "Chưa kiểm tra được ví của bạn",
+    "unknownBody": "Chúng tôi chưa hỏi được mạng xem có ai đang xin chuyển ví này không. Đây KHÔNG phải là đã an toàn. Hãy thử lại sau giây lát, hoặc mở màn an toàn."
   }
 }

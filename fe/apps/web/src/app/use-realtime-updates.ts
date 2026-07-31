@@ -37,6 +37,10 @@ const TOAST_KEYS = {
   // Lô R5: lệnh khôi phục ĐÓNG (huỷ/veto/finalize) — invalidate ["family"] làm
   // thẻ yêu cầu trên màn guardian tự biến mất ≤10s, badge tab trừ theo.
   "recovery.closed": "realtime.recoveryClosed",
+  // Lô R6: yêu cầu vừa ĐỦ PHIẾU. Chủ ví thấy banner chặn xuất hiện ngay trên hub
+  // ví (không chờ 20s tick chain-truth), guardian thấy thẻ đổi sang "đủ phiếu,
+  // đang chờ" thay vì vẫn mời bấm ký.
+  "recovery.ready": "realtime.recoveryReady",
 } as const;
 
 type DomainType = keyof typeof TOAST_KEYS;

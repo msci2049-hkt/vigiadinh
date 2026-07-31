@@ -76,6 +76,10 @@
       "closed": {
         "title": "该请求已关闭",
         "body": "钱包主人已重新进入自己的钱包。您无需再做任何操作。"
+      },
+      "already": {
+        "title": "您已经同意了",
+        "body": "您的确认已经在网络上了，这里不需要您再做什么。"
       }
     },
     "approveWarning": {
@@ -111,7 +115,10 @@
       "since": "开始于 {when}",
       "title": "等你处理的请求",
       "votes": "需要 {approvals, plural, other {# 票}}，共 {threshold} 票",
-      "walletLabel": "钱包 {address}"
+      "walletLabel": "钱包 {address}",
+      "youApproved": "您已经同意了。",
+      "thresholdMet": "同意的人数已经够了，正在等待安全期结束。",
+      "progressCta": "查看进度"
     },
     "initiate": {
       "backCta": "返回请求列表",
@@ -516,7 +523,9 @@
       "protectionTitle": "为什么需要等待期",
       "title": "就快好了",
       "window": "剩余时间：{countdown}（截至 {absolute}）",
-      "windowLabel": "保护时间"
+      "windowLabel": "保护时间",
+      "stoppedTitle": "该申请已被停止",
+      "stoppedBody": "钱包主人阻止了这次申请，或者它已过期。没有任何东西被转走。"
     },
     "done": {
       "connectCta": "在此设备上打开我的钱包",
@@ -597,6 +606,21 @@
       "step2": "你的家人核实确实是你 — 通过电话，而不是通过此应用。",
       "step3": "当足够多的人同意且等待期结束后，你的钱包便听从新钥匙。地址不变，资产不动。",
       "title": "找回你的钱包"
+    },
+    "finalize": {
+      "cta": "取回我的钱包",
+      "working": "正在取回钱包…",
+      "waitNote": "等待时间结束后按钮会亮起。",
+      "signInCta": "登录以完成",
+      "signInNote": "请用这个钱包主人账号的邮箱和密码登录。最后一步需要确认是您本人。",
+      "alreadyDone": "钱包已经回来了，请在下方打开。",
+      "errors": {
+        "tooEarly": "等待时间还没结束。倒计时归零后再试。",
+        "notEnoughVotes": "确认的家人还不够。",
+        "expired": "这次申请等得太久已经过期。请重新发起一次。",
+        "notYourWallet": "这个账号不是那个钱包的主人。请用您以前用的账号登录。",
+        "notSent": "没有发送成功。什么都没有改变，您可以再试一次。"
+      }
     }
   },
   "settings": {
@@ -944,7 +968,8 @@
     "policyApplied": "新的允许金额已生效。",
     "policyCancelled": "允许金额的更改已取消。",
     "recoveryDeviceRequested": "您的一位家人需要帮助，才能重新进入他的钱包。",
-    "recoveryClosed": "钱包主人已重新进入自己的钱包。恢复请求已关闭。"
+    "recoveryClosed": "钱包主人已重新进入自己的钱包。恢复请求已关闭。",
+    "recoveryReady": "已有足够的家人确认了钱包恢复。"
   },
   "walletSession": {
     "reconfirm": {
@@ -952,5 +977,13 @@
       "cta": "再次用指纹确认"
     },
     "reconfirmFailed": "在此设备上仍未能完成确认。请稍后再试，或在您常用的设备上打开应用进行签名。"
+  },
+  "recoveryAlert": {
+    "title": "有人正在申请转走您的钱包",
+    "body": "有人申请把这个钱包转到别的设备。如果您不阻止，将在 {remaining} 后（{when}）转移。",
+    "bodyExpired": "有人申请把这个钱包转到别的设备，等待时间已经结束。如果这不是您本人，请立即阻止。",
+    "cta": "立即阻止",
+    "unknownTitle": "暂时无法检查您的钱包",
+    "unknownBody": "我们没能连上网络确认是否有人在申请转走这个钱包。这并不表示安全。请稍后重试，或打开安全页面。"
   }
 }

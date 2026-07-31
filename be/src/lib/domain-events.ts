@@ -32,7 +32,11 @@ export type DomainEventType =
   // Lô R5: yêu cầu khôi phục ĐÓNG (huỷ/veto/finalize) — thẻ trên màn guardian
   // phải tự biến mất, kể cả guardian CHƯA duyệt (sự cố 31/07: C bấm duyệt vào
   // một yêu cầu A đã huỷ).
-  | "recovery.closed";
+  | "recovery.closed"
+  // Lô R6: yêu cầu ĐỦ PHIẾU (pending → ready). Chủ ví phải thấy banner chặn
+  // NGAY trên hub ví, guardian phải thấy thẻ đổi sang "đủ phiếu, đang chờ" thay
+  // vì vẫn mời bấm ký, và người xin khôi phục thấy màn đếm ngược mở ra.
+  | "recovery.ready";
 
 export function publishDomainEvent(
   userId: string,

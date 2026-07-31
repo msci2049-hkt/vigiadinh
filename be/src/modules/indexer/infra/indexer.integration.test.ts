@@ -212,12 +212,16 @@ describe("indexer core (Postgres thật)", () => {
         .select()
         .from(recoveryRequests)
         .where(eq(recoveryRequests.walletId, w.id));
-      expect(afterApprove?.status).toBe("pending");
+      // R6: 2 phiếu / ngưỡng 2 = ĐỦ → mirror phải sang `ready`. Bản cũ khoá
+      // `pending` ở đúng đây và gọi đó là "không vượt ngưỡng" — chính câu khẳng
+      // định sai đó đã giữ cho lỗi sống: `>= threshold` mới là đủ, contract cũng
+      // dùng `>=` (lib.rs:352). Người xin khôi phục kẹt ở nút disabled vì màn
+      // tiến trình gate `status === "ready"`.
+      expect(afterApprove?.status).toBe("ready");
       expect(afterApprove?.newOwner).toBe(fingerprintHex56);
       expect(afterApprove?.approvals).toBe(2);
       expect(afterApprove?.threshold).toBe(2);
-      // Không vượt ngưỡng: 2 phiếu / threshold 2.
-      expect(afterApprove?.approvals).toBeLessThanOrEqual(afterApprove?.threshold ?? 0);
+      expect(afterApprove?.approvals).toBeGreaterThanOrEqual(afterApprove?.threshold ?? 0);
       expect(afterApprove?.txHash).toBe("a".repeat(64));
       expect(afterApprove?.signals).toEqual({
         approvers: [
@@ -251,6 +255,8 @@ describe("indexer core (Postgres thật)", () => {
       for (const key of [
         "recovery.initiated",
         "recovery.approved",
+        // R6: mốc ĐỦ PHIẾU có lá thư riêng, và nó cũng phải là email+sse.
+        "recovery.threshold_met",
         "recovery.vetoed",
         "recovery.finalized",
       ]) {

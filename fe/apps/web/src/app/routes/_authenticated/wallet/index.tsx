@@ -15,6 +15,7 @@ import { chainTruthOptions } from "@/features/family/api/recovery";
 import { walletBalanceOptions } from "@/features/family/api/wallets";
 import { CooldownNotice } from "@/features/family/components/cooldown-notice";
 import { RecoverabilityBanner } from "@/features/family/components/recoverability-banner";
+import { RecoveryAlert } from "@/features/family/components/recovery-alert";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { WalletLockedDialog } from "@/features/family/components/wallet-locked";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
@@ -117,6 +118,14 @@ function WalletHomeScreen() {
 
       {isLoading ? <LoadingRows /> : null}
       {isError ? <ErrorState /> : null}
+
+      {/* R6 — ĐỨNG ĐẦU MÀN, trên cả số dư và cả việc đang chờ ký: mọi thứ khác ở
+          màn này là thông tin để đọc, còn đây là chuyện có ĐỒNG HỒ ĐẾM NGƯỢC và
+          hết giờ thì ví đổi chủ. `chain.data.request` vốn đã được fetch mỗi 20
+          giây ở dòng trên và bị vứt đi cho tới lô này. */}
+      {wallet ? (
+        <RecoveryAlert chain={chain.data} isError={chain.isError} isLoading={chain.isPending} />
+      ) : null}
 
       {chain.data ? <CooldownNotice cooldown={chain.data.cooldown} /> : null}
       {invites.data ? <RecoverabilityBanner value={invites.data.recoverability} /> : null}

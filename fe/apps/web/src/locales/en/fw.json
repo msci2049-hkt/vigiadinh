@@ -76,6 +76,10 @@
       "closed": {
         "title": "This request is closed",
         "body": "The wallet owner is back in their wallet. Nothing more for you to do."
+      },
+      "already": {
+        "title": "You already agreed",
+        "body": "Your confirmation is already on the network. There is nothing more for you to do here."
       }
     },
     "approveWarning": {
@@ -111,7 +115,10 @@
       "since": "Started {when}",
       "title": "Requests for you",
       "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
-      "walletLabel": "Wallet {address}"
+      "walletLabel": "Wallet {address}",
+      "youApproved": "You already agreed.",
+      "thresholdMet": "Enough people have agreed. Now waiting out the safety window.",
+      "progressCta": "See progress"
     },
     "initiate": {
       "backCta": "Back to requests",
@@ -516,7 +523,9 @@
       "protectionTitle": "Why there is a waiting period",
       "title": "Almost there",
       "window": "Time left: {countdown} (until {absolute})",
-      "windowLabel": "Protection window"
+      "windowLabel": "Protection window",
+      "stoppedTitle": "This request was stopped",
+      "stoppedBody": "The wallet owner blocked this request, or it ran out of time. Nothing was moved."
     },
     "done": {
       "connectCta": "Open my wallet on this device",
@@ -597,6 +606,21 @@
       "step2": "Your family members verify it is really you — by phone, not through this app.",
       "step3": "When enough of them agree and the waiting period passes, your wallet answers to the new key. Same address, nothing moves.",
       "title": "Get your wallet back"
+    },
+    "finalize": {
+      "cta": "Get my wallet back",
+      "working": "Getting your wallet back…",
+      "waitNote": "The button turns on when the waiting time is over.",
+      "signInCta": "Sign in to finish",
+      "signInNote": "Use the email and password of the account that owns this wallet. The last step needs to know it is you.",
+      "alreadyDone": "Your wallet is already back. Open it below.",
+      "errors": {
+        "tooEarly": "The waiting time is not over yet. Try again when the countdown reaches zero.",
+        "notEnoughVotes": "Not enough family members have confirmed yet.",
+        "expired": "This request waited too long and expired. Start a new one.",
+        "notYourWallet": "This account does not own that wallet. Sign in with the account you used before.",
+        "notSent": "That did not go through. Nothing changed — you can try again."
+      }
     }
   },
   "settings": {
@@ -944,7 +968,8 @@
     "policyApplied": "The new allowed amounts are now active.",
     "policyCancelled": "The change to allowed amounts was cancelled.",
     "recoveryDeviceRequested": "Someone in your family needs help getting back into their wallet.",
-    "recoveryClosed": "The wallet owner is back in their wallet. The recovery request is closed."
+    "recoveryClosed": "The wallet owner is back in their wallet. The recovery request is closed.",
+    "recoveryReady": "Enough family members have confirmed the wallet recovery."
   },
   "walletSession": {
     "reconfirm": {
@@ -952,5 +977,13 @@
       "cta": "Confirm with fingerprint again"
     },
     "reconfirmFailed": "We still could not confirm on this device. Try again later, or open the app on the device you usually sign with."
+  },
+  "recoveryAlert": {
+    "title": "Someone is asking to move your wallet",
+    "body": "Someone asked to move this wallet to a different device. It moves in {remaining} (on {when}) unless you stop it.",
+    "bodyExpired": "Someone asked to move this wallet to a different device, and the waiting time is over. Stop it now if this is not you.",
+    "cta": "Stop it now",
+    "unknownTitle": "We cannot check your wallet right now",
+    "unknownBody": "We could not reach the network to check whether anyone is asking to move this wallet. This is not an all-clear. Try again in a moment, or open the safety screen."
   }
 }

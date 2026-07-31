@@ -8,8 +8,8 @@ import { pgReachable, SKIP_REASON } from "@/test-support/pg";
 import { guardians } from "../../../guardians/infra/guardians.schema";
 import { wallets } from "../../../wallets/infra/wallets.schema";
 import { recoveryDeviceRequests } from "../../infra/device-requests.schema";
+import { openDeviceRequestsForGuardianUser } from "../../infra/guardian-inbox.repository";
 import {
-  openDeviceRequestsForGuardianUser,
   publicProgressByAddress,
   upsertDeviceRequest,
   walletByStellarAddress,

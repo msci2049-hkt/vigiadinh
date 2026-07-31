@@ -7,13 +7,15 @@ import { useTranslation } from "react-i18next";
 import { type FamilyIconName, Icon } from "@/components/family/icons";
 import { IconDisc, PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button } from "@/components/family/ui";
-import { loadRecoveryDraft } from "@/features/wallet/api/device-recovery";
+import { loadRecoveryAddress, loadRecoveryDraft } from "@/features/wallet/api/device-recovery";
 
 export const Route = createFileRoute("/recovery/")({ component: RecoveryStartScreen });
 
 function RecoveryStartScreen() {
   const { t } = useTranslation("fw");
-  const draft = loadRecoveryDraft();
+  // R6: draft mất khi F5 (vật liệu khoá cố ý chỉ ở RAM), nhưng địa chỉ ví thì
+  // còn — đủ để dựng lại đường về màn tiến trình thay vì bắt gõ lại 56 ký tự.
+  const address = loadRecoveryDraft()?.address ?? loadRecoveryAddress();
   const steps: { icon: FamilyIconName; copy: string }[] = [
     { icon: "fingerprint", copy: t("recovery.start.step1") },
     { icon: "users", copy: t("recovery.start.step2") },
@@ -46,9 +48,9 @@ function RecoveryStartScreen() {
         <Button asChild>
           <Link to="/recovery/find-wallet">{t("recovery.start.cta")}</Link>
         </Button>
-        {draft ? (
+        {address ? (
           <Button asChild variant="secondary">
-            <Link to="/recovery/progress" search={{ address: draft.address }}>
+            <Link to="/recovery/progress" search={{ address }}>
               {t("recovery.start.progressCta")}
             </Link>
           </Button>

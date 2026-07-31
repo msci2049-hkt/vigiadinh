@@ -24,8 +24,47 @@ export function loadRecoveryDraft(): RecoveryDraft | null {
   return recoveryDraft;
 }
 
+/**
+ * Lô R6 — ĐỊA CHỈ ví (và CHỈ địa chỉ) sống qua F5.
+ *
+ * Draft ở trên cố ý chỉ nằm trong RAM: `credentialId` / `keyBase64` /
+ * `fingerprint` là vật liệu liên kết ví, không được persist trong web storage.
+ * Nhưng hệ quả ngoài ý muốn là đóng tab = mất luôn đường về màn tiến trình, và
+ * người mất máy phải nhớ lại 56 ký tự base32 — đúng thứ họ không nhớ nổi, đó là
+ * lý do cả cửa tra-ví-bằng-email tồn tại.
+ *
+ * Địa chỉ ví thì KHÁC HẲN ba trường kia: nó vốn public trên chain, ai đọc
+ * `getEvents` cũng thấy, và chính nó đang nằm trong URL `?address=` của mọi màn
+ * khôi phục. Giữ mình nó không hạ chuẩn gì. `sessionStorage` (không phải
+ * `localStorage`) để đóng hẳn trình duyệt là sạch.
+ */
+const ADDRESS_KEY = "vgd.recovery.address";
+
+export function rememberRecoveryAddress(address: string): void {
+  try {
+    sessionStorage.setItem(ADDRESS_KEY, address);
+  } catch {
+    // Chế độ riêng tư / storage đầy — mất đường về là phiền, không phải hỏng.
+  }
+}
+
+export function loadRecoveryAddress(): string | null {
+  try {
+    const raw = sessionStorage.getItem(ADDRESS_KEY);
+    // Đọc lại vẫn phải kiểm hình dạng: giá trị này đi thẳng vào `?address=`.
+    return raw && /^C[A-Z2-7]{55}$/.test(raw) ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
 export function clearRecoveryDraft(): void {
   recoveryDraft = null;
+  try {
+    sessionStorage.removeItem(ADDRESS_KEY);
+  } catch {
+    // Không xoá được thì lần sau ghi đè — không chở bí mật gì.
+  }
 }
 
 // Browser không có Buffer — encode/decode tay như sep45-entries.
@@ -75,6 +114,8 @@ export async function knockWithNewPasskey(address: string): Promise<RecoveryDraf
     fingerprint: res.data.fingerprint,
   };
   recoveryDraft = draft;
+  // CHỈ địa chỉ — ba trường còn lại của draft ở lại trong RAM (xem ADDRESS_KEY).
+  rememberRecoveryAddress(draft.address);
   return draft;
 }
 

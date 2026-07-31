@@ -46,6 +46,23 @@ export const RECOVERY_TEMPLATES: Record<string, Record<string, NotificationTempl
       body: "又有一位家人确认了恢复这个钱包的请求。如果这出乎您的意料，请立即阻止。",
     },
   },
+  // R6 — mốc ĐỦ PHIẾU, khác hẳn recovery.approved ("thêm một người thân"): từ
+  // giây này đồng hồ chặn chạy thật và chủ ví chỉ còn {hours} giờ. Trước lô này
+  // mốc nguy hiểm nhất của cả sản phẩm là mốc DUY NHẤT không có lá thư nào.
+  "recovery.threshold_met": {
+    en: {
+      title: "Enough family members have confirmed",
+      body: "Everyone needed has now confirmed the request to move this wallet to a new device. It will move in about {hours, plural, one {# hour} other {# hours}}. If this is not you, block it now from any of your devices.",
+    },
+    vi: {
+      title: "Đã đủ người thân xác nhận",
+      body: "Đã đủ người xác nhận yêu cầu chuyển ví này sang thiết bị mới. Ví sẽ chuyển sau khoảng {hours, plural, other {# giờ}}. Nếu không phải bạn, hãy chặn ngay từ bất kỳ thiết bị nào của bạn.",
+    },
+    zh: {
+      title: "家人确认人数已足够",
+      body: "所需的家人都已确认将这个钱包转到新设备的申请。大约 {hours, plural, other {# 小时}} 后就会转移。如果这不是您本人，请立即用您的任一设备阻止。",
+    },
+  },
   "recovery.finalized": {
     en: {
       title: "Wallet recovery completed",

@@ -5,7 +5,7 @@
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { requireAuth } from "@/middlewares/auth";
-import * as repo from "../../infra/recovery.repository";
+import * as repo from "../../infra/guardian-inbox.repository";
 
 export const guardianInboxRoute = new Hono()
   .get("/guardian", requireAuth, async (c) => {

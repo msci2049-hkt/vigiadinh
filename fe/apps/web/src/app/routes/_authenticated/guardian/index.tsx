@@ -96,15 +96,31 @@ function GuardianInboxScreen() {
                 threshold: item.request.threshold ?? item.wallet.threshold,
               })}
             </p>
+            {/* R6 — hai trạng thái mà việc của người bảo hộ ĐÃ XONG: họ đã ký, hoặc
+                đã đủ phiếu. Cả hai đều KHÔNG được mời bấm ký nữa: nút đó dẫn thẳng
+                tới `AlreadyApproved` sau khi đã bắt họ chạm vân tay. */}
+            {item.viewerApproved ? (
+              <p className="font-semibold text-success text-sm" data-testid="inbox-you-approved">
+                {t("guardian.inbox.youApproved")}
+              </p>
+            ) : null}
+            {item.request.status === "ready" ? (
+              <p className="font-semibold text-foreground text-sm" data-testid="inbox-ready">
+                {t("guardian.inbox.thresholdMet")}
+              </p>
+            ) : null}
             <p className="text-muted-foreground text-xs">
               {t("guardian.inbox.since", {
                 when: formatDateTime(item.request.startedAt, { locale: i18n.language }),
               })}
             </p>
             {/* Qua màn cảnh báo theo quy tắc TRƯỚC (speed-bump chống social-engineering). */}
-            <Button asChild variant="secondary">
-              <Link to="/guardian/approve-warning" search={{ wallet: item.wallet.id }}>
-                {t("guardian.inbox.reviewCta")}
+            <Button asChild variant={item.viewerApproved ? "outline" : "secondary"}>
+              <Link
+                to={item.viewerApproved ? "/guardian/approve" : "/guardian/approve-warning"}
+                search={{ wallet: item.wallet.id }}
+              >
+                {t(item.viewerApproved ? "guardian.inbox.progressCta" : "guardian.inbox.reviewCta")}
               </Link>
             </Button>
           </CardContent>

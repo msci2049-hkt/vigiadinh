@@ -100,6 +100,53 @@ export function initiateOutcome(err: unknown): InitiateOutcome {
   return { kind: "error", key: "guardian.initiate.errors.notSent" };
 }
 
+// ── Màn NGƯỜI XIN KHÔI PHỤC bấm "Lấy lại ví" (recovery/countdown) ────────────
+//
+// Lô R6. Khác ba màn trên ở một điểm quyết định: `finalize_recovery` KHÔNG đòi
+// chữ ký người dùng nào (lib.rs:378 — ai crank cũng được sau timelock, timelock
+// + threshold là người gác on-chain). Nên ở đây KHÔNG có nhánh sign-error, không
+// có `reconfirm`, không chạm passkey. Mọi lỗi đều là mã contract hoặc mã cửa BE.
+//
+// Mỗi mã MỘT CÂU riêng: gộp chúng thành "không gửi được" là bắt người vừa mất
+// máy tự đoán xem họ đang chờ thêm, bị chặn, hay đã xong từ lúc nào.
+
+export type FinalizeOutcome =
+  | { kind: "tooEarly" } // chưa hết khoảng chờ — đếm ngược vẫn chạy
+  | { kind: "done" } // đã hoàn tất rồi (máy khác bấm trước)
+  | { kind: "stopped" } // chủ ví đã chặn
+  | {
+      kind: "error";
+      key:
+        | "recovery.finalize.errors.notEnoughVotes"
+        | "recovery.finalize.errors.expired"
+        | "recovery.finalize.errors.notYourWallet"
+        | "recovery.finalize.errors.notSent";
+    };
+
+export function finalizeOutcome(err: unknown): FinalizeOutcome {
+  const code = apiErrorCode(err);
+  switch (code) {
+    case "CONTRACT_ERROR:TimelockNotElapsed":
+      return { kind: "tooEarly" };
+    case "CONTRACT_ERROR:AlreadyFinalized":
+      return { kind: "done" };
+    case "CONTRACT_ERROR:RecoveryCancelled":
+    case "CONTRACT_ERROR:NoActiveRecovery":
+      return { kind: "stopped" };
+    case "CONTRACT_ERROR:ThresholdNotMet":
+      return { kind: "error", key: "recovery.finalize.errors.notEnoughVotes" };
+    case "CONTRACT_ERROR:RequestExpired":
+      return { kind: "error", key: "recovery.finalize.errors.expired" };
+    // Cửa BE: đăng nhập bằng tài khoản KHÔNG phải chủ ví (hay người bảo hộ) của
+    // ví đó. Không phải lỗi hạ tầng — chỉ là sai tài khoản, và nói đúng thế.
+    case "NOT_WALLET_MEMBER":
+    case "WALLET_NOT_FOUND":
+      return { kind: "error", key: "recovery.finalize.errors.notYourWallet" };
+    default:
+      return { kind: "error", key: "recovery.finalize.errors.notSent" };
+  }
+}
+
 // ── Màn chủ ví CHẶN khôi phục (block/confirm) ───────────────────────────────
 
 export type VetoOutcome =

@@ -13,7 +13,12 @@ import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/sc
 import { TimelockCountdown } from "@/components/family/timelock-countdown";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import { guardiansOptions } from "@/features/family/api/guardians";
-import { recoveryOptions } from "@/features/family/api/recovery";
+import {
+  chainTruthOptions,
+  openOnchainRequest,
+  recoveryOptions,
+} from "@/features/family/api/recovery";
+import { RecoveryAlert } from "@/features/family/components/recovery-alert";
 import { EmptyState, ErrorState, LoadingRows } from "@/features/family/components/screen-state";
 import { useActiveWallet } from "@/features/family/hooks/use-active-wallet";
 
@@ -32,10 +37,17 @@ function NightWatchCenterScreen() {
     ...guardiansOptions(wallet?.id ?? ""),
     enabled: wallet !== null,
   });
+  // R6 (B3) — cửa vào `/block` KHÔNG được phụ thuộc mirror. `/block` cố ý đọc
+  // chain (indexer chết trong cửa sổ timelock = mirror câm = không ai chặn), thế
+  // mà màn dẫn vào nó lại chỉ đọc mirror: đúng kịch bản cần chặn nhất thì thẻ
+  // cảnh báo biến mất và không còn đường nào tới nút chặn.
+  const chain = useQuery({ ...chainTruthOptions(wallet?.id ?? ""), enabled: wallet !== null });
 
   const openRequests = (recovery.data ?? []).filter(
     (r) => r.status === "pending" || r.status === "ready",
   );
+  // Chain nói có mà mirror chưa kịp → vẫn phải hiện cảnh báo (RecoveryAlert lo).
+  const chainOpen = openOnchainRequest(chain.data) !== null;
   const active = (guardians.data ?? []).filter((g) => g.status !== "removed");
   const reachable = active.filter((g) => g.status === "active").length;
   const quiet = active.filter((g) => g.status === "slow").length;
@@ -56,6 +68,10 @@ function NightWatchCenterScreen() {
       {walletError || recovery.isError || guardians.isError ? <ErrorState /> : null}
       {!loading && !walletError && wallet === null ? (
         <EmptyState message={t("nightWatch.noWallet")} />
+      ) : null}
+
+      {wallet ? (
+        <RecoveryAlert chain={chain.data} isError={chain.isError} isLoading={chain.isPending} />
       ) : null}
 
       {openRequests.map((req) => {
@@ -87,7 +103,9 @@ function NightWatchCenterScreen() {
         );
       })}
 
-      {recovery.isSuccess && openRequests.length === 0 && wallet !== null ? (
+      {/* "Mọi thứ yên ổn" chỉ được nói khi CẢ HAI nguồn cùng im — chain là nguồn
+          quyết định, mirror chỉ là bản sao có độ trễ. */}
+      {recovery.isSuccess && openRequests.length === 0 && !chainOpen && wallet !== null ? (
         <ErrorBanner type="info" title={t("nightWatch.allQuiet")} />
       ) : null}
 

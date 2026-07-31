@@ -8,6 +8,11 @@ import type { RecoveryRequest } from "./recovery";
 export type GuardianInboxItem = {
   request: RecoveryRequest;
   wallet: { id: string; stellarAddress: string; threshold: number; timelockSecs: number };
+  /** R6 — NGƯỜI ĐANG XEM đã bỏ phiếu chưa. BE tính (chỉ BE biết khoá on-chain
+   * của người đang xem: cửa trả `onchain_key` là owner-only). Thiếu trường này
+   * thì màn ký sáng đèn cho cả người đã ký và họ chạm vân tay rồi mới ăn
+   * `AlreadyApproved`. Optional để bản FE mới không vỡ trước bản BE cũ. */
+  viewerApproved?: boolean;
 };
 
 export const guardianInboxKeys = {

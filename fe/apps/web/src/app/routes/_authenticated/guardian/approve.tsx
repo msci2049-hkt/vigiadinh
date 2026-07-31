@@ -27,6 +27,10 @@ import { approveOutcome } from "@/lib/recovery-sign-outcome";
 
 export const Route = createFileRoute("/_authenticated/guardian/approve")({
   validateSearch: z.object({ wallet: z.string().catch("") }),
+  // R6 — nạp hộp thư TRƯỚC khi vẽ. Không có loader thì component render một
+  // frame với `inbox.data === undefined`, nút "Duyệt" hiện ra rồi mới biến mất
+  // khi dữ liệu về; người bấm nhanh vẫn lọt vào đường ký của một phiếu đã bỏ.
+  loader: ({ context }) => context.queryClient.ensureQueryData(guardianInboxOptions),
   component: GuardianApproveScreen,
 });
 
@@ -85,7 +89,10 @@ function GuardianApproveScreen() {
   const outcome = approve.isError ? approveOutcome(approve.error) : null;
   // R4-D5: AlreadyApproved KHÔNG phải lỗi — phiếu của bạn ĐÃ nằm trên mạng
   // (người mở yêu cầu được contract đếm là phiếu ĐẦU TIÊN, không cần bỏ lại).
-  const done = outcome?.kind === "recorded" || outcome?.kind === "closed";
+  // R6: `viewerApproved` biết điều đó TRƯỚC khi bấm, nên nút không bao giờ hiện
+  // ra cho người đã ký; `outcome` ở lại làm lưới đỡ cho race (hai máy cùng bấm).
+  const done =
+    item?.viewerApproved === true || outcome?.kind === "recorded" || outcome?.kind === "closed";
 
   return (
     <ProductScreen className="justify-center">
@@ -127,6 +134,19 @@ function GuardianApproveScreen() {
                 })}
               </p>
             </div>
+
+            {/* R6 — người ĐÃ ký: tích xanh + KHÔNG nút ký (xem `alreadyDone` dưới).
+                Trước lô này nút vẫn sáng, họ chạm vân tay rồi mới ăn
+                `AlreadyApproved` — báo lỗi sau khi đã bắt người ta trả giá. */}
+            {item.viewerApproved ? (
+              <SuccessNote
+                title={t("guardian.approve.already.title")}
+                body={t("guardian.approve.already.body")}
+              />
+            ) : null}
+            {item.request.status === "ready" ? (
+              <ErrorBanner type="info" title={t("guardian.inbox.thresholdMet")} />
+            ) : null}
             <p className="break-all rounded-card border border-dashed bg-card p-4 font-mono text-muted-foreground text-xs">
               {t("guardian.approve.fingerprintLabel", { fingerprint: item.request.newOwner })}
             </p>
