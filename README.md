@@ -221,6 +221,14 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 | Hospital-care workflows and percentage inheritance | Roadmap items; not implemented |
 | Testnet only | Intentional for this prototype; see the scope notice |
 
+## Roadmap
+
+### In-app voice and video checks for high-value transfers
+
+When a transfer exceeds the owner's configured approval threshold, a guardian will be able to start an in-app voice or video call directly from the pending approval request. The request will keep the recipient, amount, and transaction fingerprint beside the call, helping the family verify the owner's intent without switching to Zalo, a separate phone call, or another messaging app.
+
+The call will be an additional coordination layer, **not an authorization factor**. It will not approve, sign, or broadcast a transfer: the deterministic spending policy, guardian approval, and wallet owner's cryptographic signature will remain required. This feature is **planned and not implemented yet**. Signaling, encryption, metadata retention, and abuse controls must be threat-modeled before release. Wallet recovery after every trusted device is lost remains a separate identity-verification problem.
+
 ## Team
 
 **[MSCI Labs](https://www.mscilabs.com)** — Vietnam · Singapore · Thailand · India

@@ -221,6 +221,14 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 | Luồng chăm sóc khi nằm viện và chia thừa kế theo phần trăm | Thuộc lộ trình; chưa được triển khai |
 | Chỉ Testnet | Chủ ý của bản mẫu; xem ghi chú phạm vi |
 
+## Lộ trình
+
+### Gọi thoại và video trong ví khi duyệt giao dịch lớn
+
+Khi giao dịch vượt ngưỡng cần người bảo hộ phê duyệt, người bảo hộ sẽ có thể mở cuộc gọi thoại hoặc video ngay từ yêu cầu đang chờ. Người nhận, số tiền và dấu tay giao dịch được đặt cạnh cuộc gọi, giúp gia đình kiểm tra đúng ý định của chủ ví mà không phải chuyển sang Zalo, gọi điện riêng hoặc dùng một ứng dụng nhắn tin khác.
+
+Cuộc gọi là một lớp phối hợp bổ sung, **không phải yếu tố cấp quyền**. Nó không tự duyệt, ký hay phát giao dịch: chính sách chi tiêu tất định, phiếu duyệt của người bảo hộ và chữ ký mật mã của chủ ví vẫn là các bước bắt buộc. Tính năng này **thuộc lộ trình và chưa được triển khai**. Thiết kế tín hiệu cuộc gọi, mã hóa, lưu giữ metadata và kiểm soát lạm dụng phải được lập mô hình đe dọa trước khi phát hành. Trường hợp khôi phục ví sau khi mất toàn bộ thiết bị tin cậy vẫn là một bài toán xác minh danh tính riêng.
+
 ## Đội ngũ
 
 **[MSCI Labs](https://www.mscilabs.com)** — Vietnam · Singapore · Thailand · India
