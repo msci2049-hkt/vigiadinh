@@ -10,10 +10,10 @@
 
 *Ví khác đưa bạn mười hai từ để rồi có thể làm mất. Ví này trao cho bạn gia đình.*
 
-Stellar APAC Hackathon 2026
+APAC Stellar Hackathon 2026
 
 ![hợp đồng đã xác minh](https://img.shields.io/badge/contracts-5%2F5%20verified-1a7f37)
-![kiểm thử](https://img.shields.io/badge/tests-600%2B%20passing-1a7f37)
+![kiểm thử](https://img.shields.io/badge/tests-976%20passing-1a7f37)
 ![hạn mức trên chuỗi](https://img.shields.io/badge/spending%20limits-enforced%20on--chain-f26522)
 ![không seed phrase](https://img.shields.io/badge/seed%20phrase-none-15324a)
 ![mạng](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
@@ -60,10 +60,12 @@ Mã nguồn này **không có chế độ demo dựng sẵn**. Các luồng sả
 | Cooldown 300 giây sau khi xoay khóa | Chạy đua giao dịch ngay sau lúc đổi khóa |
 | Nhật ký chỉ-ghi-thêm, thu hồi quyền ở cấp role | Quản trị viên xóa dấu vết |
 | Trang nhận lời mời giải thích vai trò **trước khi đăng nhập** | Chính sản phẩm dạy người dùng thói quen dễ bị lừa |
+| Tín hiệu rủi ro SQL tất định đi kèm màn hình duyệt của người bảo hộ | Duyệt giao dịch lớn của người khác chỉ dựa vào một địa chỉ 56 ký tự |
+| Tra ví bằng email luôn trả cùng một phản hồi đã tiếp nhận | Dò danh sách người dùng rồi nối danh tính với số dư on-chain |
 
 ### Ràng buộc khôi phục trên chuỗi
 
-Các ràng buộc này từng chỉ được kiểm tra ở máy chủ. Sau một vòng tự rà soát, chúng được chuyển xuống hợp đồng để người chiếm máy chủ không thể hạ thấp:
+Các ràng buộc này được cưỡng chế bởi hợp đồng đã triển khai, nên người chiếm máy chủ không thể hạ thấp:
 
 | Bất biến | Giá trị cưỡng chế | Kết quả từ hợp đồng |
 |---|---:|---|
@@ -80,31 +82,100 @@ Các ràng buộc này từng chỉ được kiểm tra ở máy chủ. Sau mộ
 | Cửa sổ 24 giờ, mềm và do người dùng đặt | `10.000 XLM` | Nâng ngưỡng phải chờ 24 giờ, gửi email cho chủ ví và có thể hủy |
 | Trần cứng trên chuỗi | `20.000 XLM` | Máy chủ không thể vượt qua |
 
+### Tín hiệu rủi ro tất định
+
+Trước khi một giao dịch vượt ngưỡng được đưa cho người bảo hộ, các truy vấn SQL tất định tính ba tín hiệu — không dùng mô hình và không suy đoán:
+
+| Tín hiệu | Đo gì |
+|---|---|
+| Tần suất | Số lệnh và tổng tiền trong một giờ gần nhất |
+| Địa chỉ quen hay lạ | Số lần đã chuyển thành công tới địa chỉ này |
+| So với mức thường ngày | Tỉ lệ so với trung bình 30 ngày; bỏ qua nếu chưa đủ ba giao dịch |
+
+Những dữ kiện này giúp người bảo hộ đang duyệt tiền của người khác có nhiều căn cứ hơn một địa chỉ 56 ký tự. Màn hình duyệt đọc `policy_decision` và `policy_version` từ bản ghi của chính giao dịch, không đánh giá lại, nên thay đổi chính sách sau đó không thể đẩy ngược một yêu cầu đang tồn tại qua ngưỡng khác.
+
+### Luồng gửi tiền
+
+```mermaid
+graph TD
+    A["Chủ ví tạo giao dịch"] --> B["Chính sách tất định + tín hiệu SQL"]
+    B --> C{"Vượt ngưỡng cần duyệt?"}
+    C -->|"Không"| D["Chủ ví ký"]
+    C -->|"Có"| E["awaiting_guardian"]
+    E --> F["Người bảo hộ xem tín hiệu và duyệt"]
+    F --> D
+    D --> G["Hợp đồng chính sách cưỡng chế"]
+    G --> H["Stellar Testnet"]
+```
+
+Giao dịch dưới ngưỡng đi thẳng tới bước chủ ví ký. Giao dịch vượt ngưỡng giữ nguyên kết quả chính sách đã ghi, chờ người bảo hộ duyệt rồi trở lại cùng đường ký của chủ ví và cưỡng chế on-chain.
+
+### Tìm lại ví mà không để lộ danh sách tài khoản
+
+Người mất thiết bị có thể không nhớ địa chỉ ví 56 ký tự, nhưng thường vẫn nhớ email. Endpoint tra cứu luôn trả `{"data":{"accepted":true}}` dù email có tồn tại hay không; nếu có ví, hệ thống gửi liên kết qua thư.
+
+Địa chỉ ví là dữ liệu công khai trên chuỗi, còn ánh xạ email sang ví thì không. Thời gian phản hồi cũng được khóa bằng kiểm thử: chênh lệch đo được là **1,9 ms** (11,6 ms so với 9,7 ms) với ngưỡng 100 ms; endpoint được giới hạn 5 yêu cầu trong 60 giây.
+
+### Cảnh báo khôi phục cho người bảo hộ
+
+Khi có yêu cầu khôi phục, người bảo hộ nhận cả email và cập nhật thời gian thực trong ứng dụng. Email đặc biệt quan trọng vì người bảo hộ có thể nhiều ngày không mở ứng dụng — đúng lúc chủ ví cần họ nhất.
+
+Màn hình “Ví tôi bảo vệ” hiển thị đầy đủ địa chỉ ví 56 ký tự kèm nút sao chép, để người bảo hộ đọc lại cho chủ ví đã mất thiết bị. Số dư và lịch sử giao dịch vẫn được ẩn.
+
+### Luồng khôi phục ví
+
+```mermaid
+graph TD
+    R1["1 · Tìm ví<br/>Email hoặc người thân đọc địa chỉ"] --> R2["2 · Báo người thân<br/>Email + cập nhật thời gian thực"]
+    R2 --> R3["3 · Xác minh bằng giọng nói<br/>NGOÀI ỨNG DỤNG · đối chiếu mã"]
+    R3 --> R4["4 · Đủ ngưỡng phiếu<br/>Thời gian chờ 24 giờ"]
+    R4 --> R5["5 · Chủ ví nhận cảnh báo<br/>Có thể phủ quyết trong 24 giờ"]
+    classDef outside fill:#fff4cc,stroke:#b7791f,stroke-width:2px,color:#111;
+    class R3 outside;
+```
+
+Bước xác minh bằng giọng nói chủ ý diễn ra ngoài VíGiaĐình; mã hiển thị dùng để gắn kết quả kiểm tra của con người với đúng khóa mới. Khi đủ ngưỡng phiếu, thời gian chờ 24 giờ bắt đầu và chủ ví vẫn có thể phủ quyết trong cửa sổ đó.
+
+## Trợ lý AI: chỉ diễn đạt, không cấp quyền
+
+Mô hình ngôn ngữ tùy chọn chỉ đọc kết quả tất định của Lớp 2 rồi chuyển thành câu dễ hiểu cho người lớn tuổi. Nó **không** quyết định giao dịch có được đi hay không: mô hình ngôn ngữ không tất định, có thể gặp prompt injection và sẽ tạo thành cổng fail-open nếu sự cố dịch vụ làm mất một lớp kiểm soát.
+
+Ranh giới này nằm ngay trong kiến trúc:
+
+- Mọi nhánh hỏng trả `null`; giao diện rơi về **khối số liệu thô của Lớp 2**, còn nút duyệt và hàng rào chính sách vẫn hoạt động.
+- Không file nào trong đường gửi tiền import từ module AI; dữ liệu chỉ đi một chiều vào phần diễn đạt tùy chọn.
+- Mô hình **không có công cụ và không có quyền ghi**. Prompt injection thành công tối đa tạo ra một câu sai; nó không thể tự truy xuất thêm dữ liệu, duyệt hay ký.
+- Đặt `AI_ADVISOR_ENABLED=false` sẽ làm khối AI biến mất, mọi lớp bảo vệ vẫn còn nguyên.
+
+Đầu ra mô hình phải qua hậu kiểm tất định, nếu sai sẽ thành `null`: cấm các từ mang tính kết luận như “an toàn”, “nguy hiểm” hoặc “nên duyệt”; mọi con số phải khớp dữ kiện đầu vào; phát hiện việc lặp lại system prompt; câu miễn trừ do backend nối vào thay vì tin mô hình tự thêm. Nút loa dùng Web Speech API của trình duyệt, nên việc đọc thành tiếng không gửi dữ liệu ra ngoài thiết bị.
+
+### AI fail-safe
+
+```mermaid
+graph TD
+    A["Số liệu chính sách thô của Lớp 2"] --> B["Trợ lý AI tùy chọn"]
+    B --> C{"AI trả về đầu ra hợp lệ?"}
+    C -->|"Có"| D["Phần diễn đạt dễ hiểu"]
+    C -->|"Không · lỗi · null"| E["Số liệu thô của Lớp 2"]
+    D --> F["Cùng một nút duyệt của người bảo hộ"]
+    E --> F
+    F --> G["Chính sách tất định vẫn có quyền quyết định"]
+```
+
+Cả hai nhánh đều dẫn tới cùng một nút duyệt. AI chỉ thay đổi cách trình bày; đường quyết định tất định và đường cưỡng chế không thay đổi.
+
 ## Kiến trúc
 
-<img src="docs/images/architecture.png" alt="Kiến trúc bốn lớp của VíGiaĐình: thiết bị, giao diện, điều phối và hợp đồng trên chuỗi" width="1200">
-
-```text
-Người thân (trình duyệt, không cần cài ứng dụng)
-      │
- Passkey ── Secure Enclave / TPM · khóa không rời thiết bị
-      │
- Phiên ví SEP-45 ── tách biệt với phiên đăng nhập ứng dụng
-      │
-┌──────────────────────── NGUỒN SỰ THẬT TRÊN CHUỖI ───────────────────────────────┐
-│  smart-account (OZ stellar-accounts)                                             │
-│    __check_auth ── cooldown xoay khóa → quy tắc ngữ cảnh → policy.enforce()       │
-│         ├── rule 0 (mặc định) + spending-limit policy                            │
-│         └── rule 1 (chủ ví)   + spending-limit policy                            │
-│  recovery-registry ── MIN_GUARDIANS 3 · THRESHOLD 2 · TIMELOCK 24h · phủ quyết   │
-│  origin-verifier ── danh sách origin passkey được ghim khi triển khai             │
-└──────────────────────────────────────────────────────────────────────────────────┘
-      │                                        │
- Bộ đánh chỉ mục (bản sao Postgres)  recovery-watch ── đọc chuỗi TRỰC TIẾP
-      │                                        │
- Cảnh báo trong ứng dụng              Email BÊN NGOÀI ứng dụng
-                                      (vẫn chạy khi hệ thống của chúng tôi lỗi)
+```mermaid
+graph TD
+    T["Yêu cầu chuyển tiền hoặc khôi phục"] --> L2["Lớp 2 · QUYẾT ĐỊNH<br/>Chính sách tất định + SQL<br/>mỗi giao dịch · 24 giờ · tần suất · địa chỉ"]
+    L2 --> L1["Lớp 1 · CƯỠNG CHẾ<br/>Ngưỡng người bảo hộ on-chain · timelock 24h · trần chi tiêu cứng"]
+    L1 --> S["Stellar Testnet"]
+    L2 -.->|"chỉ đọc dữ kiện"| L3["Lớp 3 · DIỄN ĐẠT<br/>Mô hình ngôn ngữ tùy chọn"]
+    L3 --> U["Câu dễ hiểu + giọng đọc của trình duyệt"]
 ```
+
+Lớp 1 là nguồn của các giới hạn có thể cưỡng chế, còn Lớp 2 đưa ra quyết định chính sách có thể tái lập từ dữ liệu đã lưu. Lớp 3 nằm trên một nhánh chỉ đọc và không có đường quay lại luồng cấp quyền.
 
 ### Ngăn xếp kỹ thuật
 
@@ -144,8 +215,9 @@ Dấu xác minh nghĩa là bản dựng lại từ mã nguồn công khai đư�
 |---|---|
 | Hợp đồng verified công khai | **5/5** — ba hợp đồng từ `da689235`, hai hợp đồng từ `96957faa` |
 | Kiểm thử hợp đồng Rust | **82 pass** |
-| Kiểm thử backend, lần chạy đầy đủ hiện tại trên Windows | **457 pass**, 22 ca bỏ qua do cần môi trường; một test lưu trữ Bash lỗi vì đường dẫn tạm đi qua ranh giới Windows/Bash |
-| Kiểm thử frontend | **209 pass** |
+| Kiểm thử backend | **566 pass**, **22 skip**; các ca skip cần `RUN_TESTNET_E2E=1` |
+| Kiểm thử frontend | **328 pass** |
+| Tổng số kiểm thử đạt | **976 pass** |
 | Hạn mức on-chain — dưới ngưỡng | Pass **và được ghi nhận vào tổng đã chi** |
 | Hạn mức on-chain — vượt trong một giao dịch | Bị chối với `#3221` |
 | Hạn mức on-chain — nhiều giao dịch cộng dồn vượt ngưỡng | Bị chối |
@@ -154,10 +226,20 @@ Dấu xác minh nghĩa là bản dựng lại từ mã nguồn công khai đư�
 | Cooldown 300 giây | Chặn trong cửa sổ và mở đúng tại biên |
 | Thiếu người bảo hộ | Bị chối với `#4` |
 | Cảnh báo khôi phục đọc chuỗi trực tiếp | Email được gửi ngoài ứng dụng với `status=sent` |
-| Cổng chặn placeholder i18n chưa thay | Có; bắt được lỗi từng lọt qua hai lần |
+| Cổng chặn placeholder i18n chưa thay | Có; từ chối bản dựng còn placeholder chưa được thay |
 | Nhật ký chỉ-ghi-thêm | Hai lớp: trigger PostgreSQL và thu hồi quyền ở cấp role |
 
-Badge ghi “600+ passing” vì các bộ kiểm thử mới nhất có **748 test pass** ở hợp đồng, backend và frontend. Ca Testnet hoặc Dragonfly cần môi trường riêng được báo là skip, không tính giả thành pass.
+Các bộ kiểm thử ghi nhận **976 ca đạt**: 82 ở hợp đồng, 566 ở backend và 328 ở frontend. 22 ca backend cần `RUN_TESTNET_E2E=1` được báo là skip, không tính thành pass.
+
+#### Giao dịch Testnet có thể bấm để kiểm chứng
+
+| Việc | Giao dịch |
+|---|---|
+| Đăng ký ví lên sổ người bảo hộ | [`7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e`](https://stellar.expert/explorer/testnet/tx/7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e) |
+| Gửi giao dịch vượt ngưỡng sau khi người bảo hộ duyệt | [`36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973`](https://stellar.expert/explorer/testnet/tx/36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973) |
+| Mở khôi phục xã hội cho khóa mới | [`14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58`](https://stellar.expert/explorer/testnet/tx/14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58) |
+
+Toàn bộ hoạt động on-chain kiểm chứng được: **[familyhaven.mscilabs.com/traction.html](https://familyhaven.mscilabs.com/traction.html)**
 
 ## Bắt đầu nhanh
 
@@ -225,9 +307,7 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 
 ### Gọi thoại và video trong ví khi duyệt giao dịch lớn
 
-Khi giao dịch vượt ngưỡng cần người bảo hộ phê duyệt, người bảo hộ sẽ có thể mở cuộc gọi thoại hoặc video ngay từ yêu cầu đang chờ. Người nhận, số tiền và dấu tay giao dịch được đặt cạnh cuộc gọi, giúp gia đình kiểm tra đúng ý định của chủ ví mà không phải chuyển sang Zalo, gọi điện riêng hoặc dùng một ứng dụng nhắn tin khác.
-
-Cuộc gọi là một lớp phối hợp bổ sung, **không phải yếu tố cấp quyền**. Nó không tự duyệt, ký hay phát giao dịch: chính sách chi tiêu tất định, phiếu duyệt của người bảo hộ và chữ ký mật mã của chủ ví vẫn là các bước bắt buộc. Tính năng này **thuộc lộ trình và chưa được triển khai**. Thiết kế tín hiệu cuộc gọi, mã hóa, lưu giữ metadata và kiểm soát lạm dụng phải được lập mô hình đe dọa trước khi phát hành. Trường hợp khôi phục ví sau khi mất toàn bộ thiết bị tin cậy vẫn là một bài toán xác minh danh tính riêng.
+Theo lộ trình, khi giao dịch vượt ngưỡng cần duyệt, người bảo hộ sẽ có thể gọi thoại hoặc video ngay từ yêu cầu đang chờ trong khi người nhận, số tiền và dấu tay giao dịch vẫn hiển thị. Cuộc gọi là lớp phối hợp, **không phải yếu tố cấp quyền**; chính sách tất định, phiếu duyệt của người bảo hộ và chữ ký mật mã của chủ ví vẫn bắt buộc. Tính năng này chưa được triển khai.
 
 ## Đội ngũ
 

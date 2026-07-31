@@ -10,10 +10,10 @@
 
 *Other wallets hand you twelve words to lose. This one hands you your family.*
 
-Stellar APAC Hackathon 2026
+APAC Stellar Hackathon 2026
 
 ![contracts verified](https://img.shields.io/badge/contracts-5%2F5%20verified-1a7f37)
-![tests](https://img.shields.io/badge/tests-600%2B%20passing-1a7f37)
+![tests](https://img.shields.io/badge/tests-976%20passing-1a7f37)
 ![on-chain limits](https://img.shields.io/badge/spending%20limits-enforced%20on--chain-f26522)
 ![no seed phrase](https://img.shields.io/badge/seed%20phrase-none-15324a)
 ![network](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
@@ -60,10 +60,12 @@ This repository has **no canned demo mode**. Product flows use real Stellar Test
 | 300-second cooldown after signer rotation | Racing a transaction immediately after the key changes |
 | Append-only audit trail with role-level revocation | An administrator deleting evidence |
 | Invitation page explains the role **before sign-in** | The product itself teaching users phishing habits |
+| Deterministic SQL risk signals accompany guardian review | Approving another person's high-value transfer from only a 56-character address |
+| Email wallet lookup returns the same accepted response for every email | Enumerating registered users and linking identities to on-chain balances |
 
 ### On-chain recovery invariants
 
-These constraints were moved from server-side checks into the contracts during self-review, so control of the server cannot lower them:
+These constraints are enforced by the deployed contracts, so control of the server cannot lower them:
 
 | Invariant | Enforced value | Contract result |
 |---|---:|---|
@@ -80,31 +82,100 @@ These constraints were moved from server-side checks into the contracts during s
 | Rolling 24 hours, soft and user-configurable | `10,000 XLM` | An increase waits 24 hours, emails the owner, and is cancellable |
 | Hard on-chain ceiling | `20,000 XLM` | Cannot be exceeded by the server |
 
+### Deterministic risk signals
+
+Before a transfer above the configured threshold is shown to a guardian, deterministic SQL queries calculate three signals — no model and no inference:
+
+| Signal | What it measures |
+|---|---|
+| Velocity | Transfer count and total amount in the previous hour |
+| Familiar or new recipient | Number of successful transfers previously sent to this address |
+| Deviation from normal spend | Ratio to the 30-day average; omitted until at least three transactions exist |
+
+These facts give a guardian reviewing someone else's money more context than a 56-character address. The approval view reads `policy_decision` and `policy_version` from that transfer's stored record instead of evaluating it again, so a later policy change cannot retroactively move an existing request across the threshold.
+
+### Transfer flow
+
+```mermaid
+graph TD
+    A["Owner creates transfer"] --> B["Deterministic policy + SQL signals"]
+    B --> C{"Above approval threshold?"}
+    C -->|"No"| D["Owner signs"]
+    C -->|"Yes"| E["awaiting_guardian"]
+    E --> F["Guardian reviews signals and approves"]
+    F --> D
+    D --> G["On-chain policy enforcement"]
+    G --> H["Stellar Testnet"]
+```
+
+Below-threshold transfers proceed to the owner's signature. Above-threshold transfers keep their recorded policy result, wait for guardian approval, then return to the same owner-signing and on-chain enforcement path.
+
+### Find a wallet without exposing an account list
+
+A person who has lost a device may not remember a 56-character wallet address, but they usually remember their email. The lookup endpoint always returns `{"data":{"accepted":true}}`, whether or not the address exists; when a wallet does exist, the link is sent by email.
+
+The wallet address is public on-chain, but the email-to-wallet mapping is not. Response timing is also covered by a test: the measured difference is **1.9 ms** (11.6 ms versus 9.7 ms) against a 100 ms threshold, and the endpoint is limited to 5 requests per 60 seconds.
+
+### Guardian recovery alerts
+
+When recovery starts, guardians receive both email and a real-time in-app update. Email matters because a guardian may not open the application for days — exactly when the wallet owner needs them.
+
+The “Wallets I protect” screen shows the complete 56-character wallet address with a copy button, allowing a guardian to read it back to an owner who lost their device. Balance and transaction history remain hidden.
+
+### Wallet recovery flow
+
+```mermaid
+graph TD
+    R1["1 · Find wallet<br/>Email or guardian reads address"] --> R2["2 · Notify guardians<br/>Email + real-time update"]
+    R2 --> R3["3 · Voice identity check<br/>OUTSIDE THE APPLICATION · compare code"]
+    R3 --> R4["4 · Approval threshold reached<br/>24-hour timelock"]
+    R4 --> R5["5 · Owner receives alert<br/>Veto available for 24 hours"]
+    classDef outside fill:#fff4cc,stroke:#b7791f,stroke-width:2px,color:#111;
+    class R3 outside;
+```
+
+The voice check deliberately happens outside FamilyHaven, while the displayed code binds that human check to the intended new key. Reaching the approval threshold starts the 24-hour timelock; the owner can still veto during that window.
+
+## AI advisor: explanation, never authorization
+
+The optional language model reads deterministic Layer 2 results and turns them into plain language for older adults. It does **not** decide whether a transfer proceeds: language models are non-deterministic, can receive prompt injection, and would create a fail-open gate if their outage removed a control.
+
+The boundary is structural:
+
+- Every failure returns `null`; the interface falls back to the **raw Layer 2 facts**, while the approval button and policy controls continue to work.
+- No file in the transaction-send path imports the AI module; data flows one way into an optional explanation.
+- The model has **no tools and no write permission**. A successful injection can at most produce a wrong sentence; it cannot fetch additional data, approve, or sign anything.
+- Setting `AI_ADVISOR_ENABLED=false` removes the AI block while every protection remains active.
+
+Model output passes deterministic post-validation or becomes `null`: conclusory terms such as “safe”, “dangerous”, or “should approve” are forbidden; every number must match the supplied facts; system-prompt repetition is detected; and the backend appends the disclaimer instead of trusting the model to do so. A speaker button uses the browser's Web Speech API, so reading the explanation aloud sends nothing off the device.
+
+### AI fail-safe
+
+```mermaid
+graph TD
+    A["Raw Layer 2 policy facts"] --> B["Optional AI advisor"]
+    B --> C{"Valid AI output returned?"}
+    C -->|"Yes"| D["Plain-language explanation"]
+    C -->|"No · error · null"| E["Raw Layer 2 facts"]
+    D --> F["Same guardian approval button"]
+    E --> F
+    F --> G["Deterministic policy remains authoritative"]
+```
+
+Both branches end at the same approval control. AI availability changes presentation only; the deterministic decision and enforcement paths do not change.
+
 ## Architecture
 
-<img src="docs/images/architecture.png" alt="Four-layer FamilyHaven architecture: device, interface, orchestration, and on-chain contracts" width="1200">
-
-```text
-Family member (browser, no app install)
-      │
- Passkey ── Secure Enclave / TPM · key never leaves device
-      │
- SEP-45 wallet session ── separate from app session
-      │
-┌─────────────────────────── ON CHAIN (source of truth) ───────────────────────────┐
-│  smart-account (OZ stellar-accounts)                                             │
-│    __check_auth ── rotate cooldown → context rules → policy.enforce()            │
-│         ├── rule 0 (default)  + spending-limit policy                            │
-│         └── rule 1 (owner)    + spending-limit policy                            │
-│  recovery-registry ── MIN_GUARDIANS 3 · THRESHOLD 2 · TIMELOCK 24h · veto        │
-│  origin-verifier ── passkey origin allow-list pinned at deploy                   │
-└──────────────────────────────────────────────────────────────────────────────────┘
-      │                                        │
- Indexer (Postgres mirror)          recovery-watch ── reads chain DIRECTLY
-      │                                        │
- In-app alerts                       Email OUTSIDE the app
-                                     (survives our own outage)
+```mermaid
+graph TD
+    T["Transfer or recovery request"] --> L2["Layer 2 · DECISION<br/>Deterministic policy + SQL<br/>per transfer · rolling 24h · velocity · recipient"]
+    L2 --> L1["Layer 1 · ENFORCEMENT<br/>On-chain guardian threshold · 24h timelock · hard spending cap"]
+    L1 --> S["Stellar Testnet"]
+    L2 -.->|"read-only facts"| L3["Layer 3 · EXPLANATION<br/>Optional language model"]
+    L3 --> U["Human-readable copy + browser speech"]
 ```
+
+Layer 1 remains the source of enforceable limits, while Layer 2 makes reproducible policy decisions from stored data. Layer 3 sits on a read-only side branch and has no route back into authorization.
 
 ### Technical stack
 
@@ -144,8 +215,9 @@ Verification means a rebuild from the linked public source matches the on-chain 
 |---|---|
 | Publicly verified contracts | **5/5** — three from `da689235`, two from `96957faa` |
 | Contract tests (Rust) | **82 pass** |
-| Backend tests, current full Windows run | **457 pass**, 22 environment-gated skips; one Bash retention test fails because its temporary path crosses Windows/Bash boundaries |
-| Frontend unit tests | **209 pass** |
+| Backend tests | **566 pass**, **22 skip**; skipped cases require `RUN_TESTNET_E2E=1` |
+| Frontend unit tests | **328 pass** |
+| Total passing tests | **976 pass** |
 | On-chain limit — below threshold | Passes **and is recorded in cumulative spend** |
 | On-chain limit — one transfer above threshold | Rejected with `#3221` |
 | On-chain limit — cumulative transfers exceed threshold | Rejected |
@@ -154,10 +226,20 @@ Verification means a rebuild from the linked public source matches the on-chain 
 | 300-second cooldown | Blocks during the window and reopens on the boundary |
 | Too few guardians | Rejected with `#4` |
 | Recovery alert reading the chain directly | Email sent outside the application with `status=sent` |
-| Unreplaced i18n placeholder gate | Present; it catches a regression that previously escaped twice |
+| Unreplaced i18n placeholder gate | Present; rejects builds that contain unresolved placeholders |
 | Append-only audit | Two layers: PostgreSQL trigger plus role-level permission revocation |
 
-The badge says “600+ passing” because the latest recorded suites contain **748 passing tests** across contracts, backend, and frontend. Environment-gated Testnet and Dragonfly cases are reported separately rather than counted as passes.
+The recorded suites contain **976 passing tests**: 82 contract, 566 backend, and 328 frontend. The 22 backend cases that require `RUN_TESTNET_E2E=1` are reported as skips, not passes.
+
+#### Clickable Testnet transactions
+
+| Action | Transaction |
+|---|---|
+| Register wallet in the guardian registry | [`7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e`](https://stellar.expert/explorer/testnet/tx/7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e) |
+| Send an above-threshold transfer after guardian approval | [`36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973`](https://stellar.expert/explorer/testnet/tx/36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973) |
+| Open social recovery for a new key | [`14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58`](https://stellar.expert/explorer/testnet/tx/14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58) |
+
+All verifiable on-chain activity: **[familyhaven.mscilabs.com/traction.html](https://familyhaven.mscilabs.com/traction.html)**
 
 ## Quick start
 
@@ -225,9 +307,7 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 
 ### In-app voice and video checks for high-value transfers
 
-When a transfer exceeds the owner's configured approval threshold, a guardian will be able to start an in-app voice or video call directly from the pending approval request. The request will keep the recipient, amount, and transaction fingerprint beside the call, helping the family verify the owner's intent without switching to Zalo, a separate phone call, or another messaging app.
-
-The call will be an additional coordination layer, **not an authorization factor**. It will not approve, sign, or broadcast a transfer: the deterministic spending policy, guardian approval, and wallet owner's cryptographic signature will remain required. This feature is **planned and not implemented yet**. Signaling, encryption, metadata retention, and abuse controls must be threat-modeled before release. Wallet recovery after every trusted device is lost remains a separate identity-verification problem.
+Planned: when a transfer exceeds the configured approval threshold, a guardian will be able to start an in-app voice or video call from the pending request while the recipient, amount, and transaction fingerprint remain visible. The call will be a coordination layer, **not an authorization factor**; deterministic policy, guardian approval, and the owner's cryptographic signature will remain required. This feature is not implemented yet.
 
 ## Team
 
