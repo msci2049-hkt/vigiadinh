@@ -28,7 +28,11 @@ export type DomainEventType =
   // Lô R1: thiết bị mới gõ cửa xin khôi phục. Guardian đang mở app thấy NGAY,
   // không chờ tick dispatcher — nhưng email vẫn là kênh chính, vì ca dùng thật
   // của luồng này là guardian cả tuần chưa mở app.
-  | "recovery.device_requested";
+  | "recovery.device_requested"
+  // Lô R5: yêu cầu khôi phục ĐÓNG (huỷ/veto/finalize) — thẻ trên màn guardian
+  // phải tự biến mất, kể cả guardian CHƯA duyệt (sự cố 31/07: C bấm duyệt vào
+  // một yêu cầu A đã huỷ).
+  | "recovery.closed";
 
 export function publishDomainEvent(
   userId: string,

@@ -13,6 +13,7 @@ import { orderByPriority, routeEvent } from "../domain/event-router";
 import { toJsonSafe } from "../domain/json-safe";
 import { auditLog } from "./audit-log.schema";
 import { indexerCheckpoint, indexerEvents } from "./checkpoint.schema";
+import { notifyGuardiansRecoveryClosed } from "./recovery-closed-notify";
 
 export const DEFAULT_STREAM = "default";
 
@@ -125,13 +126,15 @@ type MirrorWallet = NonNullable<Awaited<ReturnType<typeof findWallet>>>;
 const ACTIVE_MIRROR = inArray(recoveryRequests.status, ["pending", "ready"]);
 
 /** Mirror registry (PHA 5.2) — nguồn sự thật = chain, indexer là NGƯỜI GHI DUY NHẤT
- * của recovery_requests (route ghi chỉ audit). Idempotent nhờ dedupe PK event id. */
+ * của recovery_requests (route ghi chỉ audit). Idempotent nhờ dedupe PK event id.
+ * Trả `true` khi event vừa ĐÓNG một yêu cầu đang mở (cancel/finalize chạm dòng
+ * active thật) — R5: đó là lúc phải báo mọi guardian, replay/event mồ côi thì không. */
 async function applyRegistryMirror(
   tx: Tx,
   kind: string,
   wallet: MirrorWallet,
   event: SimplifiedEvent,
-): Promise<void> {
+): Promise<boolean> {
   const data = event.data as { value?: unknown; txHash?: unknown };
   const walletScope = eq(recoveryRequests.walletId, wallet.id);
   switch (kind) {
@@ -141,9 +144,9 @@ async function applyRegistryMirror(
       // UI/audit; khoá đầy đủ nằm on-chain qua get_recovery_status). vetoUntil ƯỚC
       // LƯỢNG từ mirror timelock ví (mốc chuẩn = started_at contract).
       const value = data.value;
-      if (!Array.isArray(value)) return;
+      if (!Array.isArray(value)) return false;
       const fp = value[1];
-      if (!(fp instanceof Uint8Array)) return;
+      if (!(fp instanceof Uint8Array)) return false;
       const initiator = typeof value[0] === "string" ? value[0] : null;
       const txHash = typeof data.txHash === "string" ? data.txHash.slice(0, 64) : null;
       await tx.insert(recoveryRequests).values({
@@ -165,13 +168,13 @@ async function applyRegistryMirror(
           approvers: initiator ? [{ guardian: initiator, txHash }] : [],
         }),
       });
-      return;
+      return false;
     }
     case "approve": {
       // value = (guardian, approvals_len) → native [string, number].
       const value = data.value;
       const approvalsLen = Array.isArray(value) ? Number(value[1]) : Number.NaN;
-      if (!Number.isFinite(approvalsLen)) return;
+      if (!Number.isFinite(approvalsLen)) return false;
       const guardian = Array.isArray(value) && typeof value[0] === "string" ? value[0] : null;
       const txHash = typeof data.txHash === "string" ? data.txHash.slice(0, 64) : null;
       // Nối người duyệt vào signals.approvers TRONG SQL (giữ nguyên key khác của
@@ -191,22 +194,26 @@ async function applyRegistryMirror(
             : {}),
         })
         .where(and(walletScope, ACTIVE_MIRROR));
-      return;
+      return false;
     }
-    case "cancel":
-      await tx
+    case "cancel": {
+      const closed = await tx
         .update(recoveryRequests)
         .set({ status: "vetoed" })
-        .where(and(walletScope, ACTIVE_MIRROR));
-      return;
-    case "finalize":
-      await tx
+        .where(and(walletScope, ACTIVE_MIRROR))
+        .returning({ id: recoveryRequests.id });
+      return closed.length > 0;
+    }
+    case "finalize": {
+      const closed = await tx
         .update(recoveryRequests)
         .set({ status: "executed" })
-        .where(and(walletScope, ACTIVE_MIRROR));
-      return;
+        .where(and(walletScope, ACTIVE_MIRROR))
+        .returning({ id: recoveryRequests.id });
+      return closed.length > 0;
+    }
     default:
-      return;
+      return false;
   }
 }
 
@@ -218,14 +225,19 @@ async function applyEvent(tx: Tx, event: SimplifiedEvent): Promise<void> {
   // Mirror: event registry on-chain (initiate/approve/cancel/finalize) + veto pipeline
   // (recovery.vetoed) — veto đứng ĐẦU batch nhờ orderByPriority. Invalidate
   // session/device-proof nối ở PHA 6 (TODO có chủ đích, ghi BUILD-LOG).
+  // R5: `closedRecovery` = event này vừa ĐÓNG một yêu cầu đang mở thật —
+  // lúc đó phải báo MỌI guardian (kể cả người chưa duyệt), không chỉ chủ ví.
+  let closedRecovery = false;
   if (wallet) {
     if (route.walletFromTopic) {
-      await applyRegistryMirror(tx, route.kind, wallet, event);
+      closedRecovery = await applyRegistryMirror(tx, route.kind, wallet, event);
     } else if (route.kind === "recovery.vetoed") {
-      await tx
+      const closed = await tx
         .update(recoveryRequests)
         .set({ status: "vetoed" })
-        .where(eq(recoveryRequests.walletId, wallet.id));
+        .where(eq(recoveryRequests.walletId, wallet.id))
+        .returning({ id: recoveryRequests.id });
+      closedRecovery = closed.length > 0;
     }
   }
 
@@ -271,5 +283,16 @@ async function applyEvent(tx: Tx, event: SimplifiedEvent): Promise<void> {
         channel: "push",
       });
     }
+  }
+
+  // R5 nhóm A: lệnh khôi phục vừa ĐÓNG thật (huỷ/veto/finalize chạm dòng đang
+  // mở) → báo MỌI guardian của ví + audit — chủ ví đã nhận recovery.vetoed/
+  // finalized ở nhánh trên, guardian nhận bản TIN TỐT recovery.closed.
+  if (closedRecovery && wallet) {
+    await notifyGuardiansRecoveryClosed(tx, {
+      walletId: wallet.id,
+      eventId: event.id,
+      closedBy: route.kind,
+    });
   }
 }

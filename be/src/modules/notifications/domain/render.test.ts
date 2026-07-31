@@ -75,6 +75,8 @@ describe("notification renderer (ICU theo locale người nhận)", () => {
       "recovery.approved",
       "recovery.finalized",
       "recovery.vetoed",
+      // R5: bản TIN TỐT cho guardian khi lệnh đóng — cùng chuẩn 3 locale.
+      "recovery.closed",
     ]) {
       for (const locale of ["vi", "en", "zh"]) {
         const r = renderNotification(key, locale, {});

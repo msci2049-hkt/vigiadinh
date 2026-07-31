@@ -74,6 +74,24 @@ export const RECOVERY_TEMPLATES: Record<string, Record<string, NotificationTempl
       body: "一次接管钱包的申请已被阻止。如果不是您本人阻止的，请立即检查钱包的活动记录。",
     },
   },
+  // R5 nhóm A — gửi cho MỌI NGƯỜI BẢO HỘ khi yêu cầu khôi phục ĐÓNG (huỷ/veto/
+  // finalize), kể cả người CHƯA duyệt. Giọng TIN TỐT, không phải cảnh báo:
+  // người nhận là người được nhờ giúp, việc đã xong, họ không cần làm gì —
+  // khác hẳn recovery.vetoed (cảnh báo cho CHỦ VÍ "nếu không phải bạn chặn…").
+  "recovery.closed": {
+    en: {
+      title: "The recovery request is closed",
+      body: "The wallet owner is back in their wallet. The recovery request you were asked to help with is closed — nothing more for you to do.",
+    },
+    vi: {
+      title: "Yêu cầu khôi phục đã đóng",
+      body: "Chủ ví đã vào lại được ví của họ. Yêu cầu khôi phục bạn được nhờ giúp đã đóng, bạn không cần làm gì thêm.",
+    },
+    zh: {
+      title: "恢复请求已关闭",
+      body: "钱包主人已经重新进入了自己的钱包。您受邀协助的恢复请求已关闭，您无需再做任何操作。",
+    },
+  },
   // R4 nhóm C — params khi enqueue: link (/recovery/find-wallet?address=… điền
   // sẵn). Địa chỉ ví nằm TRONG link gửi tới hộp thư chính chủ — không bao giờ
   // nằm trong HTTP response của cửa tra cứu (chống lộ danh sách người dùng).
