@@ -22,7 +22,7 @@ APAC Stellar Hackathon 2026
 **[🌐 项目主页](https://familyhavenwallet.mscilabs.com/)** · **[↗ 在线应用](https://familyhaven.mscilabs.com)** · **[▶ 观看 4K 预告片](https://www.youtube.com/watch?v=K5jz1tClGng)** · [完整演示](https://youtu.be/8LUc_K2RAqY) · **[⚡ 快速开始](#快速开始)**
 
 <a href="https://www.youtube.com/watch?v=K5jz1tClGng">
-  <img src="docs/images/familyhaven-trailer.jpg" alt="观看 Family Haven 4K Introduction 预告片" width="1200">
+  <img src="docs/images/familyhaven-trailer.png" alt="观看 Family Haven 4K Introduction 预告片" width="1200">
 </a>
 
 ## **[▶ 观看 Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng)**
