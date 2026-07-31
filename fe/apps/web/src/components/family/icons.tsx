@@ -326,6 +326,15 @@ export function WalletIcon(props: SvgIconProps) {
   );
 }
 
+export function HomeIcon(props: SvgIconProps) {
+  return (
+    <IconFrame {...props}>
+      <path d="m3.5 10.5 8.5-7 8.5 7" />
+      <path d="M5.5 9.5V21h13V9.5M9.5 21v-6h5v6" />
+    </IconFrame>
+  );
+}
+
 export function SettingsIcon(props: SvgIconProps) {
   return (
     <IconFrame {...props}>

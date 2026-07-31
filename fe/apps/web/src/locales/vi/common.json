@@ -1,6 +1,15 @@
 {
   "nav": {
-    "home": "Trang chủ"
+    "home": "Trang chủ",
+    "primary": "Điều hướng chính",
+    "flow": "Điều hướng trang",
+    "back": "Quay lại",
+    "wallet": "Ví",
+    "guardians": "Gia đình",
+    "safety": "An toàn",
+    "settings": "Cài đặt",
+    "walletHome": "Trang chủ ví",
+    "publicHome": "Trang chào"
   },
   "theme": {
     "toggle": "Chuyển giao diện sáng/tối"

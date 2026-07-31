@@ -1,6 +1,15 @@
 {
   "nav": {
-    "home": "Home"
+    "home": "Home",
+    "primary": "Primary navigation",
+    "flow": "Page navigation",
+    "back": "Back",
+    "wallet": "Wallet",
+    "guardians": "Family",
+    "safety": "Safety",
+    "settings": "Settings",
+    "walletHome": "Wallet home",
+    "publicHome": "Welcome"
   },
   "theme": {
     "toggle": "Toggle light/dark theme"

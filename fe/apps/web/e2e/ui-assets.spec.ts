@@ -73,6 +73,7 @@ const SESSION = {
     name: "Owner",
     emailVerified: true,
     role: "user",
+    locale: "vi",
     banned: false,
     createdAt: "2026-06-01T00:00:00Z",
     updatedAt: "2026-06-01T00:00:00Z",
@@ -396,6 +397,31 @@ async function mockBackend(
       await route.fulfill(json({ data: PENDING_APPROVALS }));
       return;
     }
+    if (pathname === "/api/intents/pending-signature") {
+      await route.fulfill(json({ data: [] }));
+      return;
+    }
+    if (/^\/api\/intents\/[^/]+\/signals$/.test(pathname)) {
+      await route.fulfill(
+        json({
+          data: {
+            amount: "25000000",
+            recipient: `G${"A".repeat(55)}`,
+            ratioToAvg: 2.5,
+            recipientSettledCount: 0,
+            txCountLastHour: 1,
+            totalLastHour: "25000000",
+            policyOutcome: "awaiting_guardian",
+            requiresGuardian: true,
+          },
+        }),
+      );
+      return;
+    }
+    if (/^\/api\/intents\/[^/]+\/explain$/.test(pathname)) {
+      await route.fulfill(json({ data: { text: null } }));
+      return;
+    }
     if (pathname === "/api/guardians/protecting") {
       await route.fulfill(
         json({
@@ -403,8 +429,10 @@ async function mockBackend(
             {
               id: "protecting-1",
               wallet_id: "w1",
+              stellar_address: CONTRACT_ADDRESS,
               status: "active",
               owner_name: "Minh",
+              owner_email_masked: "mi***@example.com",
               protecting_since: "2026-07-01T00:00:00Z",
               last_seen_at: "2026-07-29T00:00:00Z",
             },
@@ -545,7 +573,7 @@ function reportMarkdown(results: RouteResult[]): string {
 
   return `# UI Asset Runtime Report — VíGiaĐình
 
-Ngày chạy: 2026-07-30
+Ngày chạy: 2026-07-31
 
 Lệnh chuẩn: \`corepack pnpm test:assets\`
 
@@ -746,7 +774,7 @@ function layoutReportMarkdown(results: LayoutResult[]): string {
 
   return `# UI Layout Matrix Report — VíGiaĐình
 
-Ngày chạy: 2026-07-30
+Ngày chạy: 2026-07-31
 
 Lệnh chuẩn: \`corepack pnpm test:layout\`
 
@@ -812,6 +840,9 @@ test("54 routes fit all seven target viewports", async ({ page }) => {
         const clippedText = Array.from(
           document.querySelectorAll<HTMLElement>("main *, .product-shell__navigation *"),
         )
+          // Visually hidden accessibility copy is intentionally a clipped 1px box.
+          // Its full text is still exposed to the accessibility tree.
+          .filter((element) => !element.classList.contains("sr-only"))
           .filter(visible)
           .filter((element) =>
             Array.from(element.childNodes).some(
@@ -1021,6 +1052,36 @@ test("Android Back returns send review to the intact entry form", async ({ page 
   await expect(page.locator("#send-amount")).toHaveValue("1,00");
   await expect(page.locator("#send-recipient")).toHaveValue(recipient);
   await expect(page.getByRole("heading", { name: "Kiểm tra trước khi gửi" })).toHaveCount(0);
+});
+
+test("critical wallet flows expose a visible deterministic home escape", async ({ page }) => {
+  await page.setViewportSize({ width: 375, height: 812 });
+  await mockBackend(page, { recoverableWallet: true });
+
+  for (const route of [
+    "/wallet/send",
+    "/night-watch/waiting",
+    "/guardian/approve-intent?intent=intent-approval-1",
+    `/block/done?tx=${TX_HASH}`,
+    `/recovery/countdown?address=${CONTRACT_ADDRESS}`,
+  ] as const) {
+    await page.goto(route, { waitUntil: "domcontentloaded" });
+    const navigation = page.getByRole("navigation", { name: "Điều hướng trang" });
+    await expect(navigation).toBeVisible();
+
+    const home = navigation.locator("a").last();
+    await expect(home).toBeVisible();
+    await expect(home).toBeInViewport();
+    const target = await home.getAttribute("href");
+    expect(target).toMatch(/^\/(wallet|welcome)$/);
+    expect(new URL(target ?? "/", APP_ORIGIN).pathname).not.toBe(new URL(page.url()).pathname);
+  }
+
+  await page.goto("/night-watch/waiting");
+  const home = page.getByRole("navigation", { name: "Điều hướng trang" }).locator("a").last();
+  await home.click();
+  await expect(page).toHaveURL(/\/wallet$/);
+  await expect(page.getByRole("navigation", { name: "Điều hướng chính" })).toBeVisible();
 });
 
 // ⚠️ Đây là chromium EMULATE, KHÔNG phải iPhone thật (host Windows/WSL không có

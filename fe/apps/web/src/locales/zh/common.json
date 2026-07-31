@@ -1,6 +1,15 @@
 {
   "nav": {
-    "home": "首页"
+    "home": "首页",
+    "primary": "主导航",
+    "flow": "页面导航",
+    "back": "返回",
+    "wallet": "钱包",
+    "guardians": "家人",
+    "safety": "安全",
+    "settings": "设置",
+    "walletHome": "钱包首页",
+    "publicHome": "欢迎页"
   },
   "theme": {
     "toggle": "切换浅色/深色主题"

@@ -9,6 +9,7 @@ import {
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 import { type ReactNode, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { FlowNavigation, getFlowNavigation } from "@/components/family/flow-navigation";
 import { ProductShell } from "@/components/family/product-shell";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -42,12 +43,14 @@ function RootLayout() {
   if (isProductPath(pathname)) {
     const authPath = isAuthPath(pathname);
     const hubPath = isHubPath(pathname);
+    const flowNavigation = getFlowNavigation(pathname);
     return (
       <ProductShell
         menu={showsAccountMenu(pathname) ? <UserMenu compact /> : undefined}
         layout={hubPath ? "hub" : "flow"}
         showNavigation={showsAppNavigation(pathname)}
         guardianTabBadge={guardianTabBadge}
+        flowNavigation={flowNavigation ? <FlowNavigation {...flowNavigation} /> : undefined}
       >
         {authPath ? (
           <main className="product-screen auth-screen">
@@ -134,7 +137,7 @@ function isHubPath(pathname: string): boolean {
     "/inheritance",
     "/settings",
     "/protecting",
-  ].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
+  ].includes(pathname);
 }
 
 function showsAppNavigation(pathname: string): boolean {

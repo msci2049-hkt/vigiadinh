@@ -14,20 +14,20 @@ export const LANGUAGES = [
 ] as const;
 
 const APP_NAV = [
-  { to: "/wallet", key: "fw:wallet.home.title", icon: "wallet", active: ["/wallet"] },
+  { to: "/wallet", key: "nav.wallet", icon: "wallet", active: ["/wallet"] },
   {
     to: "/guardians",
-    key: "fw:setup.chooseGuardians.shortLabel",
+    key: "nav.guardians",
     icon: "users",
     active: ["/guardians"],
   },
   {
     to: "/night-watch",
-    key: "fw:wallet.home.nightWatchCta",
+    key: "nav.safety",
     icon: "shieldCheck",
     active: ["/night-watch", "/block", "/protecting", "/inheritance"],
   },
-  { to: "/settings", key: "fw:settings.title", icon: "settings", active: ["/settings"] },
+  { to: "/settings", key: "nav.settings", icon: "settings", active: ["/settings"] },
 ] as const satisfies ReadonlyArray<{
   to: "/wallet" | "/guardians" | "/night-watch" | "/settings";
   key: string;
@@ -50,12 +50,14 @@ export function ProductShell({
   layout = "flow",
   showNavigation = false,
   guardianTabBadge = 0,
+  flowNavigation,
 }: {
   children: ReactNode;
   menu?: ReactNode;
   layout?: "flow" | "hub";
   showNavigation?: boolean;
   guardianTabBadge?: number;
+  flowNavigation?: ReactNode;
 }) {
   const { t, i18n } = useTranslation(["common", "fw"]);
   const pathname = useRouterState({ select: (state) => state.location.pathname });
@@ -97,11 +99,12 @@ export function ProductShell({
           {menu}
         </div>
       </header>
+      {flowNavigation}
       <div className={cn("product-shell__content", `product-shell__content--${layout}`)}>
         {children}
       </div>
       {showNavigation ? (
-        <nav className="product-shell__navigation" aria-label={t("nav.home")}>
+        <nav className="product-shell__navigation" aria-label={t("nav.primary")}>
           {APP_NAV.map((item) => {
             const isActive = item.active.some(
               (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`),
@@ -114,16 +117,18 @@ export function ProductShell({
                 className="product-shell__nav-link relative"
                 aria-current={isActive ? "page" : undefined}
               >
-                <Icon name={item.icon} size={20} />
-                <span>{t(item.key)}</span>
-                {badge ? (
-                  <span className="-top-0.5 absolute right-1/4 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 font-semibold text-[10px] text-destructive-foreground">
-                    <span aria-hidden>{guardianTabBadge > 9 ? "9+" : guardianTabBadge}</span>
-                    <span className="sr-only">
-                      {t("fw:protecting.badgeAria", { count: guardianTabBadge })}
+                <span className="product-shell__nav-icon">
+                  <Icon name={item.icon} size={20} />
+                  {badge ? (
+                    <span className="product-shell__nav-badge">
+                      <span aria-hidden>{guardianTabBadge > 9 ? "9+" : guardianTabBadge}</span>
+                      <span className="sr-only">
+                        {t("fw:protecting.badgeAria", { count: guardianTabBadge })}
+                      </span>
                     </span>
-                  </span>
-                ) : null}
+                  ) : null}
+                </span>
+                <span>{t(item.key)}</span>
               </Link>
             );
           })}
