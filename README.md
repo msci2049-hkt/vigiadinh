@@ -19,7 +19,7 @@ APAC Stellar Hackathon 2026
 ![network](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
 ![recovery](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live app](https://familyhaven.mscilabs.com)** · **[▶ Demo video](https://youtu.be/8LUc_K2RAqY)** · **[⚡ Quick start](#quick-start)**
+**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live app](https://familyhaven.mscilabs.com)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[▶ Demo video](https://youtu.be/8LUc_K2RAqY)** · **[⚡ Quick start](#quick-start)**
 
 <a href="https://youtu.be/8LUc_K2RAqY">
   <img src="docs/images/familyhaven-wallet-demo.png" alt="Watch the FamilyHaven Wallet Demo Video" width="900">
@@ -27,7 +27,7 @@ APAC Stellar Hackathon 2026
 
 **[▶ Watch the FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)**
 
-Welcome, Stellar judges - the links above lead to the public story, the real Testnet application, and the complete product demo.
+Welcome, Stellar judges - the links above lead to the public story, the real Testnet application, the cinematic trailer, and the complete product demo.
 
 </div>
 
@@ -296,6 +296,7 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | 🌐 Project landing | [FamilyHaven](https://familyhavenwallet.mscilabs.com/) |
 | ↗ Live product | [Open the Testnet app](https://familyhaven.mscilabs.com) |
+| ▶ Trailer | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
 | ▶ Demo video | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ Source | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
 | ✉ Contact | [MSCI Labs](https://www.mscilabs.com) |

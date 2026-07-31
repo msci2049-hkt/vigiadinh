@@ -19,7 +19,7 @@ APAC Stellar Hackathon 2026
 ![mạng](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
 ![khôi phục](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 Trang giới thiệu](https://familyhavenwallet.mscilabs.com/)** · **[↗ Ứng dụng thật](https://familyhaven.mscilabs.com)** · **[▶ Video demo](https://youtu.be/8LUc_K2RAqY)** · **[⚡ Bắt đầu nhanh](#bắt-đầu-nhanh)**
+**[🌐 Trang giới thiệu](https://familyhavenwallet.mscilabs.com/)** · **[↗ Ứng dụng thật](https://familyhaven.mscilabs.com)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[▶ Video demo](https://youtu.be/8LUc_K2RAqY)** · **[⚡ Bắt đầu nhanh](#bắt-đầu-nhanh)**
 
 <a href="https://youtu.be/8LUc_K2RAqY">
   <img src="docs/images/familyhaven-wallet-demo.png" alt="Xem FamilyHaven Wallet Demo Video" width="900">
@@ -27,7 +27,7 @@ APAC Stellar Hackathon 2026
 
 **[▶ Xem FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)**
 
-Kính chào ban giám khảo Stellar - các liên kết phía trên dẫn tới câu chuyện dự án, ứng dụng Testnet thật và video demo sản phẩm đầy đủ.
+Kính chào ban giám khảo Stellar - các liên kết phía trên dẫn tới câu chuyện dự án, ứng dụng Testnet thật, trailer điện ảnh và video demo sản phẩm đầy đủ.
 
 </div>
 
@@ -296,6 +296,7 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | 🌐 Trang dự án | [VíGiaĐình](https://familyhavenwallet.mscilabs.com/) |
 | ↗ Ứng dụng thật | [Mở ứng dụng Testnet](https://familyhaven.mscilabs.com) |
+| ▶ Trailer | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
 | ▶ Video demo | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ Mã nguồn | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
 | ✉ Liên hệ | [MSCI Labs](https://www.mscilabs.com) |
