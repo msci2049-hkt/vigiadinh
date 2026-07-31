@@ -19,13 +19,15 @@ APAC Stellar Hackathon 2026
 ![network](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
 ![recovery](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live app](https://familyhaven.mscilabs.com)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[▶ Demo video](https://youtu.be/8LUc_K2RAqY)** · **[⚡ Quick start](#quick-start)**
+**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live app](https://familyhaven.mscilabs.com)** · **[▶ Watch 4K trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · [Full wallet demo](https://youtu.be/8LUc_K2RAqY) · **[⚡ Quick start](#quick-start)**
 
-<a href="https://youtu.be/8LUc_K2RAqY">
-  <img src="docs/images/familyhaven-wallet-demo.png" alt="Watch the FamilyHaven Wallet Demo Video" width="900">
+<a href="https://www.youtube.com/watch?v=K5jz1tClGng">
+  <img src="docs/images/familyhaven-trailer.jpg" alt="Watch the Family Haven 4K Introduction trailer" width="1200">
 </a>
 
-**[▶ Watch the FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)**
+## **[▶ Watch the Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng)**
+
+Full product walkthrough: [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)
 
 Welcome, Stellar judges - the links above lead to the public story, the real Testnet application, the cinematic trailer, and the complete product demo.
 
