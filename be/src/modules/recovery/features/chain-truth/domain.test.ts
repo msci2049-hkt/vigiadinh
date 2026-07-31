@@ -45,6 +45,25 @@ describe("đọc trạng thái khôi phục từ chain", () => {
   it("trạng thái lạ THROW thay vì im lặng coi như đã đóng", () => {
     expect(() => parseRecoveryStatus({ ...raw, status: "Whatever" }, 0n)).toThrow(ChainShapeError);
   });
+
+  // R7 — không chở được `expires_at` thì không có cách nào biết một yêu cầu đã
+  // chết vì hết giờ: `get_recovery_status` vẫn trả `Pending` cho nó.
+  it("chở expires_at từ chain", () => {
+    expect(parseRecoveryStatus({ ...raw, expires_at: 1_700_000n }, 3600n).expiresAt).toBe(
+      1_700_000,
+    );
+    expect(parseRecoveryStatus({ ...raw, expires_at: 1_700_000 }, 3600n).expiresAt).toBe(1_700_000);
+  });
+
+  it("🔴 thiếu expires_at → null, KHÔNG ném — trường phụ hỏng không được giết trường chính", () => {
+    // Nếu chỗ này ném, `request` thành null và màn chặn kết luận "không có yêu
+    // cầu nào" trong khi chain đang có — đúng kiểu nói dối cả đường chain-truth
+    // sinh ra để tránh.
+    const req = parseRecoveryStatus(raw, 3600n);
+    expect(req.expiresAt).toBeNull();
+    expect(req.status).toBe("pending");
+    expect(parseRecoveryStatus({ ...raw, expires_at: "hôm qua" }, 3600n).expiresAt).toBeNull();
+  });
 });
 
 describe("chain vs mirror", () => {

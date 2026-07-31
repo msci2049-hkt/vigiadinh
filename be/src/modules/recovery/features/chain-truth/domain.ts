@@ -19,6 +19,21 @@ export type ChainRecoveryRequest = {
   startedAt: number;
   /** Giây còn lại tới khi finalize được. 0 = hết thời gian chặn. */
   timelockRemainingSecs: number;
+  /**
+   * R7 — mốc CHẾT của yêu cầu (unix giây), `started_at + timelock + 7 ngày`
+   * (`contracts/recovery-registry/src/lib.rs:320-322`).
+   *
+   * Vì sao bắt buộc phải chở: `get_recovery_status` gọi `request()` (lib.rs:160-171)
+   * — hàm đó KHÔNG lọc hết hạn. Bộ lọc `now <= expires_at` chỉ nằm trong
+   * `active_request()` (lib.rs:176-187), mà nó chỉ dùng cho initiate/đổi cấu hình.
+   * Nghĩa là một yêu cầu đã chết vẫn trả về `Pending`, và "chain không có yêu cầu"
+   * KHÔNG bao giờ đúng cho ca hết hạn. Không có trường này thì không có cách nào
+   * biết dòng mirror đã chết hay chưa.
+   *
+   * `null` = contract/shape không chở được mốc này. KHÔNG suy ra "còn sống" cũng
+   * KHÔNG suy ra "đã chết" — người đọc phải coi là KHÔNG BIẾT (xem `stale-mirror.ts`).
+   */
+  expiresAt: number | null;
 };
 
 /**
@@ -58,6 +73,20 @@ function asSeconds(value: unknown): number {
   throw new ChainShapeError("EXPECTED_NUMERIC");
 }
 
+/**
+ * Như `asSeconds` nhưng KHÔNG ném — thiếu/hình dạng lạ → `null`.
+ *
+ * Dùng riêng cho `expires_at`: nếu ném, một trường phụ vắng mặt sẽ làm cả
+ * `parseRecoveryStatus` đổ, `request` thành `null`, và màn chặn kết luận "không
+ * có yêu cầu nào" trong khi chain đang có. Đó đúng là kiểu nói dối mà cả đường
+ * chain-truth sinh ra để tránh — trường phụ hỏng không được giết trường chính.
+ */
+function asOptionalSeconds(value: unknown): number | null {
+  if (typeof value === "bigint") return Number(value);
+  if (typeof value === "number") return value;
+  return null;
+}
+
 export function parseWalletConfig(value: unknown): ChainWalletConfig {
   const raw = asRecord(value);
   const guardians = raw.guardians;
@@ -92,6 +121,7 @@ export function parseRecoveryStatus(
     approvals,
     startedAt: asSeconds(raw.started_at),
     timelockRemainingSecs: asSeconds(timelockRemaining),
+    expiresAt: asOptionalSeconds(raw.expires_at),
   };
 }
 

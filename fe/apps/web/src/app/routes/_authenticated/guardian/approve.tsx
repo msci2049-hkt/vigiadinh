@@ -10,8 +10,9 @@ import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
-import { GuardianPortrait, guardianPortraitForIndex } from "@/components/family/guardian-portrait";
 import { Icon } from "@/components/family/icons";
+import { InitialsAvatar } from "@/components/family/initials-avatar";
+import { LiveCountdown } from "@/components/family/live-countdown";
 import { ReconfirmSign } from "@/components/family/reconfirm-sign";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { SuccessNote } from "@/components/family/success-note";
@@ -122,18 +123,37 @@ function GuardianApproveScreen() {
       {item ? (
         <Card className="bg-paper-2">
           <CardContent className="flex flex-col gap-4 pt-6">
+            {/* R7 (D1/D2) — chữ cái đầu + tên chủ ví thay cho ảnh người lạ.
+                Đây là màn quyết định có trao ví cho một khoá mới hay không;
+                một khuôn mặt stock cạnh câu hỏi đó là thông tin sai ở đúng chỗ
+                không được phép sai. */}
             <div className="flex items-center gap-3">
-              <GuardianPortrait
-                variant={guardianPortraitForIndex(1)}
-                className="size-16 rounded-full"
-              />
-              <p className="font-semibold text-foreground">
-                {t("guardian.approve.votes", {
-                  approvals: item.request.approvals,
-                  threshold: item.request.threshold ?? item.wallet.threshold,
-                })}
-              </p>
+              <InitialsAvatar name={item.wallet.ownerName} className="size-16 text-2xl" />
+              <div className="flex flex-col gap-0.5">
+                <p className="font-semibold text-foreground">
+                  {t("guardian.inbox.walletOf", {
+                    name: item.wallet.ownerName?.trim()
+                      ? item.wallet.ownerName
+                      : t("guardian.inbox.unnamedOwner"),
+                  })}
+                </p>
+                <p className="text-muted-foreground text-sm">
+                  {t("guardian.approve.votes", {
+                    approvals: item.request.approvals,
+                    threshold: item.request.threshold ?? item.wallet.threshold,
+                  })}
+                </p>
+              </div>
             </div>
+
+            {/* R7 (D3) — còn bao lâu tới lúc khoá mới nắm ví. Trước lô này màn
+                này không có con số nào, chỉ có chữ "đang chờ". */}
+            {item.request.vetoUntil ? (
+              <LiveCountdown
+                deadline={item.request.vetoUntil}
+                label={t("countdown.blockWindowLabel")}
+              />
+            ) : null}
 
             {/* R6 — người ĐÃ ký: tích xanh + KHÔNG nút ký (xem `alreadyDone` dưới).
                 Trước lô này nút vẫn sáng, họ chạm vân tay rồi mới ăn

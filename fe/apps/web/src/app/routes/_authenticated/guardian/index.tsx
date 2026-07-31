@@ -4,8 +4,9 @@ import { formatDateTime } from "@repo/core";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { GuardianPortrait, guardianPortraitForIndex } from "@/components/family/guardian-portrait";
 import { Icon } from "@/components/family/icons";
+import { InitialsAvatar } from "@/components/family/initials-avatar";
+import { LiveCountdown } from "@/components/family/live-countdown";
 import { ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { Button, Card, CardContent, CardHeader, CardTitle } from "@/components/family/ui";
 import {
@@ -74,18 +75,26 @@ function GuardianInboxScreen() {
         </Card>
       ))}
 
-      {(inbox.data ?? []).map((item, index) => (
+      {(inbox.data ?? []).map((item) => (
         <Card key={item.request.id} className="bg-paper-2">
           <CardHeader>
+            {/* R7 (D1/D2) — chữ cái đầu + TÊN chủ ví, không ảnh người lạ và
+                không còn bắt người bảo hộ nhận ra người thân qua base32.
+                Địa chỉ tụt xuống dòng phụ: vẫn đối chiếu được, hết là thứ
+                đầu tiên đập vào mắt. Khuôn lấy từ `/protecting`. */}
             <CardTitle className="flex items-center gap-3 text-lg">
-              <GuardianPortrait
-                variant={guardianPortraitForIndex(index)}
-                className="size-12 rounded-full"
-              />
-              <span>
-                {t("guardian.inbox.walletLabel", {
-                  address: shortAddress(item.wallet.stellarAddress),
-                })}
+              <InitialsAvatar name={item.wallet.ownerName} />
+              <span className="flex flex-col">
+                <span>
+                  {t("guardian.inbox.walletOf", {
+                    name: item.wallet.ownerName?.trim()
+                      ? item.wallet.ownerName
+                      : t("guardian.inbox.unnamedOwner"),
+                  })}
+                </span>
+                <span className="font-normal font-mono text-muted-foreground text-xs">
+                  {shortAddress(item.wallet.stellarAddress)}
+                </span>
               </span>
             </CardTitle>
           </CardHeader>
@@ -96,6 +105,14 @@ function GuardianInboxScreen() {
                 threshold: item.request.threshold ?? item.wallet.threshold,
               })}
             </p>
+            {/* R7 (D3) — trước lô này màn này chỉ nói "đang chờ hết khoảng an
+                toàn" mà không cho biết CÒN BAO LÂU. */}
+            {item.request.vetoUntil ? (
+              <LiveCountdown
+                deadline={item.request.vetoUntil}
+                label={t("countdown.blockWindowLabel")}
+              />
+            ) : null}
             {/* R6 — hai trạng thái mà việc của người bảo hộ ĐÃ XONG: họ đã ký, hoặc
                 đã đủ phiếu. Cả hai đều KHÔNG được mời bấm ký nữa: nút đó dẫn thẳng
                 tới `AlreadyApproved` sau khi đã bắt họ chạm vân tay. */}

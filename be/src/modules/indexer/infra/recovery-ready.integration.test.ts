@@ -122,6 +122,37 @@ describe("R6 nhóm A — approvals >= threshold thì status phải sang 'ready'"
     expect(await getCheckpoint(stream)).toBeTruthy();
   });
 
+  // R7 (C1) — trước lô này cột `expires_at` chưa từng được ai ghi, nên không có
+  // cách nào biết một dòng mirror đã chết vì hết giờ.
+  testIt("R7 — initiate điền expires_at = timelock + 7 ngày ân hạn", async () => {
+    const stream = freshStream();
+    const timelockSecs = 86_400;
+    const w = await seedWallet(2, timelockSecs);
+    const before = Date.now();
+    await apply(
+      [
+        registryEvent(
+          "initiate",
+          w.stellarAddress,
+          [randomAddress(), new Uint8Array(32).fill(7)],
+          1,
+        ),
+      ],
+      stream,
+    );
+    const row = await requestOf(w.id);
+    expect(row?.expiresAt).toBeTruthy();
+    // ƯỚC LƯỢNG neo vào đồng hồ BE (event `initiate` không chở `started_at` lẫn
+    // `expires_at` — lib.rs:329-333), nên chỉ khẳng định được cửa sổ, không phải
+    // mốc chính xác. Nợ này đã ghi trong known issues.
+    const expected = before + (timelockSecs + 7 * 86_400) * 1000;
+    const actual = row?.expiresAt?.getTime() ?? 0;
+    expect(actual).toBeGreaterThanOrEqual(expected - 1000);
+    expect(actual).toBeLessThanOrEqual(expected + 60_000);
+    // Phải muộn hơn mốc chặn: hết cửa sổ veto rồi vẫn còn 7 ngày để hoàn tất.
+    expect(actual).toBeGreaterThan(row?.vetoUntil?.getTime() ?? 0);
+  });
+
   testIt("THIẾU phiếu (2/3) → vẫn pending", async () => {
     const stream = freshStream();
     const w = await seedWallet(3);

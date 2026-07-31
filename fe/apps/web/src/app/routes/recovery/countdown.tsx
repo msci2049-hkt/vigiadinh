@@ -21,9 +21,9 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { ErrorBanner } from "@/components/family/error-banner";
+import { LiveCountdown } from "@/components/family/live-countdown";
 import { PrimaryZone, ProductScreen, ScreenHeader } from "@/components/family/screen";
 import { SuccessNote } from "@/components/family/success-note";
-import { TimelockCountdown } from "@/components/family/timelock-countdown";
 import { Button } from "@/components/family/ui";
 import { finalizeRecovery } from "@/features/family/api/recovery-actions";
 import { walletsOptions } from "@/features/family/api/wallets";
@@ -77,10 +77,14 @@ function RecoveryCountdownScreen() {
       {progress.isLoading ? <LoadingRows /> : null}
       {progress.isError ? <ErrorState /> : null}
 
-      {veto && !veto.expired ? (
-        <TimelockCountdown
-          countdown={veto.countdown}
-          absolute={veto.absolute}
+      {/* R7 (D3) — đồng hồ chạy từng giây, cùng component với ba màn chờ kia.
+          `veto.expired` vẫn quyết định nút "Lấy lại ví" (windowClosed dưới);
+          đồng hồ thì hiện cả khi đã hết, dừng ở 00:00:00 + đổi câu (D5), vì
+          người chờ suốt 24 giờ cần thấy nó đã tới đích chứ không phải thấy nó
+          biến mất. */}
+      {progress.data?.vetoUntil ? (
+        <LiveCountdown
+          deadline={progress.data.vetoUntil}
           label={t("recovery.countdown.windowLabel")}
           large
         />

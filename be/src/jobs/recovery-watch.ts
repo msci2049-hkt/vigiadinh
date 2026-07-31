@@ -17,9 +17,16 @@ import { logger } from "@/lib/logger";
 import { bullConnection, rateLimitConnection } from "@/lib/redis";
 import { redlock } from "@/lib/redlock";
 import { enqueueNotification } from "@/modules/notifications";
-import { parseRecoveryStatus } from "@/modules/recovery";
+import {
+  type ChainRecoveryRequest,
+  type ChainVerdict,
+  chainSaysRequestIsDead,
+  classifyReadFailure,
+  parseRecoveryStatus,
+} from "@/modules/recovery";
 import { wallets } from "@/modules/wallets/infra/wallets.schema";
 import { simulateRead } from "@/services/stellar/stellar.service";
+import { expireStaleMirrorRows } from "./recovery-watch-reconcile";
 
 export const RECOVERY_WATCH_QUEUE = "{recovery-watch}";
 
@@ -43,7 +50,49 @@ export async function scheduleRecoveryWatch(): Promise<void> {
   );
 }
 
-export type WatchResult = { checked: number; alerted: number; skipped: boolean };
+export type WatchResult = {
+  checked: number;
+  alerted: number;
+  /** R7 — số dòng mirror chết đã dọn ở tick này. */
+  expired: number;
+  /** R7 — số ví KHÔNG đọc được chain (mù). Không dọn ví nào trong số này. */
+  unreadable: number;
+  skipped: boolean;
+};
+
+/**
+ * Đọc trạng thái khôi phục của MỘT ví từ chain và PHÂN LOẠI kết quả.
+ *
+ * Trước R7 chỗ này là một `catch {}` rỗng với chú thích "ví chưa từng có yêu cầu
+ * nào → bỏ qua, không log ồn". Chú thích đó đúng với MỘT trong hai loại lỗi rơi
+ * vào đây; loại kia là RPC chết. Gộp chúng nghĩa là job không bao giờ phân biệt
+ * được "chain nói không có" với "tôi không đọc được chain" — mà toàn bộ tính an
+ * toàn của việc dọn mirror nằm ở đúng chỗ phân biệt ấy.
+ */
+async function readChainVerdict(
+  registryId: string,
+  walletAddress: string,
+): Promise<ChainVerdict<ChainRecoveryRequest>> {
+  try {
+    const [raw, remaining] = await Promise.all([
+      simulateRead({
+        contractId: registryId,
+        method: "get_recovery_status",
+        args: [nativeToScVal(new Address(walletAddress))],
+      }),
+      simulateRead({
+        contractId: registryId,
+        method: "timelock_remaining",
+        args: [nativeToScVal(new Address(walletAddress))],
+      }),
+    ]);
+    return { kind: "request", request: parseRecoveryStatus(raw, remaining) };
+  } catch (err) {
+    // `no-request` CHỈ khi contract panic NoActiveRecovery. Mọi thứ khác — mạng,
+    // timeout, 5xx, mã lỗi lạ, shape lạ — là `unreadable` và sẽ KHÔNG dọn gì.
+    return { kind: classifyReadFailure(err) };
+  }
+}
 
 export async function runRecoveryWatchTick(): Promise<WatchResult> {
   if (!env.CONTRACT_ID_RECOVERY) {
@@ -54,8 +103,9 @@ export async function runRecoveryWatchTick(): Promise<WatchResult> {
     logger.warn(
       "recovery.watch.disabled: CONTRACT_ID_RECOVERY chưa set — KHÔNG ví nào được canh recovery",
     );
-    return { checked: 0, alerted: 0, skipped: true };
+    return { checked: 0, alerted: 0, expired: 0, unreadable: 0, skipped: true };
   }
+  const registryId = env.CONTRACT_ID_RECOVERY;
 
   const rows = await db
     .select({ id: wallets.id, userId: wallets.userId, address: wallets.stellarAddress })
@@ -63,23 +113,35 @@ export async function runRecoveryWatchTick(): Promise<WatchResult> {
 
   let checked = 0;
   let alerted = 0;
+  let expired = 0;
+  let unreadable = 0;
   for (const row of rows) {
     if (!row.address?.startsWith("C")) continue;
     checked += 1;
+    const verdict = await readChainVerdict(registryId, row.address);
+    if (verdict.kind === "unreadable") {
+      // 🔴 Mù về ví này ở tick này. KHÔNG dọn, KHÔNG báo, KHÔNG kết luận gì.
+      // Tick sau đọc lại; dòng ma sống thêm 10 phút là cái giá rẻ hơn nhiều so
+      // với việc xoá một yêu cầu khôi phục thật vì RPC chập một nhịp.
+      unreadable += 1;
+      continue;
+    }
+
     try {
-      const [raw, remaining] = await Promise.all([
-        simulateRead({
-          contractId: env.CONTRACT_ID_RECOVERY,
-          method: "get_recovery_status",
-          args: [nativeToScVal(new Address(row.address))],
-        }),
-        simulateRead({
-          contractId: env.CONTRACT_ID_RECOVERY,
-          method: "timelock_remaining",
-          args: [nativeToScVal(new Address(row.address))],
-        }),
-      ]);
-      const req = parseRecoveryStatus(raw, remaining);
+      // R7 (C3) — chain đã trả lời DỨT KHOÁT. Nếu câu trả lời đó nghĩa là "yêu
+      // cầu này chết rồi", dọn mirror rồi đi tiếp: không còn gì để cảnh báo.
+      if (chainSaysRequestIsDead(verdict, Math.floor(Date.now() / 1000))) {
+        expired += await expireStaleMirrorRows({
+          walletId: row.id,
+          ownerUserId: row.userId,
+          reason:
+            verdict.kind === "no-request" ? "chain:no-request" : `chain:${verdict.request.status}`,
+        });
+        continue;
+      }
+      if (verdict.kind !== "request") continue;
+
+      const req = verdict.request;
       if (req.status !== "pending" && req.status !== "approved") continue;
 
       // Một yêu cầu báo một lần; yêu cầu mới (startedAt khác) báo lại.
@@ -98,12 +160,14 @@ export async function runRecoveryWatchTick(): Promise<WatchResult> {
         channel: "email",
       });
       alerted += 1;
-    } catch {
-      // Ví chưa từng có yêu cầu nào → contract panic NoActiveRecovery. Đó là
-      // trạng thái BÌNH THƯỜNG, không phải lỗi — bỏ qua, không log ồn.
+    } catch (err) {
+      // DB/Dragonfly/hàng đợi hỏng cho MỘT ví — không được kéo theo cả tick (còn
+      // ví khác đang chờ được canh). Nhưng KHÔNG im lặng: `catch {}` rỗng ở đúng
+      // file này chính là thứ R7 vừa gỡ ra.
+      logger.error({ err, walletId: row.id }, "recovery.watch.wallet-failed");
     }
   }
-  return { checked, alerted, skipped: false };
+  return { checked, alerted, expired, unreadable, skipped: false };
 }
 
 export function createRecoveryWatchWorker(): Worker {
@@ -113,6 +177,11 @@ export function createRecoveryWatchWorker(): Worker {
       await redlock.using(["lock:recovery-watch"], 5 * 60_000, async () => {
         const result = await runRecoveryWatchTick();
         if (result.alerted > 0) logger.warn(result, "recovery.watch.alerted");
+        // R7 — hai con số này phải đọc được từ log: `expired` để biết cơ chế dọn
+        // có chạy không, `unreadable` để biết ta đang mù bao nhiêu ví (mù nhiều
+        // = mirror sẽ không bao giờ được dọn, và không ai nhận cảnh báo nào).
+        if (result.expired > 0) logger.warn(result, "recovery.watch.expired-stale-mirror");
+        if (result.unreadable > 0) logger.warn(result, "recovery.watch.chain-unreadable");
       });
     },
     { connection: bullConnection },

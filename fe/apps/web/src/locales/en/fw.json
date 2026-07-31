@@ -1,4 +1,9 @@
 {
+  "ai": {
+    "speakLabel": "Read aloud",
+    "stopLabel": "Stop reading",
+    "title": "AI protector"
+  },
   "block": {
     "alert": {
       "backCta": "Back to safety center",
@@ -7,8 +12,8 @@
       "cta": "Stop this now",
       "description": "A recovery request was started on another device. If this wasn't you, stop it before the waiting period ends — after that it cannot be undone.",
       "fingerprintLabel": "New key ID: {fingerprint}",
-      "nothingOpen": "There is no recovery request to stop right now.",
       "requestBody": "{approvals, plural, one {# family member has} other {# family members have}} agreed (needs {threshold}). When the waiting period ends, a new key takes over this wallet.",
+      "requestClosed": "That request is closed or has expired. Your wallet is safe.",
       "requestTitle": "What was requested",
       "retryCta": "Check again",
       "syncing": "Some details are still catching up. What you see here comes straight from the network.",
@@ -36,6 +41,10 @@
       "txLabel": "Proof on the network: {hash}"
     }
   },
+  "countdown": {
+    "blockWindowLabel": "Left to block it",
+    "windowClosed": "The safe window has ended"
+  },
   "getStarted": {
     "benefit1Body": "Your face or fingerprint replaces a phrase you could lose.",
     "benefit1Title": "No 12-word phrase",
@@ -54,8 +63,16 @@
   },
   "guardian": {
     "approve": {
+      "already": {
+        "body": "Your confirmation is already on the network. There is nothing more for you to do here.",
+        "title": "You already agreed"
+      },
       "backCta": "Back to requests",
       "biometricNote": "Your fingerprint or face confirms the vote — nothing is sent before that.",
+      "closed": {
+        "body": "The wallet owner is back in their wallet. Nothing more for you to do.",
+        "title": "This request is closed"
+      },
       "cta": "I agree — help recover",
       "description": "Check with them in person or by call before you approve.",
       "errors": {
@@ -65,22 +82,41 @@
       },
       "fingerprintLabel": "New key ID: {fingerprint}",
       "gone": "This request is no longer open.",
+      "recorded": {
+        "body": "The network already has your approval for this request — including if you were the one who opened it. Nothing more to do.",
+        "title": "Your vote is recorded"
+      },
       "signing": "Waiting for your confirmation…",
       "title": "Confirm it's them",
       "verifyNote": "Call the person who asked for this and read the key ID to each other. If it does not match, do not agree.",
-      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} so far. Yours could be the deciding one.",
-      "recorded": {
-        "title": "Your vote is recorded",
-        "body": "The network already has your approval for this request — including if you were the one who opened it. Nothing more to do."
+      "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} so far. Yours could be the deciding one."
+    },
+    "approveIntent": {
+      "amountLabel": "{name} wants to send",
+      "approveCta": "Approve transfer",
+      "backCta": "Back",
+      "description": "A family member wants to send money to a new address. Check with them, then decide.",
+      "errors": {
+        "alreadyDecided": "This request was already decided.",
+        "expired": "This request changed or expired — nothing was sent.",
+        "notSent": "Couldn't send your decision. Check your connection and try again."
       },
-      "closed": {
-        "title": "This request is closed",
-        "body": "The wallet owner is back in their wallet. Nothing more for you to do."
+      "expiresLabel": "Expires",
+      "gone": "This request is no longer waiting — it may have been decided, cancelled, or expired.",
+      "reasons": {
+        "blacklisted": "The recipient is on your family's block list.",
+        "other": "The wallet's safety rules asked for a family check.",
+        "overDailyLimit": "This would go beyond the amount you chose for today.",
+        "overTxLimit": "The amount is over the per-transfer limit.",
+        "unknownRecipient": "The recipient is a new address this wallet has never sent to."
       },
-      "already": {
-        "title": "You already agreed",
-        "body": "Your confirmation is already on the network. There is nothing more for you to do here."
-      }
+      "rejectCta": "Reject",
+      "title": "A transfer needs your OK",
+      "toLabel": "To",
+      "unnamedOwner": "your family member",
+      "verifiedCall": "I called and confirmed this is really their transfer",
+      "verifyNote": "Call {name} and make sure they really created this transfer. If anything feels off, reject it — no money moves.",
+      "verifyTitle": "Call before you approve"
     },
     "approveWarning": {
       "approveCta": "I've verified — review & approve",
@@ -111,18 +147,21 @@
       "knockBody": "Someone says they lost access to wallet {address} and set up a new device. Verify it is really them before starting anything.",
       "knockCta": "Review and start recovery",
       "knockTitle": "A new device asks for help",
+      "progressCta": "See progress",
       "reviewCta": "Review this request",
       "since": "Started {when}",
+      "thresholdMet": "Enough people have agreed. Now waiting out the safety window.",
       "title": "Requests for you",
+      "unnamedOwner": "a family member",
       "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
       "walletLabel": "Wallet {address}",
-      "youApproved": "You already agreed.",
-      "thresholdMet": "Enough people have agreed. Now waiting out the safety window.",
-      "progressCta": "See progress"
+      "walletOf": "{name}'s wallet",
+      "youApproved": "You already agreed."
     },
     "initiate": {
       "backCta": "Back to requests",
       "biometricNote": "Your fingerprint or face confirms it — nothing is sent before that.",
+      "countsAsVote": "Opening the request also counts as your vote — you won't need to vote again.",
       "cta": "I verified — start recovery",
       "description": "This begins the family recovery process. Other trusted contacts still have to agree, and the wallet owner can stop it during the waiting period.",
       "errors": {
@@ -135,42 +174,14 @@
       "gone": "This request is no longer open.",
       "signing": "Waiting for your confirmation…",
       "title": "Start recovery for this wallet?",
-      "verifyNote": "Call the wallet owner. Ask them to read the key ID from their new device — it must match this one exactly. If it does not, stop here.",
       "verify": {
-        "title": "Before you approve, call them and listen to their voice.",
-        "pickQuestion": "If you are not sure, ask about something only the two of you know and that exists nowhere else — not on social media, not on the phone they lost. A time you were both there. Something you said to each other.",
         "avoid": "Do not ask for a birthday, a school name, or a pet's name — those can be looked up.",
-        "unsure": "If you are not sure, do not approve. The wallet stays as it is. The real person can call back; an impostor cannot.",
-        "rush": "Real family will not rush you. Anyone pushing you to approve quickly is a warning sign."
+        "pickQuestion": "If you are not sure, ask about something only the two of you know and that exists nowhere else — not on social media, not on the phone they lost. A time you were both there. Something you said to each other.",
+        "rush": "Real family will not rush you. Anyone pushing you to approve quickly is a warning sign.",
+        "title": "Before you approve, call them and listen to their voice.",
+        "unsure": "If you are not sure, do not approve. The wallet stays as it is. The real person can call back; an impostor cannot."
       },
-      "countsAsVote": "Opening the request also counts as your vote — you won't need to vote again."
-    },
-    "approveIntent": {
-      "title": "A transfer needs your OK",
-      "description": "A family member wants to send money to a new address. Check with them, then decide.",
-      "unnamedOwner": "your family member",
-      "amountLabel": "{name} wants to send",
-      "toLabel": "To",
-      "expiresLabel": "Expires",
-      "reasons": {
-        "unknownRecipient": "The recipient is a new address this wallet has never sent to.",
-        "overTxLimit": "The amount is over the per-transfer limit.",
-        "overDailyLimit": "This would go beyond the amount you chose for today.",
-        "blacklisted": "The recipient is on your family's block list.",
-        "other": "The wallet's safety rules asked for a family check."
-      },
-      "verifyTitle": "Call before you approve",
-      "verifyNote": "Call {name} and make sure they really created this transfer. If anything feels off, reject it — no money moves.",
-      "verifiedCall": "I called and confirmed this is really their transfer",
-      "approveCta": "Approve transfer",
-      "rejectCta": "Reject",
-      "backCta": "Back",
-      "gone": "This request is no longer waiting — it may have been decided, cancelled, or expired.",
-      "errors": {
-        "alreadyDecided": "This request was already decided.",
-        "expired": "This request changed or expired — nothing was sent.",
-        "notSent": "Couldn't send your decision. Check your connection and try again."
-      }
+      "verifyNote": "Call the wallet owner. Ask them to read the key ID from their new device — it must match this one exactly. If it does not, stop here."
     }
   },
   "guardians": {
@@ -183,12 +194,16 @@
       "cant2": "You cannot see their balance or their activity.",
       "cant3": "You cannot move their wallet anywhere on your own.",
       "cantTitle": "What you can NOT do",
+      "createNewCta": "Create a separate new identity",
+      "createNewHint": "Your device will ask for fingerprint/Face ID to create a new key used only for protecting.",
       "creating": "Setting up…",
       "cta": "Set up my secure identity",
       "declineCta": "I don't know this person",
       "description": "{label} asked you to be one of the people who can help them get back into their wallet.",
       "doneBody": "Your secure identity is ready on this device.",
       "doneTitle": "You are all set",
+      "errAlreadyGuardianBody": "Each person holds only one guardian seat — that is what makes it truly several people standing guard. Pass this invite to another family member.",
+      "errAlreadyGuardianTitle": "You already protect this wallet",
       "errBusyBody": "We paused for a few dozen seconds to avoid doing this twice. Nothing changed. Wait a moment and tap again.",
       "errBusyTitle": "That was a bit fast",
       "errGenericBody": "Something did not work on the last step. Nothing changed — please try again. If it keeps happening, read the code below to the person who invited you.",
@@ -209,33 +224,29 @@
       "helpTitle": "How you help",
       "homeCta": "Go to my wallet",
       "inviteTitle": "{owner} is asking you to help protect their wallet",
+      "loadFailedBody": "The network is unstable or the system is busy. Your invite is still there — please try again.",
+      "loadFailedTitle": "Could not open the invite",
+      "loginCta": "I already have a wallet — sign in",
+      "loginHint": "Sign in to your existing account; the invite is kept safe until you come back.",
       "needLine": "You need your own account and fingerprint/Face ID on this very device.",
       "point1": "You will not hold their money, and you cannot spend it.",
       "point2": "If they ever lose their phone, you and one other person can let them back in.",
       "point3": "Your key stays on this device. Nobody, not even us, can copy it.",
+      "retryCta": "Try again",
+      "reuseCta": "Use my existing identity",
+      "reuseHint": "This account already has a secure key — accept with that key, no need to create another.",
       "reviewHelp": "Review how you help",
       "selfBody": "Send this link to a family member instead.",
       "selfTitle": "You cannot be a guardian of your own wallet.",
+      "signUpCta": "I don't have a wallet yet — create an account",
+      "signUpHint": "Free and takes a minute. After signing up you will come right back to this page to accept.",
       "signedInAs": "You are signed in as {email}.",
       "switchAccount": "Not you? Switch account",
       "title": "Someone asked you to help",
       "usedBody": "Each invite works only once. If this wasn't you, tell the person who invited you.",
       "usedTitle": "This invite was already used",
       "waitingOwner": "They now need to confirm you on their own phone. You do not have to do anything else.",
-      "whatTitle": "What this means",
-      "signUpCta": "I don't have a wallet yet — create an account",
-      "signUpHint": "Free and takes a minute. After signing up you will come right back to this page to accept.",
-      "loginCta": "I already have a wallet — sign in",
-      "loginHint": "Sign in to your existing account; the invite is kept safe until you come back.",
-      "reuseCta": "Use my existing identity",
-      "reuseHint": "This account already has a secure key — accept with that key, no need to create another.",
-      "createNewCta": "Create a separate new identity",
-      "createNewHint": "Your device will ask for fingerprint/Face ID to create a new key used only for protecting.",
-      "errAlreadyGuardianTitle": "You already protect this wallet",
-      "errAlreadyGuardianBody": "Each person holds only one guardian seat — that is what makes it truly several people standing guard. Pass this invite to another family member.",
-      "loadFailedTitle": "Could not open the invite",
-      "loadFailedBody": "The network is unstable or the system is busy. Your invite is still there — please try again.",
-      "retryCta": "Try again"
+      "whatTitle": "What this means"
     },
     "detail": {
       "backCta": "Back to the list",
@@ -250,9 +261,9 @@
       "title": "Protector details"
     },
     "inviteList": {
-      "addCta": "Add to my wallet",
       "addAllCta": "Add all ({count})",
       "addAllProgress": "Adding {done}/{total}…",
+      "addCta": "Add to my wallet",
       "addFailed": "We could not add them. Nothing changed — please try again.",
       "addFailedAlready": "They are already one of your guardians. Invite someone else.",
       "addFailedSelf": "You cannot be a guardian of your own wallet.",
@@ -275,9 +286,9 @@
     },
     "manage": {
       "description": "See who protects your wallet, and whether we can still reach them.",
-      "title": "Your protectors",
       "mineTitle": "People protecting your wallet ({available}/{required})",
-      "mineTitleNoCount": "People protecting your wallet"
+      "mineTitleNoCount": "People protecting your wallet",
+      "title": "Your protectors"
     },
     "recoverability": {
       "notYetBody": "You need at least {required} people to accept — {available} so far, {missing, plural, one {# more to go} other {# more to go}}. To recover the wallet, {threshold} of them must approve together.",
@@ -411,7 +422,10 @@
     "noWallet": "You don't have a wallet yet, so there's nothing to watch over.",
     "openRecovery": {
       "body": "{approvals, plural, one {# family confirmation} other {# family confirmations}} so far, {threshold} needed. If this is not your family helping you, block it now.",
+      "closedBody": "This recovery request is no longer live on the network. There is nothing for you to do.",
+      "closedTitle": "Request closed",
       "cta": "This wasn't me — block it",
+      "rechecking": "Checking again with the network — the numbers here may not be the latest.",
       "title": "Someone is recovering this wallet",
       "window": "You can still block it for {countdown} (until {absolute})."
     },
@@ -455,56 +469,56 @@
     "walletUser": "Family wallet",
     "working": "Unlocking with your device…"
   },
-  "ai": {
-    "title": "AI protector",
-    "speakLabel": "Read aloud",
-    "stopLabel": "Stop reading"
-  },
-  "signals": {
-    "title": "Check before you approve",
-    "titleOwner": "Double-check this transfer",
-    "ratio": "About {ratio} times what this wallet usually sends",
-    "firstTime": "Receiving address: first time this wallet sends to it",
-    "sentBefore": "Receiving address: {count, plural, one {sent successfully once before} other {sent successfully # times before}}",
-    "velocity": "Last hour: {count, plural, one {# transfer} other {# transfers}}, {total} in total",
-    "finalGuardian": "Once the money leaves, it cannot be taken back.",
-    "finalOwner": "This transfer will need a family member to confirm it."
-  },
   "protecting": {
-    "title": "Wallets I protect",
+    "approvals": {
+      "expires": "Expires {when}",
+      "item": "{name} wants to send {amount} to {recipient}",
+      "reviewCta": "Review and decide",
+      "title": "Waiting for your decision"
+    },
+    "badgeAria": "{count} things waiting for your decision",
     "description": "Wallets your family trusted you to protect.",
     "empty": "You're not protecting any wallets yet. When family invites you, the invite link will bring you here.",
     "item": {
-      "title": "{name}'s wallet",
-      "unnamed": "your family member",
-      "since": "Protecting it since {date}",
       "activity": "active {when}",
+      "addressLabel": "Their wallet address",
+      "copied": "Copied",
+      "copyCta": "Copy address",
       "noActivity": "no activity yet",
       "recoveryOpen": "A recovery request is waiting for you",
       "reviewCta": "Review and decide",
-      "addressLabel": "Their wallet address",
-      "copyCta": "Copy address",
-      "copied": "Copied"
+      "since": "Protecting it since {date}",
+      "title": "{name}'s wallet",
+      "unnamed": "your family member"
     },
-    "approvals": {
-      "title": "Waiting for your decision",
-      "item": "{name} wants to send {amount} to {recipient}",
-      "expires": "Expires {when}",
-      "reviewCta": "Review and decide"
+    "knocks": {
+      "item": "Someone says they lost their device and needs your help to get back in.",
+      "reviewCta": "Review and decide",
+      "since": "Sent {when}",
+      "title": "Waiting for you"
     },
     "summary": {
-      "title": "You are protecting",
       "empty": "You're not protecting anyone's wallet yet. When you accept a family invite, their wallet will show up here.",
+      "openCta": "See what's waiting",
       "pendingWork": "Something is waiting for your decision",
-      "openCta": "See what's waiting"
+      "title": "You are protecting"
     },
-    "badgeAria": "{count} things waiting for your decision",
-    "knocks": {
-      "title": "Waiting for you",
-      "item": "Someone says they lost their device and needs your help to get back in.",
-      "since": "Sent {when}",
-      "reviewCta": "Review and decide"
-    }
+    "title": "Wallets I protect"
+  },
+  "realtime": {
+    "guardianAccepted": "{name} just agreed to help protect your wallet.",
+    "guardianAdded": "{name} is now one of your wallet's protectors.",
+    "intentApproved": "Your transfer was approved.",
+    "intentCancelled": "A pending transfer was cancelled.",
+    "intentExpired": "A pending transfer expired — no money left the wallet.",
+    "intentPending": "A transfer is waiting for your review.",
+    "intentRejected": "Your transfer was declined — no money has moved.",
+    "policyApplied": "The new allowed amounts are now active.",
+    "policyCancelled": "The change to allowed amounts was cancelled.",
+    "policyRaiseRequested": "Someone asked to raise the amounts this wallet allows. If this wasn't you, cancel it in Settings.",
+    "recoveryClosed": "The wallet owner is back in their wallet. The recovery request is closed.",
+    "recoveryDeviceRequested": "Someone in your family needs help getting back into their wallet.",
+    "recoveryReady": "Enough family members have confirmed the wallet recovery."
   },
   "recovery": {
     "cooldown": {
@@ -521,11 +535,11 @@
       "doneCta": "Finish on this device",
       "note": "This waiting period exists so the wallet owner can stop a recovery they did not ask for. If that is you — do nothing, just wait.",
       "protectionTitle": "Why there is a waiting period",
+      "stoppedBody": "The wallet owner blocked this request, or it ran out of time. Nothing was moved.",
+      "stoppedTitle": "This request was stopped",
       "title": "Almost there",
       "window": "Time left: {countdown} (until {absolute})",
-      "windowLabel": "Protection window",
-      "stoppedTitle": "This request was stopped",
-      "stoppedBody": "The wallet owner blocked this request, or it ran out of time. Nothing was moved."
+      "windowLabel": "Protection window"
     },
     "done": {
       "connectCta": "Open my wallet on this device",
@@ -540,6 +554,21 @@
       "sameAddress": "Same wallet address. Your money never moved.",
       "title": "Welcome back"
     },
+    "finalize": {
+      "alreadyDone": "Your wallet is already back. Open it below.",
+      "cta": "Get my wallet back",
+      "errors": {
+        "expired": "This request waited too long and expired. Start a new one.",
+        "notEnoughVotes": "Not enough family members have confirmed yet.",
+        "notSent": "That did not go through. Nothing changed — you can try again.",
+        "notYourWallet": "This account does not own that wallet. Sign in with the account you used before.",
+        "tooEarly": "The waiting time is not over yet. Try again when the countdown reaches zero."
+      },
+      "signInCta": "Sign in to finish",
+      "signInNote": "Use the email and password of the account that owns this wallet. The last step needs to know it is you.",
+      "waitNote": "The button turns on when the waiting time is over.",
+      "working": "Getting your wallet back…"
+    },
     "findWallet": {
       "creating": "Creating your new key…",
       "cta": "Create new key and ask family",
@@ -551,27 +580,30 @@
       },
       "invalid": "That does not look like a wallet address. It starts with C and has 56 characters.",
       "label": "Your wallet address",
-      "passkeyNote": "Next, this device will ask for your fingerprint or face to create the new key.",
-      "placeholder": "C…",
-      "title": "Find your wallet",
       "lookup": {
-        "title": "I don't remember my wallet address",
-        "note": "Enter the email you use for your wallet. If that email has a wallet, we'll send instructions with a link that fills the address in for you.",
+        "cta": "Email me the instructions",
         "emailLabel": "Your email",
         "emailPlaceholder": "you@example.com",
+        "errorNotSent": "Couldn't send. Check your connection and try again.",
         "invalid": "That doesn't look like an email address yet.",
-        "cta": "Email me the instructions",
+        "note": "Enter the email you use for your wallet. If that email has a wallet, we'll send instructions with a link that fills the address in for you.",
         "sending": "Sending…",
         "sentNote": "If this email has a wallet, we've sent instructions. Check your inbox (and the spam folder).",
-        "errorNotSent": "Couldn't send. Check your connection and try again."
+        "title": "I don't remember my wallet address"
       },
-      "prefilled": "Your wallet address was filled in from your email. Check it, then continue."
+      "passkeyNote": "Next, this device will ask for your fingerprint or face to create the new key.",
+      "placeholder": "C…",
+      "prefilled": "Your wallet address was filled in from your email. Check it, then continue.",
+      "title": "Find your wallet"
     },
     "progress": {
+      "approverLink": "View the on-chain proof",
+      "approversTitle": "Who has confirmed",
       "checkNote": "This page updates itself — you can leave it open.",
       "countdownCta": "See the waiting period",
       "description": "See who has confirmed so far.",
       "doneCta": "Finish on this device",
+      "feeNote": "The network fee is paid by our system wallet — the people confirming are the addresses below, not the fee wallet.",
       "missingAddressCta": "Enter your wallet address first",
       "missingTitle": "First, tell us which wallet",
       "state": {
@@ -583,10 +615,7 @@
       },
       "title": "Waiting for approvals",
       "votes": "{approvals, plural, one {# vote} other {# votes}} of {threshold} needed",
-      "waitingCta": "Waiting for family",
-      "approversTitle": "Who has confirmed",
-      "approverLink": "View the on-chain proof",
-      "feeNote": "The network fee is paid by our system wallet — the people confirming are the addresses below, not the fee wallet."
+      "waitingCta": "Waiting for family"
     },
     "sent": {
       "description": "Your protectors have been asked to confirm it's really you.",
@@ -606,22 +635,15 @@
       "step2": "Your family members verify it is really you — by phone, not through this app.",
       "step3": "When enough of them agree and the waiting period passes, your wallet answers to the new key. Same address, nothing moves.",
       "title": "Get your wallet back"
-    },
-    "finalize": {
-      "cta": "Get my wallet back",
-      "working": "Getting your wallet back…",
-      "waitNote": "The button turns on when the waiting time is over.",
-      "signInCta": "Sign in to finish",
-      "signInNote": "Use the email and password of the account that owns this wallet. The last step needs to know it is you.",
-      "alreadyDone": "Your wallet is already back. Open it below.",
-      "errors": {
-        "tooEarly": "The waiting time is not over yet. Try again when the countdown reaches zero.",
-        "notEnoughVotes": "Not enough family members have confirmed yet.",
-        "expired": "This request waited too long and expired. Start a new one.",
-        "notYourWallet": "This account does not own that wallet. Sign in with the account you used before.",
-        "notSent": "That did not go through. Nothing changed — you can try again."
-      }
     }
+  },
+  "recoveryAlert": {
+    "body": "Someone asked to move this wallet to a different device. It moves in {remaining} (on {when}) unless you stop it.",
+    "bodyExpired": "Someone asked to move this wallet to a different device, and the waiting time is over. Stop it now if this is not you.",
+    "cta": "Stop it now",
+    "title": "Someone is asking to move your wallet",
+    "unknownBody": "We could not reach the network to check whether anyone is asking to move this wallet. This is not an all-clear. Try again in a moment, or open the safety screen.",
+    "unknownTitle": "We cannot check your wallet right now"
   },
   "settings": {
     "about": {
@@ -637,45 +659,45 @@
     "language": {
       "title": "Language"
     },
-    "title": "Settings",
     "safety": {
-      "title": "Safety",
       "body": "The highest amount allowed each day is locked together with your wallet, not held only by this service. Only you can raise it.",
       "hard": {
-        "title": "Built-in spending protection",
         "attached": "Active — this protection stays with your wallet.",
-        "notAttached": "Your wallet doesn't have built-in spending protection yet.",
         "enableCta": "Turn on spending lock",
-        "enabled": "Built-in spending protection is now on.",
         "enableFailed": "Couldn't turn on the lock. Nothing changed — you can try again.",
+        "enabled": "Built-in spending protection is now on.",
+        "notAttached": "Your wallet doesn't have built-in spending protection yet.",
+        "title": "Built-in spending protection",
         "unknown": "Couldn't check this protection right now."
       },
+      "pending": {
+        "cancelCta": "Cancel this change",
+        "cancelFailed": "Couldn't cancel. Try again.",
+        "cancelled": "Change cancelled — your old limits stay.",
+        "countdown": "Applies in about {hours}h {minutes}m. Until then your old limits stay in force.",
+        "title": "Waiting: {perTx} XLM per transfer · {daily} XLM per day"
+      },
       "soft": {
-        "title": "Your own limits",
-        "body": "Checked before every transfer. Sending above these limits just needs a family confirmation — nothing is ever lost.",
-        "perTxLabel": "Per transfer (XLM)",
-        "dailyLabel": "Per day (XLM)",
-        "current": "Now: {perTx} XLM per transfer · {daily} XLM per day",
-        "saveCta": "Save limits",
-        "raiseNote": "Raising limits takes effect after 24 hours, and you can cancel anytime before that. Lowering applies immediately.",
         "applied": "New limits are active now.",
-        "pendingCreated": "Increase requested — it takes effect in 24 hours. You can cancel anytime before that.",
-        "unchanged": "Limits unchanged.",
-        "saveFailed": "Couldn't save the limits. Try again.",
+        "body": "Checked before every transfer. Sending above these limits just needs a family confirmation — nothing is ever lost.",
+        "current": "Now: {perTx} XLM per transfer · {daily} XLM per day",
+        "dailyLabel": "Per day (XLM)",
         "errors": {
           "bad": "Enter whole XLM amounts greater than zero.",
-          "daily": "The daily limit must be at least the per-transfer limit.",
-          "cap": "Amounts can't be higher than your protected maximum ({cap} XLM)."
-        }
+          "cap": "Amounts can't be higher than your protected maximum ({cap} XLM).",
+          "daily": "The daily limit must be at least the per-transfer limit."
+        },
+        "pendingCreated": "Increase requested — it takes effect in 24 hours. You can cancel anytime before that.",
+        "perTxLabel": "Per transfer (XLM)",
+        "raiseNote": "Raising limits takes effect after 24 hours, and you can cancel anytime before that. Lowering applies immediately.",
+        "saveCta": "Save limits",
+        "saveFailed": "Couldn't save the limits. Try again.",
+        "title": "Your own limits",
+        "unchanged": "Limits unchanged."
       },
-      "pending": {
-        "title": "Waiting: {perTx} XLM per transfer · {daily} XLM per day",
-        "countdown": "Applies in about {hours}h {minutes}m. Until then your old limits stay in force.",
-        "cancelCta": "Cancel this change",
-        "cancelled": "Change cancelled — your old limits stay.",
-        "cancelFailed": "Couldn't cancel. Try again."
-      }
-    }
+      "title": "Safety"
+    },
+    "title": "Settings"
   },
   "setup": {
     "assistant": {
@@ -703,9 +725,9 @@
       "cta": "Create my wallet",
       "description": "Choose trusted people who can help you recover this wallet if you ever lose your phone.",
       "errors": {
+        "deviceDeclined": "Your device did not confirm your face/fingerprint. The wallet was not created — try again and confirm on your device.",
         "failed": "We could not create the wallet. Nothing has changed on your account — try again, and if it keeps failing, read the code below to our support team.",
         "notConfigured": "The app isn't connected to the wallet network yet. That's on our team.",
-        "deviceDeclined": "Your device did not confirm your face/fingerprint. The wallet was not created — try again and confirm on your device.",
         "technical": "Technical code for support: {code}"
       },
       "haveWalletCta": "I already have a wallet",
@@ -745,6 +767,9 @@
       "guardiansLabel": "People ready to help",
       "inviteMoreCta": "Invite more people",
       "registerCta": "Turn on protection",
+      "registerErrAlready": "Protection was already turned on — nothing to redo. Check the Safety card to confirm.",
+      "registerErrBusy": "That was a little fast — wait a moment and press again.",
+      "registerErrFew": "Not enough people have accepted yet. Invite more family, then come back to this step.",
       "registerFailed": "We could not turn it on. Nothing changed — please try again.",
       "registered": "Protection is on. Your family can now help you get back in.",
       "registering": "Turning on…",
@@ -752,10 +777,7 @@
       "thresholdLabel": "People who must agree",
       "thresholdValue": "{count, plural, one {# person} other {# people}}",
       "timelockLabel": "Time to stop a recovery",
-      "title": "Check everything",
-      "registerErrAlready": "Protection was already turned on — nothing to redo. Check the Safety card to confirm.",
-      "registerErrFew": "Not enough people have accepted yet. Invite more family, then come back to this step.",
-      "registerErrBusy": "That was a little fast — wait a moment and press again."
+      "title": "Check everything"
     },
     "threshold": {
       "backCta": "Back",
@@ -790,6 +812,16 @@
       "navLabel": "Setup progress",
       "useSimpleCta": "Set up my wallet"
     }
+  },
+  "signals": {
+    "finalGuardian": "Once the money leaves, it cannot be taken back.",
+    "finalOwner": "This transfer will need a family member to confirm it.",
+    "firstTime": "Receiving address: first time this wallet sends to it",
+    "ratio": "About {ratio} times what this wallet usually sends",
+    "sentBefore": "Receiving address: {count, plural, one {sent successfully once before} other {sent successfully # times before}}",
+    "title": "Check before you approve",
+    "titleOwner": "Double-check this transfer",
+    "velocity": "Last hour: {count, plural, one {# transfer} other {# transfers}}, {total} in total"
   },
   "state": {
     "error": "Couldn't load this right now. Pull to refresh or try again shortly."
@@ -828,26 +860,40 @@
       "whyInvite": "A family wallet needs at least {required} relatives to accept before sending is unlocked. That is the layer that lets you get your wallet back if you lose your phone or your fingerprint — and it stops anyone from taking the wallet and emptying it alone.",
       "whyRegister": "Your {required} relatives have accepted. One last step is left: confirm with your fingerprint to lock this protection in. After that you can send right away."
     },
+    "pendingSignature": {
+      "approvedBadge": "Family agreed",
+      "description": "Your family member said yes. The money only leaves your wallet after you confirm it yourself with your fingerprint or face — nobody can do it for you.",
+      "noAmount": "Settings change request",
+      "sentTitle": "Sent",
+      "signCta": "Confirm and send",
+      "signingCta": "Working…",
+      "title": "{count, plural, one {# request is waiting for you} other {# requests are waiting for you}}",
+      "toLabel": "Sending to",
+      "whyBody": "This amount is over the limit you set, so it needed a family member to agree — and they did. Read the address above carefully before you confirm."
+    },
     "receive": {
       "copied": "Copied",
       "copyCta": "Copy address",
       "description": "Show your code, or share your wallet address.",
-      "noWallet": "You do not have a wallet yet.",
-      "qrLabel": "Wallet address QR code",
-      "stableNote": "This address never changes — even after a recovery. Share it once and reuse it.",
-      "title": "Receive",
       "downloadCta": "Download QR image",
-      "shareCta": "Share image",
       "image": {
-        "title": "Send money to me",
-        "subtitle": "Wallet address on the Stellar test network"
+        "subtitle": "Wallet address on the Stellar test network",
+        "title": "Send money to me"
       },
       "imageFailed": "Couldn't create the image. Please try again.",
+      "noWallet": "You do not have a wallet yet.",
+      "qrLabel": "Wallet address QR code",
+      "shareCta": "Share image",
+      "stableNote": "This address never changes — even after a recovery. Share it once and reuse it.",
+      "title": "Receive",
       "unnamedOwner": "Wallet owner"
     },
     "send": {
       "amountLabel": "Amount (XLM)",
       "checking": "Checking…",
+      "contacts": {
+        "cta": "Choose family member"
+      },
       "cta": "Continue",
       "description": "Send money to anyone.",
       "done": {
@@ -877,25 +923,29 @@
         "rateLimitedBody": "We paused for a few dozen seconds so the same transfer is not sent twice. Nothing was sent. Wait a moment and tap again.",
         "rateLimitedTitle": "That was a bit fast",
         "safetyCta": "Open Safety settings",
+        "spendingLimit": "This is above the amount your wallet allows today. Only you can change that protection. Try a smaller amount, or try again tomorrow.",
         "staleIntentBody": "That transfer already moved past a step, so it cannot be reused — this is how we avoid sending twice. Nothing was sent. Start over; your amount and recipient are still there.",
         "staleIntentTitle": "This request is out of date",
         "tampered": "We stopped this payment. The order we were about to approve did not match the amount and recipient you entered, so nothing was signed and nothing was sent. Do not retry on this device — check your connection and contact support.",
         "technical": "Technical code: {code}",
-        "walletLocked": "Your wallet is locked on this device. Open it first, then try again.",
-        "spendingLimit": "This is above the amount your wallet allows today. Only you can change that protection. Try a smaller amount, or try again tomorrow."
+        "walletLocked": "Your wallet is locked on this device. Open it first, then try again."
       },
       "guardian": {
-        "description": "This amount needs a trusted contact to agree first. We've asked them — you'll be notified when it's approved.",
-        "title": "Waiting for your family",
-        "cancelCta": "Cancel this transfer",
-        "confirmBody": "Cancel this transfer? No money has left your wallet.",
-        "confirmYes": "Yes, cancel it",
-        "confirmNo": "Keep waiting",
-        "cancelFailed": "Couldn't cancel. It may have just been approved — check the transfer status.",
+        "approvedDescription": "One last step: confirm with your own fingerprint or face. The money has not left your wallet until you do.",
         "approvedTitle": "Your family member agreed",
-        "approvedDescription": "One last step: confirm with your own fingerprint or face. The money has not left your wallet until you do."
+        "cancelCta": "Cancel this transfer",
+        "cancelFailed": "Couldn't cancel. It may have just been approved — check the transfer status.",
+        "confirmBody": "Cancel this transfer? No money has left your wallet.",
+        "confirmNo": "Keep waiting",
+        "confirmYes": "Yes, cancel it",
+        "description": "This amount needs a trusted contact to agree first. We've asked them — you'll be notified when it's approved.",
+        "title": "Waiting for your family"
       },
+      "knownRecipient": "Sending to {name}",
+      "muxedNote": "This address already carries the exchange's routing id — no memo needed.",
+      "muxedUnsupported": "Muxed addresses (M…) aren't supported yet — use the exchange's G… address with the memo it shows you.",
       "noWallet": "You do not have a wallet yet.",
+      "pasteCta": "Paste address",
       "progress": {
         "confirming": "Preparing your transfer…",
         "submitting": "Confirmed — sending on the Stellar network (about 5 seconds)…"
@@ -911,6 +961,13 @@
         "to": "To",
         "unknownRecipient": "You've never sent money to this address before. Double-check it with the person receiving — transfers can't be undone."
       },
+      "scan": {
+        "closeCta": "Close camera",
+        "cta": "Scan QR code",
+        "failed": "Couldn't open the camera. You can still paste or type the address.",
+        "hint": "Point the camera at the wallet address QR code.",
+        "viewfinder": "Camera viewfinder for QR scanning"
+      },
       "startOverCta": "Start over",
       "title": "Send",
       "unconfirmed": {
@@ -919,33 +976,15 @@
         "historyCta": "Open History",
         "stillUnknown": "Still no answer. Check History in a few minutes to see whether it went through — do not send again until you are sure.",
         "title": "Not confirmed yet"
-      },
-      "scan": {
-        "cta": "Scan QR code",
-        "hint": "Point the camera at the wallet address QR code.",
-        "closeCta": "Close camera",
-        "failed": "Couldn't open the camera. You can still paste or type the address.",
-        "viewfinder": "Camera viewfinder for QR scanning"
-      },
-      "pasteCta": "Paste address",
-      "contacts": {
-        "cta": "Choose family member"
-      },
-      "knownRecipient": "Sending to {name}",
-      "muxedNote": "This address already carries the exchange's routing id — no memo needed.",
-      "muxedUnsupported": "Muxed addresses (M…) aren't supported yet — use the exchange's G… address with the memo it shows you."
-    },
-    "pendingSignature": {
-      "title": "{count, plural, one {# request is waiting for you} other {# requests are waiting for you}}",
-      "description": "Your family member said yes. The money only leaves your wallet after you confirm it yourself with your fingerprint or face — nobody can do it for you.",
-      "noAmount": "Settings change request",
-      "approvedBadge": "Family agreed",
-      "toLabel": "Sending to",
-      "whyBody": "This amount is over the limit you set, so it needed a family member to agree — and they did. Read the address above carefully before you confirm.",
-      "signCta": "Confirm and send",
-      "signingCta": "Working…",
-      "sentTitle": "Sent"
+      }
     }
+  },
+  "walletSession": {
+    "reconfirm": {
+      "cta": "Confirm with fingerprint again",
+      "title": "Confirm with your fingerprint again to sign."
+    },
+    "reconfirmFailed": "We still could not confirm on this device. Try again later, or open the app on the device you usually sign with."
   },
   "welcome": {
     "cta": "Get started",
@@ -955,35 +994,5 @@
     "point2": "If you ever lose your phone, people you trust help you get it back.",
     "point3": "Decide who inherits it, so nothing is stranded if something happens to you.",
     "title": "Family money,\nsafely kept."
-  },
-  "realtime": {
-    "guardianAccepted": "{name} just agreed to help protect your wallet.",
-    "guardianAdded": "{name} is now one of your wallet's protectors.",
-    "intentApproved": "Your transfer was approved.",
-    "intentCancelled": "A pending transfer was cancelled.",
-    "intentExpired": "A pending transfer expired — no money left the wallet.",
-    "intentPending": "A transfer is waiting for your review.",
-    "intentRejected": "Your transfer was declined — no money has moved.",
-    "policyRaiseRequested": "Someone asked to raise the amounts this wallet allows. If this wasn't you, cancel it in Settings.",
-    "policyApplied": "The new allowed amounts are now active.",
-    "policyCancelled": "The change to allowed amounts was cancelled.",
-    "recoveryDeviceRequested": "Someone in your family needs help getting back into their wallet.",
-    "recoveryClosed": "The wallet owner is back in their wallet. The recovery request is closed.",
-    "recoveryReady": "Enough family members have confirmed the wallet recovery."
-  },
-  "walletSession": {
-    "reconfirm": {
-      "title": "Confirm with your fingerprint again to sign.",
-      "cta": "Confirm with fingerprint again"
-    },
-    "reconfirmFailed": "We still could not confirm on this device. Try again later, or open the app on the device you usually sign with."
-  },
-  "recoveryAlert": {
-    "title": "Someone is asking to move your wallet",
-    "body": "Someone asked to move this wallet to a different device. It moves in {remaining} (on {when}) unless you stop it.",
-    "bodyExpired": "Someone asked to move this wallet to a different device, and the waiting time is over. Stop it now if this is not you.",
-    "cta": "Stop it now",
-    "unknownTitle": "We cannot check your wallet right now",
-    "unknownBody": "We could not reach the network to check whether anyone is asking to move this wallet. This is not an all-clear. Try again in a moment, or open the safety screen."
   }
 }

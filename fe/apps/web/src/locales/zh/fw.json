@@ -1,4 +1,9 @@
 {
+  "ai": {
+    "speakLabel": "朗读内容",
+    "stopLabel": "停止朗读",
+    "title": "AI 守护助手"
+  },
   "block": {
     "alert": {
       "backCta": "返回安全中心",
@@ -7,8 +12,8 @@
       "cta": "立即阻止",
       "description": "另一台设备发起了恢复请求。如果不是你本人，请在等待期结束前阻止它 — 结束后将无法撤销。",
       "fingerprintLabel": "新钥匙 ID：{fingerprint}",
-      "nothingOpen": "目前没有需要阻止的恢复请求。",
       "requestBody": "{approvals, plural, other {# 位家人}}已同意（需要 {threshold} 位）。等待期结束后，新的钥匙将接管此钱包。",
+      "requestClosed": "该请求已关闭或已过期。你的钱包是安全的。",
       "requestTitle": "请求的内容",
       "retryCta": "再检查一次",
       "syncing": "部分信息仍在同步。你在这里看到的内容直接来自网络。",
@@ -36,6 +41,10 @@
       "txLabel": "网络上的凭证：{hash}"
     }
   },
+  "countdown": {
+    "blockWindowLabel": "剩余阻止时间",
+    "windowClosed": "安全时段已结束"
+  },
   "getStarted": {
     "benefit1Body": "面容或指纹取代容易遗失的恢复短语。",
     "benefit1Title": "没有 12 个助记词",
@@ -54,8 +63,16 @@
   },
   "guardian": {
     "approve": {
+      "already": {
+        "body": "您的确认已经在网络上了，这里不需要您再做什么。",
+        "title": "您已经同意了"
+      },
       "backCta": "返回请求列表",
       "biometricNote": "用指纹或面容确认这一票 — 在此之前不会发送任何内容。",
+      "closed": {
+        "body": "钱包主人已重新进入自己的钱包。您无需再做任何操作。",
+        "title": "该请求已关闭"
+      },
       "cta": "我同意 — 协助恢复",
       "description": "在同意之前，请当面或通过通话与他们确认。",
       "errors": {
@@ -65,22 +82,41 @@
       },
       "fingerprintLabel": "新钥匙 ID：{fingerprint}",
       "gone": "该请求已不再开放。",
+      "recorded": {
+        "body": "网络已记录您对该请求的同意——包括您是发起人的情况。无需再次操作。",
+        "title": "您的一票已被记录"
+      },
       "signing": "正在等待你的确认…",
       "title": "确认是本人",
       "verifyNote": "给发起请求的人打电话，互相核对钥匙 ID。如果不一致，请不要同意。",
-      "votes": "目前 {approvals, plural, other {# 票}}，共需 {threshold} 票。你这一票可能是决定性的。",
-      "recorded": {
-        "title": "您的一票已被记录",
-        "body": "网络已记录您对该请求的同意——包括您是发起人的情况。无需再次操作。"
+      "votes": "目前 {approvals, plural, other {# 票}}，共需 {threshold} 票。你这一票可能是决定性的。"
+    },
+    "approveIntent": {
+      "amountLabel": "{name} 想转出",
+      "approveCta": "同意转账",
+      "backCta": "返回",
+      "description": "您的家人想向一个新地址转账。请先与对方确认，再做决定。",
+      "errors": {
+        "alreadyDecided": "该请求已被处理。",
+        "expired": "请求已变更或过期——没有任何资金被转出。",
+        "notSent": "未能提交您的决定。请检查网络后重试。"
       },
-      "closed": {
-        "title": "该请求已关闭",
-        "body": "钱包主人已重新进入自己的钱包。您无需再做任何操作。"
+      "expiresLabel": "过期时间",
+      "gone": "该请求已不在等待中——可能已被处理、取消或过期。",
+      "reasons": {
+        "blacklisted": "收款方在家庭黑名单中。",
+        "other": "钱包的安全规则要求家人复核。",
+        "overDailyLimit": "这将超过您为今天选择的金额。",
+        "overTxLimit": "金额超过单笔转账限额。",
+        "unknownRecipient": "收款方是新地址，这个钱包从未给它转过账。"
       },
-      "already": {
-        "title": "您已经同意了",
-        "body": "您的确认已经在网络上了，这里不需要您再做什么。"
-      }
+      "rejectCta": "拒绝",
+      "title": "一笔转账需要您确认",
+      "toLabel": "收款方",
+      "unnamedOwner": "您的家人",
+      "verifiedCall": "我已打电话确认，这确实是他们的转账",
+      "verifyNote": "请打电话给 {name}，确认这笔转账确实是本人发起。如有任何异常，请拒绝——资金不会离开钱包。",
+      "verifyTitle": "同意前请先打电话"
     },
     "approveWarning": {
       "approveCta": "我已核实——查看并批准",
@@ -111,18 +147,21 @@
       "knockBody": "有人表示丢失了对钱包 {address} 的访问权限并设置了新设备。在开始任何操作前，请确认确实是本人。",
       "knockCta": "查看并发起恢复",
       "knockTitle": "有新设备请求帮助",
+      "progressCta": "查看进度",
       "reviewCta": "查看该请求",
       "since": "开始于 {when}",
+      "thresholdMet": "同意的人数已经够了，正在等待安全期结束。",
       "title": "等你处理的请求",
+      "unnamedOwner": "一位家人",
       "votes": "需要 {approvals, plural, other {# 票}}，共 {threshold} 票",
       "walletLabel": "钱包 {address}",
-      "youApproved": "您已经同意了。",
-      "thresholdMet": "同意的人数已经够了，正在等待安全期结束。",
-      "progressCta": "查看进度"
+      "walletOf": "{name} 的钱包",
+      "youApproved": "您已经同意了。"
     },
     "initiate": {
       "backCta": "返回请求列表",
       "biometricNote": "用指纹或面容确认 — 在此之前不会发送任何内容。",
+      "countsAsVote": "发起请求本身就算您的一票——之后无需再投票。",
       "cta": "我已核实 — 发起恢复",
       "description": "这将开始家庭恢复流程。其他受信任的联系人仍需同意，钱包主人也可在等待期内阻止。",
       "errors": {
@@ -135,42 +174,14 @@
       "gone": "该请求已不再开放。",
       "signing": "正在等待你的确认…",
       "title": "为该钱包发起恢复？",
-      "verifyNote": "给钱包主人打电话。请他们读出新设备上的钥匙 ID — 必须与这个完全一致。如果不一致，请到此为止。",
       "verify": {
-        "title": "在同意之前，请先打电话，听听对方的声音。",
-        "pickQuestion": "如果没有把握，就问一件只有你们两人知道、别处都查不到的事——社交媒体上没有，丢失的手机里也没有。比如你们都在场的某一次，或者彼此说过的一句话。",
         "avoid": "不要问生日、学校名字、宠物名字——这些都能查到。",
-        "unsure": "没有把握就不要同意。钱包不会有任何变化。真正的本人可以再打来；冒充的人不能。",
-        "rush": "真正的家人不会催您。催您赶快同意的人，是值得警惕的信号。"
+        "pickQuestion": "如果没有把握，就问一件只有你们两人知道、别处都查不到的事——社交媒体上没有，丢失的手机里也没有。比如你们都在场的某一次，或者彼此说过的一句话。",
+        "rush": "真正的家人不会催您。催您赶快同意的人，是值得警惕的信号。",
+        "title": "在同意之前，请先打电话，听听对方的声音。",
+        "unsure": "没有把握就不要同意。钱包不会有任何变化。真正的本人可以再打来；冒充的人不能。"
       },
-      "countsAsVote": "发起请求本身就算您的一票——之后无需再投票。"
-    },
-    "approveIntent": {
-      "title": "一笔转账需要您确认",
-      "description": "您的家人想向一个新地址转账。请先与对方确认，再做决定。",
-      "unnamedOwner": "您的家人",
-      "amountLabel": "{name} 想转出",
-      "toLabel": "收款方",
-      "expiresLabel": "过期时间",
-      "reasons": {
-        "unknownRecipient": "收款方是新地址，这个钱包从未给它转过账。",
-        "overTxLimit": "金额超过单笔转账限额。",
-        "overDailyLimit": "这将超过您为今天选择的金额。",
-        "blacklisted": "收款方在家庭黑名单中。",
-        "other": "钱包的安全规则要求家人复核。"
-      },
-      "verifyTitle": "同意前请先打电话",
-      "verifyNote": "请打电话给 {name}，确认这笔转账确实是本人发起。如有任何异常，请拒绝——资金不会离开钱包。",
-      "verifiedCall": "我已打电话确认，这确实是他们的转账",
-      "approveCta": "同意转账",
-      "rejectCta": "拒绝",
-      "backCta": "返回",
-      "gone": "该请求已不在等待中——可能已被处理、取消或过期。",
-      "errors": {
-        "alreadyDecided": "该请求已被处理。",
-        "expired": "请求已变更或过期——没有任何资金被转出。",
-        "notSent": "未能提交您的决定。请检查网络后重试。"
-      }
+      "verifyNote": "给钱包主人打电话。请他们读出新设备上的钥匙 ID — 必须与这个完全一致。如果不一致，请到此为止。"
     }
   },
   "guardians": {
@@ -183,12 +194,16 @@
       "cant2": "你看不到他们的余额和动态。",
       "cant3": "你无法独自把他们的钱包转移到任何地方。",
       "cantTitle": "你不能做什么",
+      "createNewCta": "为此单独创建一个新身份",
+      "createNewHint": "设备会要求指纹或面容，创建一把只用于守护的新密钥。",
       "creating": "正在创建…",
       "cta": "创建我的安全身份",
       "declineCta": "我不认识这个人",
       "description": "{label} 请你成为可以帮他们重新进入钱包的人之一。",
       "doneBody": "你的安全身份已在这台设备上准备好。",
       "doneTitle": "全部完成",
+      "errAlreadyGuardianBody": "每个人只能担任一个守护席位——这样才是真正的多人守护。请把这个邀请转给其他家人。",
+      "errAlreadyGuardianTitle": "你已经是这个钱包的守护人",
       "errBusyBody": "为了避免重复操作，我们暂停几十秒。没有任何改动。稍等一下再点。",
       "errBusyTitle": "你的操作有点快",
       "errGenericBody": "最后一步没有跑通。没有任何改动——请再试一次。如果一直这样，把下面的代码读给邀请你的人。",
@@ -209,33 +224,29 @@
       "helpTitle": "你能帮上什么",
       "homeCta": "前往我的钱包",
       "inviteTitle": "{owner} 邀请你帮忙守护他们的钱包",
+      "loadFailedBody": "网络不稳定或系统繁忙。你的邀请还在——请再试一次。",
+      "loadFailedTitle": "暂时打不开邀请",
+      "loginCta": "我已经有钱包——登录",
+      "loginHint": "登录你原来的账户；回来时邀请仍然有效。",
       "needLine": "你需要一个自己的账户，以及这台设备上的指纹或面容。",
       "point1": "你不会保管他们的钱，也无法动用。",
       "point2": "如果他们丢了手机，你和另一位家人可以让他们重新进入。",
       "point3": "你的密钥留在这台设备上。任何人都复制不走，包括我们。",
+      "retryCta": "重试",
+      "reuseCta": "使用我已有的身份",
+      "reuseHint": "这个账户已经有安全密钥——直接用它接受邀请，无需再创建。",
       "reviewHelp": "回顾你能帮上什么",
       "selfBody": "请把这个链接发给你的家人。",
       "selfTitle": "你不能做自己钱包的守护人。",
+      "signUpCta": "我还没有钱包——创建新账户",
+      "signUpHint": "免费，只需一分钟。注册完成后会自动回到这个页面继续接受邀请。",
       "signedInAs": "你当前登录的是 {email}。",
       "switchAccount": "不是你？切换账户",
       "title": "有人请你帮忙",
       "usedBody": "每个邀请只能使用一次。如果不是你本人，请告知邀请你的人。",
       "usedTitle": "该邀请已被使用",
       "waitingOwner": "现在他们需要在自己的手机上确认你。你不用再做任何事。",
-      "whatTitle": "这意味着什么",
-      "signUpCta": "我还没有钱包——创建新账户",
-      "signUpHint": "免费，只需一分钟。注册完成后会自动回到这个页面继续接受邀请。",
-      "loginCta": "我已经有钱包——登录",
-      "loginHint": "登录你原来的账户；回来时邀请仍然有效。",
-      "reuseCta": "使用我已有的身份",
-      "reuseHint": "这个账户已经有安全密钥——直接用它接受邀请，无需再创建。",
-      "createNewCta": "为此单独创建一个新身份",
-      "createNewHint": "设备会要求指纹或面容，创建一把只用于守护的新密钥。",
-      "errAlreadyGuardianTitle": "你已经是这个钱包的守护人",
-      "errAlreadyGuardianBody": "每个人只能担任一个守护席位——这样才是真正的多人守护。请把这个邀请转给其他家人。",
-      "loadFailedTitle": "暂时打不开邀请",
-      "loadFailedBody": "网络不稳定或系统繁忙。你的邀请还在——请再试一次。",
-      "retryCta": "重试"
+      "whatTitle": "这意味着什么"
     },
     "detail": {
       "backCta": "返回列表",
@@ -250,9 +261,9 @@
       "title": "守护人详情"
     },
     "inviteList": {
-      "addCta": "添加到钱包",
       "addAllCta": "全部添加（{count}）",
       "addAllProgress": "正在添加 {done}/{total}…",
+      "addCta": "添加到钱包",
       "addFailed": "添加失败，没有任何改动，请再试一次。",
       "addFailedAlready": "这位已经是你的守护人了，请邀请其他人。",
       "addFailedSelf": "你不能做自己钱包的守护人。",
@@ -275,9 +286,9 @@
     },
     "manage": {
       "description": "查看谁在守护你的钱包，以及我们是否还能联系到他们。",
-      "title": "你的守护人",
       "mineTitle": "守护你钱包的人（{available}/{required}）",
-      "mineTitleNoCount": "守护你钱包的人"
+      "mineTitleNoCount": "守护你钱包的人",
+      "title": "你的守护人"
     },
     "recoverability": {
       "notYetBody": "至少需要 {required} 位亲友接受邀请——目前已有 {available} 位，还差 {missing} 位。恢复钱包时，其中 {threshold} 位需要共同确认。",
@@ -411,7 +422,10 @@
     "noWallet": "你还没有钱包，所以没有需要看护的内容。",
     "openRecovery": {
       "body": "目前已有 {approvals, plural, other {# 位家人确认}}，需要 {threshold} 位。如果这不是你的家人在帮你，请立即阻止。",
+      "closedBody": "这条恢复请求在网络上已不再有效。你无需再做任何事。",
+      "closedTitle": "请求已关闭",
       "cta": "这不是我 — 阻止它",
+      "rechecking": "正在与网络重新核对 — 这里的数字可能不是最新的。",
       "title": "有人正在恢复此钱包",
       "window": "你仍可在 {countdown} 内阻止它（截至 {absolute}）。"
     },
@@ -455,56 +469,56 @@
     "walletUser": "家庭钱包",
     "working": "正在用你的设备解锁…"
   },
-  "ai": {
-    "title": "AI 守护助手",
-    "speakLabel": "朗读内容",
-    "stopLabel": "停止朗读"
-  },
-  "signals": {
-    "title": "批准前请先核对",
-    "titleOwner": "请再核对这笔转账",
-    "ratio": "约为这个钱包平时转账金额的 {ratio} 倍",
-    "firstTime": "收款地址：钱包第一次向它转账",
-    "sentBefore": "收款地址：钱包此前已成功转过 {count, number} 次",
-    "velocity": "过去 1 小时：{count, number} 笔转账，共 {total}",
-    "finalGuardian": "钱转出去就拿不回来了。",
-    "finalOwner": "这笔转账需要一位家人确认。"
-  },
   "protecting": {
-    "title": "我守护的钱包",
+    "approvals": {
+      "expires": "{when}过期",
+      "item": "{name} 想向 {recipient} 转 {amount}",
+      "reviewCta": "查看并决定",
+      "title": "等待您决定"
+    },
+    "badgeAria": "有 {count} 项事务等待你决定",
     "description": "你正在帮家人守护的钱包。",
     "empty": "你还没有守护任何钱包。家人邀请你时，邀请链接会把你带到这里。",
     "item": {
-      "title": "{name}的钱包",
-      "unnamed": "家人",
-      "since": "自 {date} 起由你守护",
       "activity": "最近活跃：{when}",
+      "addressLabel": "他们的钱包地址",
+      "copied": "已复制",
+      "copyCta": "复制地址",
       "noActivity": "还没有动态",
       "recoveryOpen": "有一个恢复请求正在等你处理",
       "reviewCta": "查看并决定",
-      "addressLabel": "他们的钱包地址",
-      "copyCta": "复制地址",
-      "copied": "已复制"
+      "since": "自 {date} 起由你守护",
+      "title": "{name}的钱包",
+      "unnamed": "家人"
     },
-    "approvals": {
-      "title": "等待您决定",
-      "item": "{name} 想向 {recipient} 转 {amount}",
-      "expires": "{when}过期",
-      "reviewCta": "查看并决定"
+    "knocks": {
+      "item": "有人说自己的设备丢了，需要您帮忙重新进入钱包。",
+      "reviewCta": "查看并决定",
+      "since": "{when}发出",
+      "title": "等您处理"
     },
     "summary": {
-      "title": "你正在守护",
       "empty": "你还没有守护任何人的钱包。接受家人的邀请后，他们的钱包会显示在这里。",
+      "openCta": "查看待办事项",
       "pendingWork": "有事项等待你决定",
-      "openCta": "查看待办事项"
+      "title": "你正在守护"
     },
-    "badgeAria": "有 {count} 项事务等待你决定",
-    "knocks": {
-      "title": "等您处理",
-      "item": "有人说自己的设备丢了，需要您帮忙重新进入钱包。",
-      "since": "{when}发出",
-      "reviewCta": "查看并决定"
-    }
+    "title": "我守护的钱包"
+  },
+  "realtime": {
+    "guardianAccepted": "{name}刚同意帮你守护钱包。",
+    "guardianAdded": "{name}已成为你钱包的守护人。",
+    "intentApproved": "你的转账已获同意。",
+    "intentCancelled": "一笔待审核的转账已取消。",
+    "intentExpired": "一笔待审核的转账已过期——资金没有离开钱包。",
+    "intentPending": "有一笔转账等你审核。",
+    "intentRejected": "你的转账被拒绝了——资金没有离开钱包。",
+    "policyApplied": "新的允许金额已生效。",
+    "policyCancelled": "允许金额的更改已取消。",
+    "policyRaiseRequested": "有人请求提高此钱包允许的金额。如果不是您本人，请在设置中取消。",
+    "recoveryClosed": "钱包主人已重新进入自己的钱包。恢复请求已关闭。",
+    "recoveryDeviceRequested": "您的一位家人需要帮助，才能重新进入他的钱包。",
+    "recoveryReady": "已有足够的家人确认了钱包恢复。"
   },
   "recovery": {
     "cooldown": {
@@ -521,11 +535,11 @@
       "doneCta": "在此设备上完成",
       "note": "设立这段等待期，是为了让钱包主人能阻止他们并未发起的恢复。如果那正是你 — 什么都不用做，等待即可。",
       "protectionTitle": "为什么需要等待期",
+      "stoppedBody": "钱包主人阻止了这次申请，或者它已过期。没有任何东西被转走。",
+      "stoppedTitle": "该申请已被停止",
       "title": "就快好了",
       "window": "剩余时间：{countdown}（截至 {absolute}）",
-      "windowLabel": "保护时间",
-      "stoppedTitle": "该申请已被停止",
-      "stoppedBody": "钱包主人阻止了这次申请，或者它已过期。没有任何东西被转走。"
+      "windowLabel": "保护时间"
     },
     "done": {
       "connectCta": "在此设备上打开我的钱包",
@@ -540,6 +554,21 @@
       "sameAddress": "仍是同一个钱包地址，资金从未移动。",
       "title": "欢迎回来"
     },
+    "finalize": {
+      "alreadyDone": "钱包已经回来了，请在下方打开。",
+      "cta": "取回我的钱包",
+      "errors": {
+        "expired": "这次申请等得太久已经过期。请重新发起一次。",
+        "notEnoughVotes": "确认的家人还不够。",
+        "notSent": "没有发送成功。什么都没有改变，您可以再试一次。",
+        "notYourWallet": "这个账号不是那个钱包的主人。请用您以前用的账号登录。",
+        "tooEarly": "等待时间还没结束。倒计时归零后再试。"
+      },
+      "signInCta": "登录以完成",
+      "signInNote": "请用这个钱包主人账号的邮箱和密码登录。最后一步需要确认是您本人。",
+      "waitNote": "等待时间结束后按钮会亮起。",
+      "working": "正在取回钱包…"
+    },
     "findWallet": {
       "creating": "正在创建你的新钥匙…",
       "cta": "创建新钥匙并请求家人协助",
@@ -551,27 +580,30 @@
       },
       "invalid": "这看起来不像钱包地址。它以 C 开头，共 56 个字符。",
       "label": "你的钱包地址",
-      "passkeyNote": "接下来，此设备会请求你的指纹或面容以创建新钥匙。",
-      "placeholder": "C…",
-      "title": "找到你的钱包",
       "lookup": {
-        "title": "我不记得钱包地址",
-        "note": "输入您钱包使用的邮箱。如果该邮箱有钱包，我们会发送指引，其中的链接会自动填好地址。",
+        "cta": "把指引发到我的邮箱",
         "emailLabel": "您的邮箱",
         "emailPlaceholder": "you@example.com",
+        "errorNotSent": "暂时无法发送。请检查网络后重试。",
         "invalid": "这还不是有效的邮箱地址。",
-        "cta": "把指引发到我的邮箱",
+        "note": "输入您钱包使用的邮箱。如果该邮箱有钱包，我们会发送指引，其中的链接会自动填好地址。",
         "sending": "发送中…",
         "sentNote": "如果这个邮箱有钱包，我们已发送了指引。请查看收件箱（包括垃圾邮件）。",
-        "errorNotSent": "暂时无法发送。请检查网络后重试。"
+        "title": "我不记得钱包地址"
       },
-      "prefilled": "钱包地址已从您的邮件中自动填好。请核对后继续。"
+      "passkeyNote": "接下来，此设备会请求你的指纹或面容以创建新钥匙。",
+      "placeholder": "C…",
+      "prefilled": "钱包地址已从您的邮件中自动填好。请核对后继续。",
+      "title": "找到你的钱包"
     },
     "progress": {
+      "approverLink": "查看链上凭证",
+      "approversTitle": "谁已确认",
       "checkNote": "此页面会自动更新 — 你可以保持打开。",
       "countdownCta": "查看等待期",
       "description": "查看目前有谁已确认。",
       "doneCta": "在此设备上完成",
+      "feeNote": "网络手续费由系统钱包代付——确认人是下面显示的地址，而不是付费钱包。",
       "missingAddressCta": "请先输入你的钱包地址",
       "missingTitle": "请先告诉我们要恢复哪个钱包",
       "state": {
@@ -583,10 +615,7 @@
       },
       "title": "等待同意",
       "votes": "需要 {approvals, plural, other {# 票}}，共 {threshold} 票",
-      "waitingCta": "正在等待家人",
-      "approversTitle": "谁已确认",
-      "approverLink": "查看链上凭证",
-      "feeNote": "网络手续费由系统钱包代付——确认人是下面显示的地址，而不是付费钱包。"
+      "waitingCta": "正在等待家人"
     },
     "sent": {
       "description": "已请求你的守护人确认确实是你本人。",
@@ -606,22 +635,15 @@
       "step2": "你的家人核实确实是你 — 通过电话，而不是通过此应用。",
       "step3": "当足够多的人同意且等待期结束后，你的钱包便听从新钥匙。地址不变，资产不动。",
       "title": "找回你的钱包"
-    },
-    "finalize": {
-      "cta": "取回我的钱包",
-      "working": "正在取回钱包…",
-      "waitNote": "等待时间结束后按钮会亮起。",
-      "signInCta": "登录以完成",
-      "signInNote": "请用这个钱包主人账号的邮箱和密码登录。最后一步需要确认是您本人。",
-      "alreadyDone": "钱包已经回来了，请在下方打开。",
-      "errors": {
-        "tooEarly": "等待时间还没结束。倒计时归零后再试。",
-        "notEnoughVotes": "确认的家人还不够。",
-        "expired": "这次申请等得太久已经过期。请重新发起一次。",
-        "notYourWallet": "这个账号不是那个钱包的主人。请用您以前用的账号登录。",
-        "notSent": "没有发送成功。什么都没有改变，您可以再试一次。"
-      }
     }
+  },
+  "recoveryAlert": {
+    "body": "有人申请把这个钱包转到别的设备。如果您不阻止，将在 {remaining} 后（{when}）转移。",
+    "bodyExpired": "有人申请把这个钱包转到别的设备，等待时间已经结束。如果这不是您本人，请立即阻止。",
+    "cta": "立即阻止",
+    "title": "有人正在申请转走您的钱包",
+    "unknownBody": "我们没能连上网络确认是否有人在申请转走这个钱包。这并不表示安全。请稍后重试，或打开安全页面。",
+    "unknownTitle": "暂时无法检查您的钱包"
   },
   "settings": {
     "about": {
@@ -637,45 +659,45 @@
     "language": {
       "title": "语言"
     },
-    "title": "设置",
     "safety": {
-      "title": "安全",
       "body": "每天允许的最高金额与钱包锁定在一起，而不只依赖此服务。只有您可以提高它。",
       "hard": {
-        "title": "内置消费保护",
         "attached": "已启用——此保护会一直跟随您的钱包。",
-        "notAttached": "您的钱包尚未启用内置消费保护。",
         "enableCta": "开启消费锁",
-        "enabled": "内置消费保护已开启。",
         "enableFailed": "未能开启消费锁。没有任何更改——您可以重试。",
+        "enabled": "内置消费保护已开启。",
+        "notAttached": "您的钱包尚未启用内置消费保护。",
+        "title": "内置消费保护",
         "unknown": "暂时无法检查此保护。"
       },
+      "pending": {
+        "cancelCta": "取消此更改",
+        "cancelFailed": "未能取消。请重试。",
+        "cancelled": "已取消——旧限额保持不变。",
+        "countdown": "大约 {hours} 小时 {minutes} 分钟后生效。在此之前旧限额仍然有效。",
+        "title": "等待生效：每笔 {perTx} XLM · 每天 {daily} XLM"
+      },
       "soft": {
-        "title": "您自己设定的限额",
-        "body": "每次转账前都会检查。超出限额的转账只需家人确认——不会有任何损失。",
-        "perTxLabel": "每笔转账（XLM）",
-        "dailyLabel": "每天（XLM）",
-        "current": "当前：每笔 {perTx} XLM · 每天 {daily} XLM",
-        "saveCta": "保存限额",
-        "raiseNote": "调高限额将在 24 小时后生效，在此之前您可以随时取消。调低则立即生效。",
         "applied": "新限额已生效。",
-        "pendingCreated": "已提交调高请求——24 小时后生效。在此之前您可以随时取消。",
-        "unchanged": "限额未变化。",
-        "saveFailed": "未能保存限额。请重试。",
+        "body": "每次转账前都会检查。超出限额的转账只需家人确认——不会有任何损失。",
+        "current": "当前：每笔 {perTx} XLM · 每天 {daily} XLM",
+        "dailyLabel": "每天（XLM）",
         "errors": {
           "bad": "请输入大于 0 的整数 XLM。",
-          "daily": "每日限额不能低于单笔限额。",
-          "cap": "金额不能高于受保护的最高值（{cap} XLM）。"
-        }
+          "cap": "金额不能高于受保护的最高值（{cap} XLM）。",
+          "daily": "每日限额不能低于单笔限额。"
+        },
+        "pendingCreated": "已提交调高请求——24 小时后生效。在此之前您可以随时取消。",
+        "perTxLabel": "每笔转账（XLM）",
+        "raiseNote": "调高限额将在 24 小时后生效，在此之前您可以随时取消。调低则立即生效。",
+        "saveCta": "保存限额",
+        "saveFailed": "未能保存限额。请重试。",
+        "title": "您自己设定的限额",
+        "unchanged": "限额未变化。"
       },
-      "pending": {
-        "title": "等待生效：每笔 {perTx} XLM · 每天 {daily} XLM",
-        "countdown": "大约 {hours} 小时 {minutes} 分钟后生效。在此之前旧限额仍然有效。",
-        "cancelCta": "取消此更改",
-        "cancelled": "已取消——旧限额保持不变。",
-        "cancelFailed": "未能取消。请重试。"
-      }
-    }
+      "title": "安全"
+    },
+    "title": "设置"
   },
   "setup": {
     "assistant": {
@@ -703,9 +725,9 @@
       "cta": "创建我的钱包",
       "description": "选择可信赖的人，万一你丢失手机，他们能帮你恢复这个钱包。",
       "errors": {
+        "deviceDeclined": "设备未确认你的面容或指纹。钱包尚未创建——请再试一次并在设备上确认。",
         "failed": "无法创建钱包。你的账户没有任何变动——请再试一次；若仍然失败，请把下方代码告诉支持团队。",
         "notConfigured": "应用尚未连接到钱包网络。这是我们团队的事。",
-        "deviceDeclined": "设备未确认你的面容或指纹。钱包尚未创建——请再试一次并在设备上确认。",
         "technical": "供支持团队使用的代码：{code}"
       },
       "haveWalletCta": "我已有钱包",
@@ -745,6 +767,9 @@
       "guardiansLabel": "已准备好帮忙的人",
       "inviteMoreCta": "邀请更多人",
       "registerCta": "开启保护",
+      "registerErrAlready": "保护之前已经开启——无需重复。请查看安全卡片确认。",
+      "registerErrBusy": "操作有点快——稍等片刻再按一次。",
+      "registerErrFew": "接受邀请的人还不够。请再邀请家人，然后回到这一步。",
       "registerFailed": "开启失败，没有任何改动，请再试一次。",
       "registered": "保护已开启。家人现在可以帮你重新进入钱包。",
       "registering": "正在开启…",
@@ -752,10 +777,7 @@
       "thresholdLabel": "需要同意的人数",
       "thresholdValue": "{count} 人",
       "timelockLabel": "可阻止的时间",
-      "title": "检查一遍",
-      "registerErrAlready": "保护之前已经开启——无需重复。请查看安全卡片确认。",
-      "registerErrFew": "接受邀请的人还不够。请再邀请家人，然后回到这一步。",
-      "registerErrBusy": "操作有点快——稍等片刻再按一次。"
+      "title": "检查一遍"
     },
     "threshold": {
       "backCta": "返回",
@@ -790,6 +812,16 @@
       "navLabel": "设置进度",
       "useSimpleCta": "设置我的钱包"
     }
+  },
+  "signals": {
+    "finalGuardian": "钱转出去就拿不回来了。",
+    "finalOwner": "这笔转账需要一位家人确认。",
+    "firstTime": "收款地址：钱包第一次向它转账",
+    "ratio": "约为这个钱包平时转账金额的 {ratio} 倍",
+    "sentBefore": "收款地址：钱包此前已成功转过 {count, number} 次",
+    "title": "批准前请先核对",
+    "titleOwner": "请再核对这笔转账",
+    "velocity": "过去 1 小时：{count, number} 笔转账，共 {total}"
   },
   "state": {
     "error": "暂时无法加载。请下拉刷新或稍后重试。"
@@ -828,26 +860,40 @@
       "whyInvite": "家庭钱包需要至少 {required} 位亲人接受邀请，才会开通转账。这层保护是为了：万一你丢了手机或指纹认证失效，仍有人帮你把钱包找回来；也为了不让任何人独自拿走钱包里的钱。",
       "whyRegister": "已经有 {required} 位亲人接受邀请了。只剩最后一步：用指纹确认，把这层保护锁定。完成后马上就能转账。"
     },
+    "pendingSignature": {
+      "approvedBadge": "家人已同意",
+      "description": "家人已经同意。只有你本人用指纹或面容确认后，钱才会离开钱包——没有人能代替你。",
+      "noAmount": "设置变更请求",
+      "sentTitle": "已发送",
+      "signCta": "确认并发送",
+      "signingCta": "处理中…",
+      "title": "{count, plural, other {有 # 笔在等你确认}}",
+      "toLabel": "转给",
+      "whyBody": "这笔金额超过了你设定的上限，所以需要一位家人同意——他们已经同意了。确认前请仔细核对上面的地址。"
+    },
     "receive": {
       "copied": "已复制",
       "copyCta": "复制地址",
       "description": "出示你的二维码，或分享你的钱包地址。",
-      "noWallet": "你还没有钱包。",
-      "qrLabel": "钱包地址二维码",
-      "stableNote": "此地址永不改变 — 即使恢复之后也一样。分享一次，长期使用。",
-      "title": "接收",
       "downloadCta": "下载二维码图片",
-      "shareCta": "分享图片",
       "image": {
-        "title": "给我转账",
-        "subtitle": "Stellar 测试网络上的钱包地址"
+        "subtitle": "Stellar 测试网络上的钱包地址",
+        "title": "给我转账"
       },
       "imageFailed": "图片生成失败，请重试。",
+      "noWallet": "你还没有钱包。",
+      "qrLabel": "钱包地址二维码",
+      "shareCta": "分享图片",
+      "stableNote": "此地址永不改变 — 即使恢复之后也一样。分享一次，长期使用。",
+      "title": "接收",
       "unnamedOwner": "钱包主人"
     },
     "send": {
       "amountLabel": "金额（XLM）",
       "checking": "正在检查…",
+      "contacts": {
+        "cta": "选择家人"
+      },
       "cta": "继续",
       "description": "向任何人发送资金。",
       "done": {
@@ -877,25 +923,29 @@
         "rateLimitedBody": "为了避免同一笔转账被发两次，我们暂停几十秒。没有任何转账发出。稍等一下再点。",
         "rateLimitedTitle": "你的操作有点快",
         "safetyCta": "打开安全设置",
+        "spendingLimit": "该金额高于钱包今天允许的金额。只有您可以更改此保护。请尝试较小的金额，或明天再试。",
         "staleIntentBody": "刚才那笔转账已经走过一个步骤，不能重复使用——这是为了避免重复发送。没有任何转账发出。请重新开始，金额和收款人都还在。",
         "staleIntentTitle": "这笔请求已经过期",
         "tampered": "我们已停止这笔付款。即将确认的指令与你刚输入的金额和收款人不一致，因此没有签名，也没有发送任何内容。请不要在此设备上重试——请检查连接并联系支持。",
         "technical": "技术代码：{code}",
-        "walletLocked": "钱包在此设备上已锁定。请先打开钱包再重试。",
-        "spendingLimit": "该金额高于钱包今天允许的金额。只有您可以更改此保护。请尝试较小的金额，或明天再试。"
+        "walletLocked": "钱包在此设备上已锁定。请先打开钱包再重试。"
       },
       "guardian": {
-        "description": "这笔金额需要一位受信任的联系人先同意。我们已经询问他们 — 获批后会通知你。",
-        "title": "正在等待你的家人",
-        "cancelCta": "取消这笔转账",
-        "confirmBody": "确定取消这笔转账吗？资金尚未离开您的钱包。",
-        "confirmYes": "是的，取消",
-        "confirmNo": "继续等待",
-        "cancelFailed": "取消失败。可能刚被家人批准——请查看转账状态。",
+        "approvedDescription": "还差最后一步：用你本人的指纹或面容确认。在此之前，钱还没有离开钱包。",
         "approvedTitle": "家人已同意",
-        "approvedDescription": "还差最后一步：用你本人的指纹或面容确认。在此之前，钱还没有离开钱包。"
+        "cancelCta": "取消这笔转账",
+        "cancelFailed": "取消失败。可能刚被家人批准——请查看转账状态。",
+        "confirmBody": "确定取消这笔转账吗？资金尚未离开您的钱包。",
+        "confirmNo": "继续等待",
+        "confirmYes": "是的，取消",
+        "description": "这笔金额需要一位受信任的联系人先同意。我们已经询问他们 — 获批后会通知你。",
+        "title": "正在等待你的家人"
       },
+      "knownRecipient": "将发送给 {name}",
+      "muxedNote": "该地址已包含交易所的识别码，无需填写 memo。",
+      "muxedUnsupported": "暂不支持 muxed 地址（M…）——请使用交易所提供的 G… 地址并按其说明填写 memo。",
       "noWallet": "你还没有钱包。",
+      "pasteCta": "粘贴地址",
       "progress": {
         "confirming": "正在准备交易…",
         "submitting": "已确认 — 正在发送到 Stellar 网络（约 5 秒）…"
@@ -911,6 +961,13 @@
         "to": "收款方",
         "unknownRecipient": "您从未向这个地址转过账。请与收款人仔细核对——转账无法撤回。"
       },
+      "scan": {
+        "closeCta": "关闭相机",
+        "cta": "扫描二维码",
+        "failed": "无法打开相机。你仍然可以粘贴或输入地址。",
+        "hint": "将钱包地址二维码对准取景框。",
+        "viewfinder": "扫码取景框"
+      },
       "startOverCta": "重新开始",
       "title": "发送",
       "unconfirmed": {
@@ -919,33 +976,15 @@
         "historyCta": "查看历史记录",
         "stillUnknown": "仍未有结果。请几分钟后在历史记录中查看是否已发出 — 在确定之前请不要重复发送。",
         "title": "尚未确认"
-      },
-      "scan": {
-        "cta": "扫描二维码",
-        "hint": "将钱包地址二维码对准取景框。",
-        "closeCta": "关闭相机",
-        "failed": "无法打开相机。你仍然可以粘贴或输入地址。",
-        "viewfinder": "扫码取景框"
-      },
-      "pasteCta": "粘贴地址",
-      "contacts": {
-        "cta": "选择家人"
-      },
-      "knownRecipient": "将发送给 {name}",
-      "muxedNote": "该地址已包含交易所的识别码，无需填写 memo。",
-      "muxedUnsupported": "暂不支持 muxed 地址（M…）——请使用交易所提供的 G… 地址并按其说明填写 memo。"
-    },
-    "pendingSignature": {
-      "title": "{count, plural, other {有 # 笔在等你确认}}",
-      "description": "家人已经同意。只有你本人用指纹或面容确认后，钱才会离开钱包——没有人能代替你。",
-      "noAmount": "设置变更请求",
-      "approvedBadge": "家人已同意",
-      "toLabel": "转给",
-      "whyBody": "这笔金额超过了你设定的上限，所以需要一位家人同意——他们已经同意了。确认前请仔细核对上面的地址。",
-      "signCta": "确认并发送",
-      "signingCta": "处理中…",
-      "sentTitle": "已发送"
+      }
     }
+  },
+  "walletSession": {
+    "reconfirm": {
+      "cta": "再次用指纹确认",
+      "title": "需要再次用指纹确认才能签名。"
+    },
+    "reconfirmFailed": "在此设备上仍未能完成确认。请稍后再试，或在您常用的设备上打开应用进行签名。"
   },
   "welcome": {
     "cta": "开始",
@@ -955,35 +994,5 @@
     "point2": "万一丢了手机，你信任的人会帮你找回。",
     "point3": "决定由谁继承，万一你发生意外，也不会有东西被搁置。",
     "title": "家人的钱，\n安心保管。"
-  },
-  "realtime": {
-    "guardianAccepted": "{name}刚同意帮你守护钱包。",
-    "guardianAdded": "{name}已成为你钱包的守护人。",
-    "intentApproved": "你的转账已获同意。",
-    "intentCancelled": "一笔待审核的转账已取消。",
-    "intentExpired": "一笔待审核的转账已过期——资金没有离开钱包。",
-    "intentPending": "有一笔转账等你审核。",
-    "intentRejected": "你的转账被拒绝了——资金没有离开钱包。",
-    "policyRaiseRequested": "有人请求提高此钱包允许的金额。如果不是您本人，请在设置中取消。",
-    "policyApplied": "新的允许金额已生效。",
-    "policyCancelled": "允许金额的更改已取消。",
-    "recoveryDeviceRequested": "您的一位家人需要帮助，才能重新进入他的钱包。",
-    "recoveryClosed": "钱包主人已重新进入自己的钱包。恢复请求已关闭。",
-    "recoveryReady": "已有足够的家人确认了钱包恢复。"
-  },
-  "walletSession": {
-    "reconfirm": {
-      "title": "需要再次用指纹确认才能签名。",
-      "cta": "再次用指纹确认"
-    },
-    "reconfirmFailed": "在此设备上仍未能完成确认。请稍后再试，或在您常用的设备上打开应用进行签名。"
-  },
-  "recoveryAlert": {
-    "title": "有人正在申请转走您的钱包",
-    "body": "有人申请把这个钱包转到别的设备。如果您不阻止，将在 {remaining} 后（{when}）转移。",
-    "bodyExpired": "有人申请把这个钱包转到别的设备，等待时间已经结束。如果这不是您本人，请立即阻止。",
-    "cta": "立即阻止",
-    "unknownTitle": "暂时无法检查您的钱包",
-    "unknownBody": "我们没能连上网络确认是否有人在申请转走这个钱包。这并不表示安全。请稍后重试，或打开安全页面。"
   }
 }

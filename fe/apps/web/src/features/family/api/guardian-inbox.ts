@@ -7,7 +7,16 @@ import type { RecoveryRequest } from "./recovery";
 
 export type GuardianInboxItem = {
   request: RecoveryRequest;
-  wallet: { id: string; stellarAddress: string; threshold: number; timelockSecs: number };
+  wallet: {
+    id: string;
+    stellarAddress: string;
+    threshold: number;
+    timelockSecs: number;
+    /** R7 — tên chủ ví, để hộp thư nói "Ví của Nguyễn Hoàng Anh" thay vì base32.
+     * Optional: bản FE mới KHÔNG được vỡ trước bản BE cũ (cùng luật với
+     * `viewerApproved` ở R6) — thiếu tên thì rơi về nhãn "chưa đặt tên". */
+    ownerName?: string | null;
+  };
   /** R6 — NGƯỜI ĐANG XEM đã bỏ phiếu chưa. BE tính (chỉ BE biết khoá on-chain
    * của người đang xem: cửa trả `onchain_key` là owner-only). Thiếu trường này
    * thì màn ký sáng đèn cho cả người đã ký và họ chạm vân tay rồi mới ăn

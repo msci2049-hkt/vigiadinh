@@ -4,6 +4,7 @@
 // người lạ và người đã bị gỡ không đọc được gì.
 import { and, desc, eq, inArray, ne } from "drizzle-orm";
 import { db } from "@/db";
+import { user } from "@/db/schema";
 import { guardians } from "../../guardians/infra/guardians.schema";
 import { wallets } from "../../wallets/infra/wallets.schema";
 import { approversFromSignals } from "../domain/approvers";
@@ -45,7 +46,22 @@ export async function openDeviceRequestsForGuardianUser(
 
 export type GuardianInboxItem = {
   request: RecoveryRequest;
-  wallet: { id: string; stellarAddress: string; threshold: number; timelockSecs: number };
+  wallet: {
+    id: string;
+    stellarAddress: string;
+    threshold: number;
+    timelockSecs: number;
+    /**
+     * R7 — TÊN chủ ví, để hộp thư nói "Ví của Nguyễn Hoàng Anh" thay vì
+     * "Ví CA3NCR…TH5Y5W". Người bảo hộ nhận lời vì họ biết một CON NGƯỜI; bắt
+     * họ nhận ra người thân qua 12 ký tự base32 là bắt sai người làm việc của
+     * máy. `/protecting` đã hiện tên từ trước (`list-protecting`), hộp thư thì
+     * chưa — cùng một ví hiện hai kiểu ở hai màn.
+     *
+     * `null` khi user chưa đặt tên → FE rơi về địa chỉ rút gọn.
+     */
+    ownerName: string | null;
+  };
   /** R6 — NGƯỜI ĐANG XEM đã bỏ phiếu cho yêu cầu này chưa. */
   viewerApproved: boolean;
 };
@@ -72,10 +88,17 @@ export async function openRequestsForGuardianUser(
       stellarAddress: wallets.stellarAddress,
       threshold: wallets.threshold,
       timelockSecs: wallets.timelockSecs,
+      ownerName: user.name,
       viewerKey: guardians.onchainKey,
     })
     .from(recoveryRequests)
     .innerJoin(wallets, eq(recoveryRequests.walletId, wallets.id))
+    // R7 — tên chủ ví. 🔴 LEFT, không INNER: `wallets.userId` là SOFT REF (varchar,
+    // không FK — luật db-schema), nên không có gì bảo đảm hàng `user` còn đó. INNER
+    // JOIN sẽ ÂM THẦM NUỐT cả dòng khi thiếu, tức giấu một yêu cầu khôi phục đang
+    // sống khỏi người bảo hộ — đúng loại bệnh lô này đang chữa. Thiếu tên thì mất
+    // tên, không được mất yêu cầu.
+    .leftJoin(user, eq(wallets.userId, user.id))
     .innerJoin(
       guardians,
       and(
@@ -94,6 +117,7 @@ export async function openRequestsForGuardianUser(
       stellarAddress: r.stellarAddress,
       threshold: r.threshold,
       timelockSecs: r.timelockSecs,
+      ownerName: r.ownerName,
     },
     // Chưa có khoá on-chain (người bảo hộ chưa nhận lời xong) → chưa thể đã ký.
     // FALSE ở đây là an toàn: cùng lắm màn ký vẫn mở như trước lô này.

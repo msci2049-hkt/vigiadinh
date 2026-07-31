@@ -21,6 +21,14 @@ export type MirrorWallet = {
 export const ACTIVE_MIRROR = inArray(recoveryRequests.status, ["pending", "ready"]);
 
 /**
+ * Ân hạn hoàn tất sau khi hết timelock — GƯƠNG của `REQUEST_GRACE_SECS`
+ * (`contracts/recovery-registry/src/lib.rs:84`). Hết `started_at + timelock +
+ * ân hạn` là yêu cầu chết trên chain: không finalize được nữa (`lib.rs:396-398`)
+ * và không còn chặn yêu cầu mới.
+ */
+const REQUEST_GRACE_SECS = 7 * 86_400;
+
+/**
  * Hệ quả của MỘT event lên mirror. Hai mốc dưới đây báo cho hai nhóm người khác
  * nhau nên không gộp được vào một cờ:
  *  - `closedRecovery` (R5): lệnh vừa ĐÓNG → báo mọi guardian, kể cả người chưa duyệt.
@@ -79,6 +87,19 @@ export async function applyRegistryMirror(
         threshold: wallet.threshold,
         txHash,
         vetoUntil: new Date(Date.now() + wallet.timelockSecs * 1000),
+        // R7 — trước lô này cột `expires_at` chưa từng được ai ghi (nó chỉ tồn
+        // tại trong schema), nên một yêu cầu chết vì hết giờ nằm mãi ở `pending`
+        // và thành thẻ ma trong hộp thư người bảo hộ.
+        //
+        // 🔴 ĐÂY LÀ ƯỚC LƯỢNG, không phải mốc thật của contract. Event `initiate`
+        // chỉ chở `(initiator, fingerprint)` (`lib.rs:329-333`) — không có
+        // `started_at` lẫn `expires_at`, nên mốc dưới đây neo vào đồng hồ BE lúc
+        // indexer đọc được event, không phải `ledger().timestamp()` lúc tx đóng.
+        // Lệch bằng đúng độ trễ indexer (poll 30s) cộng lệch đồng hồ BE — cùng
+        // nợ đã ghi cho `vetoUntil` ở dòng trên. Mốc CHUẨN vẫn nằm trên chain và
+        // `recovery-watch` đọc thẳng từ đó khi đi dọn (xem `stale-mirror.ts`);
+        // cột này chỉ để hiển thị và tra cứu.
+        expiresAt: new Date(Date.now() + (wallet.timelockSecs + REQUEST_GRACE_SECS) * 1000),
         // Người duyệt = địa chỉ trong THAM SỐ lời gọi (initiator), KHÔNG phải source
         // account của tx — source là ví phí dùng chung, không nhận dạng ai. Màn tiến
         // trình đọc danh sách này (jsonb có sẵn — không migration).

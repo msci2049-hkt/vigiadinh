@@ -60,6 +60,10 @@ export type ChainTruth = {
     approvals: string[];
     startedAt: number;
     timelockRemainingSecs: number;
+    /** R7 — mốc CHẾT của yêu cầu (unix giây). `get_recovery_status` KHÔNG lọc hết
+     * hạn, nên một yêu cầu đã chết vẫn về đây dưới dạng `pending`; không có mốc
+     * này thì không phân biệt được. `null` = chain không chở được (BE cũ). */
+    expiresAt?: number | null;
   } | null;
 };
 
