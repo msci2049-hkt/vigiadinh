@@ -27,6 +27,12 @@ Kính chào ban giám khảo Stellar — các liên kết phía trên dẫn tớ
 
 </div>
 
+## Hoạt động trên chuỗi
+
+Ví gia đình trên Stellar. Passkey thay cụm từ khôi phục; người thân là lớp khôi phục.
+
+Hoạt động trên chuỗi, kiểm chứng được — hợp đồng, giao dịch và dữ liệu tải về: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
+
 ## Chấm trong 60 giây
 
 | | |
@@ -238,8 +244,6 @@ Các bộ kiểm thử ghi nhận **976 ca đạt**: 82 ở hợp đồng, 566 �
 | Đăng ký ví lên sổ người bảo hộ | [`7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e`](https://stellar.expert/explorer/testnet/tx/7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e) |
 | Gửi giao dịch vượt ngưỡng sau khi người bảo hộ duyệt | [`36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973`](https://stellar.expert/explorer/testnet/tx/36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973) |
 | Mở khôi phục xã hội cho khóa mới | [`14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58`](https://stellar.expert/explorer/testnet/tx/14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58) |
-
-Toàn bộ hoạt động on-chain kiểm chứng được: **[familyhaven.mscilabs.com/traction.html](https://familyhaven.mscilabs.com/traction.html)**
 
 ## Bắt đầu nhanh
 

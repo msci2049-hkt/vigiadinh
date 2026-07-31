@@ -27,6 +27,12 @@ Welcome, Stellar judges — the links above lead to the public story, the real T
 
 </div>
 
+## On-chain traction
+
+A family wallet on Stellar. Passkeys replace seed phrases; trusted relatives are the recovery layer.
+
+Live, verifiable on-chain activity — contracts, transactions and downloadable data: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
+
 ## Judge in 60 seconds
 
 | | |
@@ -238,8 +244,6 @@ The recorded suites contain **976 passing tests**: 82 contract, 566 backend, and
 | Register wallet in the guardian registry | [`7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e`](https://stellar.expert/explorer/testnet/tx/7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e) |
 | Send an above-threshold transfer after guardian approval | [`36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973`](https://stellar.expert/explorer/testnet/tx/36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973) |
 | Open social recovery for a new key | [`14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58`](https://stellar.expert/explorer/testnet/tx/14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58) |
-
-All verifiable on-chain activity: **[familyhaven.mscilabs.com/traction.html](https://familyhaven.mscilabs.com/traction.html)**
 
 ## Quick start
 

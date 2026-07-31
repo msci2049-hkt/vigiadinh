@@ -27,6 +27,12 @@ APAC Stellar Hackathon 2026
 
 </div>
 
+## 链上活动
+
+Stellar 上的家庭钱包。以 Passkey 取代助记词，由亲人组成恢复层。
+
+可验证的链上活动——合约、交易与可下载数据：**[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
+
 ## 60 秒评审
 
 | | |
@@ -238,8 +244,6 @@ StellarExpert 目前为五个已部署合约全部返回 `validation.status = ve
 | 将钱包注册到守护人登记表 | [`7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e`](https://stellar.expert/explorer/testnet/tx/7d989c7cd38311e177230e576c59d4ba1a6bb46b4343f955ea733b6d353eae6e) |
 | 守护人批准后发送超过阈值的转账 | [`36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973`](https://stellar.expert/explorer/testnet/tx/36a0c44f1158c4f569c0eb591bc4e74e2494cef05a6ec28ccc8b29d820ce2973) |
 | 为新密钥发起社会化恢复 | [`14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58`](https://stellar.expert/explorer/testnet/tx/14807debc73a5b7dbfaa6b65e69ee4900cff7660ffa0a6d1bfe1cb13c9b19d58) |
-
-所有可验证的链上活动：**[familyhaven.mscilabs.com/traction.html](https://familyhaven.mscilabs.com/traction.html)**
 
 ## 快速开始
 
