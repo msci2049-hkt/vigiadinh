@@ -19,11 +19,15 @@ APAC Stellar Hackathon 2026
 ![mạng](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
 ![khôi phục](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 Trang giới thiệu](https://familyhavenwallet.mscilabs.com/)** · **[↗ Ứng dụng thật](https://familyhaven.mscilabs.com)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[⚡ Bắt đầu nhanh](#bắt-đầu-nhanh)**
+**[🌐 Trang giới thiệu](https://familyhavenwallet.mscilabs.com/)** · **[↗ Ứng dụng thật](https://familyhaven.mscilabs.com)** · **[▶ Video demo](https://youtu.be/8LUc_K2RAqY)** · **[⚡ Bắt đầu nhanh](#bắt-đầu-nhanh)**
 
-<img src="docs/images/welcome-judges.png" alt="Gia đình nhân vật ảo chào đón ban giám khảo Stellar" width="900">
+<a href="https://youtu.be/8LUc_K2RAqY">
+  <img src="docs/images/familyhaven-wallet-demo.png" alt="Xem FamilyHaven Wallet Demo Video" width="900">
+</a>
 
-Kính chào ban giám khảo Stellar - các liên kết phía trên dẫn tới câu chuyện dự án, ứng dụng Testnet thật và trailer sản phẩm dài hai phút.
+**[▶ Xem FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)**
+
+Kính chào ban giám khảo Stellar - các liên kết phía trên dẫn tới câu chuyện dự án, ứng dụng Testnet thật và video demo sản phẩm đầy đủ.
 
 </div>
 
@@ -42,7 +46,7 @@ Hoạt động trên chuỗi, kiểm chứng được - hợp đồng, giao dị
 | **Kết quả** | Chủ ví có thể dùng và khôi phục ví thông minh thật trên Testnet mà không phải lưu hay gõ mười hai từ. Một tiến trình đọc chuỗi khối trực tiếp có thể cảnh báo bên ngoài ứng dụng khi có yêu cầu khôi phục. |
 | **Kiểm soát** | Số người bảo hộ tối thiểu, ngưỡng đồng ý, thời gian chờ, cooldown sau xoay khóa và trần chi tiêu đều được cưỡng chế trên chuỗi. Bản dựng lại công khai của hợp đồng được StellarExpert đối chiếu độc lập. |
 
-## Bản demo 2 phút
+## Luồng demo sản phẩm
 
 1. Mở [ứng dụng thật](https://familyhaven.mscilabs.com), tạo tài khoản và đăng ký passkey của thiết bị. Hệ thống không sinh seed phrase.
 2. Thêm người thân làm người bảo hộ. Trang nhận lời mời giải thích vai trò và rủi ro trước khi đăng nhập; khả năng khôi phục chỉ hoạt động khi có ít nhất ba khóa người bảo hộ trên chuỗi.
@@ -292,7 +296,7 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | 🌐 Trang dự án | [VíGiaĐình](https://familyhavenwallet.mscilabs.com/) |
 | ↗ Ứng dụng thật | [Mở ứng dụng Testnet](https://familyhaven.mscilabs.com) |
-| ▶ Trailer | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
+| ▶ Video demo | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ Mã nguồn | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
 | ✉ Liên hệ | [MSCI Labs](https://www.mscilabs.com) |
 

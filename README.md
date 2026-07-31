@@ -19,11 +19,15 @@ APAC Stellar Hackathon 2026
 ![network](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
 ![recovery](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live app](https://familyhaven.mscilabs.com)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[⚡ Quick start](#quick-start)**
+**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live app](https://familyhaven.mscilabs.com)** · **[▶ Demo video](https://youtu.be/8LUc_K2RAqY)** · **[⚡ Quick start](#quick-start)**
 
-<img src="docs/images/welcome-judges.png" alt="A virtual European family welcoming Stellar judges" width="900">
+<a href="https://youtu.be/8LUc_K2RAqY">
+  <img src="docs/images/familyhaven-wallet-demo.png" alt="Watch the FamilyHaven Wallet Demo Video" width="900">
+</a>
 
-Welcome, Stellar judges - the links above lead to the public story, the real Testnet application, and the two-minute product trailer.
+**[▶ Watch the FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)**
+
+Welcome, Stellar judges - the links above lead to the public story, the real Testnet application, and the complete product demo.
 
 </div>
 
@@ -42,7 +46,7 @@ Live, verifiable on-chain activity - contracts, transactions and downloadable da
 | **Result** | The owner can use and recover a real Testnet smart wallet without storing or typing twelve words. A direct chain watcher can alert them outside the application if recovery starts. |
 | **Control** | Minimum guardian, threshold, timelock, rotation cooldown, and spending-cap rules are enforced on-chain. Publicly rebuilt contract hashes are independently visible on StellarExpert. |
 
-## The 2-minute demo
+## Product demo walkthrough
 
 1. Open the [live app](https://familyhaven.mscilabs.com), create an account, and register a device passkey. No seed phrase is generated.
 2. Add family guardians. The invitation page explains the role and risk before sign-in; recovery becomes active only after at least three guardian keys are on-chain.
@@ -292,7 +296,7 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | 🌐 Project landing | [FamilyHaven](https://familyhavenwallet.mscilabs.com/) |
 | ↗ Live product | [Open the Testnet app](https://familyhaven.mscilabs.com) |
-| ▶ Trailer | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
+| ▶ Demo video | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ Source | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
 | ✉ Contact | [MSCI Labs](https://www.mscilabs.com) |
 

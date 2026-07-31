@@ -19,11 +19,15 @@ APAC Stellar Hackathon 2026
 ![网络](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
 ![恢复](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 项目主页](https://familyhavenwallet.mscilabs.com/)** · **[↗ 在线应用](https://familyhaven.mscilabs.com)** · **[▶ 预告片](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[⚡ 快速开始](#快速开始)**
+**[🌐 项目主页](https://familyhavenwallet.mscilabs.com/)** · **[↗ 在线应用](https://familyhaven.mscilabs.com)** · **[▶ 演示视频](https://youtu.be/8LUc_K2RAqY)** · **[⚡ 快速开始](#快速开始)**
 
-<img src="docs/images/welcome-judges.png" alt="欢迎 Stellar 评委的欧洲虚拟家庭" width="900">
+<a href="https://youtu.be/8LUc_K2RAqY">
+  <img src="docs/images/familyhaven-wallet-demo.png" alt="观看 FamilyHaven Wallet Demo Video" width="900">
+</a>
 
-欢迎 Stellar 评委-上方链接分别指向项目说明、真实 Testnet 应用和两分钟产品预告片。
+**[▶ 观看 FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)**
+
+欢迎 Stellar 评委-上方链接分别指向项目说明、真实 Testnet 应用和完整产品演示视频。
 
 </div>
 
@@ -42,7 +46,7 @@ Stellar 上的家庭钱包。以 Passkey 取代助记词，由亲人组成恢复
 | **结果** | 所有者无需保存或输入十二个单词，即可使用并恢复真实的 Testnet 智能钱包。独立的链上监视进程能在恢复启动时从应用外部发送警报。 |
 | **控制** | 最少守护人数、阈值、时间锁、密钥轮换冷却期和消费上限均由链上逻辑强制执行。StellarExpert 可公开检查合约源码重建结果。 |
 
-## 两分钟演示
+## 产品演示流程
 
 1. 打开[在线应用](https://familyhaven.mscilabs.com)，创建账户并注册设备通行密钥。系统不会生成助记词。
 2. 添加家人作为守护人。邀请页会在登录前说明职责与风险；只有至少三把守护人密钥上链后，恢复能力才会启用。
@@ -292,7 +296,7 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | 🌐 项目主页 | [FamilyHaven](https://familyhavenwallet.mscilabs.com/) |
 | ↗ 在线产品 | [打开 Testnet 应用](https://familyhaven.mscilabs.com) |
-| ▶ 预告片 | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
+| ▶ 演示视频 | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ 源码 | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
 | ✉ 联系方式 | [MSCI Labs](https://www.mscilabs.com) |
 
