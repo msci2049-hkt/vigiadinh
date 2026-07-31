@@ -231,7 +231,7 @@ The call will be an additional coordination layer, **not an authorization factor
 
 ## Team
 
-**[MSCI Labs](https://www.mscilabs.com)** — Vietnam · Singapore · Thailand · India
+**[MSCI Labs](https://www.mscilabs.com)** — Vietnam
 
 ---
 

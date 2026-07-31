@@ -231,7 +231,7 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 
 ## 团队
 
-**[MSCI Labs](https://www.mscilabs.com)** — Vietnam · Singapore · Thailand · India
+**[MSCI Labs](https://www.mscilabs.com)** — Vietnam
 
 ---
 

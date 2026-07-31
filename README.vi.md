@@ -231,7 +231,7 @@ Cuộc gọi là một lớp phối hợp bổ sung, **không phải yếu tố 
 
 ## Đội ngũ
 
-**[MSCI Labs](https://www.mscilabs.com)** — Vietnam · Singapore · Thailand · India
+**[MSCI Labs](https://www.mscilabs.com)** — Vietnam
 
 ---
 
