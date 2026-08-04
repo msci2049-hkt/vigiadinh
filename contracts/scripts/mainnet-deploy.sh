@@ -45,7 +45,17 @@ if [[ ! -f "$MANIFEST_FILE" ]]; then
      .fee_budget.maximum_xlm=$max_fee' "$MANIFEST_TEMPLATE" | json_atomic_write "$MANIFEST_FILE"
 fi
 
-[[ "$(jq -r '.source.git_commit' "$MANIFEST_FILE")" == "$git_sha" ]] || die 'manifest belongs to another Git commit'
+manifest_git_sha="$(jq -r '.source.git_commit // empty' "$MANIFEST_FILE")"
+[[ "$manifest_git_sha" =~ ^[0-9a-f]{40}$ ]] || die 'manifest contains an invalid Git commit'
+git -C "$REPO_ROOT" cat-file -e "$manifest_git_sha^{commit}" 2>/dev/null ||
+  die 'manifest Git commit is unavailable locally'
+git -C "$REPO_ROOT" merge-base --is-ancestor "$manifest_git_sha" "$git_sha" ||
+  die 'manifest Git commit is not an ancestor of the deployment commit'
+git -C "$REPO_ROOT" diff --quiet "$manifest_git_sha" "$git_sha" -- \
+  contracts/Cargo.toml contracts/Cargo.lock 'contracts/*/Cargo.toml' 'contracts/*/src' \
+  contracts/deployments/mainnet/artifacts.lock.json \
+  contracts/deployments/mainnet/manifest.template.json ||
+  die 'locked deployment inputs changed since the manifest was created'
 [[ "$(jq -r '.network.network_id' "$MANIFEST_FILE")" == "$(network_id)" ]] || die 'manifest belongs to another network'
 
 append_pending_tx() {
@@ -122,7 +132,9 @@ send_unsigned_xdr() {
   SEND_TX_HASH="$tx_hash"
   SEND_LEDGER="$ledger"
   SEND_RECEIPT="$receipt"
-  export SEND_TX_HASH SEND_LEDGER SEND_RECEIPT
+  # Keep the potentially large Soroban receipt shell-local.
+  export SEND_TX_HASH SEND_LEDGER
+  export -n SEND_RECEIPT
 }
 
 code_exists_with_hash() {
