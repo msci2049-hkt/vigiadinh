@@ -95,6 +95,12 @@ guarded_stroops=$((estimated_stroops * fee_safety_multiplier))
 estimated_xlm="$(stroops_to_xlm "$estimated_stroops")"
 guarded_xlm="$(stroops_to_xlm "$guarded_stroops")"
 max_stroops="$(awk -v value="$MAINNET_MAX_TOTAL_FEE_XLM" 'BEGIN { printf "%.0f", value * 10000000 }')"
+printf '[mainnet] raw estimate: %s XLM\n' "$estimated_xlm"
+printf '[mainnet] guarded estimate (2x): %s XLM\n' "$guarded_xlm"
+printf '[mainnet] configured maximum: %s XLM\n' "$MAINNET_MAX_TOTAL_FEE_XLM"
+printf '[mainnet] transaction estimates:\n'
+jq -r '.[] | "  - \(.type) \(.contract): \((.fee_stroops / 10000000)) XLM"' <<<"$costs"
+
 ((guarded_stroops <= max_stroops)) || die '2x guarded all-transaction estimate exceeds MAINNET_MAX_TOTAL_FEE_XLM'
 
 report="$PREFLIGHT_DIR/latest.json"
