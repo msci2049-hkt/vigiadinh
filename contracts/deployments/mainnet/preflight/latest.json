@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "status": "all-transaction-preflight-pass",
+  "generated_at": "2026-08-04T14:33:38Z",
+  "git_sha": "b4ec31883a9b79c047ece1e510736e1561b4772a",
+  "rpc_host_redacted": "https://mainnet.sorobanrpc.com/***REDACTED***",
+  "deployer_public_key": "GBIDNHWY2Q522ATTYX2VIQWTEZFXJLMNQMDJVALRGPJPSSGCBIPYZY7E",
+  "network": {
+    "id": "7ac33997544e3175d266bd022439b22cdb16508c01163f26e5cb2a3e1045a979",
+    "protocol": 27
+  },
+  "artifact_lock_sha256": "5efc00d0393ad6d1003b49097ea67a89992995f31b12eb5129a9eabf61676b29",
+  "origin_constructor_args_sha256": "959f50b81bdffcdf1e9a7f3ae57307313f6d970a294b03e7f7c8d7627b1749fb",
+  "fees": {
+    "all_transaction_estimate_xlm": "0.0737585",
+    "guarded_estimate_xlm": "0.1475170",
+    "safety_multiplier": 2,
+    "testnet_simulation_protocol": 27,
+    "max_total_fee_xlm": "220",
+    "transactions": [
+      {
+        "type": "upload",
+        "contract": "origin_verifier",
+        "fee_stroops": 89846,
+        "estimate_network": "mainnet",
+        "transaction_sent": false
+      },
+      {
+        "type": "upload",
+        "contract": "web_auth",
+        "fee_stroops": 20287,
+        "estimate_network": "mainnet",
+        "transaction_sent": false
+      },
+      {
+        "type": "upload",
+        "contract": "recovery_registry",
+        "fee_stroops": 84545,
+        "estimate_network": "mainnet",
+        "transaction_sent": false
+      },
+      {
+        "type": "upload",
+        "contract": "spending_limit_policy",
+        "fee_stroops": 97310,
+        "estimate_network": "mainnet",
+        "transaction_sent": false
+      },
+      {
+        "type": "upload",
+        "contract": "smart_account",
+        "fee_stroops": 284226,
+        "estimate_network": "mainnet",
+        "transaction_sent": false
+      },
+      {
+        "type": "deploy",
+        "contract": "origin_verifier",
+        "fee_stroops": 64455,
+        "estimate_network": "testnet",
+        "estimate_protocol": 27,
+        "transaction_sent": false
+      },
+      {
+        "type": "deploy",
+        "contract": "web_auth",
+        "fee_stroops": 31950,
+        "estimate_network": "testnet",
+        "estimate_protocol": 27,
+        "transaction_sent": false
+      },
+      {
+        "type": "deploy",
+        "contract": "recovery_registry",
+        "fee_stroops": 32475,
+        "estimate_network": "testnet",
+        "estimate_protocol": 27,
+        "transaction_sent": false
+      },
+      {
+        "type": "deploy",
+        "contract": "spending_limit_policy",
+        "fee_stroops": 32491,
+        "estimate_network": "testnet",
+        "estimate_protocol": 27,
+        "transaction_sent": false
+      }
+    ]
+  },
+  "note": "Uploads were simulated on Mainnet. Deploys were simulated read-only with identical locked bytes and constructor config on live Testnet, then guarded at 2x; exact Mainnet deploy simulation repeats after uploads and before the first instance transaction."
+}

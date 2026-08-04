@@ -1,6 +1,6 @@
 # Mainnet core deployment runbook
 
-Status: **prepared, not deployed**. This runbook installs a dormant contract core; it does not move the public application, users, backend, database, workers, sponsor wallet, or funds off Testnet.
+Status: **Mainnet core deployed and verified on 2026-08-04; public application remains on Testnet**. This runbook installs a dormant contract core; it does not move the public application, users, backend, database, workers, sponsor wallet, or funds off Testnet. See `docs/MAINNET-EVIDENCE.md` for the on-chain record.
 
 ## Scope and dependency result
 

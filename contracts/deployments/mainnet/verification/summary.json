@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-08-04T14:44:18Z",
+  "network_id": "7ac33997544e3175d266bd022439b22cdb16508c01163f26e5cb2a3e1045a979",
+  "git_sha": "9023f7971a4d2e9d43bf9b014535f8eca89bbaa6",
+  "contracts": [
+    {
+      "contract": "origin_verifier",
+      "contract_id": "CD2ESBAKCSTPUJANAYZJ5YEOMTK7GMISBRECR2RP2SWL2RSBESAGQE7J",
+      "wasm_hash": "5f41462676ef708519915f79367292c8bff6a3d2894931a5d1638a29748886a8",
+      "hash_match": true,
+      "build_metadata": "unavailable",
+      "explorer_status": "verified",
+      "explorer_url": "https://stellar.expert/explorer/public/contract/CD2ESBAKCSTPUJANAYZJ5YEOMTK7GMISBRECR2RP2SWL2RSBESAGQE7J",
+      "status": "verified"
+    },
+    {
+      "contract": "web_auth",
+      "contract_id": "CCKXCJHQ5ZINR4V7H7FTH2G4KI2FNVX4I6LHMMHIFQMKXMFTCAGRU3RY",
+      "wasm_hash": "4c0ad10d38ac7ee0c0c842dc4bd897d467f61420f79731639950735b04aaa524",
+      "hash_match": true,
+      "build_metadata": "unavailable",
+      "explorer_status": "verified",
+      "explorer_url": "https://stellar.expert/explorer/public/contract/CCKXCJHQ5ZINR4V7H7FTH2G4KI2FNVX4I6LHMMHIFQMKXMFTCAGRU3RY",
+      "status": "verified"
+    },
+    {
+      "contract": "recovery_registry",
+      "contract_id": "CDVX3E3PV4TE5HAHSFS4R3YHOB5SLCYU2KQWO5GCZDV2TPQUZ66SLJMH",
+      "wasm_hash": "f45bbdb3fa2682fb2d1f3314de7924edf7eefab79dff3c602897742b928a4d26",
+      "hash_match": true,
+      "build_metadata": "unavailable",
+      "explorer_status": "verified",
+      "explorer_url": "https://stellar.expert/explorer/public/contract/CDVX3E3PV4TE5HAHSFS4R3YHOB5SLCYU2KQWO5GCZDV2TPQUZ66SLJMH",
+      "status": "verified"
+    },
+    {
+      "contract": "spending_limit_policy",
+      "contract_id": "CAL3TR34D6FY6ZLQNJGHLIX4LUWU277V2CHAVEUL4X2DNOJXMV6TK45W",
+      "wasm_hash": "13fab007bba18c6ad42d28818126dd1c403cf7fda6319faf71b55b4ec4b44a55",
+      "hash_match": true,
+      "build_metadata": "unavailable",
+      "explorer_status": "verified",
+      "explorer_url": "https://stellar.expert/explorer/public/contract/CAL3TR34D6FY6ZLQNJGHLIX4LUWU277V2CHAVEUL4X2DNOJXMV6TK45W",
+      "status": "verified"
+    }
+  ],
+  "smart_account": {
+    "wasm_hash": "c1b28d42da1b7b091307c9acb0d72b88f45cc29d404b4d3c30bca0250a9d565f",
+    "hash_match": true,
+    "global_instance": false
+  },
+  "sac_native": {
+    "contract_id": "CAS3J7GYLGXMF6TDJBBYYSE3HQ6BBSMLNUQ34T6TZMYMW2EVH34XOWMA",
+    "source": "derived",
+    "custom_deployment": false
+  },
+  "read_only_smoke": {
+    "origin_verifier_config_result_sha256": "6e4c7c14debe82c7ce985e22bc5a4ae54aa5e837832ea5ab720ecf3fbf75124d",
+    "transaction_sent": false
+  }
+}
