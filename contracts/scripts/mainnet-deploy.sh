@@ -179,14 +179,19 @@ code_exists_with_hash() {
 }
 
 record_deployed_contract() {
-  local key="$1" constructor_sha="$2" expected contract_id events
+  local key="$1" constructor_sha="$2" expected contract_id meta created_hash
   expected="$(jq -r --arg key "$key" '.contracts[$key].wasm_hash' "$LOCK_FILE")"
-  contract_id="$(jq -r '.. | strings | select(test("^C[A-Z2-7]{55}$"))' <<<"$SEND_RECEIPT" | sort -u | head -n 1)"
-  if [[ -z "$contract_id" ]]; then
-    events="$(stellar_mainnet tx fetch events --hash "$SEND_TX_HASH" --output json)"
-    contract_id="$(jq -r '.. | strings | select(test("^C[A-Z2-7]{55}$"))' <<<"$events" | sort -u | head -n 1)"
-  fi
+  [[ "$(jq -r '.status // empty' <<<"$SEND_RECEIPT")" == SUCCESS ]] ||
+    die "cannot record a deploy without a SUCCESS receipt: $key"
+  retry_readonly_capture meta stellar_mainnet --quiet tx fetch meta --hash "$SEND_TX_HASH" --output json ||
+    die "could not fetch official transaction meta after retries: $key"
+  contract_id="$(jq -r '.v4.soroban_meta.return_value.address // .v3.soroban_meta.return_value.address // empty' <<<"$meta")"
   [[ "$contract_id" =~ ^C[A-Z2-7]{55}$ ]] || die "could not obtain contract ID from official transaction result: $key"
+  created_hash="$(jq -r --arg id "$contract_id" \
+    '[.. | objects | .created?.data?.contract_data? |
+      select(.contract == $id) | .val.contract_instance.executable.wasm? // empty] |
+      unique | if length == 1 then .[0] else empty end' <<<"$meta")"
+  [[ "$created_hash" == "$expected" ]] || die "transaction meta created an unexpected contract executable: $key"
   [[ "$(stellar_mainnet contract info hash --contract-id "$contract_id")" == "$expected" ]] || die "deployed contract hash mismatch: $key"
   stellar_mainnet contract alias add --overwrite --id "$contract_id" "mainnet-$key" >/dev/null
   jq --arg key "$key" --arg id "$contract_id" --arg tx "$SEND_TX_HASH" --argjson ledger "$SEND_LEDGER" --arg constructor "$constructor_sha" \
