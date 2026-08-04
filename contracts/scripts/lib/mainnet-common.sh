@@ -27,6 +27,25 @@ MAINNET_PASSPHRASE='Public Global Stellar Network ; September 2015'
 log() { printf '[mainnet] %s\n' "$*"; }
 die() { printf '[mainnet] ERROR: %s\n' "$*" >&2; exit 1; }
 
+retry_readonly_capture() {
+  local destination="$1"
+  shift
+  local attempt output=''
+
+  for attempt in 1 2 3; do
+    if output="$("$@")"; then
+      printf -v "$destination" '%s' "$output"
+      return 0
+    fi
+    if ((attempt < 3)); then
+      log "read-only RPC command failed; retrying ($attempt/3)"
+      sleep $((attempt * 3))
+    fi
+  done
+
+  return 1
+}
+
 require_command() {
   command -v "$1" >/dev/null 2>&1 || die "missing command: $1"
 }

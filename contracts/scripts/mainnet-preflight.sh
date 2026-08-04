@@ -78,9 +78,11 @@ mkdir -p "$PREFLIGHT_DIR"
 costs='[]'
 while IFS= read -r key; do
   wasm="$(artifact_path "$key")"
-  raw_xdr="$(stellar_mainnet contract upload --source-account "$deployer_public" --wasm "$wasm" \
-    --optimize=false --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
-  xdr="$(simulate_mainnet_xdr "$deployer_public" "$raw_xdr")"
+  retry_readonly_capture raw_xdr stellar_mainnet contract upload --source-account "$deployer_public" --wasm "$wasm" \
+    --optimize=false --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only ||
+    die "Mainnet upload XDR build failed after retries: $key"
+  retry_readonly_capture xdr simulate_mainnet_xdr "$deployer_public" "$raw_xdr" ||
+    die "Mainnet upload simulation failed after retries: $key"
   fee="$(xdr_fee_stroops "$xdr")"
   [[ "$fee" =~ ^[0-9]+$ && "$fee" -gt 100 ]] || die "invalid Mainnet upload simulation fee: $key"
   estimated_stroops=$((estimated_stroops + fee))
