@@ -4,6 +4,10 @@
   "artifact_repository": "msci2049-hkt/vigiadinh",
   "release_workflow_cli": "27.0.0",
   "wasm_protocol": 26,
+  "testnet_simulation": {
+    "source_public_key": "GCJT4UD4II6H3FDWPWFH5D5B7CVDOLJZXDVV6VSNQ4GJQK4EYMGHGMFE",
+    "purpose": "Read-only transaction simulation only; no alias, secret, signature, or submission is used."
+  },
   "artifact_metadata": {
     "rustc": "1.97.1",
     "soroban_sdk": "26.1.1#8ac18efb681a1c0b4b85a38c5a380300344e3f39",

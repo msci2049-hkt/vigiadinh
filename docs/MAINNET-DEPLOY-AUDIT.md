@@ -45,6 +45,7 @@ The active frontend's local development verifier ID is an older localhost-pinned
 - Frontend Biome, typecheck, tests, and Testnet build: PASS, 475 tests and 0 failures.
 - Git history and deployment-allowlist secret scans with redaction: PASS; no secret is present in the preparation diff. Pre-existing ignored local environment data and generated target metadata remain outside the commit.
 - Mainnet full preflight: expected fail-closed exit because the operator config and execution gates are absent. No Mainnet XDR was built, signed, or sent.
+- CLI 26.1.0 transaction regression: PASS after correcting the preparation workflow. The tagged CLI source and a live Testnet reproduction confirmed that `--wasm-hash --build-only` fails and that `--build-only` is unsimulated raw XDR. The workflow now builds from the locked local WASM, asserts the embedded executable hash, and runs official `tx simulate`; artifact-only preflight exercises all four global create-contract paths without signing or sending.
 
 ## Safety disposition
 

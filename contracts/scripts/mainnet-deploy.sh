@@ -162,8 +162,9 @@ while IFS= read -r key; do
       "$MANIFEST_FILE" | json_atomic_write "$MANIFEST_FILE"
     continue
   fi
-  unsigned="$(stellar_mainnet contract upload --source-account "$deployer_public" --wasm "$wasm" \
+  raw_unsigned="$(stellar_mainnet contract upload --source-account "$deployer_public" --wasm "$wasm" \
     --optimize=false --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
+  unsigned="$(simulate_mainnet_xdr "$deployer_public" "$raw_unsigned")"
   send_unsigned_xdr upload "$key" "$unsigned" "$artifact_sha" "$wasm_hash" ''
   code_exists_with_hash "$wasm_hash" || die "uploaded WASM is not retrievable by locked hash: $key"
   jq --arg key "$key" --arg artifact "$artifact_sha" --arg wasm "$wasm_hash" --arg tx "$SEND_TX_HASH" --argjson ledger "$SEND_LEDGER" \
@@ -210,14 +211,18 @@ while IFS= read -r key; do
   [[ -f "$salt_file" ]] || { od -An -N32 -tx1 /dev/urandom | tr -d ' \n' >"$salt_file"; printf '\n' >>"$salt_file"; }
   salt="$(tr -d '\n' <"$salt_file")"
   wasm_hash="$(jq -r --arg key "$key" '.contracts[$key].wasm_hash' "$LOCK_FILE")"
+  wasm="$(artifact_path "$key")"
   if [[ "$key" == origin_verifier ]]; then
-    simulated="$("$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract deploy --network "$MAINNET_NETWORK_NAME" --source-account "$deployer_public" --wasm-hash "$wasm_hash" \
-      --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only -- \
+    raw_simulated="$("$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract deploy --network "$MAINNET_NETWORK_NAME" --source-account "$deployer_public" --wasm "$wasm" \
+      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only -- \
       --rp_id_hash "$ORIGIN_RP_HASH" --allowed_origins "$ORIGIN_BYTES_JSON")"
   else
-    simulated="$(stellar_mainnet contract deploy --source-account "$deployer_public" --wasm-hash "$wasm_hash" \
-      --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
+    raw_simulated="$(stellar_mainnet contract deploy --source-account "$deployer_public" --wasm "$wasm" \
+      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
   fi
+  assert_create_xdr_wasm_hash "$raw_simulated" "$wasm_hash"
+  simulated="$(simulate_mainnet_xdr "$deployer_public" "$raw_simulated")"
+  assert_create_xdr_wasm_hash "$simulated" "$wasm_hash"
   fee="$(xdr_fee_stroops "$simulated")"
   deploy_fee_stroops=$((deploy_fee_stroops + fee))
 done < <(jq -r '.contracts | to_entries[] | select(.value.required == true and .value.deploy_instance == true) | .key' "$LOCK_FILE")
@@ -253,15 +258,19 @@ while IFS= read -r key; do
   else
   salt="$(tr -d '\n' <"$CACHE_DIR/salts/$key.hex")"
   constructor_sha=''
+  wasm="$(artifact_path "$key")"
   if [[ "$key" == origin_verifier ]]; then
     constructor_sha="$ORIGIN_ARGS_SHA"
-    unsigned="$("$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract deploy --network "$MAINNET_NETWORK_NAME" --source-account "$deployer_public" --wasm-hash "$expected" \
-      --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only -- \
+    raw_unsigned="$("$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract deploy --network "$MAINNET_NETWORK_NAME" --source-account "$deployer_public" --wasm "$wasm" \
+      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only -- \
       --rp_id_hash "$ORIGIN_RP_HASH" --allowed_origins "$ORIGIN_BYTES_JSON")"
   else
-    unsigned="$(stellar_mainnet contract deploy --source-account "$deployer_public" --wasm-hash "$expected" \
-      --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
+    raw_unsigned="$(stellar_mainnet contract deploy --source-account "$deployer_public" --wasm "$wasm" \
+      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
   fi
+  assert_create_xdr_wasm_hash "$raw_unsigned" "$expected"
+  unsigned="$(simulate_mainnet_xdr "$deployer_public" "$raw_unsigned")"
+  assert_create_xdr_wasm_hash "$unsigned" "$expected"
   artifact_sha="$(jq -r --arg key "$key" '.contracts[$key].artifact_sha256' "$LOCK_FILE")"
   send_unsigned_xdr deploy "$key" "$unsigned" "$artifact_sha" "$expected" "$constructor_sha"
   fi

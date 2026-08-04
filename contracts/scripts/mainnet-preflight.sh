@@ -13,8 +13,17 @@ require_base_tools
 prepare_and_verify_artifacts
 verify_testnet_provenance
 
+# Artifact-only mode also exercises the CLI 26.1.0 create-contract XDR path.
+# The locked Testnet account is only a public sequence source for simulation;
+# no alias, secret, signature, or transaction submission is involved.
+origin_constructor_values \
+  "$(jq -r '.origin_config.rp_id' "$LOCK_FILE")" \
+  "$(jq -c '.origin_config.allowed_origins' "$LOCK_FILE")"
+estimate_testnet_deploy_fees
+
 if [[ "$MODE" == --artifact-only ]]; then
   log 'PASS: all six release artifacts match the lock and Testnet on-chain hashes'
+  log 'PASS: CLI 26.1.0 deploy XDR pipeline simulated all four global instances read-only'
   log 'artifact-only mode sent no transaction'
   exit 0
 fi
@@ -59,24 +68,34 @@ log "deployer balance gate: PASS (minimum ${MAINNET_MIN_SOURCE_BALANCE_XLM} XLM)
 
 origin_constructor_values
 
-# Simulate every required upload. Deploy-instance simulations are possible only after
-# their WASM exists on Mainnet, so the deploy script simulates each deployment again
-# after all uploads and before the first instance transaction.
+# Simulate every required upload against Mainnet. Deploy-instance simulations were
+# already performed read-only on live Testnet against the byte-identical artifacts
+# (whose minimum interface protocol is locked separately in artifacts.lock.json).
+# A fixed 2x safety factor gates their estimated resource fees before the first
+# Mainnet transaction. Deploy repeats exact Mainnet simulation after uploads.
 estimated_stroops=0
 mkdir -p "$PREFLIGHT_DIR"
 costs='[]'
 while IFS= read -r key; do
   wasm="$(artifact_path "$key")"
-  xdr="$(stellar_mainnet contract upload --source-account "$deployer_public" --wasm "$wasm" \
+  raw_xdr="$(stellar_mainnet contract upload --source-account "$deployer_public" --wasm "$wasm" \
     --optimize=false --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
+  xdr="$(simulate_mainnet_xdr "$deployer_public" "$raw_xdr")"
   fee="$(xdr_fee_stroops "$xdr")"
+  [[ "$fee" =~ ^[0-9]+$ && "$fee" -gt 100 ]] || die "invalid Mainnet upload simulation fee: $key"
   estimated_stroops=$((estimated_stroops + fee))
-  costs="$(jq -cn --argjson old "$costs" --arg name "$key" --argjson fee "$fee" '$old + [{type:"upload",contract:$name,fee_stroops:$fee}]')"
+  costs="$(jq -cn --argjson old "$costs" --arg name "$key" --argjson fee "$fee" \
+    '$old + [{type:"upload",contract:$name,fee_stroops:$fee,estimate_network:"mainnet",transaction_sent:false}]')"
 done < <(jq -r '.contracts | to_entries[] | select(.value.required == true) | .key' "$LOCK_FILE")
 
+estimated_stroops=$((estimated_stroops + TESTNET_DEPLOY_ESTIMATED_STROOPS))
+costs="$(jq -cn --argjson uploads "$costs" --argjson deploys "$TESTNET_DEPLOY_COSTS_JSON" '$uploads + $deploys')"
+fee_safety_multiplier=2
+guarded_stroops=$((estimated_stroops * fee_safety_multiplier))
 estimated_xlm="$(stroops_to_xlm "$estimated_stroops")"
+guarded_xlm="$(stroops_to_xlm "$guarded_stroops")"
 max_stroops="$(awk -v value="$MAINNET_MAX_TOTAL_FEE_XLM" 'BEGIN { printf "%.0f", value * 10000000 }')"
-((estimated_stroops <= max_stroops)) || die 'simulated upload fees alone exceed MAINNET_MAX_TOTAL_FEE_XLM'
+((guarded_stroops <= max_stroops)) || die '2x guarded all-transaction estimate exceeds MAINNET_MAX_TOTAL_FEE_XLM'
 
 report="$PREFLIGHT_DIR/latest.json"
 jq -n \
@@ -86,16 +105,22 @@ jq -n \
   --arg network_id "$(network_id)" --argjson protocol "$protocol" \
   --arg artifact_lock_sha256 "$(sha256sum "$LOCK_FILE" | awk '{print $1}')" \
   --arg origin_constructor_args_sha256 "$ORIGIN_ARGS_SHA" \
-  --arg upload_estimate_xlm "$estimated_xlm" --arg max_total_fee_xlm "$MAINNET_MAX_TOTAL_FEE_XLM" \
+  --arg all_transaction_estimate_xlm "$estimated_xlm" --arg guarded_estimate_xlm "$guarded_xlm" \
+  --argjson safety_multiplier "$fee_safety_multiplier" --arg max_total_fee_xlm "$MAINNET_MAX_TOTAL_FEE_XLM" \
+  --argjson testnet_simulation_protocol "$TESTNET_SIMULATION_PROTOCOL" \
   --argjson costs "$costs" \
-  '{schema_version:1,status:"upload-simulation-pass/deploy-simulation-pending",generated_at:$generated_at,
+  '{schema_version:1,status:"all-transaction-preflight-pass",generated_at:$generated_at,
     git_sha:$git_sha,rpc_host_redacted:$rpc,deployer_public_key:$public_key,
     network:{id:$network_id,protocol:$protocol},artifact_lock_sha256:$artifact_lock_sha256,
     origin_constructor_args_sha256:$origin_constructor_args_sha256,
-    fees:{upload_estimate_xlm:$upload_estimate_xlm,max_total_fee_xlm:$max_total_fee_xlm,transactions:$costs},
-    note:"Every deploy-instance transaction is simulated after all WASMs exist and before the first instance is sent."}' >"$report"
+    fees:{all_transaction_estimate_xlm:$all_transaction_estimate_xlm,
+      guarded_estimate_xlm:$guarded_estimate_xlm,safety_multiplier:$safety_multiplier,
+      testnet_simulation_protocol:$testnet_simulation_protocol,
+      max_total_fee_xlm:$max_total_fee_xlm,transactions:$costs},
+    note:"Uploads were simulated on Mainnet. Deploys were simulated read-only with identical locked bytes and constructor config on live Testnet, then guarded at 2x; exact Mainnet deploy simulation repeats after uploads and before the first instance transaction."}' >"$report"
 
-log "simulated required upload fees: $estimated_xlm XLM"
+log "simulated all-transaction estimate: $estimated_xlm XLM"
+log "2x guarded estimate: $guarded_xlm XLM"
 log "total fee budget: $MAINNET_MAX_TOTAL_FEE_XLM XLM"
 log "preflight report: ${report#"$REPO_ROOT"/}"
 if [[ "${EXECUTE_MAINNET_DEPLOY:-NO}" == YES ]]; then

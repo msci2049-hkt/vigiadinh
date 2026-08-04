@@ -74,14 +74,16 @@ bash contracts/scripts/mainnet-verify.sh
 
 ## Fee and transaction gates
 
-Soroban cannot simulate `create_contract` against a WASM hash until that code ledger entry exists on the target network. The workflow therefore uses two fail-closed gates:
+Stellar CLI 26.1.0 has a documented implementation limitation in its own tagged source: `contract deploy --wasm-hash --build-only` refuses to fetch the remote interface and returns `WasmNotProvided`. Also, `--build-only` creates raw XDR; it does not simulate resources. The workflow handles both facts explicitly: it builds from the hash-locked local WASM, decodes the resulting operation to assert the embedded executable hash, and passes every raw XDR through the official `stellar tx simulate` command before fee inspection, signing, or sending.
 
-1. full preflight simulates every required Mainnet WASM upload before the first transaction;
-2. the deploy script installs all byte-matched WASMs, then simulates every global instance and checks upload-plus-deploy total against `MAINNET_MAX_TOTAL_FEE_XLM` before the first instance transaction.
+Soroban cannot simulate `create_contract` on Mainnet until that code ledger entry exists there. The workflow therefore uses two fail-closed gates:
 
-Every sent operation uses `--build-only`, is signed by the CLI identity alias, hashed with `stellar tx hash`, sent with `stellar tx send`, and confirmed with `stellar tx fetch`. Signed XDR stays in the ignored `transactions/` directory. A pending transaction is written to the manifest before submission; on resume, a successful pending upload or deployment is recovered from its official receipt instead of creating a duplicate.
+1. full preflight simulates every required upload on Mainnet and every global deployment read-only on live Testnet using identical locked bytes and constructor configuration. It verifies that the live Testnet protocol supports the artifacts' locked protocol-26 interface, records the actual simulation protocol, applies a fixed 2x safety factor to the combined estimate, and checks it against `MAINNET_MAX_TOTAL_FEE_XLM` before the first Mainnet transaction;
+2. after byte-matched WASMs exist on Mainnet, the deploy script simulates every global instance again on Mainnet and checks exact upload-plus-deploy total against the same cap before the first instance transaction.
 
-Uploads always use `--optimize=false`. A Mainnet code entry is accepted only when fetched bytes hash to the locked value. Instance creation uses `--wasm-hash`. Native SAC uses only `contract id asset --asset native`.
+Every sent operation uses `--build-only` followed by `stellar tx simulate`, is signed by the CLI identity alias, hashed with `stellar tx hash`, sent with `stellar tx send`, and confirmed with `stellar tx fetch`. Signed XDR stays in the ignored `transactions/` directory. A pending transaction is written to the manifest before submission; on resume, a successful pending upload or deployment is recovered from its official receipt instead of creating a duplicate.
+
+Uploads always use `--optimize=false`. A Mainnet code entry is accepted only when fetched bytes hash to the locked value. Instance XDR is built from the locked local WASM with `--optimize=false`, decoded to prove that the operation references the expected WASM hash, and then simulated. Native SAC uses only `contract id asset --asset native`.
 
 ## Evidence lifecycle
 

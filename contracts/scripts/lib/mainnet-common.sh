@@ -246,12 +246,14 @@ verify_testnet_provenance() {
 }
 
 origin_constructor_values() {
-  ORIGIN_RP_HASH="$(printf '%s' "$MAINNET_RP_ID" | sha256sum | awk '{print $1}')"
+  local rp_id="${1:-${MAINNET_RP_ID:-}}" allowed_origins_json="${2:-${MAINNET_ALLOWED_ORIGINS_JSON:-}}"
+  [[ -n "$rp_id" && -n "$allowed_origins_json" ]] || die 'origin constructor configuration is missing'
+  ORIGIN_RP_HASH="$(printf '%s' "$rp_id" | sha256sum | awk '{print $1}')"
   ORIGIN_BYTES_JSON="$({
     while IFS= read -r origin; do
       printf '%s' "$origin" | od -An -tx1 | tr -d ' \n'
       printf '\n'
-    done < <(jq -r '.[]' <<<"$MAINNET_ALLOWED_ORIGINS_JSON")
+    done < <(jq -r '.[]' <<<"$allowed_origins_json")
   } | jq -Rsc 'split("\n") | map(select(length > 0))')"
   ORIGIN_ARGS_SHA="$(jq -cnS --arg rp "$ORIGIN_RP_HASH" --argjson origins "$ORIGIN_BYTES_JSON" \
     '{rp_id_hash:$rp,allowed_origins:$origins}' | sha256sum | awk '{print $1}')"
@@ -260,6 +262,74 @@ origin_constructor_values() {
 
 xdr_fee_stroops() {
   "$STELLAR26" tx decode "$1" --output json | jq -r '[.. | objects | .fee? | select(type == "number")] | max // 0'
+}
+
+assert_simulated_soroban_xdr() {
+  local xdr="$1"
+  "$STELLAR26" tx decode "$xdr" --output json |
+    jq -e '.tx.tx.ext.v1.resources' >/dev/null || die 'transaction XDR has not been simulated'
+}
+
+assert_create_xdr_wasm_hash() {
+  local xdr="$1" expected_hash="$2"
+  "$STELLAR26" tx decode "$xdr" --output json |
+    jq -e --arg expected "$expected_hash" \
+      '[.. | objects | .executable?.wasm? // empty | select(. == $expected)] | length > 0' >/dev/null ||
+    die "create-contract XDR does not embed the locked WASM hash: $expected_hash"
+}
+
+simulate_mainnet_xdr() {
+  local source_account="$1" raw_xdr="$2" simulated
+  simulated="$(printf '%s' "$raw_xdr" | stellar_mainnet tx simulate --source-account "$source_account")"
+  assert_simulated_soroban_xdr "$simulated"
+  printf '%s\n' "$simulated"
+}
+
+# CLI 26.1.0 deliberately cannot combine --wasm-hash with --build-only because
+# that path refuses to fetch the remote interface. Using the locked local WASM
+# with --build-only does not upload or optimize it: CLI source computes its hash
+# and creates an operation whose executable is that hash. Decode checks below
+# make that invariant explicit before official tx simulation.
+estimate_testnet_deploy_fees() {
+  local source protocol artifact_protocol key wasm expected_hash salt raw_xdr simulated fee total=0 costs='[]'
+  source="$(jq -r '.testnet_simulation.source_public_key' "$LOCK_FILE")"
+  [[ "$source" =~ ^G[A-Z2-7]{55}$ ]] || die 'invalid locked Testnet simulation public key'
+  protocol="$($STELLAR26 network info --network testnet --output json | jq -r '.protocol_version')"
+  artifact_protocol="$(jq -r '.wasm_protocol' "$LOCK_FILE")"
+  [[ "$protocol" =~ ^[0-9]+$ && "$protocol" -ge "$artifact_protocol" ]] ||
+    die 'live Testnet protocol is incompatible with the locked artifacts'
+  "$STELLAR26" ledger entry fetch account --account "$source" --network testnet --output json >/dev/null ||
+    die 'locked read-only Testnet simulation account is unavailable'
+
+  while IFS= read -r key; do
+    wasm="$(artifact_path "$key")"
+    expected_hash="$(jq -r --arg key "$key" '.contracts[$key].wasm_hash' "$LOCK_FILE")"
+    salt="$(printf 'family-wallet-mainnet-preflight:%s:%s:%s' "$key" "$$" "$(date +%s%N)" | sha256sum | awk '{print $1}')"
+    if [[ "$key" == origin_verifier ]]; then
+      raw_xdr="$("$STELLAR26" contract deploy --network testnet --source-account "$source" \
+        --wasm "$wasm" --optimize=false --salt "$salt" \
+        --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only -- \
+        --rp_id_hash "$ORIGIN_RP_HASH" --allowed_origins "$ORIGIN_BYTES_JSON")"
+    else
+      raw_xdr="$("$STELLAR26" contract deploy --network testnet --source-account "$source" \
+        --wasm "$wasm" --optimize=false --salt "$salt" \
+        --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
+    fi
+    assert_create_xdr_wasm_hash "$raw_xdr" "$expected_hash"
+    simulated="$(printf '%s' "$raw_xdr" | "$STELLAR26" tx simulate --network testnet --source-account "$source")"
+    assert_simulated_soroban_xdr "$simulated"
+    assert_create_xdr_wasm_hash "$simulated" "$expected_hash"
+    fee="$(xdr_fee_stroops "$simulated")"
+    [[ "$fee" =~ ^[0-9]+$ && "$fee" -gt 100 ]] || die "invalid Testnet deploy simulation fee: $key"
+    total=$((total + fee))
+    costs="$(jq -cn --argjson old "$costs" --arg name "$key" --argjson fee "$fee" --argjson protocol "$protocol" \
+      '$old + [{type:"deploy",contract:$name,fee_stroops:$fee,estimate_network:"testnet",estimate_protocol:$protocol,transaction_sent:false}]')"
+  done < <(jq -r '.contracts | to_entries[] | select(.value.required == true and .value.deploy_instance == true) | .key' "$LOCK_FILE")
+
+  TESTNET_DEPLOY_ESTIMATED_STROOPS="$total"
+  TESTNET_DEPLOY_COSTS_JSON="$costs"
+  TESTNET_SIMULATION_PROTOCOL="$protocol"
+  export TESTNET_DEPLOY_ESTIMATED_STROOPS TESTNET_DEPLOY_COSTS_JSON TESTNET_SIMULATION_PROTOCOL
 }
 
 stroops_to_xlm() {
