@@ -16,6 +16,7 @@ load_mainnet_env || die "missing operator config: $ENV_FILE"
 
 # Mainnet commands below need an RPC URL; do not export the passphrase globally.
 export STELLAR_RPC_URL="$MAINNET_RPC_URL"
+export STELLAR_NETWORK_PASSPHRASE="$MAINNET_NETWORK_PASSPHRASE"
 configure_isolated_network
 origin_constructor_values
 mkdir -p "$TX_DIR" "$PREFLIGHT_DIR" "$VERIFY_DIR" "$CACHE_DIR/salts"
