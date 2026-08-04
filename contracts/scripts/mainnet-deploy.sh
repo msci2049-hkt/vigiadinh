@@ -13,6 +13,9 @@ load_mainnet_env || die "missing operator config: $ENV_FILE"
 
 # Full preflight includes provenance, Git, origin, identity, balance, RPC, and upload fee gates.
 "$SCRIPT_DIR/mainnet-preflight.sh" full
+
+# Mainnet commands below need an RPC URL; do not export the passphrase globally.
+export STELLAR_RPC_URL="$MAINNET_RPC_URL"
 configure_isolated_network
 origin_constructor_values
 mkdir -p "$TX_DIR" "$PREFLIGHT_DIR" "$VERIFY_DIR" "$CACHE_DIR/salts"
