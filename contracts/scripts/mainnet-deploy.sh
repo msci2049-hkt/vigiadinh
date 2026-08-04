@@ -137,15 +137,43 @@ send_unsigned_xdr() {
   export -n SEND_RECEIPT
 }
 
+retry_readonly_capture() {
+  local destination="$1"
+  shift
+  local attempt output=''
+
+  for attempt in 1 2 3; do
+    if output="$("$@")"; then
+      printf -v "$destination" '%s' "$output"
+      return 0
+    fi
+    if ((attempt < 3)); then
+      log "read-only RPC command failed; retrying ($attempt/3)"
+      sleep $((attempt * 3))
+    fi
+  done
+
+  return 1
+}
+
 code_exists_with_hash() {
-  local hash="$1" fetched fresh
+  local hash="$1" fetched fresh attempt
   fetched="$CACHE_DIR/onchain-$hash.wasm"
   fresh="$CACHE_DIR/.onchain-$hash.$$.$RANDOM.wasm"
-  if stellar_mainnet contract fetch --wasm-hash "$hash" --out-file "$fresh" >/dev/null 2>&1; then
-    [[ "$(sha256sum "$fresh" | awk '{print $1}')" == "$hash" ]] || die "Mainnet returned different WASM bytes for $hash"
-    mv -- "$fresh" "$fetched"
-    return 0
-  fi
+
+  for attempt in 1 2 3; do
+    rm -f -- "$fresh"
+    if stellar_mainnet contract fetch --wasm-hash "$hash" --out-file "$fresh" >/dev/null 2>&1; then
+      [[ "$(sha256sum "$fresh" | awk '{print $1}')" == "$hash" ]] || die "Mainnet returned different WASM bytes for $hash"
+      mv -- "$fresh" "$fetched"
+      return 0
+    fi
+    if ((attempt < 3)); then
+      log "Mainnet WASM fetch failed; retrying ($attempt/3): $hash"
+      sleep $((attempt * 3))
+    fi
+  done
+
   rm -f -- "$fresh"
   return 1
 }
@@ -200,6 +228,8 @@ while IFS= read -r key; do
       "$MANIFEST_FILE" | json_atomic_write "$MANIFEST_FILE"
     continue
   fi
+  [[ -z "$recorded_upload_tx" ]] ||
+    die "recorded Mainnet WASM is not retrievable; refusing duplicate upload: $key"
   raw_unsigned="$(stellar_mainnet contract upload --source-account "$deployer_public" --wasm "$wasm" \
     --optimize=false --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
   unsigned="$(simulate_mainnet_xdr "$deployer_public" "$raw_unsigned")"
@@ -251,15 +281,19 @@ while IFS= read -r key; do
   wasm_hash="$(jq -r --arg key "$key" '.contracts[$key].wasm_hash' "$LOCK_FILE")"
   wasm="$(artifact_path "$key")"
   if [[ "$key" == origin_verifier ]]; then
-    raw_simulated="$("$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract deploy --network "$MAINNET_NETWORK_NAME" --source-account "$deployer_public" --wasm "$wasm" \
-      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only -- \
-      --rp_id_hash "$ORIGIN_RP_HASH" --allowed_origins "$ORIGIN_BYTES_JSON")"
+    retry_readonly_capture raw_simulated "$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract deploy --network "$MAINNET_NETWORK_NAME" \
+      --source-account "$deployer_public" --wasm "$wasm" --optimize=false --salt "$salt" \
+      --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only -- \
+      --rp_id_hash "$ORIGIN_RP_HASH" --allowed_origins "$ORIGIN_BYTES_JSON" ||
+      die "Mainnet deploy XDR build failed after retries: $key"
   else
-    raw_simulated="$(stellar_mainnet contract deploy --source-account "$deployer_public" --wasm "$wasm" \
-      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
+    retry_readonly_capture raw_simulated stellar_mainnet contract deploy --source-account "$deployer_public" --wasm "$wasm" \
+      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only ||
+      die "Mainnet deploy XDR build failed after retries: $key"
   fi
   assert_create_xdr_wasm_hash "$raw_simulated" "$wasm_hash"
-  simulated="$(simulate_mainnet_xdr "$deployer_public" "$raw_simulated")"
+  retry_readonly_capture simulated simulate_mainnet_xdr "$deployer_public" "$raw_simulated" ||
+    die "Mainnet deploy simulation failed after retries: $key"
   assert_create_xdr_wasm_hash "$simulated" "$wasm_hash"
   fee="$(xdr_fee_stroops "$simulated")"
   deploy_fee_stroops=$((deploy_fee_stroops + fee))
@@ -299,15 +333,19 @@ while IFS= read -r key; do
   wasm="$(artifact_path "$key")"
   if [[ "$key" == origin_verifier ]]; then
     constructor_sha="$ORIGIN_ARGS_SHA"
-    raw_unsigned="$("$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract deploy --network "$MAINNET_NETWORK_NAME" --source-account "$deployer_public" --wasm "$wasm" \
-      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only -- \
-      --rp_id_hash "$ORIGIN_RP_HASH" --allowed_origins "$ORIGIN_BYTES_JSON")"
+    retry_readonly_capture raw_unsigned "$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract deploy --network "$MAINNET_NETWORK_NAME" \
+      --source-account "$deployer_public" --wasm "$wasm" --optimize=false --salt "$salt" \
+      --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only -- \
+      --rp_id_hash "$ORIGIN_RP_HASH" --allowed_origins "$ORIGIN_BYTES_JSON" ||
+      die "Mainnet deploy XDR build failed after retries: $key"
   else
-    raw_unsigned="$(stellar_mainnet contract deploy --source-account "$deployer_public" --wasm "$wasm" \
-      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only)"
+    retry_readonly_capture raw_unsigned stellar_mainnet contract deploy --source-account "$deployer_public" --wasm "$wasm" \
+      --optimize=false --salt "$salt" --inclusion-fee "${MAINNET_INCLUSION_FEE_STROOPS:-100}" --build-only ||
+      die "Mainnet deploy XDR build failed after retries: $key"
   fi
   assert_create_xdr_wasm_hash "$raw_unsigned" "$expected"
-  unsigned="$(simulate_mainnet_xdr "$deployer_public" "$raw_unsigned")"
+  retry_readonly_capture unsigned simulate_mainnet_xdr "$deployer_public" "$raw_unsigned" ||
+    die "Mainnet deploy simulation failed after retries: $key"
   assert_create_xdr_wasm_hash "$unsigned" "$expected"
   artifact_sha="$(jq -r --arg key "$key" '.contracts[$key].artifact_sha256' "$LOCK_FILE")"
   send_unsigned_xdr deploy "$key" "$unsigned" "$artifact_sha" "$expected" "$constructor_sha"
