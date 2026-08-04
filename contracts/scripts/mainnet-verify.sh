@@ -30,13 +30,21 @@ while IFS= read -r key; do
   contract_id="$(jq -r --arg key "$key" '.contracts[$key].contract_id // empty' "$MANIFEST_FILE")"
   [[ "$contract_id" =~ ^C[A-Z2-7]{55}$ ]] || die "missing Mainnet contract ID: $key"
   expected="$(jq -r --arg key "$key" '.contracts[$key].wasm_hash' "$LOCK_FILE")"
-  actual="$(stellar_mainnet contract info hash --contract-id "$contract_id")"
+  retry_readonly_capture actual stellar_mainnet contract info hash --contract-id "$contract_id" ||
+    die "Mainnet contract hash lookup failed after retries: $key"
   [[ "$actual" == "$expected" ]] || die "Mainnet on-chain WASM hash mismatch: $key"
 
-  stellar_mainnet contract info env-meta --contract-id "$contract_id" --output json-formatted >"$VERIFY_DIR/$key.env-meta.json"
-  stellar_mainnet contract info meta --contract-id "$contract_id" --output json-formatted >"$VERIFY_DIR/$key.meta.json"
-  stellar_mainnet contract info interface --contract-id "$contract_id" --output json-formatted >"$VERIFY_DIR/$key.interface.json"
-  if stellar_mainnet contract info build --contract-id "$contract_id" >"$VERIFY_DIR/$key.build.txt" 2>&1; then
+  retry_readonly_capture env_meta stellar_mainnet contract info env-meta --contract-id "$contract_id" --output json-formatted ||
+    die "Mainnet env-meta lookup failed after retries: $key"
+  retry_readonly_capture contract_meta stellar_mainnet contract info meta --contract-id "$contract_id" --output json-formatted ||
+    die "Mainnet metadata lookup failed after retries: $key"
+  retry_readonly_capture contract_interface stellar_mainnet contract info interface --contract-id "$contract_id" --output json-formatted ||
+    die "Mainnet interface lookup failed after retries: $key"
+  printf '%s\n' "$env_meta" >"$VERIFY_DIR/$key.env-meta.json"
+  printf '%s\n' "$contract_meta" >"$VERIFY_DIR/$key.meta.json"
+  printf '%s\n' "$contract_interface" >"$VERIFY_DIR/$key.interface.json"
+  if retry_readonly_capture contract_build stellar_mainnet contract info build --contract-id "$contract_id"; then
+    printf '%s\n' "$contract_build" >"$VERIFY_DIR/$key.build.txt"
     build_status='available'
   else
     build_status='unavailable'
@@ -67,23 +75,33 @@ done < <(jq -r '.contracts | to_entries[] | select(.value.required == true and .
 smart_hash="$(jq -r '.contracts.smart_account.wasm_hash' "$LOCK_FILE")"
 smart_file="$VERIFY_DIR/smart-account.mainnet.wasm"
 smart_fresh="$VERIFY_DIR/.smart-account.mainnet.$$.$RANDOM.wasm"
-if stellar_mainnet contract fetch --wasm-hash "$smart_hash" --out-file "$smart_fresh"; then
-  mv -- "$smart_fresh" "$smart_file"
-else
+smart_fetched=false
+for attempt in 1 2 3; do
   rm -f -- "$smart_fresh"
-  die 'smart-account WASM is not retrievable from live Mainnet'
-fi
+  if stellar_mainnet contract fetch --wasm-hash "$smart_hash" --out-file "$smart_fresh"; then
+    smart_fetched=true
+    break
+  fi
+  if ((attempt < 3)); then
+    log "smart-account WASM fetch failed; retrying ($attempt/3)"
+    sleep $((attempt * 3))
+  fi
+done
+[[ "$smart_fetched" == true ]] || { rm -f -- "$smart_fresh"; die 'smart-account WASM is not retrievable from live Mainnet'; }
+mv -- "$smart_fresh" "$smart_file"
 [[ "$(sha256sum "$smart_file" | awk '{print $1}')" == "$smart_hash" ]] || die 'smart-account Mainnet WASM mismatch'
 
 # Native SAC is derived, never custom-deployed.
-sac_native="$(stellar_mainnet contract id asset --asset native)"
+retry_readonly_capture sac_native stellar_mainnet contract id asset --asset native ||
+  die 'native SAC derivation failed after retries'
 [[ "$sac_native" == "$(jq -r '.contracts.sac_native.contract_id' "$MANIFEST_FILE")" ]] || die 'native SAC derivation mismatch'
 
 # origin-verifier::config is read with --send=no; only a result digest is retained.
 origin_id="$(jq -r '.contracts.origin_verifier.contract_id' "$MANIFEST_FILE")"
 deployer_public="$(jq -r '.deployer_public_key' "$MANIFEST_FILE")"
-origin_view="$("$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract invoke --network "$MAINNET_NETWORK_NAME" \
-  --id "$origin_id" --source-account "$deployer_public" --send=no -- config)"
+retry_readonly_capture origin_view "$STELLAR26" --config-dir "$CLI_CONFIG_DIR" contract invoke --network "$MAINNET_NETWORK_NAME" \
+  --id "$origin_id" --source-account "$deployer_public" --send=no -- config ||
+  die 'origin-verifier read-only config lookup failed after retries'
 origin_expected="$(jq -cn --arg rp "$ORIGIN_RP_HASH" --argjson origins "$ORIGIN_BYTES_JSON" '[$rp,$origins]')"
 [[ "$(jq -c . <<<"$origin_view")" == "$origin_expected" ]] || die 'origin-verifier config differs from the reviewed constructor lock'
 origin_view_sha="$(printf '%s' "$origin_view" | sha256sum | awk '{print $1}')"
