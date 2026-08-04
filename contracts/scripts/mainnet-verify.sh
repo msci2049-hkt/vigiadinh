@@ -45,8 +45,12 @@ while IFS= read -r key; do
   explorer_status='unavailable'
   explorer_url="https://stellar.expert/explorer/public/contract/$contract_id"
   explorer_json="$(curl -fsS --max-time 15 "https://api.stellar.expert/explorer/public/contract/$contract_id" 2>/dev/null || true)"
-  if jq -e . >/dev/null 2>&1 <<<"$explorer_json"; then
-    explorer_status="$(jq -r '.contract.validation.status // .validation.status // "unavailable"' <<<"$explorer_json")"
+  if jq -e 'type == "object"' >/dev/null 2>&1 <<<"$explorer_json"; then
+    explorer_status="$(jq -r \
+      'if type == "object" then
+         (.validation.status // (if (.contract | type) == "object" then .contract.validation.status else empty end) // "unavailable")
+       else "unavailable" end' \
+      <<<"$explorer_json")"
   fi
   case "$explorer_status" in
     verified) status='verified' ;;
