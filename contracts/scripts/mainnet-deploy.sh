@@ -63,15 +63,37 @@ append_pending_tx() {
 }
 
 fetch_success_receipt() {
-  local tx_hash="$1" receipt='' status=''
-  for _ in {1..12}; do
-    if receipt="$(stellar_mainnet tx fetch --hash "$tx_hash" --output json 2>/dev/null)"; then
-      status="$(jq -r '.status // empty' <<<"$receipt")"
-      [[ "$status" == SUCCESS ]] && { printf '%s\n' "$receipt"; return 0; }
-      [[ "$status" == FAILED ]] && return 1
-    fi
-    sleep 5
+  local tx_hash="$1" response="" status="" request=""
+
+  request="$(jq -cn --arg hash "$tx_hash" \
+    '{jsonrpc:"2.0",id:1,method:"getTransaction",params:{hash:$hash}}')"
+
+  # Chờ tối đa 5 phút vì RPC có thể index chậm hơn lúc ledger đóng.
+  for _ in $(seq 1 60); do
+    response="$(curl -fsS -X POST "$MAINNET_RPC_URL" \
+      -H "Content-Type: application/json" \
+      --data "$request" 2>/dev/null || true)"
+
+    status="$(jq -r '.result.status // empty' <<<"$response" 2>/dev/null || true)"
+
+    case "$status" in
+      SUCCESS)
+        jq -c '.result' <<<"$response"
+        return 0
+        ;;
+      FAILED)
+        jq -c '.result' <<<"$response" >&2
+        return 1
+        ;;
+      NOT_FOUND|PENDING|"")
+        sleep 5
+        ;;
+      *)
+        sleep 5
+        ;;
+    esac
   done
+
   return 1
 }
 
