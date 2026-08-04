@@ -35,6 +35,8 @@ Kính chào ban giám khảo Stellar - các liên kết phía trên dẫn tới 
 
 ## Hoạt động trên chuỗi
 
+Quy trình triển khai lõi Mainnet đã được chuẩn bị có thể tái lập nhưng **chưa được thực hiện**; xem [runbook triển khai Mainnet](docs/MAINNET-DEPLOYMENT.md) và [trạng thái bằng chứng hiện tại](docs/MAINNET-EVIDENCE.md). Ứng dụng công khai và toàn bộ tiền người dùng vẫn ở Stellar Testnet.
+
 Ví gia đình trên Stellar. Passkey thay cụm từ khôi phục; người thân là lớp khôi phục.
 
 Hoạt động trên chuỗi, kiểm chứng được - hợp đồng, giao dịch và dữ liệu tải về: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**

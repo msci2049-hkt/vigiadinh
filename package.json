@@ -4,6 +4,10 @@
   "description": "VíGiaĐình — git chung, build riêng: be/ (bun) + fe/ (pnpm) + contracts/ (rust). KHÔNG workspaces — xem CLAUDE.md.",
   "scripts": {
     "sync:contract": "node scripts/sync-contract.mjs",
-    "check:contract": "node scripts/check-contract.mjs"
+    "check:contract": "node scripts/check-contract.mjs",
+    "mainnet:artifacts": "bash contracts/scripts/mainnet-preflight.sh --artifact-only",
+    "mainnet:preflight": "bash contracts/scripts/mainnet-preflight.sh",
+    "mainnet:deploy": "bash contracts/scripts/mainnet-deploy.sh",
+    "mainnet:verify": "bash contracts/scripts/mainnet-verify.sh"
   }
 }

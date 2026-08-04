@@ -1,0 +1,111 @@
+{
+  "schema_version": 1,
+  "application_runtime": "testnet",
+  "artifact_repository": "msci2049-hkt/vigiadinh",
+  "release_workflow_cli": "27.0.0",
+  "wasm_protocol": 26,
+  "artifact_metadata": {
+    "rustc": "1.97.1",
+    "soroban_sdk": "26.1.1#8ac18efb681a1c0b4b85a38c5a380300344e3f39",
+    "stellar_cli": "27.0.0#5a7c5fe76530bf4248477ac812fc757146b98cc4",
+    "source_repo": "github:msci2049-hkt/vigiadinh",
+    "source_repo_commit_present": false
+  },
+  "origin_config": {
+    "rp_id": "familyhaven.mscilabs.com",
+    "allowed_origins": [
+      "https://familyhaven.mscilabs.com",
+      "https://api.familyhaven.mscilabs.com",
+      "chrome-extension://aakakeieeijeflbnblolnlhmooibddmc"
+    ],
+    "production_extension_id": "aakakeieeijeflbnblolnlhmooibddmc"
+  },
+  "contracts": {
+    "origin_verifier": {
+      "package": "origin-verifier",
+      "required": true,
+      "deploy_instance": true,
+      "asset": "origin-verifier_v0.1.0.wasm",
+      "release_tag": "v0.1.0_contracts_origin-verifier_cli27.0.0",
+      "release_tag_commit": "da6892353e8b2076508e866efe9e1d13a7264ed4",
+      "artifact_sha256": "5f41462676ef708519915f79367292c8bff6a3d2894931a5d1638a29748886a8",
+      "wasm_hash": "5f41462676ef708519915f79367292c8bff6a3d2894931a5d1638a29748886a8",
+      "testnet_contract_id": "CBFCNHIOQN3N5IVSIVW4TTKYXZ73YQI4DZPADC6UCWF2XU35W4GVVWGW",
+      "testnet_verification": "verified",
+      "constructor": {
+        "rp_id_hash": "BytesN<32>",
+        "allowed_origins": "Vec<Bytes>"
+      }
+    },
+    "web_auth": {
+      "package": "web-auth",
+      "required": true,
+      "deploy_instance": true,
+      "asset": "web-auth_v0.1.0.wasm",
+      "release_tag": "v0.1.0_contracts_web-auth_cli27.0.0",
+      "release_tag_commit": "da6892353e8b2076508e866efe9e1d13a7264ed4",
+      "artifact_sha256": "4c0ad10d38ac7ee0c0c842dc4bd897d467f61420f79731639950735b04aaa524",
+      "wasm_hash": "4c0ad10d38ac7ee0c0c842dc4bd897d467f61420f79731639950735b04aaa524",
+      "testnet_contract_id": "CBWMHVEEXEOSOSWULYNYN62EYVMWJT55NKRPUI2MXSYHVVZ6NIMRJBWD",
+      "testnet_verification": "verified",
+      "constructor": null
+    },
+    "recovery_registry": {
+      "package": "recovery-registry",
+      "required": true,
+      "deploy_instance": true,
+      "asset": "recovery-registry_v0.1.0.wasm",
+      "release_tag": "v0.1.0_contracts_recovery-registry_cli27.0.0",
+      "release_tag_commit": "da6892353e8b2076508e866efe9e1d13a7264ed4",
+      "artifact_sha256": "f45bbdb3fa2682fb2d1f3314de7924edf7eefab79dff3c602897742b928a4d26",
+      "wasm_hash": "f45bbdb3fa2682fb2d1f3314de7924edf7eefab79dff3c602897742b928a4d26",
+      "testnet_contract_id": "CDGBHEXSPNO4CJHYSSV4FZBN3C7XXQOPZPDATR65SH5QHRCDB2WL4JIR",
+      "testnet_verification": "verified",
+      "constructor": null
+    },
+    "spending_limit_policy": {
+      "package": "spending-limit-policy",
+      "required": true,
+      "deploy_instance": true,
+      "asset": "spending-limit-policy_v0.1.0.wasm",
+      "release_tag": "v0.1.1_contracts_spending-limit-policy_pkg0.1.0_cli27.0.0",
+      "release_tag_commit": "392241f5f319fbde097414520fa8e46df76b01b8",
+      "attested_source_commit": "96957faa46230744a56f90655b7994ff045c4844",
+      "artifact_sha256": "13fab007bba18c6ad42d28818126dd1c403cf7fda6319faf71b55b4ec4b44a55",
+      "wasm_hash": "13fab007bba18c6ad42d28818126dd1c403cf7fda6319faf71b55b4ec4b44a55",
+      "testnet_contract_id": "CCIN4CP4HAFNDBSS7ZILGKBTUNC2TDAMFCLSI7E2TW44SJ7R7FTSFJZK",
+      "testnet_verification": "verified",
+      "constructor": null
+    },
+    "verifier_ed25519": {
+      "package": "verifier-ed25519",
+      "required": false,
+      "reason_not_required": "Optional cold-key signer verifier; passkey Mainnet core has no fixed dependency on it.",
+      "deploy_instance": false,
+      "asset": "verifier-ed25519_v0.1.0.wasm",
+      "release_tag": "v0.1.0_contracts_verifier-ed25519_cli27.0.0",
+      "release_tag_commit": "da6892353e8b2076508e866efe9e1d13a7264ed4",
+      "artifact_sha256": "369a1f5c83dc5b761a5e8c490d8c7e05222c374a72df30e93cef1200af3d06f9",
+      "wasm_hash": "369a1f5c83dc5b761a5e8c490d8c7e05222c374a72df30e93cef1200af3d06f9",
+      "testnet_contract_id": "CC7L7IGJ7ZBUQCYUTV6J6KLKMKYKAZIV5FMRISPNIZZW63664TWOVDEE",
+      "testnet_verification": "verified",
+      "constructor": null
+    },
+    "smart_account": {
+      "package": "smart-account",
+      "required": true,
+      "deploy_instance": false,
+      "global_instance": false,
+      "asset": "smart-account_v0.1.0.wasm",
+      "release_tag": "v0.1.0_contracts_smart-account_cli27.0.0",
+      "release_tag_commit": "da6892353e8b2076508e866efe9e1d13a7264ed4",
+      "artifact_sha256": "c1b28d42da1b7b091307c9acb0d72b88f45cc29d404b4d3c30bca0250a9d565f",
+      "wasm_hash": "c1b28d42da1b7b091307c9acb0d72b88f45cc29d404b4d3c30bca0250a9d565f",
+      "testnet_wasm_hash": "c1b28d42da1b7b091307c9acb0d72b88f45cc29d404b4d3c30bca0250a9d565f",
+      "constructor": {
+        "signers": "Vec<Signer>",
+        "policies": "Map<Address, Val>"
+      }
+    }
+  }
+}

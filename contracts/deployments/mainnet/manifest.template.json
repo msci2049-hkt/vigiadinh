@@ -1,0 +1,41 @@
+{
+  "schema_version": 1,
+  "deployment_type": "mainnet-core-dormant",
+  "application_runtime": "testnet",
+  "status": "not_deployed",
+  "network": {
+    "name": "mainnet",
+    "passphrase": "Public Global Stellar Network ; September 2015",
+    "protocol": 26,
+    "rpc_host_redacted": null,
+    "network_id": null
+  },
+  "source": {
+    "repository": "https://github.com/msci2026vn/family-wallet",
+    "git_commit": null,
+    "git_tree_clean_at_deploy": null,
+    "deployment_allowlist_clean": null
+  },
+  "toolchain": {
+    "stellar_cli": "26.1.0",
+    "rustc": null,
+    "cargo": null,
+    "cargo_lock_sha256": null
+  },
+  "deployer_public_key": null,
+  "fee_budget": {
+    "maximum_xlm": null,
+    "estimated_xlm": null,
+    "actual_xlm": null
+  },
+  "contracts": {
+    "origin_verifier": { "status": "pending" },
+    "web_auth": { "status": "pending" },
+    "recovery_registry": { "status": "pending" },
+    "spending_limit_policy": { "status": "pending" },
+    "verifier_ed25519": { "required": false, "status": "not_required" },
+    "smart_account": { "global_instance": false, "status": "pending_upload" },
+    "sac_native": { "source": "derived", "custom_deployment": false, "status": "pending_derivation" }
+  },
+  "transactions": []
+}

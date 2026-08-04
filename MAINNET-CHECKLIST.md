@@ -1,5 +1,7 @@
 # MAINNET-CHECKLIST — testnet → mainnet (PHA 3+4, 2026-07-26)
 
+> **Core deployment update (2026-08-04): PREPARED, NOT DEPLOYED.** Reproducible artifact locks, fail-closed scripts, and evidence templates are documented in [`docs/MAINNET-DEPLOYMENT.md`](docs/MAINNET-DEPLOYMENT.md). The public application remains on Testnet. No Mainnet transaction was sent because the operator gates were missing.
+
 Nguồn sự thật về tiến độ migrate. Quyết định đã chốt:
 (a) dùng TÊN BIẾN THẬT `VITE_STELLAR_RPC_URL` / `VITE_STELLAR_NETWORK_PASSPHRASE` / `VITE_PASSKEY_RP_ID`;
 (b) `/rpc` proxy upstream = `STELLAR_RPC_URL`, key optional qua `STELLAR_RPC_API_KEY` (Bearer).

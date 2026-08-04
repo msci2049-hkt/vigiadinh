@@ -13,6 +13,12 @@ contracts/mutants.out.old/
 .env
 .env.*
 !.env.example
+!contracts/deployments/mainnet/.env.mainnet.example
+
+# Mainnet core deployment: operator config and resumable local state never enter Git.
+contracts/deployments/mainnet/.env.mainnet.local
+contracts/deployments/mainnet/.cache/
+contracts/deployments/mainnet/transactions/
 
 # key material — cấm tuyệt đối
 **/keys.json

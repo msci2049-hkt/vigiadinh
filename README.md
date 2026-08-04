@@ -35,6 +35,8 @@ Welcome, Stellar judges - the links above lead to the public story, the real Tes
 
 ## On-chain traction
 
+Mainnet core deployment is reproducibly prepared but **has not been performed**; see [the Mainnet deployment runbook](docs/MAINNET-DEPLOYMENT.md) and [current evidence status](docs/MAINNET-EVIDENCE.md). The public application and all user funds remain on Stellar Testnet.
+
 A family wallet on Stellar. Passkeys replace seed phrases; trusted relatives are the recovery layer.
 
 Live, verifiable on-chain activity - contracts, transactions and downloadable data: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
