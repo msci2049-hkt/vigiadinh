@@ -110,6 +110,8 @@ validate_mainnet_config() {
   [[ "$MAINNET_SOURCE_ACCOUNT" =~ ^[A-Za-z][A-Za-z0-9_-]{2,63}$ ]] ||
     die 'MAINNET_SOURCE_ACCOUNT must be a CLI identity alias, not key material'
   [[ ! "$MAINNET_SOURCE_ACCOUNT" =~ ^[SGM] ]] || die 'MAINNET_SOURCE_ACCOUNT looks like key material/address, not an alias'
+  [[ "$MAINNET_SOURCE_ACCOUNT" == family-mainnet-deployer-v2 ]] ||
+    die 'MAINNET_SOURCE_ACCOUNT must be family-mainnet-deployer-v2'
   [[ "$MAINNET_RPC_URL" == https://* ]] || die 'MAINNET_RPC_URL must use HTTPS'
   [[ "$MAINNET_MAX_TOTAL_FEE_XLM" =~ ^[0-9]+([.][0-9]{1,7})?$ ]] || die 'invalid MAINNET_MAX_TOTAL_FEE_XLM'
   [[ "${MAINNET_MIN_SOURCE_BALANCE_XLM:-}" =~ ^[0-9]+([.][0-9]{1,7})?$ ]] || die 'invalid MAINNET_MIN_SOURCE_BALANCE_XLM'
