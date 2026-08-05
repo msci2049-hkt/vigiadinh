@@ -21,7 +21,7 @@ APAC Stellar Hackathon 2026
 ![无助记词](https://img.shields.io/badge/seed%20phrase-none-15324a)
 ![恢复](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 项目主页](https://familyhavenwallet.mscilabs.com/)** · **[↗ Testnet 在线应用](https://familyhaven.mscilabs.com)** · **[◆ Mainnet 证据](https://familyhavenwallet.mscilabs.com/mainnet)** · **[↗ Testnet 链上数据](https://familyhavenwallet.mscilabs.com/traction)** · **[▶ 预告片](https://www.youtube.com/watch?v=K5jz1tClGng)** · [演示](https://youtu.be/8LUc_K2RAqY) · **[⚡ 快速开始](#快速开始)**
+**[🌐 项目主页](https://familyhavenwallet.mscilabs.com/)** · **[↗ Testnet 在线应用](https://familyhaven.mscilabs.com)** · **[◆ Mainnet 证据](https://familyhavenwallet.mscilabs.com/mainnet)** · **[↗ Testnet 链上数据](https://familyhavenwallet.mscilabs.com/traction)** · **[▶ 预告片](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[⚡ 快速开始](#快速开始)**
 
 <a href="https://www.youtube.com/watch?v=K5jz1tClGng">
   <img src="docs/images/familyhaven-trailer.png" alt="观看 Family Haven 4K Introduction 预告片" width="1200">
@@ -29,9 +29,7 @@ APAC Stellar Hackathon 2026
 
 ## **[▶ 观看 Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng)**
 
-完整产品流程：[FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)
-
-欢迎 Stellar 评委-上方链接分别指向项目说明、真实 Testnet 应用、电影感预告片和完整产品演示视频。
+欢迎 Stellar 评委-上方链接分别指向项目说明、真实 Testnet 应用、电影感预告片和快速开始指南。
 
 </div>
 
@@ -351,7 +349,6 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 | ◆ Mainnet 证据 | [已验证的核心部署](https://familyhavenwallet.mscilabs.com/mainnet) |
 | ↗ Testnet 链上数据 | [产品链上活动](https://familyhavenwallet.mscilabs.com/traction) |
 | ▶ 预告片 | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
-| ▶ 演示视频 | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ 源码 | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
 | ✉ 联系方式 | [MSCI Labs](https://www.mscilabs.com) |
 

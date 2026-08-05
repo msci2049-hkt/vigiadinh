@@ -21,7 +21,7 @@ APAC Stellar Hackathon 2026
 ![no seed phrase](https://img.shields.io/badge/seed%20phrase-none-15324a)
 ![recovery](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live Testnet app](https://familyhaven.mscilabs.com)** · **[◆ Mainnet evidence](https://familyhavenwallet.mscilabs.com/mainnet)** · **[↗ Testnet traction](https://familyhavenwallet.mscilabs.com/traction)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · [Demo](https://youtu.be/8LUc_K2RAqY) · **[⚡ Quick start](#quick-start)**
+**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live Testnet app](https://familyhaven.mscilabs.com)** · **[◆ Mainnet evidence](https://familyhavenwallet.mscilabs.com/mainnet)** · **[↗ Testnet traction](https://familyhavenwallet.mscilabs.com/traction)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[⚡ Quick start](#quick-start)**
 
 <a href="https://www.youtube.com/watch?v=K5jz1tClGng">
   <img src="docs/images/familyhaven-trailer.png" alt="Watch the Family Haven 4K Introduction trailer" width="1200">
@@ -29,9 +29,7 @@ APAC Stellar Hackathon 2026
 
 ## **[▶ Watch the Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng)**
 
-Full product walkthrough: [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)
-
-Welcome, Stellar judges - the links above lead to the public story, the real Testnet application, the cinematic trailer, and the complete product demo.
+Welcome, Stellar judges - the links above lead to the public story, the real Testnet application, the cinematic trailer, and the quick-start guide.
 
 </div>
 
@@ -351,7 +349,6 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 | ◆ Mainnet evidence | [Verified core deployment](https://familyhavenwallet.mscilabs.com/mainnet) |
 | ↗ Testnet traction | [On-chain product activity](https://familyhavenwallet.mscilabs.com/traction) |
 | ▶ Trailer | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
-| ▶ Demo video | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ Source | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
 | ✉ Contact | [MSCI Labs](https://www.mscilabs.com) |
 

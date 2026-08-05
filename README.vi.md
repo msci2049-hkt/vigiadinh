@@ -21,7 +21,7 @@ APAC Stellar Hackathon 2026
 ![không seed phrase](https://img.shields.io/badge/seed%20phrase-none-15324a)
 ![khôi phục](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 Trang giới thiệu](https://familyhavenwallet.mscilabs.com/)** · **[↗ Ứng dụng Testnet](https://familyhaven.mscilabs.com)** · **[◆ Bằng chứng Mainnet](https://familyhavenwallet.mscilabs.com/mainnet)** · **[↗ Dữ liệu Testnet](https://familyhavenwallet.mscilabs.com/traction)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · [Demo](https://youtu.be/8LUc_K2RAqY) · **[⚡ Bắt đầu nhanh](#bắt-đầu-nhanh)**
+**[🌐 Trang giới thiệu](https://familyhavenwallet.mscilabs.com/)** · **[↗ Ứng dụng Testnet](https://familyhaven.mscilabs.com)** · **[◆ Bằng chứng Mainnet](https://familyhavenwallet.mscilabs.com/mainnet)** · **[↗ Dữ liệu Testnet](https://familyhavenwallet.mscilabs.com/traction)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · **[⚡ Bắt đầu nhanh](#bắt-đầu-nhanh)**
 
 <a href="https://www.youtube.com/watch?v=K5jz1tClGng">
   <img src="docs/images/familyhaven-trailer.png" alt="Xem trailer Family Haven 4K Introduction" width="1200">
@@ -29,9 +29,7 @@ APAC Stellar Hackathon 2026
 
 ## **[▶ Xem Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng)**
 
-Luồng sản phẩm đầy đủ: [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY)
-
-Kính chào ban giám khảo Stellar - các liên kết phía trên dẫn tới câu chuyện dự án, ứng dụng Testnet thật, trailer điện ảnh và video demo sản phẩm đầy đủ.
+Kính chào ban giám khảo Stellar - các liên kết phía trên dẫn tới câu chuyện dự án, ứng dụng Testnet thật, trailer điện ảnh và hướng dẫn bắt đầu nhanh.
 
 </div>
 
@@ -351,7 +349,6 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 | ◆ Bằng chứng Mainnet | [Triển khai lõi đã xác minh](https://familyhavenwallet.mscilabs.com/mainnet) |
 | ↗ Dữ liệu Testnet | [Hoạt động sản phẩm on-chain](https://familyhavenwallet.mscilabs.com/traction) |
 | ▶ Trailer | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
-| ▶ Video demo | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ Mã nguồn | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
 | ✉ Liên hệ | [MSCI Labs](https://www.mscilabs.com) |
 
