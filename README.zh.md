@@ -12,14 +12,16 @@
 
 APAC Stellar Hackathon 2026
 
-![合约已验证](https://img.shields.io/badge/contracts-5%2F5%20verified-1a7f37)
+![Mainnet 核心](https://img.shields.io/badge/Mainnet%20%E6%A0%B8%E5%BF%83-4%20%E4%B8%AA%E5%90%88%E7%BA%A6%E5%B7%B2%E9%AA%8C%E8%AF%81-1a7f37)
+![应用运行网络](https://img.shields.io/badge/%E5%BA%94%E7%94%A8%E8%BF%90%E8%A1%8C%E7%BD%91%E7%BB%9C-Stellar%20Testnet-15324a)
+![Mainnet WASM](https://img.shields.io/badge/Mainnet%20WASM-5%2F5%20%E5%93%88%E5%B8%8C%E5%8C%B9%E9%85%8D-1a7f37)
+![Testnet 合约](https://img.shields.io/badge/Testnet%20%E5%90%88%E7%BA%A6-5%2F5%20%E5%B7%B2%E9%AA%8C%E8%AF%81-1a7f37)
 ![测试](https://img.shields.io/badge/tests-976%20passing-1a7f37)
 ![链上限额](https://img.shields.io/badge/spending%20limits-enforced%20on--chain-f26522)
 ![无助记词](https://img.shields.io/badge/seed%20phrase-none-15324a)
-![网络](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
 ![恢复](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 项目主页](https://familyhavenwallet.mscilabs.com/)** · **[↗ 在线应用](https://familyhaven.mscilabs.com)** · **[▶ 观看 4K 预告片](https://www.youtube.com/watch?v=K5jz1tClGng)** · [完整演示](https://youtu.be/8LUc_K2RAqY) · **[⚡ 快速开始](#快速开始)**
+**[🌐 项目主页](https://familyhavenwallet.mscilabs.com/)** · **[↗ Testnet 在线应用](https://familyhaven.mscilabs.com)** · **[◆ Mainnet 证据](https://familyhavenwallet.mscilabs.com/mainnet)** · **[↗ Testnet 链上数据](https://familyhavenwallet.mscilabs.com/traction)** · **[▶ 预告片](https://www.youtube.com/watch?v=K5jz1tClGng)** · [演示](https://youtu.be/8LUc_K2RAqY) · **[⚡ 快速开始](#快速开始)**
 
 <a href="https://www.youtube.com/watch?v=K5jz1tClGng">
   <img src="docs/images/familyhaven-trailer.png" alt="观看 Family Haven 4K Introduction 预告片" width="1200">
@@ -33,11 +35,57 @@ APAC Stellar Hackathon 2026
 
 </div>
 
-## 链上活动
+## 链上状态
 
-Stellar 上的家庭钱包。以 Passkey 取代助记词，由亲人组成恢复层。
+| 环境 | 当前状态 | 证据 |
+|---|---|---|
+| **Stellar Mainnet 核心** | 5 个 WASM 构建产物哈希匹配；4 个全局基础设施合约已部署并验证；9 笔部署交易成功 | [Mainnet 部署页](https://familyhavenwallet.mscilabs.com/mainnet) · [详细证据](docs/MAINNET-EVIDENCE.md) |
+| **Stellar Testnet 应用** | Passkey 钱包、守护人设置、支出控制、转账和社会化恢复流程均可运行 | [Testnet 链上数据](https://familyhavenwallet.mscilabs.com/traction) · [打开在线应用](https://familyhaven.mscilabs.com) |
 
-可验证的链上活动-合约、交易与可下载数据：**[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
+> **部署范围：** Mainnet 当前仅包含尚未接入公开应用的核心合约。公开应用、现有用户、钱包和资金仍运行在 Testnet。
+
+## Stellar Mainnet 核心部署
+
+> **已于 2026 年 8 月 4 日部署并验证。** 这是合约部署层面的技术进展，并不代表 Mainnet 用户采用或 TVL。
+
+FamilyHaven 的核心 Soroban 合约已部署至 Stellar Mainnet。公开应用目前仍运行在 Testnet，并处于安全加固和分阶段生产发布阶段。
+
+五个锁定的 WASM 构建产物已上传并完成哈希匹配。四个全局基础设施合约已部署，并按照预期的 executable hash 完成验证。
+
+### 已验证的全局合约
+
+| 合约 | Mainnet Contract ID | 作用 | 状态 |
+|---|---|---|---|
+| `origin-verifier` | [`CD2E…GQE7J`](https://stellar.expert/explorer/public/contract/CD2ESBAKCSTPUJANAYZJ5YEOMTK7GMISBRECR2RP2SWL2RSBESAGQE7J) | 验证 Passkey 身份认证所允许的 RP ID 和应用来源 | 已验证 |
+| `web-auth` | [`CCKX…RU3RY`](https://stellar.expert/explorer/public/contract/CCKXCJHQ5ZINR4V7H7FTH2G4KI2FNVX4I6LHMMHIFQMKXMFTCAGRU3RY) | 验证 Web 身份认证输入 | 已验证 |
+| `recovery-registry` | [`CDVX…SLJMH`](https://stellar.expert/explorer/public/contract/CDVX3E3PV4TE5HAHSFS4R3YHOB5SLCYU2KQWO5GCZDV2TPQUZ66SLJMH) | 协调守护人注册与社会化恢复 | 已验证 |
+| `spending-limit-policy` | [`CAL3…TK45W`](https://stellar.expert/explorer/public/contract/CAL3TR34D6FY6ZLQNJGHLIX4LUWU277V2CHAVEUL4X2DNOJXMV6TK45W) | 强制执行单笔及滚动累计支出策略 | 已验证 |
+
+### 仅代码形式的 Smart Account
+
+| 项目 | 值 |
+|---|---|
+| Mainnet WASM 哈希 | `c1b28d42da1b7b091307c9acb0d72b88f45cc29d404b4d3c30bca0250a9d565f` |
+| 部署模型 | 仅提供可复用代码；未来应用发布时才会为每位用户创建独立钱包实例 |
+| 全局 Contract ID | 按设计不创建 |
+| Mainnet 用户引导 | 未启用 |
+| Mainnet 用户钱包 | 本次部署未创建任何用户钱包 |
+
+`verifier-ed25519` 并非必需，因此未部署至 Mainnet。原生 XLM SAC 仅按协议推导，没有执行自定义部署。
+
+### 部署快照
+
+| 指标 | 结果 |
+|---|---:|
+| 锁定的 WASM 构建产物已存在且匹配 | **5/5** |
+| 全局合约实例已部署并验证 | **4/4** |
+| 成功的部署交易 | **9/9** |
+| 已创建的 Mainnet 用户钱包 | **0** |
+| Mainnet TVL | **0** |
+
+此次部署包括五笔成功的 WASM 上传和四笔成功的全局实例部署。完整的交易哈希、账本编号、executable hash 与构造函数证据可在 [MAINNET-EVIDENCE.md](docs/MAINNET-EVIDENCE.md) 和 [Mainnet 部署页](https://familyhavenwallet.mscilabs.com/mainnet)中查看。
+
+公开前端和后端在安全加固及分阶段生产发布期间继续运行于 Stellar Testnet。“已验证”仅指部署状态和 executable hash 验证，并不表示已经过独立安全审计。
 
 ## 60 秒评审
 
@@ -45,8 +93,8 @@ Stellar 上的家庭钱包。以 Passkey 取代助记词，由亲人组成恢复
 |---|---|
 | **问题** | 助记词把钱包恢复压在一个脆弱的秘密上。丢失它可能永远失去访问权；分享它又可能交出整个钱包。 |
 | **方案** | 由通行密钥保护的 Stellar 智能账户把签名密钥留在设备的 Secure Enclave 或 TPM 中。用户选择至少三位家人作为守护人，通过阈值投票、24 小时时间锁和所有者否决权完成恢复。 |
-| **结果** | 所有者无需保存或输入十二个单词，即可使用并恢复真实的 Testnet 智能钱包。独立的链上监视进程能在恢复启动时从应用外部发送警报。 |
-| **控制** | 最少守护人数、阈值、时间锁、密钥轮换冷却期和消费上限均由链上逻辑强制执行。StellarExpert 可公开检查合约源码重建结果。 |
+| **结果** | 所有者无需保存或输入十二个单词，即可使用并恢复真实的 Testnet 智能钱包。同一套锁定的核心合约构建产物现已部署至 Mainnet，为安全加固后的分阶段发布做好准备。 |
+| **控制** | 产品行为已在 Testnet 上得到验证；核心基础设施已在 Mainnet 部署并完成哈希验证。不声称 Mainnet 产品流程已经运行。 |
 
 ## 产品演示流程
 
@@ -182,9 +230,11 @@ graph TD
 graph TD
     T["转账或恢复请求"] --> L2["第 2 层 · 决策<br/>确定性策略 + SQL<br/>单笔 · 滚动 24 小时 · 频率 · 地址"]
     L2 --> L1["第 1 层 · 强制执行<br/>链上守护人阈值 · 24 小时时间锁 · 硬性支出上限"]
-    L1 --> S["Stellar Testnet"]
+    L1 --> TN["Stellar Testnet<br/>公开应用当前运行网络"]
     L2 -.->|"只读事实"| L3["第 3 层 · 表达<br/>可选语言模型"]
     L3 --> U["易懂文字 + 浏览器语音"]
+    MN["Stellar Mainnet 核心<br/>4 个已验证的全局合约<br/>仅代码形式的 Smart Account WASM"]
+    MN -.->|"尚未启用分阶段生产发布"| TN
 ```
 
 第 1 层是可强制执行限制的事实来源，第 2 层依据存储数据作出可复现的策略决策。第 3 层位于只读旁路，不存在返回授权路径的通道。
@@ -201,9 +251,9 @@ graph TD
 
 ## 证据，而非承诺
 
-### 公开合约验证
+### Testnet 合约公开验证
 
-StellarExpert 目前为五个已部署合约全部返回 `validation.status = verified`：
+StellarExpert 目前为下列五个 Testnet 合约全部返回 `validation.status = verified`：
 
 | 合约 | Stellar Testnet ID | 状态 | 已验证源码 |
 |---|---|---|---|
@@ -289,7 +339,7 @@ be/                 modules: guardians · recovery · intents · notifications �
                     jobs: recovery-watch · indexer · presence · heartbeat · sweeper
 fe/apps/web/        wallet · guardians · protecting · setup wizard · settings
 docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET.md
-                    INHERITANCE.md · SEND-ADDRESSES.md · THREAT-MODEL.md
+                    MAINNET-EVIDENCE.md · INHERITANCE.md · THREAT-MODEL.md
 ```
 
 ## 参赛链接
@@ -298,6 +348,8 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | 🌐 项目主页 | [FamilyHaven](https://familyhavenwallet.mscilabs.com/) |
 | ↗ 在线产品 | [打开 Testnet 应用](https://familyhaven.mscilabs.com) |
+| ◆ Mainnet 证据 | [已验证的核心部署](https://familyhavenwallet.mscilabs.com/mainnet) |
+| ↗ Testnet 链上数据 | [产品链上活动](https://familyhavenwallet.mscilabs.com/traction) |
 | ▶ 预告片 | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
 | ▶ 演示视频 | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ 源码 | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
@@ -309,10 +361,10 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | 守护人批准是数据库记录，**尚不是链上签名** | 被入侵的服务器可能伪造批准。已在内部发现，正在修复 |
 | 通行密钥绑定域名 | 丢失域名会失去当前签名路径。CLI 恢复签名指南正在编写 |
-| **尚未进行独立安全审计** | 主网上线前的必要条件 |
+| **尚未进行独立安全审计** | 公开应用切换至 Mainnet 前的必要条件 |
 | 界面仅显示和支出 XLM | 协议层钱包可以接收任意 Stellar 资产；仍需垃圾代币过滤器 |
 | 住院照护流程和按百分比分配继承 | 路线图项目，尚未实现 |
-| 仅限 Testnet | 原型阶段的有意选择；见范围说明 |
+| 公开应用仍运行在 Testnet | Mainnet 核心处于待用状态；用户、钱包、资金、数据库、worker 和 indexer 均未迁移 |
 
 ## 路线图
 
@@ -326,4 +378,4 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 
 ---
 
-> **范围。** 在 Stellar Testnet 上运行的黑客松原型。不使用真实资金。策略阈值仅作说明，并可由用户配置。合约验证只确认已发布源码与链上字节码一致-它不是独立安全审计。不构成财务建议。
+> **范围。** 公开的黑客松应用仍运行在 Stellar Testnet；Mainnet 上没有用户资金或生产钱包活动。待用的核心合约已部署至 Mainnet，以支持后续分阶段发布。策略阈值仅作说明，并可由用户配置。合约验证不等同于独立安全审计。不构成财务建议。

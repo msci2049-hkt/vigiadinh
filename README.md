@@ -12,14 +12,16 @@
 
 APAC Stellar Hackathon 2026
 
-![contracts verified](https://img.shields.io/badge/contracts-5%2F5%20verified-1a7f37)
+![Mainnet core](https://img.shields.io/badge/Mainnet%20core-4%20contracts%20verified-1a7f37)
+![app runtime](https://img.shields.io/badge/App%20runtime-Stellar%20Testnet-15324a)
+![Mainnet WASM](https://img.shields.io/badge/Mainnet%20WASM-5%2F5%20hash--matched-1a7f37)
+![Testnet contracts](https://img.shields.io/badge/Testnet%20contracts-5%2F5%20verified-1a7f37)
 ![tests](https://img.shields.io/badge/tests-976%20passing-1a7f37)
 ![on-chain limits](https://img.shields.io/badge/spending%20limits-enforced%20on--chain-f26522)
 ![no seed phrase](https://img.shields.io/badge/seed%20phrase-none-15324a)
-![network](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
 ![recovery](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live app](https://familyhaven.mscilabs.com)** · **[▶ Watch 4K trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · [Full wallet demo](https://youtu.be/8LUc_K2RAqY) · **[⚡ Quick start](#quick-start)**
+**[🌐 Landing](https://familyhavenwallet.mscilabs.com/)** · **[↗ Live Testnet app](https://familyhaven.mscilabs.com)** · **[◆ Mainnet evidence](https://familyhavenwallet.mscilabs.com/mainnet)** · **[↗ Testnet traction](https://familyhavenwallet.mscilabs.com/traction)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · [Demo](https://youtu.be/8LUc_K2RAqY) · **[⚡ Quick start](#quick-start)**
 
 <a href="https://www.youtube.com/watch?v=K5jz1tClGng">
   <img src="docs/images/familyhaven-trailer.png" alt="Watch the Family Haven 4K Introduction trailer" width="1200">
@@ -33,13 +35,57 @@ Welcome, Stellar judges - the links above lead to the public story, the real Tes
 
 </div>
 
-## On-chain traction
+## On-chain status
 
-Mainnet core deployment is reproducibly prepared but **has not been performed**; see [the Mainnet deployment runbook](docs/MAINNET-DEPLOYMENT.md) and [current evidence status](docs/MAINNET-EVIDENCE.md). The public application and all user funds remain on Stellar Testnet.
+| Environment | Current status | Evidence |
+|---|---|---|
+| **Stellar Mainnet Core** | 5 WASM artifacts hash-matched; 4 global infrastructure contracts deployed and verified; 9 deployment transactions successful | [Mainnet deployment](https://familyhavenwallet.mscilabs.com/mainnet) · [Detailed evidence](docs/MAINNET-EVIDENCE.md) |
+| **Stellar Testnet Application** | Working passkey wallet, guardian setup, spending controls, transfers and social-recovery flows | [Testnet traction](https://familyhavenwallet.mscilabs.com/traction) · [Open live app](https://familyhaven.mscilabs.com) |
 
-A family wallet on Stellar. Passkeys replace seed phrases; trusted relatives are the recovery layer.
+> **Deployment scope:** Mainnet currently contains the dormant contract core only. The public application, current users, wallets and funds remain on Testnet.
 
-Live, verifiable on-chain activity - contracts, transactions and downloadable data: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
+## Stellar Mainnet Core
+
+> **Deployed and verified on 04 August 2026.** This is technical deployment traction, not Mainnet user adoption or TVL.
+
+FamilyHaven’s core Soroban contracts have been deployed on Stellar Mainnet. The public application continues to operate on Testnet during security hardening and staged production rollout.
+
+Five locked WASM artifacts were uploaded and hash-matched. Four global infrastructure contracts were deployed and verified against their expected executable hashes.
+
+### Verified global contracts
+
+| Contract | Mainnet Contract ID | Role | Status |
+|---|---|---|---|
+| `origin-verifier` | [`CD2E…GQE7J`](https://stellar.expert/explorer/public/contract/CD2ESBAKCSTPUJANAYZJ5YEOMTK7GMISBRECR2RP2SWL2RSBESAGQE7J) | Validates the approved RP ID and application origins for passkey authentication | Verified |
+| `web-auth` | [`CCKX…RU3RY`](https://stellar.expert/explorer/public/contract/CCKXCJHQ5ZINR4V7H7FTH2G4KI2FNVX4I6LHMMHIFQMKXMFTCAGRU3RY) | Authenticated web input verification | Verified |
+| `recovery-registry` | [`CDVX…SLJMH`](https://stellar.expert/explorer/public/contract/CDVX3E3PV4TE5HAHSFS4R3YHOB5SLCYU2KQWO5GCZDV2TPQUZ66SLJMH) | Guardian registration and social-recovery coordination | Verified |
+| `spending-limit-policy` | [`CAL3…TK45W`](https://stellar.expert/explorer/public/contract/CAL3TR34D6FY6ZLQNJGHLIX4LUWU277V2CHAVEUL4X2DNOJXMV6TK45W) | Per-transfer and rolling spending policy | Verified |
+
+### Code-only Smart Account
+
+| Item | Value |
+|---|---|
+| Mainnet WASM hash | `c1b28d42da1b7b091307c9acb0d72b88f45cc29d404b4d3c30bca0250a9d565f` |
+| Deployment model | Reusable code only; individual wallet instances are created per user |
+| Global Contract ID | Not created by design |
+| Mainnet user onboarding | Not enabled |
+| Mainnet user wallets | None created in this deployment |
+
+`verifier-ed25519` is not required and was not deployed on Mainnet. The native XLM SAC was derived from the protocol and was not custom-deployed.
+
+### Deployment snapshot
+
+| Metric | Result |
+|---|---:|
+| Locked WASM artifacts present and matched | **5/5** |
+| Global contract instances deployed and verified | **4/4** |
+| Successful deployment transactions | **9/9** |
+| Mainnet user wallets created | **0** |
+| Mainnet TVL | **0** |
+
+The deployment consists of five successful WASM uploads and four successful global-instance deployments. Full transaction hashes, ledgers, executable hashes and constructor evidence are available in [MAINNET-EVIDENCE.md](docs/MAINNET-EVIDENCE.md) and on the [Mainnet deployment page](https://familyhavenwallet.mscilabs.com/mainnet).
+
+The public frontend and backend continue to operate on Stellar Testnet during security hardening and staged production rollout. “Verified” refers to deployment and executable-hash verification; it is not an independent security audit.
 
 ## Judge in 60 seconds
 
@@ -47,8 +93,8 @@ Live, verifiable on-chain activity - contracts, transactions and downloadable da
 |---|---|
 | **Problem** | Seed phrases turn wallet recovery into a single fragile secret. Losing it can lock out the owner; sharing it can give away the wallet. |
 | **Solution** | A passkey-backed Stellar smart account keeps the signing key in the device Secure Enclave or TPM. Three or more chosen family guardians provide a threshold recovery path with a 24-hour timelock and owner veto. |
-| **Result** | The owner can use and recover a real Testnet smart wallet without storing or typing twelve words. A direct chain watcher can alert them outside the application if recovery starts. |
-| **Control** | Minimum guardian, threshold, timelock, rotation cooldown, and spending-cap rules are enforced on-chain. Publicly rebuilt contract hashes are independently visible on StellarExpert. |
+| **Result** | The owner can use and recover a real Testnet smart wallet without storing or typing twelve words. The same locked core contract artifacts are now present on Mainnet for a security-hardened staged rollout. |
+| **Control** | Product behavior is proven on Testnet; core infrastructure is deployed and hash-verified on Mainnet. No Mainnet product flow is claimed. |
 
 ## Product demo walkthrough
 
@@ -184,9 +230,11 @@ Both branches end at the same approval control. AI availability changes presenta
 graph TD
     T["Transfer or recovery request"] --> L2["Layer 2 · DECISION<br/>Deterministic policy + SQL<br/>per transfer · rolling 24h · velocity · recipient"]
     L2 --> L1["Layer 1 · ENFORCEMENT<br/>On-chain guardian threshold · 24h timelock · hard spending cap"]
-    L1 --> S["Stellar Testnet"]
+    L1 --> TN["Stellar Testnet<br/>Current public application runtime"]
     L2 -.->|"read-only facts"| L3["Layer 3 · EXPLANATION<br/>Optional language model"]
     L3 --> U["Human-readable copy + browser speech"]
+    MN["Stellar Mainnet Core<br/>4 verified global contracts<br/>Smart Account WASM code-only"]
+    MN -.->|"staged production rollout not enabled"| TN
 ```
 
 Layer 1 remains the source of enforceable limits, while Layer 2 makes reproducible policy decisions from stored data. Layer 3 sits on a read-only side branch and has no route back into authorization.
@@ -203,9 +251,9 @@ Layer 1 remains the source of enforceable limits, while Layer 2 makes reproducib
 
 ## Evidence, not promises
 
-### Public contract verification
+### Testnet public contract verification
 
-StellarExpert currently reports `validation.status = verified` for all five deployed contracts:
+StellarExpert currently reports `validation.status = verified` for all five Testnet contracts listed below:
 
 | Contract | Stellar Testnet ID | Status | Verified source |
 |---|---|---|---|
@@ -291,7 +339,7 @@ be/                 modules: guardians · recovery · intents · notifications �
                     jobs: recovery-watch · indexer · presence · heartbeat · sweeper
 fe/apps/web/        wallet · guardians · protecting · setup wizard · settings
 docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET.md
-                    INHERITANCE.md · SEND-ADDRESSES.md · THREAT-MODEL.md
+                    MAINNET-EVIDENCE.md · INHERITANCE.md · THREAT-MODEL.md
 ```
 
 ## Submission links
@@ -300,6 +348,8 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | 🌐 Project landing | [FamilyHaven](https://familyhavenwallet.mscilabs.com/) |
 | ↗ Live product | [Open the Testnet app](https://familyhaven.mscilabs.com) |
+| ◆ Mainnet evidence | [Verified core deployment](https://familyhavenwallet.mscilabs.com/mainnet) |
+| ↗ Testnet traction | [On-chain product activity](https://familyhavenwallet.mscilabs.com/traction) |
 | ▶ Trailer | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
 | ▶ Demo video | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ Source | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
@@ -311,10 +361,10 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | Guardian approval is a database record, **not yet an on-chain signature** | A compromised server could forge an approval. Identified internally; remediation is in progress |
 | Passkeys are bound to the domain | Losing the domain removes the current signing path. A CLI signing recovery guide is being written |
-| **No independent security audit yet** | Required before any mainnet release |
+| **No independent security audit yet** | Required before the public Mainnet application rollout |
 | The interface displays and spends XLM only | The wallet can receive any Stellar asset at protocol level; a spam-token filter is still needed |
 | Hospital-care workflows and percentage inheritance | Roadmap items; not implemented |
-| Testnet only | Intentional for this prototype; see the scope notice |
+| Public application remains on Testnet | The Mainnet core is dormant; no users, wallets, funds, database, workers or indexers have migrated |
 
 ## Roadmap
 
@@ -328,4 +378,4 @@ Planned: when a transfer exceeds the configured approval threshold, a guardian w
 
 ---
 
-> **Scope.** Hackathon prototype on Stellar Testnet. No real funds. Policy thresholds are illustrative and user-configurable. Contract verification confirms the published source matches on-chain bytecode - it is not an independent security audit. Not financial advice.
+> **Scope.** The public hackathon application remains on Stellar Testnet, with no Mainnet user funds or production wallet activity. The dormant core contracts are deployed on Mainnet for a staged rollout. Policy thresholds are illustrative and user-configurable. Contract verification is not an independent security audit. Not financial advice.

@@ -12,14 +12,16 @@
 
 APAC Stellar Hackathon 2026
 
-![hợp đồng đã xác minh](https://img.shields.io/badge/contracts-5%2F5%20verified-1a7f37)
+![Mainnet Core](https://img.shields.io/badge/Mainnet%20Core-4%20h%E1%BB%A3p%20%C4%91%E1%BB%93ng%20verified-1a7f37)
+![ứng dụng](https://img.shields.io/badge/%E1%BB%A8ng%20d%E1%BB%A5ng-Stellar%20Testnet-15324a)
+![Mainnet WASM](https://img.shields.io/badge/Mainnet%20WASM-5%2F5%20kh%E1%BB%9Bp%20hash-1a7f37)
+![hợp đồng Testnet](https://img.shields.io/badge/H%E1%BB%A3p%20%C4%91%E1%BB%93ng%20Testnet-5%2F5%20verified-1a7f37)
 ![kiểm thử](https://img.shields.io/badge/tests-976%20passing-1a7f37)
 ![hạn mức trên chuỗi](https://img.shields.io/badge/spending%20limits-enforced%20on--chain-f26522)
 ![không seed phrase](https://img.shields.io/badge/seed%20phrase-none-15324a)
-![mạng](https://img.shields.io/badge/network-Stellar%20Testnet-15324a)
 ![khôi phục](https://img.shields.io/badge/recovery-3%20guardians%20%C2%B7%2024h%20timelock-15324a)
 
-**[🌐 Trang giới thiệu](https://familyhavenwallet.mscilabs.com/)** · **[↗ Ứng dụng thật](https://familyhaven.mscilabs.com)** · **[▶ Xem trailer 4K](https://www.youtube.com/watch?v=K5jz1tClGng)** · [Demo đầy đủ](https://youtu.be/8LUc_K2RAqY) · **[⚡ Bắt đầu nhanh](#bắt-đầu-nhanh)**
+**[🌐 Trang giới thiệu](https://familyhavenwallet.mscilabs.com/)** · **[↗ Ứng dụng Testnet](https://familyhaven.mscilabs.com)** · **[◆ Bằng chứng Mainnet](https://familyhavenwallet.mscilabs.com/mainnet)** · **[↗ Dữ liệu Testnet](https://familyhavenwallet.mscilabs.com/traction)** · **[▶ Trailer](https://www.youtube.com/watch?v=K5jz1tClGng)** · [Demo](https://youtu.be/8LUc_K2RAqY) · **[⚡ Bắt đầu nhanh](#bắt-đầu-nhanh)**
 
 <a href="https://www.youtube.com/watch?v=K5jz1tClGng">
   <img src="docs/images/familyhaven-trailer.png" alt="Xem trailer Family Haven 4K Introduction" width="1200">
@@ -33,13 +35,57 @@ Kính chào ban giám khảo Stellar - các liên kết phía trên dẫn tới 
 
 </div>
 
-## Hoạt động trên chuỗi
+## Trạng thái on-chain
 
-Quy trình triển khai lõi Mainnet đã được chuẩn bị có thể tái lập nhưng **chưa được thực hiện**; xem [runbook triển khai Mainnet](docs/MAINNET-DEPLOYMENT.md) và [trạng thái bằng chứng hiện tại](docs/MAINNET-EVIDENCE.md). Ứng dụng công khai và toàn bộ tiền người dùng vẫn ở Stellar Testnet.
+| Môi trường | Trạng thái hiện tại | Bằng chứng |
+|---|---|---|
+| **Stellar Mainnet Core** | 5 WASM khớp hash; 4 hợp đồng hạ tầng toàn cục đã triển khai và verified; 9 giao dịch triển khai thành công | [Trang Mainnet](https://familyhavenwallet.mscilabs.com/mainnet) · [Bằng chứng chi tiết](docs/MAINNET-EVIDENCE.md) |
+| **Ứng dụng Stellar Testnet** | Ví passkey hoạt động, thiết lập người bảo hộ, hạn mức chi tiêu, chuyển tiền và khôi phục xã hội | [Dữ liệu Testnet](https://familyhavenwallet.mscilabs.com/traction) · [Mở ứng dụng](https://familyhaven.mscilabs.com) |
 
-Ví gia đình trên Stellar. Passkey thay cụm từ khôi phục; người thân là lớp khôi phục.
+> **Phạm vi triển khai:** Mainnet hiện chỉ chứa phần lõi hợp đồng ở trạng thái chờ triển khai ứng dụng. Ứng dụng công khai, người dùng, ví và tiền hiện tại vẫn ở Testnet.
 
-Hoạt động trên chuỗi, kiểm chứng được - hợp đồng, giao dịch và dữ liệu tải về: **[familyhavenwallet.mscilabs.com/traction](https://familyhavenwallet.mscilabs.com/traction)**
+## Stellar Mainnet Core
+
+> **Đã triển khai và xác minh ngày 04/08/2026.** Đây là traction kỹ thuật về triển khai hợp đồng, không phải số người dùng hoặc TVL Mainnet.
+
+Các hợp đồng Soroban cốt lõi của FamilyHaven đã được triển khai trên Stellar Mainnet. Ứng dụng công khai hiện vẫn hoạt động trên Testnet trong giai đoạn củng cố bảo mật và triển khai production theo từng bước.
+
+Năm artifact WASM đã khóa được tải lên và đối chiếu hash. Bốn hợp đồng hạ tầng toàn cục đã được triển khai và xác minh theo executable hash dự kiến.
+
+### Các hợp đồng toàn cục đã xác minh
+
+| Hợp đồng | Mainnet Contract ID | Vai trò | Trạng thái |
+|---|---|---|---|
+| `origin-verifier` | [`CD2E…GQE7J`](https://stellar.expert/explorer/public/contract/CD2ESBAKCSTPUJANAYZJ5YEOMTK7GMISBRECR2RP2SWL2RSBESAGQE7J) | Xác minh RP ID và application origin được phép cho passkey | Verified |
+| `web-auth` | [`CCKX…RU3RY`](https://stellar.expert/explorer/public/contract/CCKXCJHQ5ZINR4V7H7FTH2G4KI2FNVX4I6LHMMHIFQMKXMFTCAGRU3RY) | Xác minh dữ liệu xác thực web | Verified |
+| `recovery-registry` | [`CDVX…SLJMH`](https://stellar.expert/explorer/public/contract/CDVX3E3PV4TE5HAHSFS4R3YHOB5SLCYU2KQWO5GCZDV2TPQUZ66SLJMH) | Điều phối đăng ký người bảo hộ và khôi phục xã hội | Verified |
+| `spending-limit-policy` | [`CAL3…TK45W`](https://stellar.expert/explorer/public/contract/CAL3TR34D6FY6ZLQNJGHLIX4LUWU277V2CHAVEUL4X2DNOJXMV6TK45W) | Cưỡng chế chính sách hạn mức mỗi giao dịch và tổng chi | Verified |
+
+### Smart Account chỉ ở dạng code
+
+| Hạng mục | Giá trị |
+|---|---|
+| Mainnet WASM hash | `c1b28d42da1b7b091307c9acb0d72b88f45cc29d404b4d3c30bca0250a9d565f` |
+| Mô hình triển khai | Chỉ có mã tái sử dụng; ví riêng được tạo cho từng người dùng khi rollout ứng dụng sau này |
+| Global Contract ID | Không tạo theo thiết kế |
+| Onboarding người dùng Mainnet | Chưa bật |
+| Ví người dùng Mainnet | Không có ví nào được tạo trong đợt triển khai này |
+
+`verifier-ed25519` không bắt buộc và không được triển khai trên Mainnet. SAC XLM native chỉ được derive từ giao thức, không được custom deploy.
+
+### Ảnh chụp triển khai
+
+| Chỉ số | Kết quả |
+|---|---:|
+| Artifact WASM đã khóa hiện diện và khớp | **5/5** |
+| Global contract instance đã triển khai và xác minh | **4/4** |
+| Giao dịch triển khai thành công | **9/9** |
+| Ví người dùng Mainnet đã tạo | **0** |
+| Mainnet TVL | **0** |
+
+Đợt triển khai gồm năm giao dịch tải WASM và bốn giao dịch tạo global instance, tất cả đều SUCCESS. Transaction hash, ledger, executable hash và bằng chứng constructor đầy đủ được công bố trong [MAINNET-EVIDENCE.md](docs/MAINNET-EVIDENCE.md) và tại [trang Mainnet](https://familyhavenwallet.mscilabs.com/mainnet).
+
+Frontend và backend công khai tiếp tục hoạt động trên Stellar Testnet trong giai đoạn củng cố bảo mật và rollout production theo từng bước. “Verified” ở đây là xác minh triển khai và executable hash, không phải kiểm định an ninh độc lập.
 
 ## Chấm trong 60 giây
 
@@ -47,8 +93,8 @@ Hoạt động trên chuỗi, kiểm chứng được - hợp đồng, giao dị
 |---|---|
 | **Vấn đề** | Seed phrase biến việc khôi phục ví thành chuyện giữ một bí mật duy nhất và rất dễ mất. Mất thì có thể bị khóa khỏi ví; chia sẻ thì có thể mất cả ví. |
 | **Giải pháp** | Tài khoản thông minh Stellar dùng passkey, giữ khóa ký trong Secure Enclave hoặc TPM của thiết bị. Từ ba người thân do chủ ví chọn tạo thành đường khôi phục theo ngưỡng, có thời gian chờ 24 giờ và quyền phủ quyết của chủ ví. |
-| **Kết quả** | Chủ ví có thể dùng và khôi phục ví thông minh thật trên Testnet mà không phải lưu hay gõ mười hai từ. Một tiến trình đọc chuỗi khối trực tiếp có thể cảnh báo bên ngoài ứng dụng khi có yêu cầu khôi phục. |
-| **Kiểm soát** | Số người bảo hộ tối thiểu, ngưỡng đồng ý, thời gian chờ, cooldown sau xoay khóa và trần chi tiêu đều được cưỡng chế trên chuỗi. Bản dựng lại công khai của hợp đồng được StellarExpert đối chiếu độc lập. |
+| **Kết quả** | Chủ ví có thể sử dụng và khôi phục ví thông minh thật trên Testnet mà không cần lưu hay nhập mười hai từ. Bộ artifact hợp đồng lõi đã khóa tương ứng hiện đã có trên Mainnet để chuẩn bị cho rollout theo từng bước sau khi củng cố bảo mật. |
+| **Kiểm soát** | Hành vi sản phẩm đã được chứng minh trên Testnet; hạ tầng lõi đã triển khai và đối chiếu hash trên Mainnet. Không tuyên bố luồng sản phẩm Mainnet đã hoạt động. |
 
 ## Luồng demo sản phẩm
 
@@ -184,9 +230,11 @@ Cả hai nhánh đều dẫn tới cùng một nút duyệt. AI chỉ thay đổ
 graph TD
     T["Yêu cầu chuyển tiền hoặc khôi phục"] --> L2["Lớp 2 · QUYẾT ĐỊNH<br/>Chính sách tất định + SQL<br/>mỗi giao dịch · 24 giờ · tần suất · địa chỉ"]
     L2 --> L1["Lớp 1 · CƯỠNG CHẾ<br/>Ngưỡng người bảo hộ on-chain · timelock 24h · trần chi tiêu cứng"]
-    L1 --> S["Stellar Testnet"]
+    L1 --> TN["Stellar Testnet<br/>Runtime hiện tại của ứng dụng công khai"]
     L2 -.->|"chỉ đọc dữ kiện"| L3["Lớp 3 · DIỄN ĐẠT<br/>Mô hình ngôn ngữ tùy chọn"]
     L3 --> U["Câu dễ hiểu + giọng đọc của trình duyệt"]
+    MN["Stellar Mainnet Core<br/>4 hợp đồng toàn cục đã verified<br/>Smart Account chỉ có mã WASM"]
+    MN -.->|"chưa bật rollout production theo từng bước"| TN
 ```
 
 Lớp 1 là nguồn của các giới hạn có thể cưỡng chế, còn Lớp 2 đưa ra quyết định chính sách có thể tái lập từ dữ liệu đã lưu. Lớp 3 nằm trên một nhánh chỉ đọc và không có đường quay lại luồng cấp quyền.
@@ -203,9 +251,9 @@ Lớp 1 là nguồn của các giới hạn có thể cưỡng chế, còn Lớp
 
 ## Bằng chứng, không lời hứa
 
-### Xác minh hợp đồng công khai
+### Xác minh công khai các hợp đồng Testnet
 
-StellarExpert hiện trả về `validation.status = verified` cho cả năm hợp đồng đã triển khai:
+StellarExpert hiện trả về `validation.status = verified` cho cả năm hợp đồng Testnet dưới đây:
 
 | Hợp đồng | ID Stellar Testnet | Trạng thái | Mã nguồn đã xác minh |
 |---|---|---|---|
@@ -291,7 +339,7 @@ be/                 modules: guardians · recovery · intents · notifications �
                     jobs: recovery-watch · indexer · presence · heartbeat · sweeper
 fe/apps/web/        wallet · guardians · protecting · setup wizard · settings
 docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET.md
-                    INHERITANCE.md · SEND-ADDRESSES.md · THREAT-MODEL.md
+                    MAINNET-EVIDENCE.md · INHERITANCE.md · THREAT-MODEL.md
 ```
 
 ## Liên kết bài dự thi
@@ -300,6 +348,8 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | 🌐 Trang dự án | [VíGiaĐình](https://familyhavenwallet.mscilabs.com/) |
 | ↗ Ứng dụng thật | [Mở ứng dụng Testnet](https://familyhaven.mscilabs.com) |
+| ◆ Bằng chứng Mainnet | [Triển khai lõi đã xác minh](https://familyhavenwallet.mscilabs.com/mainnet) |
+| ↗ Dữ liệu Testnet | [Hoạt động sản phẩm on-chain](https://familyhavenwallet.mscilabs.com/traction) |
 | ▶ Trailer | [Family Haven 4K Introduction](https://www.youtube.com/watch?v=K5jz1tClGng) |
 | ▶ Video demo | [FamilyHaven Wallet Demo Video](https://youtu.be/8LUc_K2RAqY) |
 | ⌘ Mã nguồn | [github.com/msci2049-hkt/vigiadinh](https://github.com/msci2049-hkt/vigiadinh) |
@@ -311,10 +361,10 @@ docs/               VERIFY-CONTRACT.md · AUDIT-TINH-NANG.md · evidence/TESTNET
 |---|---|
 | Phiếu đồng ý của người bảo hộ là bản ghi cơ sở dữ liệu, **chưa phải chữ ký on-chain** | Máy chủ bị chiếm có thể giả phiếu. Đã tự phát hiện; đang sửa |
 | Passkey gắn với tên miền | Mất tên miền sẽ mất đường ký hiện tại. Hướng dẫn ký khôi phục bằng CLI đang được viết |
-| **Chưa có kiểm định an ninh độc lập** | Điều kiện bắt buộc trước khi lên mạng chính |
+| **Chưa có kiểm định an ninh độc lập** | Điều kiện bắt buộc trước khi chuyển ứng dụng công khai sang Mainnet |
 | Giao diện chỉ hiển thị và chi XLM | Ví có thể nhận mọi tài sản Stellar ở cấp giao thức; vẫn cần bộ lọc token rác |
 | Luồng chăm sóc khi nằm viện và chia thừa kế theo phần trăm | Thuộc lộ trình; chưa được triển khai |
-| Chỉ Testnet | Chủ ý của bản mẫu; xem ghi chú phạm vi |
+| Ứng dụng công khai vẫn ở Testnet | Lõi Mainnet đang ở trạng thái chờ; chưa chuyển người dùng, ví, tiền, database, worker hoặc indexer |
 
 ## Lộ trình
 
@@ -328,4 +378,4 @@ Theo lộ trình, khi giao dịch vượt ngưỡng cần duyệt, người bả
 
 ---
 
-> **Phạm vi.** Bản mẫu hackathon chạy trên Stellar Testnet. Không dùng tiền thật. Các ngưỡng chính sách chỉ có tính minh họa và người dùng có thể cấu hình. Xác minh hợp đồng chỉ xác nhận mã nguồn đã công bố khớp bytecode on-chain - không phải kiểm định an ninh độc lập. Đây không phải lời khuyên tài chính.
+> **Phạm vi.** Ứng dụng hackathon công khai vẫn chạy trên Stellar Testnet, không có tiền người dùng hoặc hoạt động ví production trên Mainnet. Phần lõi hợp đồng đang chờ đã được triển khai trên Mainnet để rollout theo từng bước. Các ngưỡng chính sách chỉ có tính minh họa và người dùng có thể cấu hình. Xác minh hợp đồng không phải kiểm định an ninh độc lập. Đây không phải lời khuyên tài chính.
